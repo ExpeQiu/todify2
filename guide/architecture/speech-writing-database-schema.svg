@@ -1,0 +1,224 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .table-box { fill: #f8f9fa; stroke: #343a40; stroke-width: 2; }
+      .legacy-table { fill: #fff3cd; stroke: #856404; stroke-width: 2; }
+      .primary-table { fill: #d1ecf1; stroke: #0c5460; stroke-width: 2; }
+      .content-table { fill: #d4edda; stroke: #155724; stroke-width: 2; }
+      .table-title { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #212529; }
+      .field-text { font-family: Arial, sans-serif; font-size: 11px; fill: #495057; }
+      .pk-field { font-weight: bold; fill: #dc3545; }
+      .fk-field { font-style: italic; fill: #007bff; }
+      .relation-line { stroke: #6c757d; stroke-width: 2; fill: none; }
+      .relation-arrow { fill: #6c757d; }
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #212529; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 12px; fill: #6c757d; }
+    </style>
+  </defs>
+  
+  <!-- 标题 -->
+  <text x="600" y="30" class="title" text-anchor="middle">发布会演讲稿模块数据库关系图</text>
+  <text x="600" y="50" class="subtitle" text-anchor="middle">Speech Writing Module Database Schema</text>
+  
+  <!-- 图例 -->
+  <g transform="translate(50, 70)">
+    <rect x="0" y="0" width="15" height="15" class="legacy-table"/>
+    <text x="20" y="12" class="field-text">Legacy Tables (兼容性保留)</text>
+    
+    <rect x="200" y="0" width="15" height="15" class="primary-table"/>
+    <text x="220" y="12" class="field-text">Core Workflow Tables (核心工作流表)</text>
+    
+    <rect x="450" y="0" width="15" height="15" class="content-table"/>
+    <text x="470" y="12" class="field-text">Content &amp; Result Tables (内容结果表)</text>
+  </g>
+  
+  <!-- AnalysisTask (Legacy) -->
+  <g transform="translate(50, 120)">
+    <rect x="0" y="0" width="200" height="180" class="legacy-table"/>
+    <text x="100" y="20" class="table-title" text-anchor="middle">AnalysisTask</text>
+    <text x="100" y="35" class="subtitle" text-anchor="middle">(Legacy - 兼容性保留)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text">originalContext: String</text>
+    <text x="10" y="85" class="field-text">leaderName: String</text>
+    <text x="10" y="100" class="field-text">speechDuration: String</text>
+    <text x="10" y="115" class="field-text">audienceType: String</text>
+    <text x="10" y="130" class="field-text">keyMessage: String</text>
+    <text x="10" y="145" class="field-text">toneStyle: String</text>
+    <text x="10" y="160" class="field-text">status: String</text>
+    <text x="10" y="175" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- AnalysisResult (Legacy) -->
+  <g transform="translate(50, 320)">
+    <rect x="0" y="0" width="200" height="100" class="legacy-table"/>
+    <text x="100" y="20" class="table-title" text-anchor="middle">AnalysisResult</text>
+    <text x="100" y="35" class="subtitle" text-anchor="middle">(Legacy - 兼容性保留)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">resultData: String (JSON)</text>
+  </g>
+  
+  <!-- WorkflowDefinition -->
+  <g transform="translate(350, 120)">
+    <rect x="0" y="0" width="220" height="200" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">WorkflowDefinition</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(工作流定义)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text">name: String</text>
+    <text x="10" y="85" class="field-text">type: String (speech_writing)</text>
+    <text x="10" y="100" class="field-text">difyWorkflowId: String</text>
+    <text x="10" y="115" class="field-text">version: String</text>
+    <text x="10" y="130" class="field-text">isActive: Boolean</text>
+    <text x="10" y="145" class="field-text">description: String</text>
+    <text x="10" y="160" class="field-text">config: String (JSON)</text>
+    <text x="10" y="175" class="field-text">metadata: String (JSON)</text>
+    <text x="10" y="190" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- FieldMapping -->
+  <g transform="translate(350, 340)">
+    <rect x="0" y="0" width="220" height="180" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">FieldMapping</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(字段映射)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">workflowId: String (FK)</text>
+    <text x="10" y="85" class="field-text">frontendField: String</text>
+    <text x="10" y="100" class="field-text">internalField: String</text>
+    <text x="10" y="115" class="field-text">difyField: String</text>
+    <text x="10" y="130" class="field-text">fieldType: String</text>
+    <text x="10" y="145" class="field-text">isRequired: Boolean</text>
+    <text x="10" y="160" class="field-text">label, placeholder, order</text>
+  </g>
+  
+  <!-- Task -->
+  <g transform="translate(650, 120)">
+    <rect x="0" y="0" width="220" height="220" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">Task</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(统一任务表)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">workflowId: String (FK)</text>
+    <text x="10" y="85" class="field-text">workflowType: String</text>
+    <text x="10" y="100" class="field-text">userId: String</text>
+    <text x="10" y="115" class="field-text">inputData: String (JSON)</text>
+    <text x="10" y="130" class="field-text">outputData: String (JSON)</text>
+    <text x="10" y="145" class="field-text">status: String</text>
+    <text x="10" y="160" class="field-text">progress: Float</text>
+    <text x="10" y="175" class="field-text">difyTaskId: String</text>
+    <text x="10" y="190" class="field-text">processingTime: Int</text>
+    <text x="10" y="205" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- TaskResult -->
+  <g transform="translate(650, 360)">
+    <rect x="0" y="0" width="220" height="160" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">TaskResult</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(任务结果)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">nodeId: String</text>
+    <text x="10" y="100" class="field-text">resultType: String</text>
+    <text x="10" y="115" class="field-text">resultData: String (JSON)</text>
+    <text x="10" y="130" class="field-text">dataType: String</text>
+    <text x="10" y="145" class="field-text">createdAt</text>
+  </g>
+  
+  <!-- ContentPage -->
+  <g transform="translate(920, 120)">
+    <rect x="0" y="0" width="220" height="180" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">ContentPage</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(内容页面)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">pageKey: String</text>
+    <text x="10" y="100" class="field-text">pageType: String</text>
+    <text x="10" y="115" class="field-text">title: String</text>
+    <text x="10" y="130" class="field-text">rawContent: String</text>
+    <text x="10" y="145" class="field-text">processedContent: String</text>
+    <text x="10" y="160" class="field-text">contentFormat: String</text>
+  </g>
+  
+  <!-- PageElement -->
+  <g transform="translate(920, 320)">
+    <rect x="0" y="0" width="220" height="140" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">PageElement</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(页面元素)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">pageId: String (FK)</text>
+    <text x="10" y="85" class="field-text">elementType: String</text>
+    <text x="10" y="100" class="field-text">elementData: String (JSON)</text>
+    <text x="10" y="115" class="field-text">visualConfig: String</text>
+    <text x="10" y="130" class="field-text">positionConfig: String</text>
+  </g>
+  
+  <!-- TaskLog -->
+  <g transform="translate(650, 540)">
+    <rect x="0" y="0" width="220" height="120" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">TaskLog</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(任务日志)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">level: String</text>
+    <text x="10" y="100" class="field-text">message: String</text>
+    <text x="10" y="115" class="field-text">timestamp: DateTime</text>
+  </g>
+  
+  <!-- 关系线 -->
+  
+  <!-- AnalysisTask -> AnalysisResult -->
+  <path d="M 150 300 L 150 320" class="relation-line"/>
+  <polygon points="150,320 145,310 155,310" class="relation-arrow"/>
+  
+  <!-- WorkflowDefinition -> FieldMapping -->
+  <path d="M 460 320 L 460 340" class="relation-line"/>
+  <polygon points="460,340 455,330 465,330" class="relation-arrow"/>
+  
+  <!-- WorkflowDefinition -> Task -->
+  <path d="M 570 220 L 650 220" class="relation-line"/>
+  <polygon points="650,220 640,215 640,225" class="relation-arrow"/>
+  
+  <!-- Task -> TaskResult -->
+  <path d="M 760 340 L 760 360" class="relation-line"/>
+  <polygon points="760,360 755,350 765,350" class="relation-arrow"/>
+  
+  <!-- Task -> ContentPage -->
+  <path d="M 870 220 L 920 220" class="relation-line"/>
+  <polygon points="920,220 910,215 910,225" class="relation-arrow"/>
+  
+  <!-- Task -> TaskLog -->
+  <path d="M 760 340 L 760 540" class="relation-line"/>
+  <polygon points="760,540 755,530 765,530" class="relation-arrow"/>
+  
+  <!-- ContentPage -> PageElement -->
+  <path d="M 1030 300 L 1030 320" class="relation-line"/>
+  <polygon points="1030,320 1025,310 1035,310" class="relation-arrow"/>
+  
+  <!-- 关系标签 -->
+  <text x="120" y="315" class="field-text">1:N</text>
+  <text x="430" y="335" class="field-text">1:N</text>
+  <text x="610" y="215" class="field-text">1:N</text>
+  <text x="730" y="355" class="field-text">1:N</text>
+  <text x="895" y="215" class="field-text">1:N</text>
+  <text x="730" y="535" class="field-text">1:N</text>
+  <text x="1000" y="315" class="field-text">1:N</text>
+  
+  <!-- 说明文字 -->
+  <g transform="translate(50, 680)">
+    <text x="0" y="0" class="subtitle">核心数据流：</text>
+    <text x="0" y="20" class="field-text">1. WorkflowDefinition 定义发布会演讲稿工作流配置</text>
+    <text x="0" y="35" class="field-text">2. FieldMapping 管理前端表单字段与Dify工作流参数的映射</text>
+    <text x="0" y="50" class="field-text">3. Task 存储每次演讲稿生成任务的完整信息</text>
+    <text x="0" y="65" class="field-text">4. ContentPage 将Dify输出解析为多个页面（演讲结构、核心信息、互动要点等）</text>
+    <text x="0" y="80" class="field-text">5. PageElement 支持页面内容的图形化展示和可视化配置</text>
+    <text x="0" y="95" class="field-text">6. AnalysisTask/AnalysisResult 保留兼容性，支持旧版本数据访问</text>
+  </g>
+  
+</svg>

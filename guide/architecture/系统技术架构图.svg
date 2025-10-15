@@ -1,0 +1,209 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; fill: #2c3e50; }
+      .layer-title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #34495e; }
+      .component { font-family: Arial, sans-serif; font-size: 12px; fill: #2c3e50; }
+      .small-text { font-family: Arial, sans-serif; font-size: 10px; fill: #7f8c8d; }
+      .frontend { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
+      .service { fill: #e74c3c; stroke: #c0392b; stroke-width: 2; }
+      .backend { fill: #2ecc71; stroke: #27ae60; stroke-width: 2; }
+      .database { fill: #f39c12; stroke: #e67e22; stroke-width: 2; }
+      .external { fill: #9b59b6; stroke: #8e44ad; stroke-width: 2; }
+      .arrow { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .bidirectional { stroke: #34495e; stroke-width: 2; fill: none; marker-end: url(#arrowhead); marker-start: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34495e" />
+    </marker>
+  </defs>
+  
+  <!-- 标题 -->
+  <text x="600" y="30" text-anchor="middle" class="title">Todify 系统技术架构图</text>
+  
+  <!-- 前端层 -->
+  <rect x="50" y="80" width="1100" height="120" fill="#ecf0f1" stroke="#bdc3c7" stroke-width="1" rx="5"/>
+  <text x="70" y="105" class="layer-title">前端层 (Frontend Layer)</text>
+  
+  <!-- React 应用 -->
+  <rect x="80" y="120" width="200" height="60" class="frontend" rx="5"/>
+  <text x="180" y="140" text-anchor="middle" class="component">React 应用</text>
+  <text x="180" y="155" text-anchor="middle" class="small-text">Vite + TypeScript</text>
+  <text x="180" y="170" text-anchor="middle" class="small-text">Tailwind CSS</text>
+  
+  <!-- 页面组件 -->
+  <rect x="320" y="120" width="150" height="60" class="frontend" rx="5"/>
+  <text x="395" y="140" text-anchor="middle" class="component">页面组件</text>
+  <text x="395" y="155" text-anchor="middle" class="small-text">IP挖掘/技术通稿</text>
+  <text x="395" y="170" text-anchor="middle" class="small-text">演讲稿撰写</text>
+  
+  <!-- API 客户端 -->
+  <rect x="500" y="120" width="150" height="60" class="frontend" rx="5"/>
+  <text x="575" y="140" text-anchor="middle" class="component">API 客户端</text>
+  <text x="575" y="155" text-anchor="middle" class="small-text">api-client.ts</text>
+  <text x="575" y="170" text-anchor="middle" class="small-text">HTTP 请求封装</text>
+  
+  <!-- 状态管理 -->
+  <rect x="680" y="120" width="150" height="60" class="frontend" rx="5"/>
+  <text x="755" y="140" text-anchor="middle" class="component">状态管理</text>
+  <text x="755" y="155" text-anchor="middle" class="small-text">Context API</text>
+  <text x="755" y="170" text-anchor="middle" class="small-text">React Hooks</text>
+  
+  <!-- 路由管理 -->
+  <rect x="860" y="120" width="150" height="60" class="frontend" rx="5"/>
+  <text x="935" y="140" text-anchor="middle" class="component">路由管理</text>
+  <text x="935" y="155" text-anchor="middle" class="small-text">React Router</text>
+  <text x="935" y="170" text-anchor="middle" class="small-text">页面导航</text>
+  
+  <!-- 服务层 -->
+  <rect x="50" y="230" width="1100" height="120" fill="#fdf2e9" stroke="#e67e22" stroke-width="1" rx="5"/>
+  <text x="70" y="255" class="layer-title">服务层 (Service Layer)</text>
+  
+  <!-- Express 服务器 -->
+  <rect x="80" y="270" width="180" height="60" class="service" rx="5"/>
+  <text x="170" y="290" text-anchor="middle" class="component">Express 服务器</text>
+  <text x="170" y="305" text-anchor="middle" class="small-text">Node.js + TypeScript</text>
+  <text x="170" y="320" text-anchor="middle" class="small-text">RESTful API</text>
+  
+  <!-- 路由控制器 -->
+  <rect x="290" y="270" width="150" height="60" class="service" rx="5"/>
+  <text x="365" y="290" text-anchor="middle" class="component">路由控制器</text>
+  <text x="365" y="305" text-anchor="middle" class="small-text">workflows.ts</text>
+  <text x="365" y="320" text-anchor="middle" class="small-text">API 端点管理</text>
+  
+  <!-- 工作流服务 -->
+  <rect x="470" y="270" width="150" height="60" class="service" rx="5"/>
+  <text x="545" y="290" text-anchor="middle" class="component">工作流服务</text>
+  <text x="545" y="305" text-anchor="middle" class="small-text">WorkflowService</text>
+  <text x="545" y="320" text-anchor="middle" class="small-text">业务逻辑处理</text>
+  
+  <!-- 字段映射服务 -->
+  <rect x="650" y="270" width="180" height="60" class="service" rx="5"/>
+  <text x="740" y="290" text-anchor="middle" class="component">字段映射服务</text>
+  <text x="740" y="305" text-anchor="middle" class="small-text">FieldMappingService</text>
+  <text x="740" y="320" text-anchor="middle" class="small-text">数据转换验证</text>
+  
+  <!-- 缓存服务 -->
+  <rect x="860" y="270" width="150" height="60" class="service" rx="5"/>
+  <text x="935" y="290" text-anchor="middle" class="component">缓存服务</text>
+  <text x="935" y="305" text-anchor="middle" class="small-text">CacheService</text>
+  <text x="935" y="320" text-anchor="middle" class="small-text">性能优化</text>
+  
+  <!-- 后端层 -->
+  <rect x="50" y="380" width="1100" height="120" fill="#e8f5e8" stroke="#27ae60" stroke-width="1" rx="5"/>
+  <text x="70" y="405" class="layer-title">后端层 (Backend Layer)</text>
+  
+  <!-- Prisma ORM -->
+  <rect x="80" y="420" width="150" height="60" class="backend" rx="5"/>
+  <text x="155" y="440" text-anchor="middle" class="component">Prisma ORM</text>
+  <text x="155" y="455" text-anchor="middle" class="small-text">数据库抽象层</text>
+  <text x="155" y="470" text-anchor="middle" class="small-text">类型安全</text>
+  
+  <!-- 数据模型 -->
+  <rect x="260" y="420" width="150" height="60" class="backend" rx="5"/>
+  <text x="335" y="440" text-anchor="middle" class="component">数据模型</text>
+  <text x="335" y="455" text-anchor="middle" class="small-text">Task/Workflow</text>
+  <text x="335" y="470" text-anchor="middle" class="small-text">FieldMapping</text>
+  
+  <!-- 业务逻辑 -->
+  <rect x="440" y="420" width="150" height="60" class="backend" rx="5"/>
+  <text x="515" y="440" text-anchor="middle" class="component">业务逻辑</text>
+  <text x="515" y="455" text-anchor="middle" class="small-text">任务管理</text>
+  <text x="515" y="470" text-anchor="middle" class="small-text">工作流执行</text>
+  
+  <!-- 验证服务 -->
+  <rect x="620" y="420" width="150" height="60" class="backend" rx="5"/>
+  <text x="695" y="440" text-anchor="middle" class="component">验证服务</text>
+  <text x="695" y="455" text-anchor="middle" class="small-text">数据验证</text>
+  <text x="695" y="470" text-anchor="middle" class="small-text">类型检查</text>
+  
+  <!-- 错误处理 -->
+  <rect x="800" y="420" width="150" height="60" class="backend" rx="5"/>
+  <text x="875" y="440" text-anchor="middle" class="component">错误处理</text>
+  <text x="875" y="455" text-anchor="middle" class="small-text">异常管理</text>
+  <text x="875" y="470" text-anchor="middle" class="small-text">日志记录</text>
+  
+  <!-- 数据库层 -->
+  <rect x="50" y="530" width="550" height="120" fill="#fef9e7" stroke="#f39c12" stroke-width="1" rx="5"/>
+  <text x="70" y="555" class="layer-title">数据库层 (Database Layer)</text>
+  
+  <!-- SQLite 数据库 -->
+  <rect x="80" y="570" width="150" height="60" class="database" rx="5"/>
+  <text x="155" y="590" text-anchor="middle" class="component">SQLite 数据库</text>
+  <text x="155" y="605" text-anchor="middle" class="small-text">production.db</text>
+  <text x="155" y="620" text-anchor="middle" class="small-text">轻量级存储</text>
+  
+  <!-- 数据表 -->
+  <rect x="260" y="570" width="150" height="60" class="database" rx="5"/>
+  <text x="335" y="590" text-anchor="middle" class="component">数据表</text>
+  <text x="335" y="605" text-anchor="middle" class="small-text">tasks/workflows</text>
+  <text x="335" y="620" text-anchor="middle" class="small-text">field_mappings</text>
+  
+  <!-- 索引优化 -->
+  <rect x="440" y="570" width="150" height="60" class="database" rx="5"/>
+  <text x="515" y="590" text-anchor="middle" class="component">索引优化</text>
+  <text x="515" y="605" text-anchor="middle" class="small-text">查询性能</text>
+  <text x="515" y="620" text-anchor="middle" class="small-text">数据完整性</text>
+  
+  <!-- 外部服务层 -->
+  <rect x="650" y="530" width="500" height="120" fill="#f4ecf7" stroke="#8e44ad" stroke-width="1" rx="5"/>
+  <text x="670" y="555" class="layer-title">外部服务层 (External Services)</text>
+  
+  <!-- Dify 平台 -->
+  <rect x="680" y="570" width="150" height="60" class="external" rx="5"/>
+  <text x="755" y="590" text-anchor="middle" class="component">Dify 平台</text>
+  <text x="755" y="605" text-anchor="middle" class="small-text">AI 工作流</text>
+  <text x="755" y="620" text-anchor="middle" class="small-text">LLM 处理</text>
+  
+  <!-- Dify 客户端 -->
+  <rect x="860" y="570" width="150" height="60" class="external" rx="5"/>
+  <text x="935" y="590" text-anchor="middle" class="component">Dify 客户端</text>
+  <text x="935" y="605" text-anchor="middle" class="small-text">API 封装</text>
+  <text x="935" y="620" text-anchor="middle" class="small-text">请求管理</text>
+  
+  <!-- 数据流箭头 -->
+  <!-- 前端到服务层 -->
+  <line x1="575" y1="180" x2="365" y2="270" class="arrow"/>
+  <text x="470" y="220" class="small-text">HTTP 请求</text>
+  
+  <!-- 服务层到后端层 -->
+  <line x1="545" y1="330" x2="515" y2="420" class="arrow"/>
+  <text x="530" y="380" class="small-text">业务调用</text>
+  
+  <!-- 后端层到数据库层 -->
+  <line x1="335" y1="480" x2="335" y2="570" class="arrow"/>
+  <text x="350" y="530" class="small-text">数据操作</text>
+  
+  <!-- 服务层到外部服务 -->
+  <line x1="740" y1="330" x2="755" y2="570" class="arrow"/>
+  <text x="750" y="450" class="small-text">AI 工作流调用</text>
+  
+  <!-- 字段映射服务内部连接 -->
+  <line x1="740" y1="330" x2="695" y2="420" class="arrow"/>
+  <text x="720" y="380" class="small-text">数据验证</text>
+  
+  <!-- 图例 -->
+  <rect x="50" y="680" width="1100" height="80" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1" rx="5"/>
+  <text x="70" y="705" class="layer-title">图例 (Legend)</text>
+  
+  <rect x="80" y="715" width="30" height="20" class="frontend" rx="3"/>
+  <text x="120" y="730" class="small-text">前端层组件</text>
+  
+  <rect x="220" y="715" width="30" height="20" class="service" rx="3"/>
+  <text x="260" y="730" class="small-text">服务层组件</text>
+  
+  <rect x="360" y="715" width="30" height="20" class="backend" rx="3"/>
+  <text x="400" y="730" class="small-text">后端层组件</text>
+  
+  <rect x="500" y="715" width="30" height="20" class="database" rx="3"/>
+  <text x="540" y="730" class="small-text">数据库层组件</text>
+  
+  <rect x="650" y="715" width="30" height="20" class="external" rx="3"/>
+  <text x="690" y="730" class="small-text">外部服务组件</text>
+  
+  <line x1="800" y1="725" x2="850" y2="725" class="arrow"/>
+  <text x="860" y="730" class="small-text">数据流向</text>
+  
+  <!-- 版本信息 -->
+  <text x="1100" y="750" text-anchor="end" class="small-text">版本: v1.0 | 更新时间: 2024-01</text>
+</svg>

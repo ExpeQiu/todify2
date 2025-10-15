@@ -1,0 +1,340 @@
+{
+  "workflowDefinition": {
+    "id": "tech_article_v1",
+    "name": "技术通稿撰写工作流",
+    "type": "TECH_ARTICLE",
+    "difyWorkflowId": "dify_tech_article_workflow_id",
+    "version": "1.0.0",
+    "description": "技术通稿自动撰写工作流，用于生成专业的技术文章和新闻稿",
+    "isActive": true,
+    "config": {
+      "timeout": 300000,
+      "maxRetries": 2,
+      "retryDelay": 5000
+    },
+    "metadata": {
+      "category": "内容创作",
+      "tags": ["技术通稿", "文章撰写", "新闻稿"],
+      "author": "Todify Team",
+      "lastUpdated": "2024-01-15"
+    }
+  },
+  "fieldMappings": [
+    {
+      "frontendField": "techTopic",
+      "internalField": "techTopic",
+      "difyField": "techTopic",
+      "fieldType": "text",
+      "isRequired": true,
+      "label": "技术主题",
+      "placeholder": "请输入技术主题，如：智能驾驶辅助系统",
+      "helpText": "请输入要撰写通稿的技术主题或产品名称",
+      "order": 1,
+      "isVisible": true,
+      "validation": {
+        "minLength": 2,
+        "maxLength": 100,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "vehicleModel",
+      "internalField": "vehicle_model",
+      "difyField": "vehicle_model",
+      "fieldType": "text",
+      "isRequired": false,
+      "label": "车型名称",
+      "placeholder": "请输入相关车型，如：银河L7",
+      "helpText": "如果技术与特定车型相关，请输入车型名称",
+      "order": 2,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 50
+      }
+    },
+    {
+      "frontendField": "techContent",
+      "internalField": "tech_content",
+      "difyField": "tech_content",
+      "fieldType": "textarea",
+      "isRequired": true,
+      "label": "技术内容描述",
+      "placeholder": "请详细描述技术内容、特点、优势等...",
+      "helpText": "请提供详细的技术描述，包括技术原理、功能特点、应用场景等",
+      "order": 3,
+      "isVisible": true,
+      "validation": {
+        "minLength": 20,
+        "maxLength": 5000,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "techPlatform",
+      "internalField": "tech_Plat",
+      "difyField": "tech_Plat",
+      "fieldType": "text",
+      "isRequired": false,
+      "label": "技术平台",
+      "placeholder": "请输入技术平台，如：银河N OS",
+      "helpText": "如果技术基于特定平台，请输入平台名称",
+      "order": 4,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 100
+      }
+    },
+    {
+      "frontendField": "highlightTech",
+      "internalField": "Highlight_tech",
+      "difyField": "Highlight_tech",
+      "fieldType": "textarea",
+      "isRequired": false,
+      "label": "突出技术点",
+      "placeholder": "请列出需要重点突出的技术亮点...",
+      "helpText": "请列出需要在通稿中重点强调的技术特色和亮点",
+      "order": 5,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 2000
+      }
+    },
+    {
+      "frontendField": "associateTech",
+      "internalField": "Associate_tech",
+      "difyField": "Associate_tech",
+      "fieldType": "textarea",
+      "isRequired": false,
+      "label": "关联技术",
+      "placeholder": "请描述相关的配套技术或技术生态...",
+      "helpText": "请描述与主要技术相关的配套技术、技术生态或技术组合",
+      "order": 6,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 2000
+      }
+    }
+  ],
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "workflow_id": {
+        "type": "string",
+        "description": "工作流执行ID"
+      },
+      "elapsed_time": {
+        "type": "number",
+        "description": "执行耗时（秒）"
+      },
+      "total_tokens": {
+        "type": "number",
+        "description": "消耗的token总数"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "outputs": {
+            "type": "object",
+            "properties": {
+              "article_title": {
+                "type": "string",
+                "description": "文章标题"
+              },
+              "article_content": {
+                "type": "string",
+                "description": "文章正文内容"
+              },
+              "key_points": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "关键要点列表"
+              },
+              "technical_highlights": {
+                "type": "string",
+                "description": "技术亮点总结"
+              },
+              "market_positioning": {
+                "type": "string",
+                "description": "市场定位描述"
+              },
+              "competitive_advantages": {
+                "type": "string",
+                "description": "竞争优势分析"
+              },
+              "application_scenarios": {
+                "type": "string",
+                "description": "应用场景描述"
+              },
+              "future_outlook": {
+                "type": "string",
+                "description": "未来展望"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "requiredFields": ["techTopic", "tech_content"],
+    "fieldConstraints": {
+      "techTopic": {
+        "minLength": 2,
+        "maxLength": 100
+      },
+      "tech_content": {
+        "minLength": 20,
+        "maxLength": 5000
+      },
+      "vehicle_model": {
+        "maxLength": 50
+      },
+      "tech_Plat": {
+        "maxLength": 100
+      },
+      "Highlight_tech": {
+        "maxLength": 2000
+      },
+      "Associate_tech": {
+        "maxLength": 2000
+      }
+    },
+    "businessRules": [
+      {
+        "rule": "content_quality",
+        "description": "技术内容应包含足够的技术细节",
+        "validation": "tech_content.length >= 50"
+      },
+      {
+        "rule": "topic_relevance",
+        "description": "技术主题应与技术内容相关",
+        "validation": "techTopic && tech_content"
+      }
+    ]
+  },
+  "templateOptions": {
+    "articleTypes": [
+      {
+        "type": "press_release",
+        "name": "新闻稿",
+        "description": "面向媒体的正式新闻发布稿",
+        "template": "formal_press"
+      },
+      {
+        "type": "tech_article",
+        "name": "技术文章",
+        "description": "深度技术解析文章",
+        "template": "technical_deep_dive"
+      },
+      {
+        "type": "product_intro",
+        "name": "产品介绍",
+        "description": "产品功能和特性介绍",
+        "template": "product_showcase"
+      },
+      {
+        "type": "industry_insight",
+        "name": "行业洞察",
+        "description": "行业趋势和技术分析",
+        "template": "industry_analysis"
+      }
+    ],
+    "toneOptions": [
+      "专业严谨",
+      "通俗易懂",
+      "创新前沿",
+      "权威可信",
+      "亲和友好"
+    ],
+    "targetAudience": [
+      "媒体记者",
+      "行业专家",
+      "技术开发者",
+      "普通消费者",
+      "投资者",
+      "合作伙伴"
+    ]
+  },
+  "uiConfiguration": {
+    "formLayout": "vertical",
+    "fieldGroups": [
+      {
+        "title": "基础信息",
+        "fields": ["techTopic", "vehicle_model", "tech_Plat"]
+      },
+      {
+        "title": "技术内容",
+        "fields": ["tech_content", "Highlight_tech", "Associate_tech"]
+      }
+    ],
+    "advancedOptions": {
+      "showTemplateSelector": true,
+      "showToneSelector": true,
+      "showAudienceSelector": true
+    },
+    "submitButton": {
+      "text": "生成技术通稿",
+      "loadingText": "正在撰写中...",
+      "successText": "通稿生成完成"
+    },
+    "previewOptions": {
+      "enablePreview": true,
+      "previewFormats": ["markdown", "html", "plain_text"]
+    }
+  },
+  "contentStructure": {
+    "sections": [
+      {
+        "name": "headline",
+        "title": "标题",
+        "required": true,
+        "maxLength": 100
+      },
+      {
+        "name": "lead",
+        "title": "导语",
+        "required": true,
+        "maxLength": 300
+      },
+      {
+        "name": "body",
+        "title": "正文",
+        "required": true,
+        "sections": [
+          "技术背景",
+          "核心功能",
+          "技术优势",
+          "应用场景",
+          "市场意义"
+        ]
+      },
+      {
+        "name": "conclusion",
+        "title": "结语",
+        "required": false,
+        "maxLength": 200
+      }
+    ]
+  },
+  "qualityMetrics": {
+    "readabilityScore": {
+      "min": 60,
+      "target": 80
+    },
+    "technicalAccuracy": {
+      "checkTerminology": true,
+      "verifyFacts": true
+    },
+    "contentLength": {
+      "min": 500,
+      "max": 3000,
+      "target": 1200
+    },
+    "keywordDensity": {
+      "primary": 0.02,
+      "secondary": 0.01
+    }
+  }
+}

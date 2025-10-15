@@ -1,0 +1,403 @@
+{
+  "workflowDefinition": {
+    "id": "ip_mining_v1",
+    "name": "IP挖掘工作流",
+    "type": "IP_MINING",
+    "difyWorkflowId": "dify_ip_mining_workflow_id",
+    "version": "1.0.0",
+    "description": "技术IP挖掘和分析工作流，用于分析技术内容并生成IP价值评估",
+    "isActive": true,
+    "config": {
+      "timeout": 300000,
+      "maxRetries": 2,
+      "retryDelay": 5000
+    },
+    "metadata": {
+      "category": "技术分析",
+      "tags": ["IP分析", "技术评估", "市场分析"],
+      "author": "Todify Team",
+      "lastUpdated": "2024-01-15"
+    }
+  },
+  "fieldMappings": [
+    {
+      "frontendField": "techContent",
+      "internalField": "tech_content",
+      "difyField": "tech_content",
+      "fieldType": "textarea",
+      "isRequired": true,
+      "label": "技术内容描述",
+      "placeholder": "请详细描述技术内容、原理和特点...",
+      "helpText": "请提供详细的技术描述，包括技术原理、实现方式、技术特点等",
+      "order": 1,
+      "isVisible": true,
+      "validation": {
+        "minLength": 10,
+        "maxLength": 5000,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "技术描述",
+      "internalField": "tech_content",
+      "difyField": "tech_content",
+      "fieldType": "textarea",
+      "isRequired": true,
+      "label": "技术描述（中文）",
+      "placeholder": "请详细描述技术内容...",
+      "helpText": "技术内容的中文描述",
+      "order": 1,
+      "isVisible": true,
+      "validation": {
+        "minLength": 10,
+        "maxLength": 5000,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "original_context",
+      "internalField": "tech_content",
+      "difyField": "tech_content",
+      "fieldType": "textarea",
+      "isRequired": true,
+      "label": "原始上下文（兼容字段）",
+      "placeholder": "原始技术内容...",
+      "helpText": "兼容旧版本的原始上下文字段",
+      "order": 1,
+      "isVisible": false,
+      "validation": {
+        "minLength": 10,
+        "maxLength": 5000,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "techField",
+      "internalField": "tech_domain",
+      "difyField": "tech_domain",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "智能驾驶",
+      "label": "技术领域",
+      "placeholder": "请选择技术领域",
+      "helpText": "选择技术所属的主要领域",
+      "order": 2,
+      "isVisible": true,
+      "options": [
+        "智能驾驶",
+        "新能源技术",
+        "车联网",
+        "智能座舱",
+        "安全技术",
+        "制造工艺",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["智能驾驶", "新能源技术", "车联网", "智能座舱", "安全技术", "制造工艺", "其他"]
+      }
+    },
+    {
+      "frontendField": "技术领域",
+      "internalField": "tech_domain",
+      "difyField": "tech_domain",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "智能驾驶",
+      "label": "技术领域（中文）",
+      "placeholder": "请选择技术领域",
+      "helpText": "技术领域的中文选择",
+      "order": 2,
+      "isVisible": true,
+      "options": [
+        "智能驾驶",
+        "新能源技术",
+        "车联网",
+        "智能座舱",
+        "安全技术",
+        "制造工艺",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["智能驾驶", "新能源技术", "车联网", "智能座舱", "安全技术", "制造工艺", "其他"]
+      }
+    },
+    {
+      "frontendField": "techMaturity",
+      "internalField": "tech_maturity",
+      "difyField": "tech_maturity",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "技术开发",
+      "label": "技术成熟度",
+      "placeholder": "请选择技术成熟度",
+      "helpText": "评估技术当前的发展阶段",
+      "order": 3,
+      "isVisible": true,
+      "options": [
+        "概念验证",
+        "技术开发",
+        "工程化",
+        "量产应用",
+        "市场成熟"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["概念验证", "技术开发", "工程化", "量产应用", "市场成熟"]
+      }
+    },
+    {
+      "frontendField": "技术成熟度",
+      "internalField": "tech_maturity",
+      "difyField": "tech_maturity",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "技术开发",
+      "label": "技术成熟度（中文）",
+      "placeholder": "请选择技术成熟度",
+      "helpText": "技术成熟度的中文选择",
+      "order": 3,
+      "isVisible": true,
+      "options": [
+        "概念验证",
+        "技术开发",
+        "工程化",
+        "量产应用",
+        "市场成熟"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["概念验证", "技术开发", "工程化", "量产应用", "市场成熟"]
+      }
+    },
+    {
+      "frontendField": "carBrand",
+      "internalField": "brand",
+      "difyField": "brand",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "吉利银河",
+      "label": "汽车品牌",
+      "placeholder": "请选择汽车品牌",
+      "helpText": "选择相关的汽车品牌",
+      "order": 4,
+      "isVisible": true,
+      "options": [
+        "吉利银河",
+        "领克",
+        "极氪",
+        "沃尔沃",
+        "路特斯",
+        "吉利汽车",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["吉利银河", "领克", "极氪", "沃尔沃", "路特斯", "吉利汽车", "其他"]
+      }
+    },
+    {
+      "frontendField": "品牌",
+      "internalField": "brand",
+      "difyField": "brand",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "吉利银河",
+      "label": "汽车品牌（中文）",
+      "placeholder": "请选择汽车品牌",
+      "helpText": "汽车品牌的中文选择",
+      "order": 4,
+      "isVisible": true,
+      "options": [
+        "吉利银河",
+        "领克",
+        "极氪",
+        "沃尔沃",
+        "路特斯",
+        "吉利汽车",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["吉利银河", "领克", "极氪", "沃尔沃", "路特斯", "吉利汽车", "其他"]
+      }
+    },
+    {
+      "frontendField": "targetConsumer",
+      "internalField": "Aim_co",
+      "difyField": "Aim_co",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "家庭用户",
+      "label": "目标消费人群",
+      "placeholder": "请选择目标消费人群",
+      "helpText": "选择技术主要面向的消费群体",
+      "order": 5,
+      "isVisible": true,
+      "options": [
+        "家庭用户",
+        "商务人士",
+        "年轻消费者",
+        "科技爱好者",
+        "环保人士",
+        "豪华车用户",
+        "专业用户",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["家庭用户", "商务人士", "年轻消费者", "科技爱好者", "环保人士", "豪华车用户", "专业用户", "其他"]
+      }
+    },
+    {
+      "frontendField": "目标客户",
+      "internalField": "Aim_co",
+      "difyField": "Aim_co",
+      "fieldType": "select",
+      "isRequired": true,
+      "defaultValue": "家庭用户",
+      "label": "目标消费人群（中文）",
+      "placeholder": "请选择目标消费人群",
+      "helpText": "目标消费人群的中文选择",
+      "order": 5,
+      "isVisible": true,
+      "options": [
+        "家庭用户",
+        "商务人士",
+        "年轻消费者",
+        "科技爱好者",
+        "环保人士",
+        "豪华车用户",
+        "专业用户",
+        "其他"
+      ],
+      "validation": {
+        "required": true,
+        "enum": ["家庭用户", "商务人士", "年轻消费者", "科技爱好者", "环保人士", "豪华车用户", "专业用户", "其他"]
+      }
+    },
+    {
+      "frontendField": "additionalInfo",
+      "internalField": "additional_info",
+      "difyField": "additional_info",
+      "fieldType": "textarea",
+      "isRequired": false,
+      "label": "附加信息",
+      "placeholder": "请提供其他相关信息（可选）...",
+      "helpText": "可以提供其他有助于IP分析的补充信息",
+      "order": 6,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 2000
+      }
+    },
+    {
+      "frontendField": "附加信息",
+      "internalField": "additional_info",
+      "difyField": "additional_info",
+      "fieldType": "textarea",
+      "isRequired": false,
+      "label": "附加信息（中文）",
+      "placeholder": "请提供其他相关信息...",
+      "helpText": "附加信息的中文输入",
+      "order": 6,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 2000
+      }
+    }
+  ],
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "workflow_id": {
+        "type": "string",
+        "description": "工作流执行ID"
+      },
+      "elapsed_time": {
+        "type": "number",
+        "description": "执行耗时（秒）"
+      },
+      "total_tokens": {
+        "type": "number",
+        "description": "消耗的token总数"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "outputs": {
+            "type": "object",
+            "properties": {
+              "ip_analysis": {
+                "type": "string",
+                "description": "IP分析结果"
+              },
+              "market_potential": {
+                "type": "string",
+                "description": "市场潜力评估"
+              },
+              "competitive_advantage": {
+                "type": "string",
+                "description": "竞争优势分析"
+              },
+              "implementation_strategy": {
+                "type": "string",
+                "description": "实施策略建议"
+              },
+              "risk_assessment": {
+                "type": "string",
+                "description": "风险评估"
+              },
+              "value_proposition": {
+                "type": "string",
+                "description": "价值主张"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "requiredFields": ["tech_content", "tech_domain", "tech_maturity", "brand", "Aim_co"],
+    "fieldConstraints": {
+      "tech_content": {
+        "minLength": 10,
+        "maxLength": 5000
+      },
+      "additional_info": {
+        "maxLength": 2000
+      }
+    },
+    "businessRules": [
+      {
+        "rule": "tech_content_quality",
+        "description": "技术内容应包含足够的技术细节",
+        "validation": "length >= 50"
+      }
+    ]
+  },
+  "uiConfiguration": {
+    "formLayout": "vertical",
+    "fieldGroups": [
+      {
+        "title": "基础信息",
+        "fields": ["tech_content", "tech_domain", "tech_maturity"]
+      },
+      {
+        "title": "市场信息",
+        "fields": ["brand", "Aim_co"]
+      },
+      {
+        "title": "补充信息",
+        "fields": ["additional_info"]
+      }
+    ],
+    "submitButton": {
+      "text": "开始IP分析",
+      "loadingText": "正在分析中...",
+      "successText": "分析完成"
+    }
+  }
+}

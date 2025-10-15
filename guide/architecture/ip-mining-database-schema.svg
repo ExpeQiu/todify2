@@ -1,0 +1,250 @@
+<svg width="1200" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .table-box { fill: #f8f9fa; stroke: #343a40; stroke-width: 2; }
+      .legacy-table { fill: #fff3cd; stroke: #856404; stroke-width: 2; }
+      .primary-table { fill: #d1ecf1; stroke: #0c5460; stroke-width: 2; }
+      .content-table { fill: #d4edda; stroke: #155724; stroke-width: 2; }
+      .mining-table { fill: #f8d7da; stroke: #721c24; stroke-width: 2; }
+      .table-title { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #212529; }
+      .field-text { font-family: Arial, sans-serif; font-size: 11px; fill: #495057; }
+      .pk-field { font-weight: bold; fill: #dc3545; }
+      .fk-field { font-style: italic; fill: #007bff; }
+      .relation-line { stroke: #6c757d; stroke-width: 2; fill: none; }
+      .relation-arrow { fill: #6c757d; }
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #212529; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 12px; fill: #6c757d; }
+    </style>
+  </defs>
+  
+  <!-- 标题 -->
+  <text x="600" y="30" class="title" text-anchor="middle">技术IP挖掘模块数据库关系图</text>
+  <text x="600" y="50" class="subtitle" text-anchor="middle">IP Mining Module Database Schema</text>
+  
+  <!-- 图例 -->
+  <g transform="translate(50, 70)">
+    <rect x="0" y="0" width="15" height="15" class="legacy-table"/>
+    <text x="20" y="12" class="field-text">Legacy Tables (兼容性保留)</text>
+    
+    <rect x="200" y="0" width="15" height="15" class="primary-table"/>
+    <text x="220" y="12" class="field-text">Core Workflow Tables (核心工作流表)</text>
+    
+    <rect x="450" y="0" width="15" height="15" class="content-table"/>
+    <text x="470" y="12" class="field-text">Content &amp; Result Tables (内容结果表)</text>
+    
+    <rect x="700" y="0" width="15" height="15" class="mining-table"/>
+    <text x="720" y="12" class="field-text">IP Mining Specific (IP挖掘专用表)</text>
+  </g>
+  
+  <!-- AnalysisTask (Legacy) -->
+  <g transform="translate(50, 120)">
+    <rect x="0" y="0" width="200" height="160" class="legacy-table"/>
+    <text x="100" y="20" class="table-title" text-anchor="middle">AnalysisTask</text>
+    <text x="100" y="35" class="subtitle" text-anchor="middle">(Legacy - 兼容性保留)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text">originalContext: String</text>
+    <text x="10" y="85" class="field-text">companyName: String</text>
+    <text x="10" y="100" class="field-text">technologyArea: String</text>
+    <text x="10" y="115" class="field-text">targetGroup: String</text>
+    <text x="10" y="130" class="field-text">status: String</text>
+    <text x="10" y="145" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- AnalysisResult (Legacy) -->
+  <g transform="translate(50, 300)">
+    <rect x="0" y="0" width="200" height="100" class="legacy-table"/>
+    <text x="100" y="20" class="table-title" text-anchor="middle">AnalysisResult</text>
+    <text x="100" y="35" class="subtitle" text-anchor="middle">(Legacy - 兼容性保留)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">resultData: String (JSON)</text>
+  </g>
+  
+  <!-- WorkflowDefinition -->
+  <g transform="translate(320, 120)">
+    <rect x="0" y="0" width="220" height="200" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">WorkflowDefinition</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(工作流定义)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text">name: String</text>
+    <text x="10" y="85" class="field-text">type: String (ip_mining)</text>
+    <text x="10" y="100" class="field-text">difyWorkflowId: String</text>
+    <text x="10" y="115" class="field-text">version: String</text>
+    <text x="10" y="130" class="field-text">isActive: Boolean</text>
+    <text x="10" y="145" class="field-text">outputStructure: String</text>
+    <text x="10" y="160" class="field-text">pageConfig: String</text>
+    <text x="10" y="175" class="field-text">config: String (JSON)</text>
+    <text x="10" y="190" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- FieldMapping -->
+  <g transform="translate(320, 340)">
+    <rect x="0" y="0" width="220" height="180" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">FieldMapping</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(字段映射)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">workflowId: String (FK)</text>
+    <text x="10" y="85" class="field-text">frontendField: String</text>
+    <text x="10" y="100" class="field-text">internalField: String</text>
+    <text x="10" y="115" class="field-text">difyField: String</text>
+    <text x="10" y="130" class="field-text">fieldType: String</text>
+    <text x="10" y="145" class="field-text">isRequired: Boolean</text>
+    <text x="10" y="160" class="field-text">label, placeholder, order</text>
+  </g>
+  
+  <!-- Task -->
+  <g transform="translate(600, 120)">
+    <rect x="0" y="0" width="220" height="220" class="primary-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">Task</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(统一任务表)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">workflowId: String (FK)</text>
+    <text x="10" y="85" class="field-text">workflowType: String</text>
+    <text x="10" y="100" class="field-text">userId: String</text>
+    <text x="10" y="115" class="field-text">inputData: String (JSON)</text>
+    <text x="10" y="130" class="field-text">outputData: String (JSON)</text>
+    <text x="10" y="145" class="field-text">status: String</text>
+    <text x="10" y="160" class="field-text">progress: Float</text>
+    <text x="10" y="175" class="field-text">difyTaskId: String</text>
+    <text x="10" y="190" class="field-text">processingTime: Int</text>
+    <text x="10" y="205" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- TaskResult -->
+  <g transform="translate(600, 360)">
+    <rect x="0" y="0" width="220" height="160" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">TaskResult</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(任务结果)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">nodeId: String</text>
+    <text x="10" y="100" class="field-text">resultType: String</text>
+    <text x="10" y="115" class="field-text">resultData: String (JSON)</text>
+    <text x="10" y="130" class="field-text">dataType: String</text>
+    <text x="10" y="145" class="field-text">createdAt</text>
+  </g>
+  
+  <!-- ContentPage (IP Mining特化) -->
+  <g transform="translate(870, 120)">
+    <rect x="0" y="0" width="250" height="220" class="content-table"/>
+    <text x="125" y="20" class="table-title" text-anchor="middle">ContentPage</text>
+    <text x="125" y="35" class="subtitle" text-anchor="middle">(IP挖掘内容页面)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">pageKey: String (text1-text10)</text>
+    <text x="10" y="100" class="field-text">pageType: String</text>
+    <text x="10" y="115" class="field-text">title: String</text>
+    <text x="10" y="130" class="field-text">rawContent: String</text>
+    <text x="10" y="145" class="field-text">processedContent: String</text>
+    <text x="10" y="160" class="field-text">contentFormat: String</text>
+    <text x="10" y="175" class="field-text">isActive: Boolean</text>
+    <text x="10" y="190" class="field-text">metadata: String (JSON)</text>
+    <text x="10" y="205" class="field-text">createdAt, updatedAt</text>
+  </g>
+  
+  <!-- PageElement -->
+  <g transform="translate(870, 360)">
+    <rect x="0" y="0" width="250" height="140" class="content-table"/>
+    <text x="125" y="20" class="table-title" text-anchor="middle">PageElement</text>
+    <text x="125" y="35" class="subtitle" text-anchor="middle">(页面元素)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">pageId: String (FK)</text>
+    <text x="10" y="85" class="field-text">elementType: String</text>
+    <text x="10" y="100" class="field-text">elementData: String (JSON)</text>
+    <text x="10" y="115" class="field-text">visualConfig: String</text>
+    <text x="10" y="130" class="field-text">positionConfig: String</text>
+  </g>
+  
+  <!-- TaskLog -->
+  <g transform="translate(600, 540)">
+    <rect x="0" y="0" width="220" height="120" class="content-table"/>
+    <text x="110" y="20" class="table-title" text-anchor="middle">TaskLog</text>
+    <text x="110" y="35" class="subtitle" text-anchor="middle">(任务日志)</text>
+    
+    <text x="10" y="55" class="field-text pk-field">id: String (PK)</text>
+    <text x="10" y="70" class="field-text fk-field">taskId: String (FK)</text>
+    <text x="10" y="85" class="field-text">level: String</text>
+    <text x="10" y="100" class="field-text">message: String</text>
+    <text x="10" y="115" class="field-text">timestamp: DateTime</text>
+  </g>
+  
+  <!-- IP挖掘专用页面类型配置表 -->
+  <g transform="translate(50, 540)">
+    <rect x="0" y="0" width="280" height="300" class="mining-table"/>
+    <text x="140" y="20" class="table-title" text-anchor="middle">IP Mining Page Types</text>
+    <text x="140" y="35" class="subtitle" text-anchor="middle">(IP挖掘页面类型配置)</text>
+    
+    <text x="10" y="60" class="field-text">text1 → analysis (用户洞察分析)</text>
+    <text x="10" y="80" class="field-text">text2 → technical_analysis (核心技术原理)</text>
+    <text x="10" y="100" class="field-text">text3 → communication_strategy (传播策略)</text>
+    <text x="10" y="120" class="field-text">text4 → concept_innovation (概念创新)</text>
+    <text x="10" y="140" class="field-text">text5 → life_scenarios (生活场景联系)</text>
+    <text x="10" y="160" class="field-text">text6 → scenario_expression (场景化表达)</text>
+    <text x="10" y="180" class="field-text">text7 → metaphor_expression (比喻式表达)</text>
+    <text x="10" y="200" class="field-text">text8 → golden_quotes (金句表达)</text>
+    <text x="10" y="220" class="field-text">text9 → risk_assessment (风险评估)</text>
+    <text x="10" y="240" class="field-text">text10 → future_outlook (未来展望)</text>
+    
+    <text x="10" y="270" class="subtitle">支持图表展示、用户画像、技术分析等</text>
+    <text x="10" y="285" class="subtitle">多维度可视化内容呈现</text>
+  </g>
+  
+  <!-- 关系线 -->
+  
+  <!-- AnalysisTask -> AnalysisResult -->
+  <path d="M 150 280 L 150 300" class="relation-line"/>
+  <polygon points="150,300 145,290 155,290" class="relation-arrow"/>
+  
+  <!-- WorkflowDefinition -> FieldMapping -->
+  <path d="M 430 320 L 430 340" class="relation-line"/>
+  <polygon points="430,340 425,330 435,330" class="relation-arrow"/>
+  
+  <!-- WorkflowDefinition -> Task -->
+  <path d="M 540 220 L 600 220" class="relation-line"/>
+  <polygon points="600,220 590,215 590,225" class="relation-arrow"/>
+  
+  <!-- Task -> TaskResult -->
+  <path d="M 710 340 L 710 360" class="relation-line"/>
+  <polygon points="710,360 705,350 715,350" class="relation-arrow"/>
+  
+  <!-- Task -> ContentPage -->
+  <path d="M 820 220 L 870 220" class="relation-line"/>
+  <polygon points="870,220 860,215 860,225" class="relation-arrow"/>
+  
+  <!-- Task -> TaskLog -->
+  <path d="M 710 340 L 710 540" class="relation-line"/>
+  <polygon points="710,540 705,530 715,530" class="relation-arrow"/>
+  
+  <!-- ContentPage -> PageElement -->
+  <path d="M 995 340 L 995 360" class="relation-line"/>
+  <polygon points="995,360 990,350 1000,350" class="relation-arrow"/>
+  
+  <!-- 关系标签 -->
+  <text x="120" y="295" class="field-text">1:N</text>
+  <text x="400" y="335" class="field-text">1:N</text>
+  <text x="570" y="215" class="field-text">1:N</text>
+  <text x="680" y="355" class="field-text">1:N</text>
+  <text x="845" y="215" class="field-text">1:N</text>
+  <text x="680" y="535" class="field-text">1:N</text>
+  <text x="965" y="355" class="field-text">1:N</text>
+  
+  <!-- 说明文字 -->
+  <g transform="translate(350, 720)">
+    <text x="0" y="0" class="subtitle">IP挖掘模块核心特性：</text>
+    <text x="0" y="20" class="field-text">1. 支持10个维度的技术分析输出 (text1-text10)</text>
+    <text x="0" y="35" class="field-text">2. 统一的工作流架构，与发布会演讲稿模块共享核心表结构</text>
+    <text x="0" y="50" class="field-text">3. ContentPage表特化支持IP挖掘的多维度分析结果</text>
+    <text x="0" y="65" class="field-text">4. 支持用户画像、技术分析、风险评估等专业内容类型</text>
+    <text x="0" y="80" class="field-text">5. PageElement支持图表、指标、可视化元素的灵活配置</text>
+    <text x="0" y="95" class="field-text">6. 保留AnalysisTask/AnalysisResult兼容性，支持数据迁移</text>
+  </g>
+  
+</svg>

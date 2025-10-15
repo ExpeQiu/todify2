@@ -1,0 +1,390 @@
+{
+  "workflowDefinition": {
+    "id": "speech_writing_v1",
+    "name": "发布会演讲稿撰写工作流",
+    "type": "SPEECH_WRITING",
+    "difyWorkflowId": "dify_speech_writing_workflow_id",
+    "version": "1.0.0",
+    "description": "发布会演讲稿撰写工作流，用于生成专业的发布会演讲稿和致辞",
+    "isActive": true,
+    "config": {
+      "timeout": 300000,
+      "maxRetries": 2,
+      "retryDelay": 5000
+    },
+    "metadata": {
+      "category": "内容创作",
+      "tags": ["演讲稿", "发布会", "致辞撰写"],
+      "author": "Todify Team",
+      "lastUpdated": "2024-01-15"
+    }
+  },
+  "fieldMappings": [
+    {
+      "frontendField": "originalContext",
+      "internalField": "original_context",
+      "difyField": "original_context",
+      "fieldType": "textarea",
+      "isRequired": true,
+      "label": "技术传播核心稿",
+      "placeholder": "请输入技术传播核心内容，包括产品技术亮点、创新特性、核心卖点等信息...",
+      "helpText": "请提供发布会的技术传播核心内容，包括产品技术亮点、创新特性等",
+      "order": 1,
+      "isVisible": true,
+      "validation": {
+        "minLength": 20,
+        "maxLength": 50000,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "leaderName",
+      "internalField": "leader_name",
+      "difyField": "leader_name",
+      "fieldType": "text",
+      "isRequired": true,
+      "label": "领导姓名",
+      "placeholder": "请输入演讲者姓名，如：李总",
+      "helpText": "请输入将要发表演讲的领导或嘉宾姓名",
+      "order": 2,
+      "isVisible": true,
+      "validation": {
+        "minLength": 2,
+        "maxLength": 50,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "speechDuration",
+      "internalField": "speech_duration",
+      "difyField": "speech_duration",
+      "fieldType": "text",
+      "isRequired": true,
+      "defaultValue": "20分钟",
+      "label": "演讲时长",
+      "placeholder": "请输入演讲时长（如：10分钟、20分钟、30分钟等）",
+      "helpText": "请输入预期的演讲时长，将影响内容的详细程度",
+      "order": 3,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 48,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "audienceType",
+      "internalField": "audience_type",
+      "difyField": "audience_type",
+      "fieldType": "text",
+      "isRequired": true,
+      "defaultValue": "媒体记者",
+      "label": "受众类型",
+      "placeholder": "请输入主要受众类型（如：媒体记者、经销商、终端消费者等）",
+      "helpText": "请输入发布会的主要受众群体，将影响演讲的语言风格和内容重点",
+      "order": 4,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 48,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "publishType",
+      "internalField": "publish",
+      "difyField": "publish",
+      "fieldType": "text",
+      "isRequired": true,
+      "defaultValue": "新产品发布会",
+      "label": "发布会类型",
+      "placeholder": "请输入发布会类型（如：新产品发布会、新技术发布会等）",
+      "helpText": "请输入发布会的类型，将影响演讲的结构和重点",
+      "order": 5,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 48,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "carBrand",
+      "internalField": "car_brand",
+      "difyField": "car_brand",
+      "fieldType": "text",
+      "isRequired": true,
+      "label": "汽车品牌",
+      "placeholder": "请输入汽车品牌名称（如：吉利银河、领克、极氪等）",
+      "helpText": "请输入发布会相关的汽车品牌名称",
+      "order": 6,
+      "isVisible": true,
+      "validation": {
+        "minLength": 2,
+        "maxLength": 48,
+        "required": true
+      }
+    },
+    {
+      "frontendField": "keyTechnology",
+      "internalField": "key_tech",
+      "difyField": "key_tech",
+      "fieldType": "textarea",
+      "isRequired": false,
+      "label": "关键技术传播方向",
+      "placeholder": "请描述本次发布会重点传播的技术方向和核心卖点...",
+      "helpText": "请描述本次发布会重点传播的技术方向、核心卖点和创新亮点",
+      "order": 7,
+      "isVisible": true,
+      "validation": {
+        "maxLength": 300,
+        "required": true
+      }
+    }
+  ],
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "workflow_id": {
+        "type": "string",
+        "description": "工作流执行ID"
+      },
+      "elapsed_time": {
+        "type": "number",
+        "description": "执行耗时（秒）"
+      },
+      "total_tokens": {
+        "type": "number",
+        "description": "消耗的token总数"
+      },
+      "data": {
+        "type": "object",
+        "properties": {
+          "outputs": {
+            "type": "object",
+            "properties": {
+              "text1": {
+                "type": "string",
+                "description": "技术卖点内容 - 基于技术传播稿构建的核心卖点"
+              },
+              "text2": {
+                "type": "string",
+                "description": "用户价值内容 - 痛点引入、场景包装和价值升华"
+              },
+              "text3": {
+                "type": "string",
+                "description": "风格化重写内容 - 基于领导风格的个性化表达"
+              },
+              "text4": {
+                "type": "string",
+                "description": "演讲稿初稿 - 整合完整的发布会演讲稿"
+              },
+              "text5": {
+                "type": "string",
+                "description": "质量评估报告 - 技术一致性和表达质量评估"
+              },
+              "text6": {
+                "type": "string",
+                "description": "最终发布稿 - 经过质量评估优化的最终演讲稿"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "requiredFields": ["original_context", "leader_name"],
+    "fieldConstraints": {
+      "original_context": {
+        "minLength": 20,
+        "maxLength": 5000
+      },
+      "leader_name": {
+        "minLength": 2,
+        "maxLength": 50
+      },
+      "key_tech": {
+        "maxLength": 2000
+      }
+    },
+    "businessRules": [
+      {
+        "rule": "content_completeness",
+        "description": "原始内容应包含足够的信息用于演讲稿撰写",
+        "validation": "original_context.length >= 50"
+      },
+      {
+        "rule": "speaker_identification",
+        "description": "必须指定演讲者姓名",
+        "validation": "leader_name && leader_name.trim().length > 0"
+      }
+    ]
+  },
+  "speechStructure": {
+    "sections": [
+      {
+        "name": "opening",
+        "title": "开场白",
+        "description": "欢迎致辞、自我介绍、背景铺垫",
+        "duration": "10-15%",
+        "keyElements": ["问候听众", "介绍背景", "引出主题"]
+      },
+      {
+        "name": "main_content_1",
+        "title": "主体内容1",
+        "description": "核心产品或技术介绍",
+        "duration": "25-30%",
+        "keyElements": ["产品概述", "核心功能", "技术特点"]
+      },
+      {
+        "name": "main_content_2",
+        "title": "主体内容2",
+        "description": "技术优势和创新点",
+        "duration": "25-30%",
+        "keyElements": ["技术优势", "创新亮点", "差异化特色"]
+      },
+      {
+        "name": "main_content_3",
+        "title": "主体内容3",
+        "description": "市场意义和用户价值",
+        "duration": "20-25%",
+        "keyElements": ["市场价值", "用户收益", "行业影响"]
+      },
+      {
+        "name": "summary",
+        "title": "总结",
+        "description": "核心要点回顾和未来展望",
+        "duration": "10-15%",
+        "keyElements": ["要点回顾", "未来规划", "愿景展望"]
+      },
+      {
+        "name": "closing",
+        "title": "结束语",
+        "description": "感谢致辞和互动邀请",
+        "duration": "5-10%",
+        "keyElements": ["感谢听众", "邀请互动", "联系方式"]
+      }
+    ]
+  },
+  "styleOptions": {
+    "tones": [
+      {
+        "name": "formal",
+        "label": "正式严谨",
+        "description": "适用于重要发布会和官方场合"
+      },
+      {
+        "name": "friendly",
+        "label": "亲和友好",
+        "description": "适用于面向消费者的产品发布"
+      },
+      {
+        "name": "innovative",
+        "label": "创新前沿",
+        "description": "适用于技术创新和前沿产品发布"
+      },
+      {
+        "name": "inspiring",
+        "label": "激励鼓舞",
+        "description": "适用于战略发布和愿景分享"
+      }
+    ],
+    "languages": [
+      {
+        "code": "zh-CN",
+        "name": "简体中文",
+        "default": true
+      },
+      {
+        "code": "en-US",
+        "name": "English"
+      }
+    ]
+  },
+  "uiConfiguration": {
+    "formLayout": "vertical",
+    "fieldGroups": [
+      {
+        "title": "基础信息",
+        "fields": ["original_context", "leader_name"]
+      },
+      {
+        "title": "发布会设置",
+        "fields": ["speech_duration", "audience_type", "publish", "car_brand"]
+      },
+      {
+        "title": "内容重点",
+        "fields": ["key_tech"]
+      }
+    ],
+    "advancedOptions": {
+      "showToneSelector": true,
+      "showLanguageSelector": true,
+      "showStructurePreview": true
+    },
+    "submitButton": {
+      "text": "生成演讲稿",
+      "loadingText": "正在撰写演讲稿...",
+      "successText": "演讲稿生成完成"
+    },
+    "outputDisplay": {
+      "showSectionTabs": true,
+      "enableEdit": true,
+      "showWordCount": true,
+      "showTimeEstimate": true
+    }
+  },
+  "qualityMetrics": {
+    "speechLength": {
+      "wordsPerMinute": 150,
+      "targetRanges": {
+        "3分钟": {"min": 400, "max": 500},
+        "5分钟": {"min": 700, "max": 800},
+        "8分钟": {"min": 1100, "max": 1300},
+        "10分钟": {"min": 1400, "max": 1600},
+        "15分钟": {"min": 2100, "max": 2400},
+        "20分钟": {"min": 2800, "max": 3200},
+        "30分钟": {"min": 4200, "max": 4800}
+      }
+    },
+    "contentQuality": {
+      "coherence": "检查逻辑连贯性",
+      "engagement": "评估听众参与度",
+      "clarity": "确保表达清晰",
+      "persuasiveness": "评估说服力"
+    },
+    "structureBalance": {
+      "opening": {"min": 0.1, "max": 0.15},
+      "main_content": {"min": 0.65, "max": 0.75},
+      "closing": {"min": 0.1, "max": 0.15}
+    }
+  },
+  "exportOptions": {
+    "formats": [
+      {
+        "type": "markdown",
+        "name": "Markdown",
+        "extension": ".md"
+      },
+      {
+        "type": "docx",
+        "name": "Word文档",
+        "extension": ".docx"
+      },
+      {
+        "type": "pdf",
+        "name": "PDF",
+        "extension": ".pdf"
+      },
+      {
+        "type": "txt",
+        "name": "纯文本",
+        "extension": ".txt"
+      }
+    ],
+    "templates": [
+      "标准演讲稿模板",
+      "发布会专用模板",
+      "技术展示模板",
+      "品牌宣传模板"
+    ]
+  }
+}
