@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Save, Download, Edit3, Bold, Italic, Underline, List, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { InlineLoading } from './LoadingSpinner';
 import './DocumentEditor.css';
 
 interface DocumentEditorProps {
@@ -75,7 +76,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
         <div className="editor-actions">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`action-btn ${isEditing ? 'active' : ''}`}
+            className={`btn btn-secondary btn-sm ${isEditing ? 'btn-active' : ''}`}
             title="编辑模式"
           >
             <Edit3 size={16} />
@@ -84,20 +85,28 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="action-btn save-btn"
+            className={`btn btn-primary btn-sm ${isSaving ? 'btn-loading' : ''}`}
             title="保存文档"
           >
-            <Save size={16} />
-            {isSaving ? '保存中...' : '保存'}
+            {isSaving ? <InlineLoading size="sm" text="保存中..." /> : (
+              <>
+                <Save size={16} />
+                保存
+              </>
+            )}
           </button>
           <button
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="action-btn export-btn"
+            className={`btn btn-success btn-sm ${isExporting ? 'btn-loading' : ''}`}
             title="导出PDF"
           >
-            <Download size={16} />
-            {isExporting ? '导出中...' : '导出PDF'}
+            {isExporting ? <InlineLoading size="sm" text="导出中..." /> : (
+              <>
+                <Download size={16} />
+                导出PDF
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -107,21 +116,21 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           <div className="toolbar-group">
             <button
               onClick={() => formatText('bold')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="粗体"
             >
               <Bold size={14} />
             </button>
             <button
               onClick={() => formatText('italic')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="斜体"
             >
               <Italic size={14} />
             </button>
             <button
               onClick={() => formatText('underline')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="下划线"
             >
               <Underline size={14} />
@@ -131,21 +140,21 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           <div className="toolbar-group">
             <button
               onClick={() => formatText('justifyLeft')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="左对齐"
             >
               <AlignLeft size={14} />
             </button>
             <button
               onClick={() => formatText('justifyCenter')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="居中对齐"
             >
               <AlignCenter size={14} />
             </button>
             <button
               onClick={() => formatText('justifyRight')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="右对齐"
             >
               <AlignRight size={14} />
@@ -155,14 +164,14 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
           <div className="toolbar-group">
             <button
               onClick={() => formatText('insertUnorderedList')}
-              className="toolbar-btn"
+              className="btn btn-ghost btn-xs"
               title="无序列表"
             >
               <List size={14} />
             </button>
             <select
               onChange={(e) => formatText('formatBlock', e.target.value)}
-              className="toolbar-select"
+              className="input input-sm"
               defaultValue=""
             >
               <option value="">段落格式</option>

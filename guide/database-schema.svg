@@ -1,0 +1,179 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .table-box { fill: #f8f9fa; stroke: #343a40; stroke-width: 2; }
+      .table-header { fill: #007bff; }
+      .table-title { fill: white; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; }
+      .field-text { fill: #343a40; font-family: Arial, sans-serif; font-size: 11px; }
+      .pk-field { fill: #dc3545; font-weight: bold; }
+      .fk-field { fill: #28a745; }
+      .relation-line { stroke: #6c757d; stroke-width: 2; fill: none; }
+      .relation-arrow { fill: #6c757d; }
+    </style>
+  </defs>
+  
+  <!-- 技术分类表 -->
+  <g id="tech_categories">
+    <rect class="table-box" x="50" y="50" width="200" height="120"/>
+    <rect class="table-header" x="50" y="50" width="200" height="25"/>
+    <text class="table-title" x="150" y="67" text-anchor="middle">tech_categories</text>
+    <text class="field-text pk-field" x="60" y="85">id (PK)</text>
+    <text class="field-text" x="60" y="100">name</text>
+    <text class="field-text" x="60" y="115">description</text>
+    <text class="field-text fk-field" x="60" y="130">parent_id (FK)</text>
+    <text class="field-text" x="60" y="145">sort_order</text>
+    <text class="field-text" x="60" y="160">is_active</text>
+  </g>
+  
+  <!-- 车型车系表 -->
+  <g id="car_models">
+    <rect class="table-box" x="300" y="50" width="200" height="140"/>
+    <rect class="table-header" x="300" y="50" width="200" height="25"/>
+    <text class="table-title" x="400" y="67" text-anchor="middle">car_models</text>
+    <text class="field-text pk-field" x="310" y="85">id (PK)</text>
+    <text class="field-text" x="310" y="100">brand</text>
+    <text class="field-text" x="310" y="115">series</text>
+    <text class="field-text" x="310" y="130">model</text>
+    <text class="field-text" x="310" y="145">year_start</text>
+    <text class="field-text" x="310" y="160">year_end</text>
+    <text class="field-text" x="310" y="175">is_active</text>
+  </g>
+  
+  <!-- 技术点表 -->
+  <g id="tech_points">
+    <rect class="table-box" x="50" y="220" width="200" height="160"/>
+    <rect class="table-header" x="50" y="220" width="200" height="25"/>
+    <text class="table-title" x="150" y="237" text-anchor="middle">tech_points</text>
+    <text class="field-text pk-field" x="60" y="255">id (PK)</text>
+    <text class="field-text" x="60" y="270">name</text>
+    <text class="field-text" x="60" y="285">description</text>
+    <text class="field-text fk-field" x="60" y="300">tech_category_id (FK)</text>
+    <text class="field-text fk-field" x="60" y="315">parent_id (FK)</text>
+    <text class="field-text" x="60" y="330">difficulty_level</text>
+    <text class="field-text" x="60" y="345">maturity_level</text>
+    <text class="field-text" x="60" y="360">priority</text>
+  </g>
+  
+  <!-- 技术点与车型关联表 -->
+  <g id="tech_point_car_models">
+    <rect class="table-box" x="300" y="220" width="200" height="120"/>
+    <rect class="table-header" x="300" y="220" width="200" height="25"/>
+    <text class="table-title" x="400" y="237" text-anchor="middle">tech_point_car_models</text>
+    <text class="field-text pk-field" x="310" y="255">id (PK)</text>
+    <text class="field-text fk-field" x="310" y="270">tech_point_id (FK)</text>
+    <text class="field-text fk-field" x="310" y="285">car_model_id (FK)</text>
+    <text class="field-text" x="310" y="300">application_status</text>
+    <text class="field-text" x="310" y="315">start_date</text>
+    <text class="field-text" x="310" y="330">end_date</text>
+  </g>
+  
+  <!-- 技术包装材料表 -->
+  <g id="tech_packaging_materials">
+    <rect class="table-box" x="550" y="50" width="220" height="140"/>
+    <rect class="table-header" x="550" y="50" width="220" height="25"/>
+    <text class="table-title" x="660" y="67" text-anchor="middle">tech_packaging_materials</text>
+    <text class="field-text pk-field" x="560" y="85">id (PK)</text>
+    <text class="field-text fk-field" x="560" y="100">tech_point_id (FK)</text>
+    <text class="field-text" x="560" y="115">title</text>
+    <text class="field-text" x="560" y="130">content</text>
+    <text class="field-text" x="560" y="145">content_type</text>
+    <text class="field-text" x="560" y="160">target_audience</text>
+    <text class="field-text" x="560" y="175">dify_task_id</text>
+  </g>
+  
+  <!-- 技术推广策略表 -->
+  <g id="tech_promotion_strategies">
+    <rect class="table-box" x="800" y="50" width="220" height="140"/>
+    <rect class="table-header" x="800" y="50" width="220" height="25"/>
+    <text class="table-title" x="910" y="67" text-anchor="middle">tech_promotion_strategies</text>
+    <text class="field-text pk-field" x="810" y="85">id (PK)</text>
+    <text class="field-text" x="810" y="100">title</text>
+    <text class="field-text" x="810" y="115">content</text>
+    <text class="field-text" x="810" y="130">strategy_type</text>
+    <text class="field-text" x="810" y="145">target_market</text>
+    <text class="field-text" x="810" y="160">budget_range</text>
+    <text class="field-text" x="810" y="175">dify_task_id</text>
+  </g>
+  
+  <!-- 技术通稿表 -->
+  <g id="tech_press_releases">
+    <rect class="table-box" x="550" y="220" width="220" height="140"/>
+    <rect class="table-header" x="550" y="220" width="220" height="25"/>
+    <text class="table-title" x="660" y="237" text-anchor="middle">tech_press_releases</text>
+    <text class="field-text pk-field" x="560" y="255">id (PK)</text>
+    <text class="field-text" x="560" y="270">title</text>
+    <text class="field-text" x="560" y="285">content</text>
+    <text class="field-text" x="560" y="300">press_type</text>
+    <text class="field-text" x="560" y="315">target_media</text>
+    <text class="field-text" x="560" y="330">release_date</text>
+    <text class="field-text" x="560" y="345">dify_task_id</text>
+  </g>
+  
+  <!-- 发布会演讲稿表 -->
+  <g id="tech_speeches">
+    <rect class="table-box" x="800" y="220" width="220" height="140"/>
+    <rect class="table-header" x="800" y="220" width="220" height="25"/>
+    <text class="table-title" x="910" y="237" text-anchor="middle">tech_speeches</text>
+    <text class="field-text pk-field" x="810" y="255">id (PK)</text>
+    <text class="field-text" x="810" y="270">title</text>
+    <text class="field-text" x="810" y="285">content</text>
+    <text class="field-text" x="810" y="300">speech_type</text>
+    <text class="field-text" x="810" y="315">duration_minutes</text>
+    <text class="field-text" x="810" y="330">event_name</text>
+    <text class="field-text" x="810" y="345">dify_task_id</text>
+  </g>
+  
+  <!-- 关联关系线 -->
+  <!-- 技术分类自关联 -->
+  <path class="relation-line" d="M 70 170 Q 30 190 30 130 Q 30 70 50 90"/>
+  <polygon class="relation-arrow" points="50,90 45,85 45,95"/>
+  
+  <!-- 技术点 -> 技术分类 -->
+  <path class="relation-line" d="M 150 220 L 150 170"/>
+  <polygon class="relation-arrow" points="150,170 145,175 155,175"/>
+  
+  <!-- 技术点自关联 -->
+  <path class="relation-line" d="M 70 380 Q 30 400 30 340 Q 30 280 50 300"/>
+  <polygon class="relation-arrow" points="50,300 45,295 45,305"/>
+  
+  <!-- 技术点 -> 关联表 -->
+  <path class="relation-line" d="M 250 280 L 300 280"/>
+  <polygon class="relation-arrow" points="300,280 295,275 295,285"/>
+  
+  <!-- 车型 -> 关联表 -->
+  <path class="relation-line" d="M 400 190 L 400 220"/>
+  <polygon class="relation-arrow" points="400,220 395,215 405,215"/>
+  
+  <!-- 技术点 -> 包装材料 -->
+  <path class="relation-line" d="M 250 250 Q 400 200 550 120"/>
+  <polygon class="relation-arrow" points="550,120 545,115 545,125"/>
+  
+  <!-- 多对多关联表标识 -->
+  <g id="promotion_tech_points">
+    <rect class="table-box" x="550" y="400" width="200" height="80"/>
+    <rect class="table-header" x="550" y="400" width="200" height="25"/>
+    <text class="table-title" x="650" y="417" text-anchor="middle">promotion_tech_points</text>
+    <text class="field-text fk-field" x="560" y="435">promotion_id (FK)</text>
+    <text class="field-text fk-field" x="560" y="450">tech_point_id (FK)</text>
+    <text class="field-text" x="560" y="465">importance_level</text>
+  </g>
+  
+  <g id="press_tech_points">
+    <rect class="table-box" x="800" y="400" width="200" height="80"/>
+    <rect class="table-header" x="800" y="400" width="200" height="25"/>
+    <text class="table-title" x="900" y="417" text-anchor="middle">press_tech_points</text>
+    <text class="field-text fk-field" x="810" y="435">press_id (FK)</text>
+    <text class="field-text fk-field" x="810" y="450">tech_point_id (FK)</text>
+    <text class="field-text" x="810" y="465">mention_type</text>
+  </g>
+  
+  <!-- 图例 -->
+  <g id="legend">
+    <rect x="50" y="520" width="300" height="120" fill="none" stroke="#343a40" stroke-width="1"/>
+    <text x="60" y="540" class="field-text" font-weight="bold">图例说明:</text>
+    <text x="60" y="560" class="pk-field">红色: 主键 (Primary Key)</text>
+    <text x="60" y="580" class="fk-field">绿色: 外键 (Foreign Key)</text>
+    <text x="60" y="600" class="field-text">黑色: 普通字段</text>
+    <text x="60" y="620" class="field-text">箭头: 外键关系指向</text>
+  </g>
+</svg>

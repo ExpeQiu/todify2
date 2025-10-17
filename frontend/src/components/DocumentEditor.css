@@ -1,40 +1,71 @@
+/* 引入组件样式系统 */
+@import '../styles/components.css';
+
 .document-editor {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-primary);
   overflow: hidden;
+  backdrop-filter: blur(20px);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.editor-header {
+.document-header {
+  padding: var(--spacing-6);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  position: relative;
+}
+
+.document-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-50) 0%, transparent 100%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.document-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .document-title {
-  font-size: 18px;
-  font-weight: 600;
-  border: none;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
   background: transparent;
+  border: none;
   outline: none;
-  color: #1f2937;
-  flex: 1;
-  margin-right: 16px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  transition: var(--transition-base);
+  min-width: 200px;
+}
+
+.document-title:focus {
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
 }
 
 .document-title::placeholder {
   color: #9ca3af;
 }
 
-.editor-actions {
+.document-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-3);
+  align-items: center;
 }
 
 .action-btn {
@@ -80,21 +111,42 @@
 }
 
 .editor-toolbar {
+  padding: var(--spacing-4) var(--spacing-6);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
+  gap: var(--spacing-4);
   align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
   flex-wrap: wrap;
+  position: relative;
+}
+
+.editor-toolbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, var(--accent-50) 0%, transparent 100%);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.editor-toolbar > * {
+  position: relative;
+  z-index: 1;
 }
 
 .toolbar-group {
   display: flex;
+  gap: var(--spacing-2);
   align-items: center;
-  gap: 4px;
-  padding: 0 8px;
-  border-right: 1px solid #e5e7eb;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
+  box-shadow: var(--shadow-sm);
 }
 
 .toolbar-group:last-child {
@@ -144,68 +196,99 @@
 
 .editor-content {
   flex: 1;
-  overflow: auto;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.content-editable,
+.content-preview {
+  flex: 1;
+  padding: var(--spacing-8);
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  position: relative;
 }
 
 .content-editable {
-  min-height: 400px;
   outline: none;
-  line-height: 1.6;
-  font-size: 14px;
-  color: #1f2937;
+  border: none;
+  resize: none;
+  min-height: 400px;
 }
 
 .content-editable:focus {
-  outline: none;
+  background: var(--bg-secondary);
+}
+
+.content-editable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, var(--primary-100) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, var(--accent-100) 0%, transparent 50%);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .content-preview {
-  min-height: 400px;
-  line-height: 1.6;
-  font-size: 14px;
-  color: #1f2937;
+  background: var(--bg-secondary);
 }
 
-/* 富文本内容样式 */
+/* 编辑器内容样式 */
 .content-editable h1,
 .content-preview h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 16px 0 12px 0;
-  color: #1f2937;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: var(--spacing-6) 0 var(--spacing-4) 0;
+  line-height: var(--leading-tight);
 }
 
 .content-editable h2,
 .content-preview h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 14px 0 10px 0;
-  color: #1f2937;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: var(--spacing-5) 0 var(--spacing-3) 0;
+  line-height: var(--leading-tight);
 }
 
 .content-editable h3,
 .content-preview h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 12px 0 8px 0;
-  color: #1f2937;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: var(--spacing-4) 0 var(--spacing-2) 0;
+  line-height: var(--leading-tight);
 }
 
 .content-editable p,
 .content-preview p {
-  margin: 8px 0;
+  margin: var(--spacing-3) 0;
+  line-height: var(--leading-relaxed);
 }
 
 .content-editable ul,
 .content-preview ul {
-  margin: 8px 0;
-  padding-left: 20px;
+  margin: var(--spacing-3) 0;
+  padding-left: var(--spacing-6);
 }
 
 .content-editable li,
 .content-preview li {
-  margin: 4px 0;
+  margin: var(--spacing-1) 0;
+  line-height: var(--leading-relaxed);
 }
 
 .content-editable strong,
@@ -221,35 +304,4 @@
 .content-editable u,
 .content-preview u {
   text-decoration: underline;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .editor-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-
-  .document-title {
-    margin-right: 0;
-    margin-bottom: 8px;
-  }
-
-  .editor-actions {
-    justify-content: center;
-  }
-
-  .editor-toolbar {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-
-  .toolbar-group {
-    padding: 0 4px;
-  }
-
-  .editor-content {
-    padding: 12px;
-  }
 }

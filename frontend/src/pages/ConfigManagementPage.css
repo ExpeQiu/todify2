@@ -1,0 +1,10 @@
+.config-management-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.page-content {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}

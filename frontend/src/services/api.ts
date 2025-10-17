@@ -16,6 +16,23 @@ export interface WorkflowResponse {
 }
 
 export const workflowAPI = {
+  // AI问答
+  aiSearch: async (query: string, inputs: any = {}): Promise<WorkflowResponse> => {
+    try {
+      const response = await api.post('/workflows/ai-search', { 
+        query,
+        inputs 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('AI search API error:', error);
+      return {
+        success: false,
+        error: 'AI问答请求失败'
+      };
+    }
+  },
+
   // 智能搜索
   smartSearch: async (query: string): Promise<WorkflowResponse> => {
     try {
@@ -31,9 +48,12 @@ export const workflowAPI = {
   },
 
   // 技术包装
-  techPackage: async (searchResults: any): Promise<WorkflowResponse> => {
+  techPackage: async (searchResults: any, template?: string): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/tech-package', { searchResults });
+      const response = await api.post('/workflows/tech-package', { 
+        searchResults, 
+        template 
+      });
       return response.data;
     } catch (error) {
       console.error('Tech package API error:', error);

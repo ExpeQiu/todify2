@@ -1,120 +1,166 @@
 import express from 'express';
-import DifyClient from '../services/DifyClient';
+import DifyClient, { DifyAppType, DifyChatResponse } from '../services/DifyClient';
+import { 
+  validateAiSearchRequest, 
+  validateTechAppRequest,
+  validateAiSearchResponse,
+  validateTechAppResponse,
+  formatApiResponse,
+  formatValidationErrorResponse
+} from '../utils/validation';
 
 const router = express.Router();
 
-// 运行智能搜索工作流
-router.post('/smart-search', async (req, res) => {
+// AI搜索接口
+router.post('/ai-search', async (req, res) => {
   try {
-    const { query } = req.body;
-    
-    if (!query) {
-      return res.status(400).json({ error: '搜索关键词不能为空' });
+    // 验证请求参数
+    const validation = validateAiSearchRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const result = await DifyClient.runWorkflow('smart-search-workflow', {
-      query: query
-    });
+    const { query, inputs = {} } = req.body;
 
-    res.json({
-      success: true,
-      data: result
-    });
+    // 调用AI搜索API (使用聊天消息API)
+    const result: DifyChatResponse = await DifyClient.aiSearch(query, inputs);
+    
+    // 验证响应数据格式
+    const responseValidation = validateAiSearchResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('AI搜索响应格式验证失败:', responseValidation.errors);
+    }
+    
+    // 返回标准化响应
+    res.json(formatApiResponse(true, result, 'AI搜索完成'));
   } catch (error) {
-    console.error('Smart search error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: '智能搜索失败，请稍后重试' 
-    });
+    console.error('AI搜索API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      'AI搜索失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
   }
 });
 
-// 运行技术包装工作流
+// 技术包装接口
 router.post('/tech-package', async (req, res) => {
   try {
-    const { searchResults } = req.body;
-    
-    const result = await DifyClient.runWorkflow('tech-package-workflow', {
-      searchResults: searchResults
-    });
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
 
-    res.json({
-      success: true,
-      data: result
-    });
+    const { inputs } = req.body;
+    const result = await DifyClient.techPackage(inputs);
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('技术包装响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '技术包装完成'));
   } catch (error) {
-    console.error('Tech package error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: '技术包装生成失败，请稍后重试' 
-    });
+    console.error('技术包装API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '技术包装失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
   }
 });
 
-// 运行推广策略工作流
-router.post('/promotion-strategy', async (req, res) => {
+// 技术策略接口
+router.post('/tech-strategy', async (req, res) => {
   try {
-    const { techPackage } = req.body;
-    
-    const result = await DifyClient.runWorkflow('promotion-strategy-workflow', {
-      techPackage: techPackage
-    });
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
 
-    res.json({
-      success: true,
-      data: result
-    });
+    const { inputs } = req.body;
+    const result = await DifyClient.techStrategy(inputs);
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('技术策略响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '技术策略完成'));
   } catch (error) {
-    console.error('Promotion strategy error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: '推广策略生成失败，请稍后重试' 
-    });
+    console.error('技术策略API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '技术策略失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
   }
 });
 
-// 运行核心稿件工作流
-router.post('/core-draft', async (req, res) => {
+// 技术通稿接口
+router.post('/tech-article', async (req, res) => {
   try {
-    const { promotionStrategy, techPackage } = req.body;
-    
-    const result = await DifyClient.runWorkflow('core-draft-workflow', {
-      promotionStrategy: promotionStrategy,
-      techPackage: techPackage
-    });
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
 
-    res.json({
-      success: true,
-      data: result
-    });
+    const { inputs } = req.body;
+    const result = await DifyClient.techArticle(inputs);
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('技术通稿响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '技术通稿完成'));
   } catch (error) {
-    console.error('Core draft error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: '核心稿件生成失败，请稍后重试' 
-    });
+    console.error('技术通稿API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '技术通稿失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
   }
 });
 
-// 运行演讲稿工作流
-router.post('/speech', async (req, res) => {
+// 技术发布接口
+router.post('/tech-publish', async (req, res) => {
   try {
-    const { coreDraft } = req.body;
-    
-    const result = await DifyClient.runWorkflow('speech-workflow', {
-      coreDraft: coreDraft
-    });
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
 
-    res.json({
-      success: true,
-      data: result
-    });
+    const { inputs } = req.body;
+    const result = await DifyClient.techPublish(inputs);
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('技术发布响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '技术发布完成'));
   } catch (error) {
-    console.error('Speech generation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: '演讲稿生成失败，请稍后重试' 
-    });
+    console.error('技术发布API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '技术发布失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
   }
 });
 
