@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Package, Code, Sparkles, ArrowLeft, RefreshCw, Download, Share2, Bot } from 'lucide-react';
 import { BaseNodeProps } from '../../types/nodeComponent';
-import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType } from '../common/KnowledgePointSelector';
+import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType, SelectionItem } from '../common/KnowledgePointSelector';
 import ActionBar from '../common/ActionBar';
 import './NodeComponent.css';
 
@@ -10,16 +10,14 @@ interface SpeechNodeProps extends BaseNodeProps {
   isLoading?: boolean;
 }
 
-
-
 const SpeechNode: React.FC<SpeechNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false
 }) => {
   const [speechContent, setSpeechContent] = useState('');
-  const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<string[]>([]);
-
+  const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
+  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
   const [selectedKnowledgePointForDetail, setSelectedKnowledgePointForDetail] = useState<KnowledgePointType | null>(null);
   const [activeVehicleModel, setActiveVehicleModel] = useState('全部车型');
   const [activeTechCategory, setActiveTechCategory] = useState('全部分类');
@@ -27,18 +25,18 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
 
   // 模拟知识点数据 - 三维度结构：车型-技术分类-技术点
   const knowledgePoints: KnowledgePointType[] = [
-    { id: '1', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
-    { id: '2', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
-    { id: '3', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
-    { id: '4', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
-    { id: '5', vehicleModel: 'Model 3', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
-    { id: '6', vehicleModel: 'Model 3', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
-    { id: '7', vehicleModel: 'Model X', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
-    { id: '8', vehicleModel: 'Model X', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
-    { id: '9', vehicleModel: 'Model Y', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
-    { id: '10', vehicleModel: 'Model Y', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
-    { id: '11', vehicleModel: 'Cybertruck', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
-    { id: '12', vehicleModel: 'Cybertruck', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
+    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
+    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
+    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
+    { id: '4', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
+    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
+    { id: '6', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
+    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
+    { id: '8', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
+    { id: '9', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
+    { id: '10', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
+    { id: '11', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
+    { id: '12', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
   ];
 
   // 处理知识点详情显示
@@ -47,15 +45,13 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   };
 
   // 处理知识点选择变化
-  const handleKnowledgePointSelectionChange = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleSelectionChange = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
   };
 
   // 处理保存知识点选择
-  const handleKnowledgePointSave = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleSave = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
     setShowKnowledgeSelection(false);
   };
 
@@ -66,34 +62,39 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       setSpeechContent(`# 演讲稿内容
 
 ## 开场白
-尊敬的各位来宾，大家好！
-
-今天我想和大家分享一些关于现代技术发展的见解，特别是基于以下知识点：${selectedKnowledgePoints.map(id => {
-  const point = knowledgePoints.find(p => p.id === id);
-  return point ? `${point.vehicleModel} - ${point.techCategory} - ${point.techPoint}` : '';
+尊敬的各位来宾，大家好！今天我将为大家介绍基于所选内容的技术创新成果：${selectedItems.map(item => {
+  const { knowledgePoint, contentType } = item;
+  const contentTypeLabels = {
+    knowledge_point: '知识点',
+    tech_packaging: '技术包装',
+    tech_promotion: '技术推广',
+    tech_press: '技术通稿'
+  };
+  return `${knowledgePoint.vehicleModel} - ${knowledgePoint.techCategory} - ${knowledgePoint.techPoint} (${contentTypeLabels[contentType]})`;
 }).join(', ')}
 
-## 主要内容
+## 技术亮点
+在当今快速发展的科技时代，我们始终坚持创新驱动发展战略，致力于为用户提供更优质的产品和服务。
 
-### 技术革新的力量
-在当今这个快速发展的时代，技术创新正在重塑我们的世界。从人工智能到新能源汽车，从云计算到物联网，每一项技术突破都在为人类社会带来前所未有的变革。
+### 核心技术优势
+1. **前沿技术架构**：采用最新的技术栈，确保系统的先进性和稳定性
+2. **用户体验优化**：以用户为中心的设计理念，提供直观便捷的操作体验
+3. **性能卓越表现**：通过技术优化，实现了显著的性能提升
+4. **安全可靠保障**：多层次的安全防护机制，确保数据和系统安全
 
-### 核心技术特点
-- **创新驱动**：以技术创新为核心，推动产业升级
-- **用户体验**：始终以用户需求为导向，提供优质服务
-- **可持续发展**：注重环保和可持续性，构建绿色未来
-- **开放合作**：秉承开放心态，促进行业协同发展
+### 创新成果展示
+我们的技术团队经过不懈努力，在多个关键领域取得了突破性进展：
+- 系统响应速度提升40%以上
+- 用户满意度达到95%以上
+- 技术指标行业领先
 
-### 未来展望
-展望未来，我们相信技术将继续发挥重要作用，为人类创造更美好的生活。让我们携手共进，在技术创新的道路上不断前行。
+## 未来展望
+展望未来，我们将继续秉承创新精神，不断推进技术进步，为行业发展贡献更多力量。
 
-## 结语
-谢谢大家的聆听！让我们共同期待一个更加美好的技术未来！`);
+谢谢大家！`);
       setIsGenerating(false);
     }, 2000);
   };
-
-  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -106,12 +107,12 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg text-white">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg text-white">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900">演讲稿</h1>
-                  <p className="text-sm text-gray-500">AI智能演讲稿生成</p>
+                  <h1 className="text-lg font-semibold text-gray-900">演讲稿生成</h1>
+                  <p className="text-sm text-gray-500">AI智能演讲稿生成与优化</p>
                 </div>
               </div>
             </div>
@@ -137,7 +138,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">选择知识点</h2>
-                <p className="text-sm text-gray-500 mt-1">在表格中选择知识点，将作为生成AI内容的输入信息</p>
+                <p className="text-sm text-gray-500 mt-1">选择知识点及其关联内容类型，将作为生成AI内容的输入信息</p>
               </div>
               <button
                 onClick={() => setShowKnowledgeSelection(!showKnowledgeSelection)}
@@ -149,18 +150,19 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
             </div>
 
             {showKnowledgeSelection && (
-               <KnowledgePointSelector
-              knowledgePoints={knowledgePoints}
-              initialSelectedPoints={selectedKnowledgePoints}
-              initialExpanded={true}
-              onSelectionChange={handleKnowledgePointSelectionChange}
-              onSave={handleKnowledgePointSave}
-              onKnowledgePointClick={handleKnowledgePointClick}
-              collapsible={false}
-              showSaveButton={true}
-              saveButtonText="保存选择"
-            />
-             )}
+              <KnowledgePointSelector
+                knowledgePoints={knowledgePoints}
+                initialSelectedItems={selectedItems}
+                initialExpanded={true}
+                onSelectionChange={handleSelectionChange}
+                onSave={handleSave}
+                onKnowledgePointClick={handleKnowledgePointClick}
+                collapsible={false}
+                showSaveButton={true}
+                saveButtonText="保存选择"
+                allowedContentTypes={['knowledge_point', 'tech_promotion', 'tech_press']}
+              />
+            )}
           </div>
         </div>
 
@@ -210,18 +212,35 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   <div className="flex gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => {
-                        if (!selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)) {
-                          setSelectedKnowledgePoints(prev => [...prev, selectedKnowledgePointForDetail.id]);
+                        const hasKnowledgePoint = selectedItems.some(item => 
+                          item.knowledgePointId === selectedKnowledgePointForDetail.id && 
+                          item.contentType === 'knowledge_point'
+                        );
+                        if (!hasKnowledgePoint) {
+                          setSelectedItems(prev => [...prev, {
+                            knowledgePointId: selectedKnowledgePointForDetail.id,
+                            contentType: 'knowledge_point',
+                            knowledgePoint: selectedKnowledgePointForDetail
+                          }]);
                         }
                       }}
-                      disabled={selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)}
+                      disabled={selectedItems.some(item => 
+                        item.knowledgePointId === selectedKnowledgePointForDetail.id && 
+                        item.contentType === 'knowledge_point'
+                      )}
                       className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)
+                        selectedItems.some(item => 
+                          item.knowledgePointId === selectedKnowledgePointForDetail.id && 
+                          item.contentType === 'knowledge_point'
+                        )
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                     >
-                      {selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id) ? '已选择' : '选择此知识点'}
+                      {selectedItems.some(item => 
+                        item.knowledgePointId === selectedKnowledgePointForDetail.id && 
+                        item.contentType === 'knowledge_point'
+                      ) ? '已选择' : '选择此知识点'}
                     </button>
                     <button
                       onClick={() => setSelectedKnowledgePointForDetail(null)}
@@ -241,24 +260,24 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
               )}
             </div>
           )}
+          
           {/* 右侧：演讲稿内容 */}
           <div className={`${showKnowledgeSelection ? 'w-full' : 'w-1/2'} bg-white rounded-lg border border-gray-200 flex flex-col`}>
-
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Code className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Code className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">演讲稿内容</h2>
-                    <p className="text-sm text-gray-500">演讲稿内容</p>
+                    <p className="text-sm text-gray-500">AI生成的演讲稿内容</p>
                   </div>
                 </div>
                 <button
                   onClick={handleSpeechGenerate}
-                  disabled={isGenerating || selectedKnowledgePoints.length === 0}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isGenerating || selectedItems.length === 0}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
                     <>
@@ -268,7 +287,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      编辑内容
+                      生成演讲稿
                     </>
                   )}
                 </button>
@@ -281,7 +300,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   <textarea
                     value={speechContent}
                     onChange={(e) => setSpeechContent(e.target.value)}
-                    className="w-full h-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
+                    className="w-full h-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none font-mono text-sm"
                     placeholder="演讲稿内容将在这里显示..."
                   />
                 </div>
@@ -289,8 +308,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                 <div className="h-full flex items-center justify-center text-gray-400">
                   <div className="text-center">
                     <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium mb-2">暂无演讲稿</p>
-                    <p className="text-sm">点击"生成内容"按钮开始AI生成</p>
+                    <p className="text-lg font-medium mb-2">暂无演讲稿内容</p>
+                    <p className="text-sm">点击"生成演讲稿"按钮开始AI生成</p>
                   </div>
                 </div>
               )}
@@ -303,14 +322,14 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       <ActionBar
         onRegenerate={() => {
           setSpeechContent('');
-          setSelectedKnowledgePoints([]);
+          setSelectedItems([]);
         }}
         onSaveDraft={() => {
           // 保存草稿逻辑
           console.log('保存草稿');
         }}
-        onSaveContent={() => onExecute({ speechContent, selectedKnowledgePoints })}
-        saveContentText="保存演讲内容"
+        onSaveContent={() => onExecute({ speechContent, selectedItems })}
+        saveContentText="保存演讲稿"
         saveContentIcon={<Sparkles className="w-4 h-4" />}
         disabled={!speechContent}
         isGenerating={isGenerating}

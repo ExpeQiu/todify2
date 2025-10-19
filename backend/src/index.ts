@@ -17,6 +17,8 @@ app.use(express.json());
 // 添加请求日志中间件
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
   next();
 });
 
@@ -52,9 +54,33 @@ async function startServer() {
     }
     console.log('Database connection successful');
     
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       console.log(`Backend server is running on http://localhost:${port}`);
+      console.log('Server is ready to accept connections');
     });
+
+    // 保持进程运行
+    server.keepAliveTimeout = 0;
+    server.headersTimeout = 0;
+
+    // 优雅关闭处理
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully');
+      server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, shutting down gracefully');
+      server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+      });
+    });
+
+    return server;
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

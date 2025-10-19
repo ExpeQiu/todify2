@@ -6,7 +6,7 @@ import ConfigManagementPage from './pages/ConfigManagementPage'
 import TechPointManagement from './pages/TechPointManagement'
 import CarSeriesManagement from './pages/CarSeriesManagement'
 import CarSeriesDetailPage from './components/carSeries/CarSeriesDetailPage'
-import TestComponent from './test'
+import AiSearchTestPage from './pages/AiSearchTestPage'
 import './App.css'
 
 function App() {
@@ -19,13 +19,14 @@ function App() {
     >
       <div className="App">
         <Routes>
-          <Route path="/" element={<TestComponent />} />
+          <Route path="/" element={<WorkflowPage />} />
           <Route path="/workflow" element={<WorkflowPage />} />
           <Route path="/node/:nodeType" element={<NodePage />} />
           <Route path="/config" element={<ConfigManagementPage />} />
           <Route path="/tech-points" element={<TechPointManagement />} />
           <Route path="/car-series" element={<CarSeriesManagement />} />
           <Route path="/car-series/:id" element={<CarSeriesDetailPage />} />
+          <Route path="/ai-search-test" element={<AiSearchTestPage />} />
         </Routes>
       </div>
     </Router>

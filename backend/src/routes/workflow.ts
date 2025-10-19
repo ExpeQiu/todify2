@@ -14,16 +14,21 @@ const router = express.Router();
 // AI搜索接口
 router.post('/ai-search', async (req, res) => {
   try {
+    console.log('收到AI搜索请求:', req.body);
+    
     // 验证请求参数
     const validation = validateAiSearchRequest(req.body);
     if (!validation.isValid) {
+      console.log('请求参数验证失败:', validation.errors);
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
     const { query, inputs = {} } = req.body;
+    console.log('开始调用AI搜索API, query:', query, 'inputs:', inputs);
 
     // 调用AI搜索API (使用聊天消息API)
     const result: DifyChatResponse = await DifyClient.aiSearch(query, inputs);
+    console.log('AI搜索API调用成功:', result);
     
     // 验证响应数据格式
     const responseValidation = validateAiSearchResponse(result);

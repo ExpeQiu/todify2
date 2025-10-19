@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Package, Code, Sparkles, ArrowLeft, RefreshCw, Download, Share2, Bot } from 'lucide-react';
 import { BaseNodeProps } from '../../types/nodeComponent';
-import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType } from '../common/KnowledgePointSelector';
+import KnowledgePointSelector, { SelectionItem, KnowledgePoint } from '../common/KnowledgePointSelector';
 import ActionBar from '../common/ActionBar';
 import './NodeComponent.css';
 
@@ -10,52 +10,44 @@ interface CoreDraftNodeProps extends BaseNodeProps {
   isLoading?: boolean;
 }
 
-
-
-const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
-  onExecute,
-  initialData,
-  isLoading = false
-}) => {
+const CoreDraftNode: React.FC<CoreDraftNodeProps> = () => {
   const [coreDraftContent, setCoreDraftContent] = useState('');
-  const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<string[]>([]);
-
-  const [selectedKnowledgePointForDetail, setSelectedKnowledgePointForDetail] = useState<KnowledgePointType | null>(null);
+  const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
+  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
+  const [selectedKnowledgePointForDetail, setSelectedKnowledgePointForDetail] = useState<KnowledgePoint | null>(null);
   const [activeVehicleModel, setActiveVehicleModel] = useState('全部车型');
   const [activeTechCategory, setActiveTechCategory] = useState('全部分类');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // 模拟知识点数据 - 三维度结构：车型-技术分类-技术点
-  const knowledgePoints: KnowledgePointType[] = [
-    { id: '1', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
-    { id: '2', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
-    { id: '3', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
-    { id: '4', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
-    { id: '5', vehicleModel: 'Model 3', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
-    { id: '6', vehicleModel: 'Model 3', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
-    { id: '7', vehicleModel: 'Model X', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
-    { id: '8', vehicleModel: 'Model X', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
-    { id: '9', vehicleModel: 'Model Y', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
-    { id: '10', vehicleModel: 'Model Y', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
-    { id: '11', vehicleModel: 'Cybertruck', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
-    { id: '12', vehicleModel: 'Cybertruck', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
+  const knowledgePoints: KnowledgePoint[] = [
+    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
+    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
+    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
+    { id: '4', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
+    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
+    { id: '6', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
+    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
+    { id: '8', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
+    { id: '9', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
+    { id: '10', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
+    { id: '11', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
+    { id: '12', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
   ];
 
   // 处理知识点详情显示
-  const handleKnowledgePointClick = (knowledgePoint: KnowledgePointType) => {
+  const handleKnowledgePointClick = (knowledgePoint: KnowledgePoint) => {
     setSelectedKnowledgePointForDetail(knowledgePoint);
   };
 
   // 处理知识点选择变化
-  const handleKnowledgePointSelectionChange = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleSelectionChange = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
   };
 
   // 处理保存知识点选择
-  const handleKnowledgePointSave = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleSave = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
     setShowKnowledgeSelection(false);
   };
 
@@ -66,8 +58,8 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
       setCoreDraftContent(`# 核心草稿内容
 
 ## 技术概述
-基于所选知识点：${selectedKnowledgePoints.map(id => {
-  const point = knowledgePoints.find(p => p.id === id);
+基于所选知识点：${selectedItems.map(item => {
+  const point = knowledgePoints.find(p => p.id === item.knowledgePointId);
   return point ? `${point.vehicleModel} - ${point.techCategory} - ${point.techPoint}` : '';
 }).join(', ')}
 
@@ -93,8 +85,6 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
       setIsGenerating(false);
     }, 2000);
   };
-
-  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -150,18 +140,19 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
             </div>
 
             {showKnowledgeSelection && (
-               <KnowledgePointSelector
-              knowledgePoints={knowledgePoints}
-              initialSelectedPoints={selectedKnowledgePoints}
-              initialExpanded={true}
-              onSelectionChange={handleKnowledgePointSelectionChange}
-              onSave={handleKnowledgePointSave}
-              onKnowledgePointClick={handleKnowledgePointClick}
-              collapsible={false}
-              showSaveButton={true}
-              saveButtonText="保存选择"
-            />
-             )}
+              <KnowledgePointSelector
+                knowledgePoints={knowledgePoints}
+                initialSelectedItems={selectedItems}
+                initialExpanded={true}
+                onSelectionChange={handleSelectionChange}
+                onSave={handleSave}
+                onKnowledgePointClick={handleKnowledgePointClick}
+                collapsible={false}
+                showSaveButton={true}
+                saveButtonText="保存选择"
+                allowedContentTypes={['knowledge_point', 'tech_packaging', 'tech_press']}
+              />
+            )}
           </div>
         </div>
 
@@ -202,121 +193,116 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <label className="text-sm font-medium text-gray-600 block mb-2">详细描述</label>
+                      <label className="text-sm font-medium text-gray-600 block mb-2">描述</label>
                       <p className="text-sm text-gray-700 leading-relaxed">{selectedKnowledgePointForDetail.description}</p>
                     </div>
                   </div>
 
-                  {/* 操作按钮 */}
-                  <div className="flex gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => {
-                        if (!selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)) {
-                          setSelectedKnowledgePoints(prev => [...prev, selectedKnowledgePointForDetail.id]);
-                        }
-                      }}
-                      disabled={selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)}
-                      className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                    >
-                      {selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id) ? '已选择' : '选择此知识点'}
-                    </button>
-                    <button
-                      onClick={() => setSelectedKnowledgePointForDetail(null)}
-                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      清除选择
-                    </button>
+                  {/* 技术优势 */}
+                  <div className="space-y-3">
+                    <h4 className="text-base font-semibold text-gray-900">技术优势</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-sm text-green-800">行业领先的技术创新，提升整体性能表现</p>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-sm text-blue-800">优化用户体验，提供更智能的交互方式</p>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-sm text-purple-800">降低维护成本，提高系统可靠性和稳定性</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 应用场景 */}
+                  <div className="space-y-3">
+                    <h4 className="text-base font-semibold text-gray-900">应用场景</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-orange-50 rounded-lg">
+                        <p className="text-sm font-medium text-orange-800">日常驾驶</p>
+                        <p className="text-xs text-orange-600 mt-1">提升日常使用体验</p>
+                      </div>
+                      <div className="p-3 bg-teal-50 rounded-lg">
+                        <p className="text-sm font-medium text-teal-800">长途旅行</p>
+                        <p className="text-xs text-teal-600 mt-1">保障长距离行驶</p>
+                      </div>
+                      <div className="p-3 bg-indigo-50 rounded-lg">
+                        <p className="text-sm font-medium text-indigo-800">城市通勤</p>
+                        <p className="text-xs text-indigo-600 mt-1">适应城市环境</p>
+                      </div>
+                      <div className="p-3 bg-pink-50 rounded-lg">
+                        <p className="text-sm font-medium text-pink-800">极端环境</p>
+                        <p className="text-xs text-pink-600 mt-1">应对恶劣条件</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
-                  <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">知识点详情区域</p>
-                  <p className="text-sm">点击上方表格中的知识点查看详情</p>
-                  <p className="text-xs text-gray-400 mt-2">或点击"展开"按钮选择知识点</p>
+                <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                  <Package className="w-16 h-16 mb-4 text-gray-300" />
+                  <p className="text-lg font-medium mb-2">选择知识点查看详情</p>
+                  <p className="text-sm text-center">在知识点选择器中点击任意知识点<br />查看详细的技术信息和应用场景</p>
                 </div>
               )}
             </div>
           )}
-          {/* 右侧：核心草稿内容 */}
-          <div className={`${showKnowledgeSelection ? 'w-full' : 'w-1/2'} bg-white rounded-lg border border-gray-200 flex flex-col`}>
 
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between mb-4">
+          {/* 右侧内容生成区域 */}
+          <div className={`${!showKnowledgeSelection ? 'w-1/2' : 'w-full'} bg-white rounded-lg border border-gray-200 flex flex-col`}>
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Code className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Bot className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">核心草稿内容</h2>
-                    <p className="text-sm text-gray-500">核心草稿内容</p>
+                    <h3 className="text-lg font-semibold text-gray-900">AI核心草稿生成</h3>
+                    <p className="text-sm text-gray-500">基于选择的知识点生成核心草稿内容</p>
                   </div>
                 </div>
                 <button
                   onClick={handleCoreDraftGenerate}
-                  disabled={isGenerating || selectedKnowledgePoints.length === 0}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={selectedItems.length === 0 || isGenerating}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:from-purple-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {isGenerating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
                       生成中...
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      编辑内容
+                      生成草稿
                     </>
                   )}
                 </button>
               </div>
             </div>
-            
-            <div className="flex-1 p-4">
-              {coreDraftContent ? (
-                <div className="h-full">
-                  <textarea
-                    value={coreDraftContent}
-                    onChange={(e) => setCoreDraftContent(e.target.value)}
-                    className="w-full h-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
-                    placeholder="核心草稿内容将在这里显示..."
-                  />
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400">
-                  <div className="text-center">
-                    <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium mb-2">暂无核心草稿</p>
-                    <p className="text-sm">点击"生成内容"按钮开始AI生成</p>
-                  </div>
-                </div>
-              )}
-            </div>
+
+            <div className="flex-1 p-6">
+               <textarea
+                 value={coreDraftContent}
+                 onChange={(e) => setCoreDraftContent(e.target.value)}
+                 placeholder="点击生成草稿按钮，AI将基于您选择的知识点生成核心草稿内容..."
+                 className="w-full h-full resize-none border-0 focus:ring-0 text-sm leading-relaxed"
+                 style={{ minHeight: '400px' }}
+               />
+             </div>
+ 
+             {/* 底部操作栏 */}
+             <ActionBar
+               onRegenerate={handleCoreDraftGenerate}
+               onSaveDraft={() => console.log('保存草稿')}
+               onSaveContent={() => console.log('保存内容')}
+               isGenerating={isGenerating}
+             />
           </div>
         </div>
       </div>
-
-      {/* 底部操作栏 */}
-      <ActionBar
-        onRegenerate={() => {
-          setCoreDraftContent('');
-          setSelectedKnowledgePoints([]);
-        }}
-        onSaveDraft={() => {
-          // 保存草稿逻辑
-          console.log('保存草稿');
-        }}
-        onSaveContent={() => onExecute({ coreDraftContent, selectedKnowledgePoints })}
-        saveContentText="保存核心内容"
-        saveContentIcon={<Sparkles className="w-4 h-4" />}
-        disabled={!coreDraftContent}
-        isGenerating={isGenerating}
-        hasContent={!!coreDraftContent}
-      />
     </div>
   );
 };

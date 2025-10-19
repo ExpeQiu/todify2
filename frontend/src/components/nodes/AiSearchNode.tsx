@@ -11,11 +11,14 @@ import {
   RotateCcw,
   Copy,
   Share2,
-  Sparkles
+  Sparkles,
+  Save,
+  X,
+  Check
 } from 'lucide-react';
 import { BaseNodeProps } from '../../types/nodeComponent';
 import { workflowAPI } from '../../services/api';
-import KnowledgePointSelector, { KnowledgePoint } from '../common/KnowledgePointSelector';
+import KnowledgePointSelector, { KnowledgePoint, SelectionItem, ContentType } from '../common/KnowledgePointSelector';
 import './NodeComponent.css';
 
 interface AiSearchNodeProps extends BaseNodeProps {
@@ -37,21 +40,25 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
   const [disliked, setDisliked] = useState(false);
   
   // 知识点选择相关状态
-  const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
   const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(true);
-
+  
+  // 保存知识点模态框状态
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const tabs = ['信息检索', '技术包装', '技术策略', '技术通稿', '技术发布稿'];
   
   // 模拟知识点数据
   const knowledgePoints: KnowledgePoint[] = [
-    { id: '1', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '三元锂电池', description: '高能量密度的锂离子电池技术，提供长续航里程' },
-    { id: '2', vehicleModel: 'Model S', techCategory: '电池管理', techPoint: 'BMS系统', description: '智能电池管理系统，确保电池安全和性能' },
-    { id: '3', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自主研发的全自动驾驶芯片，算力强大' },
-    { id: '4', vehicleModel: 'Model 3', techCategory: '动力系统', techPoint: '永磁同步电机', description: '高效率的永磁同步电机，提供强劲动力' },
-    { id: '5', vehicleModel: 'Model 3', techCategory: '智能网联', techPoint: '车载娱乐系统', description: '17英寸触控屏，集成丰富的娱乐功能' },
-    { id: '6', vehicleModel: 'Model X', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，提升乘坐体验' },
-    { id: '7', vehicleModel: 'Model X', techCategory: '空气动力学', techPoint: '主动进气格栅', description: '智能调节进气量，优化空气动力学性能' },
-    { id: '8', vehicleModel: 'Model Y', techCategory: '制造工艺', techPoint: '一体化压铸', description: '后车身一体化压铸技术，提高结构强度' }
+    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三元锂电池', description: '高能量密度的锂离子电池技术，提供长续航里程' },
+    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '电池管理', techPoint: 'BMS系统', description: '智能电池管理系统，确保电池安全和性能' },
+    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自主研发的全自动驾驶芯片，算力强大' },
+    { id: '4', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '永磁同步电机', description: '高效率的永磁同步电机，提供强劲动力' },
+    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '智能网联', techPoint: '车载娱乐系统', description: '17英寸触控屏，集成丰富的娱乐功能' },
+    { id: '6', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，提升乘坐体验' },
+    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动进气格栅', description: '智能调节进气量，优化空气动力学性能' },
+    { id: '8', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '后车身一体化压铸技术，提高结构强度' }
   ];
 
   // 获取唯一的车型和技术分类（如果需要在其他地方使用）
@@ -90,22 +97,51 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
   };
 
   const handleAdopt = () => {
-    // 将AI响应内容保存到"对应的知识点"
-    if (aiResponse) {
-      setUserContent(aiResponse);
+    // 直接打开知识点选择确认框
+    setModalSelectedItems(selectedItems);
+    setShowSaveModal(true);
+  };
+
+  // 处理打开保存模态框
+  const handleOpenSaveModal = () => {
+    setModalSelectedItems(selectedItems);
+    setShowSaveModal(true);
+  };
+
+  // 处理关闭保存模态框
+  const handleCloseSaveModal = () => {
+    setShowSaveModal(false);
+    setModalSelectedItems([]);
+  };
+
+  // 处理确认保存
+  const handleConfirmSave = async () => {
+    setIsSaving(true);
+    try {
+      console.log('保存知识点:', modalSelectedItems);
+      // 这里可以添加实际的保存逻辑
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟保存延迟
+      alert(`已保存 ${modalSelectedItems.length} 个知识点`);
+      setShowSaveModal(false);
+      setModalSelectedItems([]);
+    } catch (error) {
+      console.error('保存失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleExport = () => {
     if (userContent) {
-      // 创建一个Blob对象包含用户内容
-      const blob = new Blob([userContent], { type: 'text/plain;charset=utf-8' });
+      // 创建一个Blob对象包含用户内容，使用markdown格式
+      const blob = new Blob([userContent], { type: 'text/markdown;charset=utf-8' });
       
       // 创建下载链接
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `ai-search-result-${new Date().toISOString().slice(0, 10)}.txt`;
+      link.download = `ai-search-result-${new Date().toISOString().slice(0, 10)}.md`;
       
       // 触发下载
       document.body.appendChild(link);
@@ -184,15 +220,20 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
         {/* 选择知识点区域 */}
         <KnowledgePointSelector
           knowledgePoints={knowledgePoints}
-          initialSelectedPoints={selectedKnowledgePoints}
+          initialSelectedItems={selectedItems}
+          allowedContentTypes={['knowledge_point', 'tech_packaging', 'tech_promotion', 'tech_press']}
           initialExpanded={showKnowledgeSelection}
-          onSelectionChange={(selectedPoints) => {
-            setSelectedKnowledgePoints(selectedPoints.map(p => p.id));
+          onSelectionChange={(selectedItems) => {
+            setSelectedItems(selectedItems);
           }}
-          onSave={(selectedPoints) => {
-            const content = selectedPoints.map(kp => 
-              `【${kp.vehicleModel} - ${kp.techCategory}】${kp.techPoint}: ${kp.description}`
-            ).join('\n\n');
+          onSave={(selectedItems) => {
+            const content = selectedItems.map(item => {
+              if (item.contentType === 'knowledge_point') {
+                const kp = item.knowledgePoint;
+                return `【${kp.vehicleModel} - ${kp.techCategory}】${kp.techPoint}: ${kp.description}`;
+              }
+              return `【${item.contentType}】${item.knowledgePoint.techPoint}`;
+            }).join('\n\n');
             
             if (content) {
               setUserContent(prev => prev ? `${prev}\n\n${content}` : content);
@@ -395,6 +436,73 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
             </div>
           </div>
         </div>
+
+        {/* 知识点保存确认模态框 */}
+        {showSaveModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3 className="modal-title">
+                  <Save className="w-5 h-5 text-blue-600" />
+                  确认保存知识点
+                </h3>
+                <button
+                  onClick={handleCloseSaveModal}
+                  className="modal-close-button"
+                  disabled={isSaving}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <p className="modal-description">
+                  您即将保存以下 {modalSelectedItems.length} 个知识点，请确认选择：
+                </p>
+                
+                <div className="knowledge-points-preview">
+                  <KnowledgePointSelector
+                    knowledgePoints={knowledgePoints}
+                    initialSelectedItems={modalSelectedItems}
+                    initialExpanded={true}
+                    title=""
+                    description=""
+                    onSelectionChange={setModalSelectedItems}
+                    showSaveButton={false}
+                    collapsible={false}
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button
+                  onClick={handleCloseSaveModal}
+                  className="modal-cancel-button"
+                  disabled={isSaving}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleConfirmSave}
+                  className="modal-confirm-button"
+                  disabled={isSaving || modalSelectedItems.length === 0}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      确认保存 ({modalSelectedItems.length})
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
 
       </div>

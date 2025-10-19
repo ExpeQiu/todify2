@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Package, Code, Sparkles, ArrowLeft, RefreshCw, Download, Share2, Bot } from 'lucide-react';
 import { BaseNodeProps } from '../../types/nodeComponent';
-import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType } from '../common/KnowledgePointSelector';
+import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType, SelectionItem } from '../common/KnowledgePointSelector';
 import ActionBar from '../common/ActionBar';
 import './NodeComponent.css';
 
@@ -10,16 +10,14 @@ interface PromotionStrategyNodeProps extends BaseNodeProps {
   isLoading?: boolean;
 }
 
-
-
 const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false
 }) => {
   const [techPackageContent, setTechPackageContent] = useState('');
-  const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<string[]>([]);
-
+  const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
+  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
   const [selectedKnowledgePointForDetail, setSelectedKnowledgePointForDetail] = useState<KnowledgePointType | null>(null);
   const [activeVehicleModel, setActiveVehicleModel] = useState('全部车型');
   const [activeTechCategory, setActiveTechCategory] = useState('全部分类');
@@ -27,18 +25,18 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
 
   // 模拟知识点数据 - 三维度结构：车型-技术分类-技术点
   const knowledgePoints: KnowledgePointType[] = [
-    { id: '1', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
-    { id: '2', vehicleModel: 'Model S', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
-    { id: '3', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
-    { id: '4', vehicleModel: 'Model S', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
-    { id: '5', vehicleModel: 'Model 3', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
-    { id: '6', vehicleModel: 'Model 3', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
-    { id: '7', vehicleModel: 'Model X', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
-    { id: '8', vehicleModel: 'Model X', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
-    { id: '9', vehicleModel: 'Model Y', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
-    { id: '10', vehicleModel: 'Model Y', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
-    { id: '11', vehicleModel: 'Cybertruck', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
-    { id: '12', vehicleModel: 'Cybertruck', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
+    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
+    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
+    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
+    { id: '4', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
+    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
+    { id: '6', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
+    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
+    { id: '8', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
+    { id: '9', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
+    { id: '10', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
+    { id: '11', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
+    { id: '12', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
   ];
 
   // 处理知识点详情显示
@@ -47,15 +45,13 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
   };
 
   // 处理知识点选择变化
-  const handleKnowledgePointSelectionChange = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleKnowledgePointSelectionChange = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
   };
 
   // 处理保存知识点选择
-  const handleKnowledgePointSave = (selectedPoints: KnowledgePointType[]) => {
-    const selectedIds = selectedPoints.map(point => point.id);
-    setSelectedKnowledgePoints(selectedIds);
+  const handleKnowledgePointSave = (selectedItems: SelectionItem[]) => {
+    setSelectedItems(selectedItems);
     setShowKnowledgeSelection(false);
   };
 
@@ -66,9 +62,9 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
       setTechPackageContent(`# 技术包装内容
 
 ## 技术概述
-基于所选知识点：${selectedKnowledgePoints.map(id => {
-  const point = knowledgePoints.find(p => p.id === id);
-  return point ? `${point.vehicleModel} - ${point.techCategory} - ${point.techPoint}` : '';
+基于所选知识点：${selectedItems.map(item => {
+  const kp = item.knowledgePoint;
+  return `${kp.vehicleModel} - ${kp.techCategory} - ${kp.techPoint}`;
 }).join(', ')}
 
 这是一个基于现代Web技术栈的创新解决方案，采用React + TypeScript + Node.js架构，为用户提供高效、稳定的服务体验。
@@ -93,8 +89,6 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
       setIsGenerating(false);
     }, 2000);
   };
-
-  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,14 +125,19 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        {/* 选择知识点区域 */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-          <div className="p-6">
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* 知识点选择区域 */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">选择知识点</h2>
-                <p className="text-sm text-gray-500 mt-1">在表格中选择知识点，将作为生成AI内容的输入信息</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Package className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">选择知识点</h2>
+                  <p className="text-sm text-gray-500">选择需要进行技术包装的知识点</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowKnowledgeSelection(!showKnowledgeSelection)}
@@ -152,7 +151,8 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
             {showKnowledgeSelection && (
                <KnowledgePointSelector
               knowledgePoints={knowledgePoints}
-              initialSelectedPoints={selectedKnowledgePoints}
+              initialSelectedItems={selectedItems}
+              allowedContentTypes={['knowledge_point', 'tech_packaging', 'tech_promotion', 'tech_press']}
               initialExpanded={true}
               onSelectionChange={handleKnowledgePointSelectionChange}
               onSave={handleKnowledgePointSave}
@@ -211,18 +211,31 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
                   <div className="flex gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={() => {
-                        if (!selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)) {
-                          setSelectedKnowledgePoints(prev => [...prev, selectedKnowledgePointForDetail.id]);
+                        const isAlreadySelected = selectedItems.some(item => 
+                          item.knowledgePoint.id === selectedKnowledgePointForDetail.id
+                        );
+                        if (!isAlreadySelected) {
+                          setSelectedItems(prev => [...prev, {
+                            knowledgePointId: selectedKnowledgePointForDetail.id,
+                            contentType: 'knowledge_point',
+                            knowledgePoint: selectedKnowledgePointForDetail
+                          }]);
                         }
                       }}
-                      disabled={selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)}
+                      disabled={selectedItems.some(item => 
+                        item.knowledgePoint.id === selectedKnowledgePointForDetail.id
+                      )}
                       className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id)
+                        selectedItems.some(item => 
+                          item.knowledgePoint.id === selectedKnowledgePointForDetail.id
+                        )
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                     >
-                      {selectedKnowledgePoints.includes(selectedKnowledgePointForDetail.id) ? '已选择' : '选择此知识点'}
+                      {selectedItems.some(item => 
+                        item.knowledgePoint.id === selectedKnowledgePointForDetail.id
+                      ) ? '已选择' : '选择此知识点'}
                     </button>
                     <button
                       onClick={() => setSelectedKnowledgePointForDetail(null)}
@@ -258,7 +271,7 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
                 </div>
                 <button
                   onClick={handleTechPackageGenerate}
-                  disabled={isGenerating || selectedKnowledgePoints.length === 0}
+                  disabled={isGenerating || selectedItems.length === 0}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
@@ -304,13 +317,13 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
       <ActionBar
         onRegenerate={() => {
           setTechPackageContent('');
-          setSelectedKnowledgePoints([]);
+          setSelectedItems([]);
         }}
         onSaveDraft={() => {
           // 保存草稿逻辑
           console.log('保存草稿');
         }}
-        onSaveContent={() => onExecute({ techPackageContent, selectedKnowledgePoints })}
+        onSaveContent={() => onExecute({ techPackageContent, selectedItems })}
         saveContentText="保存推广策略"
         saveContentIcon={<Sparkles className="w-4 h-4" />}
         disabled={!techPackageContent}

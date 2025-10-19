@@ -1,5 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Package } from 'lucide-react';
+import { Package, FileText, Megaphone, Newspaper, CheckCircle } from 'lucide-react';
+
+// 内容类型枚举
+export type ContentType = 'knowledge_point' | 'tech_packaging' | 'tech_promotion' | 'tech_press';
+
+// 内容类型配置
+export const CONTENT_TYPES = {
+  knowledge_point: {
+    id: 'knowledge_point' as ContentType,
+    label: '知识点',
+    icon: Package,
+    color: 'blue',
+    description: '原始技术点信息'
+  },
+  tech_packaging: {
+    id: 'tech_packaging' as ContentType,
+    label: '技术包装',
+    icon: FileText,
+    color: 'green',
+    description: '基于知识点的包装材料'
+  },
+  tech_promotion: {
+    id: 'tech_promotion' as ContentType,
+    label: '技术推广',
+    icon: Megaphone,
+    color: 'purple',
+    description: '基于知识点的推广策略'
+  },
+  tech_press: {
+    id: 'tech_press' as ContentType,
+    label: '技术通稿',
+    icon: Newspaper,
+    color: 'orange',
+    description: '基于知识点的通稿内容'
+  }
+};
 
 // 知识点数据接口
 export interface KnowledgePoint {
@@ -11,12 +46,19 @@ export interface KnowledgePoint {
   description: string;     // 描述
 }
 
+// 选择项接口
+export interface SelectionItem {
+  knowledgePointId: string;
+  contentType: ContentType;
+  knowledgePoint: KnowledgePoint;
+}
+
 // 组件Props接口
 export interface KnowledgePointSelectorProps {
   // 知识点数据
   knowledgePoints?: KnowledgePoint[];
-  // 初始选中的知识点ID列表
-  initialSelectedPoints?: string[];
+  // 初始选中的项目
+  initialSelectedItems?: SelectionItem[];
   // 初始展开状态
   initialExpanded?: boolean;
   // 标题
@@ -30,9 +72,11 @@ export interface KnowledgePointSelectorProps {
     expand: string;
     collapse: string;
   };
+  // 允许选择的内容类型
+  allowedContentTypes?: ContentType[];
   // 回调函数
-  onSelectionChange?: (selectedPoints: KnowledgePoint[]) => void;
-  onSave?: (selectedPoints: KnowledgePoint[]) => void;
+  onSelectionChange?: (selectedItems: SelectionItem[]) => void;
+  onSave?: (selectedItems: SelectionItem[]) => void;
   onKnowledgePointClick?: (knowledgePoint: KnowledgePoint) => void;
   // 样式自定义
   className?: string;
@@ -44,12 +88,13 @@ export interface KnowledgePointSelectorProps {
 
 const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   knowledgePoints = [],
-  initialSelectedPoints = [],
+  initialSelectedItems = [],
   initialExpanded = false,
   title = "选择知识点",
-  description = "匹配后的知识点信息，将作为后续AI智能助手的输入信息",
-  saveButtonText = "选择知识点",
+  description = "选择知识点及其关联内容类型，将作为后续AI智能助手的输入信息",
+  saveButtonText = "确认选择",
   expandButtonText = { expand: "展开", collapse: "收起" },
+  allowedContentTypes = ['knowledge_point', 'tech_packaging', 'tech_promotion', 'tech_press'],
   onSelectionChange,
   onSave,
   onKnowledgePointClick,
@@ -58,7 +103,7 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   collapsible = true
 }) => {
   // 状态管理
-  const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<string[]>(initialSelectedPoints);
+  const [selectedItems, setSelectedItems] = useState<SelectionItem[]>(initialSelectedItems);
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleSeries, setVehicleSeries] = useState('');
   const [techCategory, setTechCategory] = useState('');
@@ -93,23 +138,43 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
     return matchVehicle && matchSeries && matchCategory;
   });
 
-  // 知识点选择处理函数
-  const handleKnowledgePointSelect = (pointId: string) => {
-    setSelectedKnowledgePoints(prev => {
-      const newSelection = prev.includes(pointId)
-        ? prev.filter(id => id !== pointId)
-        : [...prev, pointId];
-      
-      return newSelection;
+  // 检查某个知识点的某种内容类型是否已选中
+  const isSelected = (knowledgePointId: string, contentType: ContentType): boolean => {
+    return selectedItems.some(item => 
+      item.knowledgePointId === knowledgePointId && item.contentType === contentType
+    );
+  };
+
+  // 获取某个知识点已选中的内容类型数量
+  const getSelectedContentTypesCount = (knowledgePointId: string): number => {
+    return selectedItems.filter(item => item.knowledgePointId === knowledgePointId).length;
+  };
+
+  // 处理内容类型选择
+  const handleContentTypeSelect = (knowledgePoint: KnowledgePoint, contentType: ContentType) => {
+    setSelectedItems(prev => {
+      const existingIndex = prev.findIndex(item => 
+        item.knowledgePointId === knowledgePoint.id && item.contentType === contentType
+      );
+
+      if (existingIndex >= 0) {
+        // 取消选择
+        return prev.filter((_, index) => index !== existingIndex);
+      } else {
+        // 添加选择
+        return [...prev, {
+          knowledgePointId: knowledgePoint.id,
+          contentType,
+          knowledgePoint
+        }];
+      }
     });
   };
 
-  // 保存知识点处理函数
-  const handleSaveKnowledgePoints = () => {
-    const selectedPoints = knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id));
-    
+  // 保存选择处理函数
+  const handleSaveSelection = () => {
     if (onSave) {
-      onSave(selectedPoints);
+      onSave(selectedItems);
     }
     
     // 如果可收起，保存后自动收起
@@ -121,30 +186,39 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   // 重置筛选条件
   const resetFilters = () => {
     setVehicleModel('');
+    setVehicleSeries('');
     setTechCategory('');
   };
 
-  // 全选/取消全选
-  const handleSelectAll = () => {
-    const allFilteredIds = filteredKnowledgePoints.map(kp => kp.id);
-    const isAllSelected = allFilteredIds.every(id => selectedKnowledgePoints.includes(id));
+  // 清空所有选择
+  const clearAllSelections = () => {
+    setSelectedItems([]);
+  };
+
+  // 获取内容类型的样式类
+  const getContentTypeStyle = (contentType: ContentType, selected: boolean = false) => {
+    const config = CONTENT_TYPES[contentType];
+    const baseClasses = "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer";
     
-    if (isAllSelected) {
-      // 取消选择当前筛选结果中的所有项
-      setSelectedKnowledgePoints(prev => prev.filter(id => !allFilteredIds.includes(id)));
+    if (selected) {
+      switch (config.color) {
+        case 'blue': return `${baseClasses} bg-blue-100 text-blue-800 border border-blue-300`;
+        case 'green': return `${baseClasses} bg-green-100 text-green-800 border border-green-300`;
+        case 'purple': return `${baseClasses} bg-purple-100 text-purple-800 border border-purple-300`;
+        case 'orange': return `${baseClasses} bg-orange-100 text-orange-800 border border-orange-300`;
+        default: return `${baseClasses} bg-gray-100 text-gray-800 border border-gray-300`;
+      }
     } else {
-      // 选择当前筛选结果中的所有项
-      setSelectedKnowledgePoints(prev => [...new Set([...prev, ...allFilteredIds])]);
+      return `${baseClasses} bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100`;
     }
   };
 
   // 监听选中项变化，触发回调
   useEffect(() => {
-    if (onSelectionChange && selectedKnowledgePoints.length > 0) {
-      const selectedPoints = knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id));
-      onSelectionChange(selectedPoints);
+    if (onSelectionChange) {
+      onSelectionChange(selectedItems);
     }
-  }, [selectedKnowledgePoints]);
+  }, [selectedItems, onSelectionChange]);
 
   return (
     <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm ${className}`}>
@@ -169,6 +243,26 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
 
         {(showKnowledgeSelection || !collapsible) && (
           <div className="space-y-4">
+            {/* 内容类型说明 */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">可选择的内容类型：</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {allowedContentTypes.map(contentType => {
+                  const config = CONTENT_TYPES[contentType];
+                  const Icon = config.icon;
+                  return (
+                    <div key={contentType} className="flex items-center gap-2 p-2 bg-white rounded border">
+                      <Icon className={`w-4 h-4 text-${config.color}-500`} />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{config.label}</div>
+                        <div className="text-xs text-gray-500">{config.description}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* 筛选条件 */}
             <div className="flex flex-wrap gap-4">
               <div className="flex flex-col">
@@ -277,20 +371,20 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
             <div className="flex justify-between items-center">
               <div className="flex gap-2">
                 <button
-                  onClick={handleSelectAll}
-                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  {filteredKnowledgePoints.every(kp => selectedKnowledgePoints.includes(kp.id)) ? '取消全选' : '全选'}
-                </button>
-                <button
                   onClick={resetFilters}
                   className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   重置筛选
                 </button>
+                <button
+                  onClick={clearAllSelections}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                >
+                  清空选择
+                </button>
               </div>
               <div className="text-sm text-gray-500">
-                已选择 {selectedKnowledgePoints.length} 个知识点
+                已选择 {selectedItems.length} 项内容
               </div>
             </div>
 
@@ -299,26 +393,18 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">选择</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">车型</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">车系</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">技术分类</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">技术点</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">描述</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">选择内容类型</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredKnowledgePoints.length > 0 ? (
                     filteredKnowledgePoints.map(kp => (
                       <tr key={kp.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedKnowledgePoints.includes(kp.id)}
-                            onChange={() => handleKnowledgePointSelect(kp.id)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                        </td>
                         <td 
                           className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:text-blue-600"
                           onClick={() => onKnowledgePointClick?.(kp)}
@@ -349,6 +435,33 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
                         >
                           {kp.description}
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {allowedContentTypes.map(contentType => {
+                              const config = CONTENT_TYPES[contentType];
+                              const Icon = config.icon;
+                              const selected = isSelected(kp.id, contentType);
+                              
+                              return (
+                                <div
+                                  key={contentType}
+                                  onClick={() => handleContentTypeSelect(kp, contentType)}
+                                  className={getContentTypeStyle(contentType, selected)}
+                                  title={`${selected ? '取消选择' : '选择'} ${config.label}`}
+                                >
+                                  <Icon className="w-3 h-3" />
+                                  <span>{config.label}</span>
+                                  {selected && <CheckCircle className="w-3 h-3" />}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {getSelectedContentTypesCount(kp.id) > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              已选择 {getSelectedContentTypesCount(kp.id)} 种内容类型
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -366,11 +479,11 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
             {showSaveButton && (
               <div className="flex justify-end">
                 <button
-                  onClick={handleSaveKnowledgePoints}
-                  disabled={selectedKnowledgePoints.length === 0}
+                  onClick={handleSaveSelection}
+                  disabled={selectedItems.length === 0}
                   className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {saveButtonText}
+                  {saveButtonText} ({selectedItems.length})
                 </button>
               </div>
             )}
