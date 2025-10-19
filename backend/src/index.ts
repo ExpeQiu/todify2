@@ -22,8 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 路由
-app.use('/api/v1/workflows', workflowRoutes);
+// 路由配置
 app.use('/api/v1', apiRoutes);
 
 app.get('/', (req, res) => {
@@ -36,7 +35,13 @@ app.get('/', (req, res) => {
 
 // 全局错误处理中间件
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Global error handler:', err);
+  console.error('=== Global Error Handler ===');
+  console.error('Error:', err);
+  console.error('Stack:', err.stack);
+  console.error('Request URL:', req.url);
+  console.error('Request Method:', req.method);
+  console.error('Request Body:', req.body);
+  
   res.status(500).json({
     success: false,
     message: 'Internal server error',

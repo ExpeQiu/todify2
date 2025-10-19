@@ -1,5 +1,7 @@
 import express from 'express';
 import DifyClient, { DifyAppType, DifyChatResponse } from '../services/DifyClient';
+import { createContentConcatenationService } from '../services/ContentConcatenationService';
+import { db } from '../config/database';
 import { 
   validateAiSearchRequest, 
   validateTechAppRequest,
@@ -26,8 +28,43 @@ router.post('/ai-search', async (req, res) => {
     const { query, inputs = {} } = req.body;
     console.log('开始调用AI搜索API, query:', query, 'inputs:', inputs);
 
+    // 处理知识点内容拼接
+    let processedInputs = { ...inputs };
+    
+    // 检查是否有selectedKnowledgePoints需要处理
+    if (inputs.selectedKnowledgePoints && Array.isArray(inputs.selectedKnowledgePoints) && inputs.selectedKnowledgePoints.length > 0) {
+      try {
+        console.log('开始处理知识点内容拼接, selectedKnowledgePoints:', inputs.selectedKnowledgePoints);
+        
+        // 创建内容拼接服务实例
+        const contentService = createContentConcatenationService(db);
+        
+        // 构建知识点上下文
+        const concatenatedContent = await contentService.buildContextFromSelectedItems(inputs.selectedKnowledgePoints);
+        
+        console.log('知识点内容拼接完成:', {
+          totalItems: concatenatedContent.summary.totalItems,
+          contentTypeCounts: concatenatedContent.summary.contentTypeCounts,
+          knowledgePointIds: concatenatedContent.summary.knowledgePointIds,
+          contextLength: concatenatedContent.contextString.length
+        });
+        
+        // 将拼接后的内容添加到inputs中
+        processedInputs.knowledgeContext = concatenatedContent.contextString;
+        processedInputs.knowledgeContextSummary = concatenatedContent.summary;
+        
+        // 保留原始的selectedKnowledgePoints以供参考
+        processedInputs.originalSelectedKnowledgePoints = inputs.selectedKnowledgePoints;
+        
+      } catch (contentError) {
+        console.error('知识点内容拼接失败:', contentError);
+        // 内容拼接失败时，仍然继续执行AI搜索，但记录错误
+        processedInputs.knowledgeContextError = contentError instanceof Error ? contentError.message : '内容拼接失败';
+      }
+    }
+
     // 调用AI搜索API (使用聊天消息API)
-    const result: DifyChatResponse = await DifyClient.aiSearch(query, inputs);
+    const result: DifyChatResponse = await DifyClient.aiSearch(query, processedInputs);
     console.log('AI搜索API调用成功:', result);
     
     // 验证响应数据格式
