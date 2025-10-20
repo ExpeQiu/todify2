@@ -632,7 +632,11 @@ export class CarSeriesModel {
     try {
       await this.ensureConnection();
       
-      const sql = `
+      console.log('获取车系技术点 - carSeriesId:', carSeriesId);
+      console.log('carSeriesId type:', typeof carSeriesId);
+      
+      // 先测试硬编码的查询
+      const testSql = `
         SELECT 
           tp.id,
           tp.name,
@@ -655,20 +659,67 @@ export class CarSeriesModel {
         INNER JOIN tech_point_car_models tpcm ON tp.id = tpcm.tech_point_id
         INNER JOIN car_models cm ON tpcm.car_model_id = cm.id
         INNER JOIN car_series cs ON cs.model_id = cm.id
-        WHERE cs.id = ?
+        WHERE cs.id = 1
         ORDER BY tp.priority DESC, tp.name ASC
       `;
       
-      const rows = await this.db.query(sql, [carSeriesId]);
+      console.log('执行测试SQL查询（硬编码）:', testSql);
       
-      return rows.map((row: any) => ({
-        ...row,
-        tags: row.tags ? JSON.parse(row.tags) : [],
-        technical_details: row.technical_details ? JSON.parse(row.technical_details) : null,
-        benefits: row.benefits ? JSON.parse(row.benefits) : [],
-        applications: row.applications ? JSON.parse(row.applications) : [],
-        keywords: row.keywords ? JSON.parse(row.keywords) : []
-      }));
+      const testRows = await this.db.query(testSql, []);
+      
+      console.log('测试查询结果行数:', testRows.length);
+      console.log('测试查询结果:', testRows);
+      
+      if (testRows.length > 0) {
+        console.log('硬编码查询成功，现在测试参数化查询');
+        
+        const sql = `
+          SELECT 
+            tp.id,
+            tp.name,
+            tp.description,
+            tp.tech_type,
+            tp.priority,
+            tp.status,
+            tp.tags,
+            tp.technical_details,
+            tp.benefits,
+            tp.applications,
+            tp.keywords,
+            tp.source_url,
+            tp.created_at,
+            tp.updated_at,
+            tpcm.application_status,
+            tpcm.implementation_date,
+            tpcm.notes as association_notes
+          FROM tech_points tp
+          INNER JOIN tech_point_car_models tpcm ON tp.id = tpcm.tech_point_id
+          INNER JOIN car_models cm ON tpcm.car_model_id = cm.id
+          INNER JOIN car_series cs ON cs.model_id = cm.id
+          WHERE cs.id = ?
+          ORDER BY tp.priority DESC, tp.name ASC
+        `;
+        
+        console.log('执行参数化SQL查询:', sql);
+        console.log('查询参数:', [carSeriesId]);
+        
+        const rows = await this.db.query(sql, [carSeriesId]);
+        
+        console.log('参数化查询结果行数:', rows.length);
+        console.log('参数化查询结果:', rows);
+        
+        return rows.map((row: any) => ({
+          ...row,
+          tags: row.tags ? JSON.parse(row.tags) : [],
+          technical_details: row.technical_details ? JSON.parse(row.technical_details) : null,
+          benefits: row.benefits ? JSON.parse(row.benefits) : [],
+          applications: row.applications ? JSON.parse(row.applications) : [],
+          keywords: row.keywords ? JSON.parse(row.keywords) : []
+        }));
+      } else {
+        console.log('硬编码查询也失败了，返回空数组');
+        return [];
+      }
     } catch (error) {
       console.error('获取车系技术点失败:', error);
       throw new Error('获取车系技术点失败');

@@ -86,7 +86,25 @@ CREATE TABLE IF NOT EXISTS tech_packaging_materials (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. 技术推广策略表（AI生成内容）
+-- 6. 知识点表
+CREATE TABLE IF NOT EXISTS knowledge_points (
+    id SERIAL PRIMARY KEY,
+    tech_point_id INTEGER NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    content TEXT NOT NULL,
+    knowledge_type VARCHAR(20) DEFAULT 'concept' CHECK (knowledge_type IN ('concept', 'principle', 'application', 'case_study', 'best_practice')),
+    difficulty_level VARCHAR(20) DEFAULT 'medium' CHECK (difficulty_level IN ('beginner', 'medium', 'advanced', 'expert')),
+    tags JSONB, -- JSON数组格式存储标签
+    source_url VARCHAR(1000),
+    attachments JSONB, -- JSON数组格式存储附件信息
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'archived')),
+    created_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE
+);
+
+-- 7. 技术推广策略表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_promotion_strategies (
     id SERIAL PRIMARY KEY,
     title VARCHAR(500) NOT NULL,
@@ -105,7 +123,7 @@ CREATE TABLE IF NOT EXISTS tech_promotion_strategies (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. 技术通稿表（AI生成内容）
+-- 8. 技术通稿表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_press_releases (
     id SERIAL PRIMARY KEY,
     title VARCHAR(500) NOT NULL,

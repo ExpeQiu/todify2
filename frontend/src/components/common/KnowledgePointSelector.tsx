@@ -90,7 +90,7 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   knowledgePoints = [],
   initialSelectedItems = [],
   initialExpanded = false,
-  title = "选择知识点",
+  title = "关联技术点",
   description = "选择知识点及其关联内容类型，将作为后续AI智能助手的输入信息",
   saveButtonText = "确认选择",
   expandButtonText = { expand: "展开", collapse: "收起" },
@@ -107,7 +107,8 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleSeries, setVehicleSeries] = useState('');
   const [techCategory, setTechCategory] = useState('');
-  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(initialExpanded);
+  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
+  const [selectedContentTypes, setSelectedContentTypes] = useState<ContentType[]>(allowedContentTypes);
 
   // 获取车型选项
   const vehicleModels = [...new Set(knowledgePoints.map(kp => kp.vehicleModel))];
@@ -148,6 +149,23 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   // 获取某个知识点已选中的内容类型数量
   const getSelectedContentTypesCount = (knowledgePointId: string): number => {
     return selectedItems.filter(item => item.knowledgePointId === knowledgePointId).length;
+  };
+
+  // 处理内容类型选择（红框2的选择）
+  const handleContentTypeToggle = (contentType: ContentType) => {
+    setSelectedContentTypes(prev => {
+      if (prev.includes(contentType)) {
+        // 取消选择该类型，同时移除所有相关的已选项
+        const newTypes = prev.filter(type => type !== contentType);
+        setSelectedItems(prevItems => 
+          prevItems.filter(item => item.contentType !== contentType)
+        );
+        return newTypes;
+      } else {
+        // 添加该类型
+        return [...prev, contentType];
+      }
+    });
   };
 
   // 处理内容类型选择
@@ -193,6 +211,7 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   // 清空所有选择
   const clearAllSelections = () => {
     setSelectedItems([]);
+    setSelectedContentTypes(allowedContentTypes); // 重置为默认的所有类型
   };
 
   // 获取内容类型的样式类
@@ -250,12 +269,26 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
                 {allowedContentTypes.map(contentType => {
                   const config = CONTENT_TYPES[contentType];
                   const Icon = config.icon;
+                  const isSelected = selectedContentTypes.includes(contentType);
                   return (
-                    <div key={contentType} className="flex items-center gap-2 p-2 bg-white rounded border">
-                      <Icon className={`w-4 h-4 text-${config.color}-500`} />
+                    <div 
+                      key={contentType} 
+                      className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'bg-blue-100 border-blue-300 text-blue-800' 
+                          : 'bg-white border-gray-200 hover:border-blue-300'
+                      }`}
+                      onClick={() => handleContentTypeToggle(contentType)}
+                    >
+                      <Icon className={`w-4 h-4 ${isSelected ? 'text-blue-600' : `text-${config.color}-500`}`} />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{config.label}</div>
-                        <div className="text-xs text-gray-500">{config.description}</div>
+                        <div className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                          {config.label}
+                          {isSelected && <span className="ml-1">✓</span>}
+                        </div>
+                        <div className={`text-xs ${isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
+                          {config.description}
+                        </div>
                       </div>
                     </div>
                   );
@@ -437,7 +470,7 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
-                            {allowedContentTypes.map(contentType => {
+                            {selectedContentTypes.map(contentType => {
                               const config = CONTENT_TYPES[contentType];
                               const Icon = config.icon;
                               const selected = isSelected(kp.id, contentType);

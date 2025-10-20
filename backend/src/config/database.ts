@@ -84,19 +84,33 @@ class SQLiteManager {
       throw new Error('数据库未连接');
     }
 
+    console.log('SQLiteManager.query - SQL:', sql);
+    console.log('SQLiteManager.query - Params:', params);
+
     return new Promise((resolve, reject) => {
       if (sql.trim().toLowerCase().startsWith('select')) {
         this.db!.all(sql, params, (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows);
+          if (err) {
+            console.error('SQLiteManager.query - Error:', err);
+            reject(err);
+          } else {
+            console.log('SQLiteManager.query - Rows returned:', rows.length);
+            console.log('SQLiteManager.query - First few rows:', rows.slice(0, 3));
+            resolve(rows);
+          }
         });
       } else {
         this.db!.run(sql, params, function(err) {
-          if (err) reject(err);
-          else resolve({ 
-            lastID: this.lastID, 
-            changes: this.changes 
-          });
+          if (err) {
+            console.error('SQLiteManager.query - Error:', err);
+            reject(err);
+          } else {
+            console.log('SQLiteManager.query - Changes:', this.changes, 'LastID:', this.lastID);
+            resolve({ 
+              lastID: this.lastID, 
+              changes: this.changes 
+            });
+          }
         });
       }
     });

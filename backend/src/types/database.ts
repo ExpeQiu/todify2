@@ -38,6 +38,23 @@ export enum Priority {
   CRITICAL = 'critical'
 }
 
+// 知识点类型枚举
+export enum KnowledgeType {
+  CONCEPT = 'concept',
+  PRINCIPLE = 'principle',
+  APPLICATION = 'application',
+  CASE_STUDY = 'case_study',
+  BEST_PRACTICE = 'best_practice'
+}
+
+// 难度级别枚举
+export enum DifficultyLevel {
+  BEGINNER = 'beginner',
+  MEDIUM = 'medium',
+  ADVANCED = 'advanced',
+  EXPERT = 'expert'
+}
+
 // 应用状态枚举
 export enum ApplicationStatus {
   PLANNED = 'planned',
@@ -145,6 +162,22 @@ export interface CarSeries extends BaseEntity {
   market_segment?: string;
   status: CarSeriesStatus;
   metadata?: Record<string, any>;
+}
+
+// 知识点接口
+export interface KnowledgePoint extends BaseEntity {
+  tech_point_id: number;
+  title: string;
+  content: string;
+  knowledge_type: KnowledgeType;
+  difficulty_level: DifficultyLevel;
+  tags?: string[];
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  examples?: string[];
+  references?: string[];
+  status: Status;
+  created_by?: string;
 }
 
 // 技术点接口
@@ -313,3 +346,6 @@ export type UpdateTechPressReleaseDTO = Partial<CreateTechPressReleaseDTO>;
 
 export type CreateTechSpeechDTO = Omit<TechSpeech, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateTechSpeechDTO = Partial<CreateTechSpeechDTO>;
+
+export type CreateKnowledgePointDTO = Omit<KnowledgePoint, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateKnowledgePointDTO = Partial<CreateKnowledgePointDTO>;

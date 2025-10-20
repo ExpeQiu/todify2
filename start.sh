@@ -66,7 +66,7 @@ install_dependencies "$SCRIPT_DIR/frontend" "前端"
 echo "🎯 启动服务..."
 
 # 启动后端服务
-echo "🔧 启动后端服务 (端口: 3000)..."
+echo "🔧 启动后端服务 (端口: 3001)..."
 cd "$SCRIPT_DIR/backend"
 npm run dev &
 BACKEND_PID=$!
@@ -75,7 +75,7 @@ BACKEND_PID=$!
 sleep 3
 
 # 启动前端服务
-echo "🎨 启动前端服务 (端口: 5173)..."
+echo "🎨 启动前端服务 (端口: 3000)..."
 cd "$SCRIPT_DIR/frontend"
 npm run dev &
 FRONTEND_PID=$!
@@ -85,8 +85,8 @@ sleep 5
 
 echo ""
 echo "🎉 Todify2 启动完成!"
-echo "📱 前端地址: http://localhost:5173"
-echo "🔧 后端地址: http://localhost:3000"
+echo "📱 前端地址: http://localhost:3000"
+echo "🔧 后端地址: http://localhost:3001"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 

@@ -6,6 +6,7 @@ import ConfigManagementPage from './pages/ConfigManagementPage'
 import TechPointManagement from './pages/TechPointManagement'
 import CarSeriesManagement from './pages/CarSeriesManagement'
 import CarSeriesDetailPage from './components/carSeries/CarSeriesDetailPage'
+import CarSeriesEditPage from './pages/CarSeriesEditPage'
 import AiSearchTestPage from './pages/AiSearchTestPage'
 import './App.css'
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/tech-points" element={<TechPointManagement />} />
           <Route path="/car-series" element={<CarSeriesManagement />} />
           <Route path="/car-series/:id" element={<CarSeriesDetailPage />} />
+          <Route path="/car-series/:id/edit" element={<CarSeriesEditPage />} />
           <Route path="/ai-search-test" element={<AiSearchTestPage />} />
         </Routes>
       </div>

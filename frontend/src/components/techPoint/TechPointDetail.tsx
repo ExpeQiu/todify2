@@ -12,17 +12,16 @@ import {
   ChevronUp,
   ExternalLink,
   Clock,
-  Building,
-  Layers
+  BookOpen,
+  Plus
 } from 'lucide-react';
 import { TechPoint } from '../../types/techPoint';
 import { CarModel } from '../../types/carModel';
-import { Brand } from '../../types/brand';
-import { CarSeries } from '../../types/carSeries';
+import { KnowledgePoint } from '../../types/knowledgePoint';
 import { techPointService } from '../../services/techPointService';
-import { brandService } from '../../services/brandService';
-import { carSeriesService } from '../../services/carSeriesService';
+import { knowledgePointService } from '../../services/knowledgePointService';
 import CarModelAssociation from './CarModelAssociation';
+import KnowledgePointManager from '../knowledgePoint/KnowledgePointManager';
 
 interface TechPointDetailProps {
   techPoint: TechPoint;
@@ -36,24 +35,16 @@ interface AssociatedContent {
   speeches: any[];
 }
 
-interface HierarchyInfo {
-  brands: Brand[];
-  carModels: CarModel[];
-  carSeries: CarSeries[];
-}
+
 
 const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose }) => {
   const [associatedContent, setAssociatedContent] = useState<AssociatedContent | null>(null);
   const [associatedCarModels, setAssociatedCarModels] = useState<CarModel[]>([]);
-  const [hierarchyInfo, setHierarchyInfo] = useState<HierarchyInfo>({
-    brands: [],
-    carModels: [],
-    carSeries: []
-  });
+  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    hierarchy: true,
+    knowledgePoints: true,
     packaging: false,
     promotion: false,
     press: false,
@@ -63,7 +54,23 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose })
 
   useEffect(() => {
     fetchAssociatedData();
+    fetchKnowledgePoints();
   }, [techPoint.id]);
+
+  const fetchKnowledgePoints = async () => {
+    try {
+      const response = await knowledgePointService.getByTechPointId(techPoint.id, {
+        page: 1,
+        pageSize: 100
+      });
+      
+      if (response.success && response.data) {
+        setKnowledgePoints(response.data);
+      }
+    } catch (err) {
+      console.error('获取知识点失败:', err);
+    }
+  };
 
   const fetchAssociatedData = async () => {
     setLoading(true);
@@ -81,7 +88,6 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose })
 
       if (carModelsResponse.success && carModelsResponse.data) {
         setAssociatedCarModels(carModelsResponse.data);
-        await fetchHierarchyInfo(carModelsResponse.data);
       }
     } catch (err) {
       setError('获取关联数据失败');
@@ -90,40 +96,7 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose })
     }
   };
 
-  const fetchHierarchyInfo = async (carModels: CarModel[]) => {
-    try {
-      // 获取所有关联的品牌ID
-      const brandIds = [...new Set(carModels.map(model => model.brand_id))];
-      
-      // 获取品牌信息
-      const brandPromises = brandIds.map(id => brandService.getById(id));
-      const brandResponses = await Promise.all(brandPromises);
-      const brands = brandResponses
-        .filter(response => response.success && response.data)
-        .map(response => response.data!);
 
-      // 获取车系信息
-      const carSeriesPromises = carModels.map(model => 
-        carSeriesService.getByModel(model.id)
-      );
-      const carSeriesResponses = await Promise.all(carSeriesPromises);
-      const allCarSeries: CarSeries[] = [];
-      
-      carSeriesResponses.forEach(response => {
-        if (response.data) {
-          allCarSeries.push(...response.data);
-        }
-      });
-
-      setHierarchyInfo({
-        brands,
-        carModels,
-        carSeries: allCarSeries
-      });
-    } catch (err) {
-      console.error('获取层级信息失败:', err);
-    }
-  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({
@@ -166,91 +139,7 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose })
     }
   };
 
-  const renderHierarchySection = () => {
-    const isExpanded = expandedSections.hierarchy;
-    
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <button
-          onClick={() => toggleSection('hierarchy')}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Layers className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="text-left">
-              <h3 className="text-lg font-semibold text-gray-900">关联层级结构</h3>
-              <p className="text-sm text-gray-500">
-                {hierarchyInfo.brands.length} 个品牌, {hierarchyInfo.carModels.length} 个车型, {hierarchyInfo.carSeries.length} 个车系
-              </p>
-            </div>
-          </div>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
-        
-        {isExpanded && (
-          <div className="border-t border-gray-200 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* 品牌 */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Building className="w-4 h-4" />
-                  品牌 ({hierarchyInfo.brands.length})
-                </h4>
-                <div className="space-y-2">
-                  {hierarchyInfo.brands.map(brand => (
-                    <div key={brand.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="font-medium text-gray-900">{brand.name}</div>
-                      <div className="text-sm text-gray-500">{brand.country}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* 车型 */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Car className="w-4 h-4" />
-                  车型 ({hierarchyInfo.carModels.length})
-                </h4>
-                <div className="space-y-2">
-                  {hierarchyInfo.carModels.map(model => (
-                    <div key={model.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="font-medium text-gray-900">{model.name}</div>
-                      <div className="text-sm text-gray-500">{model.market_segment}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 车系 */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Layers className="w-4 h-4" />
-                  车系 ({hierarchyInfo.carSeries.length})
-                </h4>
-                <div className="space-y-2">
-                  {hierarchyInfo.carSeries.map(series => (
-                    <div key={series.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="font-medium text-gray-900">{series.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {series.launch_year} - {series.end_year || '至今'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   const renderContentSection = (
     title: string,
@@ -416,8 +305,39 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({ techPoint, onClose })
               )}
             </div>
 
-            {/* Hierarchy Info */}
-            {renderHierarchySection()}
+            {/* Knowledge Points Section */}
+            <div className="bg-white rounded-lg border border-gray-200">
+              <button
+                onClick={() => toggleSection('knowledgePoints')}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <BookOpen className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-gray-900">知识点记录</h3>
+                    <p className="text-sm text-gray-500">管理技术点相关的知识点内容</p>
+                  </div>
+                </div>
+                {expandedSections.knowledgePoints ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+              
+              {expandedSections.knowledgePoints && (
+                <div className="border-t border-gray-200 p-6">
+                  <KnowledgePointManager
+                    techPointId={techPoint.id}
+                    techPointName={techPoint.name}
+                  />
+                </div>
+              )}
+            </div>
+
+
 
             {/* Associated Content Sections */}
             {associatedContent && (

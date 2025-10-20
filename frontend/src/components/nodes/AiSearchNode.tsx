@@ -244,7 +244,7 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
 
         {/* 主要内容区域 */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[700px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ height: 'calc(100vh - 200px)' }}>
             {/* 左侧AI对话区域 */}
             <div className="p-8 border-r border-gray-200">
               <div className="h-full flex flex-col">
@@ -257,7 +257,7 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                 </div>
 
                 {/* 对话内容区域 - 滚动对话框 */}
-                <div className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto max-h-[500px]">
+                <div className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto">
                   <div className="space-y-4">
                     {/* 默认欢迎消息 */}
                     <div className="flex justify-start">
@@ -333,10 +333,10 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                                   <button
                                     onClick={handleShare}
                                     className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
-                                    title="传递"
+                                    title="采纳"
                                   >
                                     <Share2 className="w-3 h-3" />
-                                    <span>传递</span>
+                                    <span>采纳</span>
                                   </button>
                                   
                                   <button
@@ -399,7 +399,7 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                   <div className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center">
                     <BookOpen className="w-4 h-4 text-green-600" />
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900">对应的知识点</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">编辑修订</h2>
                 </div>
 
                 {/* 编辑文本区域 */}

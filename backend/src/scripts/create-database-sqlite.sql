@@ -31,7 +31,25 @@ CREATE TABLE IF NOT EXISTS car_models (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. 技术点表（核心表）
+-- 3. 车系表
+CREATE TABLE IF NOT EXISTS car_series (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_id INTEGER NOT NULL,
+    brand TEXT NOT NULL,
+    series TEXT NOT NULL,
+    description TEXT,
+    launch_year INTEGER,
+    end_year INTEGER,
+    market_segment TEXT,
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'discontinued')),
+    metadata TEXT, -- JSON格式存储额外信息
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (model_id) REFERENCES car_models(id),
+    UNIQUE(brand, series)
+);
+
+-- 4. 技术点表（核心表）
 CREATE TABLE IF NOT EXISTS tech_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -55,7 +73,7 @@ CREATE TABLE IF NOT EXISTS tech_points (
     FOREIGN KEY (parent_id) REFERENCES tech_points(id)
 );
 
--- 4. 技术点与车型关联表（多对多）
+-- 5. 技术点与车型关联表（多对多）
 CREATE TABLE IF NOT EXISTS tech_point_car_models (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tech_point_id INTEGER NOT NULL,
@@ -70,7 +88,27 @@ CREATE TABLE IF NOT EXISTS tech_point_car_models (
     UNIQUE(tech_point_id, car_model_id)
 );
 
--- 5. 技术包装材料表（AI生成内容）
+-- 6. 知识点表
+CREATE TABLE IF NOT EXISTS knowledge_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tech_point_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    knowledge_type TEXT DEFAULT 'concept' CHECK (knowledge_type IN ('concept', 'principle', 'application', 'case_study', 'best_practice')),
+    difficulty_level TEXT DEFAULT 'medium' CHECK (difficulty_level IN ('beginner', 'medium', 'advanced', 'expert')),
+    tags TEXT, -- JSON数组格式存储标签
+    prerequisites TEXT, -- JSON数组格式存储前置条件
+    learning_objectives TEXT, -- JSON数组格式存储学习目标
+    examples TEXT, -- JSON数组格式存储示例
+    references TEXT, -- JSON数组格式存储参考资料
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'archived')),
+    created_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE
+);
+
+-- 7. 技术包装材料表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_packaging_materials (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tech_point_id INTEGER NOT NULL,
@@ -89,7 +127,7 @@ CREATE TABLE IF NOT EXISTS tech_packaging_materials (
     FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE
 );
 
--- 6. 技术推广策略表（AI生成内容）
+-- 7. 技术推广策略表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_promotion_strategies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -108,7 +146,7 @@ CREATE TABLE IF NOT EXISTS tech_promotion_strategies (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. 技术通稿表（AI生成内容）
+-- 8. 技术通稿表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_press_releases (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -129,7 +167,7 @@ CREATE TABLE IF NOT EXISTS tech_press_releases (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 8. 技术演讲稿表（AI生成内容）
+-- 9. 技术演讲稿表（AI生成内容）
 CREATE TABLE IF NOT EXISTS tech_speeches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -151,7 +189,7 @@ CREATE TABLE IF NOT EXISTS tech_speeches (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. 推广策略与技术点关联表（多对多）
+-- 10. 推广策略与技术点关联表（多对多）
 CREATE TABLE IF NOT EXISTS promotion_tech_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     promotion_id INTEGER NOT NULL,
@@ -163,7 +201,7 @@ CREATE TABLE IF NOT EXISTS promotion_tech_points (
     UNIQUE(promotion_id, tech_point_id)
 );
 
--- 10. 通稿与技术点关联表（多对多）
+-- 11. 通稿与技术点关联表（多对多）
 CREATE TABLE IF NOT EXISTS press_tech_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     press_release_id INTEGER NOT NULL,
@@ -175,7 +213,7 @@ CREATE TABLE IF NOT EXISTS press_tech_points (
     UNIQUE(press_release_id, tech_point_id)
 );
 
--- 11. 演讲稿与技术点关联表（多对多）
+-- 12. 演讲稿与技术点关联表（多对多）
 CREATE TABLE IF NOT EXISTS speech_tech_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     speech_id INTEGER NOT NULL,
@@ -190,6 +228,10 @@ CREATE TABLE IF NOT EXISTS speech_tech_points (
 -- 创建索引以提高查询性能
 CREATE INDEX IF NOT EXISTS idx_tech_categories_parent_id ON tech_categories(parent_id);
 CREATE INDEX IF NOT EXISTS idx_tech_categories_status ON tech_categories(status);
+
+CREATE INDEX IF NOT EXISTS idx_car_series_brand ON car_series(brand);
+CREATE INDEX IF NOT EXISTS idx_car_series_status ON car_series(status);
+CREATE INDEX IF NOT EXISTS idx_car_series_market_segment ON car_series(market_segment);
 
 CREATE INDEX IF NOT EXISTS idx_car_models_brand ON car_models(brand);
 CREATE INDEX IF NOT EXISTS idx_car_models_series ON car_models(series);
@@ -219,6 +261,12 @@ INSERT OR IGNORE INTO tech_categories (id, name, description, parent_id, level) 
 (4, '内饰科技', '座舱、娱乐系统、人机交互等', NULL, 1),
 (5, '新能源技术', '电池、充电、能源管理等', 1, 2),
 (6, '传统动力', '燃油发动机、混合动力等', 1, 2);
+
+INSERT OR IGNORE INTO car_series (id, model_id, brand, series, description, launch_year, market_segment, status) VALUES
+(1, 1, '吉利', 'P7', '吉利P7系列，定位中高端纯电动轿车', 2023, 'Mid-size Sedan', 'active'),
+(2, 1, '吉利', '博越', '吉利博越系列，紧凑型SUV', 2016, 'Compact SUV', 'active'),
+(3, 2, '吉利', '星瑞', '吉利星瑞系列，中型轿车', 2020, 'Mid-size Sedan', 'active'),
+(4, 3, '吉利', '几何', '几何系列，纯电动车型', 2019, 'Compact Sedan', 'active');
 
 INSERT OR IGNORE INTO car_models (id, brand, series, model, year, engine_type, fuel_type, market_segment) VALUES
 (1, '吉利', '博越', '博越Pro', 2024, '1.5T', 'Gasoline', 'Compact SUV'),

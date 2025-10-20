@@ -339,7 +339,7 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           <div className="user-content-section">
             <div className="content-header">
               <BookOpen className="w-5 h-5 text-green-600" />
-              <span className="font-medium text-gray-800">对应的知识点</span>
+              <span className="font-medium text-gray-800">编辑修订</span>
               <div className="header-actions">
                 <button
                   onClick={handleOpenSaveModal}
