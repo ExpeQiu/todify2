@@ -240,8 +240,8 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
   }, [selectedItems, onSelectionChange]);
 
   return (
-    <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm ${className}`}>
-      <div className="p-6">
+    <div className={`h-full flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm ${className}`}>
+      <div className="flex-shrink-0 p-6 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -259,13 +259,15 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
             </button>
           )}
         </div>
+      </div>
 
-        {(showKnowledgeSelection || !collapsible) && (
-          <div className="space-y-4">
+      {(showKnowledgeSelection || !collapsible) && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-shrink-0 p-6 space-y-4">
             {/* 内容类型说明 */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-700 mb-3">可选择的内容类型：</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {allowedContentTypes.map(contentType => {
                   const config = CONTENT_TYPES[contentType];
                   const Icon = config.icon;
@@ -421,10 +423,13 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
               </div>
             </div>
 
-            {/* 知识点表格 */}
+          </div>
+
+          {/* 知识点列表 - 可滚动区域 */}
+          <div className="flex-1 overflow-auto p-6 pt-0">
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">车型</th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">车系</th>
@@ -510,7 +515,7 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
 
             {/* 保存按钮 */}
             {showSaveButton && (
-              <div className="flex justify-end">
+              <div className="flex justify-end mt-4">
                 <button
                   onClick={handleSaveSelection}
                   disabled={selectedItems.length === 0}
@@ -521,8 +526,8 @@ const KnowledgePointSelector: React.FC<KnowledgePointSelectorProps> = ({
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

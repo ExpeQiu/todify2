@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
-import { Package, Code, Sparkles, ArrowLeft, RefreshCw, Download, Share2, Bot } from 'lucide-react';
+import { 
+  Brain, 
+  ArrowLeft, 
+  Target,
+  BookOpen, 
+  ArrowRight, 
+  Download, 
+  ThumbsUp, 
+  ThumbsDown, 
+  RotateCcw,
+  Copy,
+  Share2,
+  Sparkles,
+  Save,
+  X,
+  Check
+} from 'lucide-react';
 import { BaseNodeProps } from '../../types/nodeComponent';
-import KnowledgePointSelector, { KnowledgePoint as KnowledgePointType, SelectionItem } from '../common/KnowledgePointSelector';
-import ActionBar from '../common/ActionBar';
+import { workflowAPI } from '../../services/api';
+import KnowledgePointSelector, { KnowledgePoint, SelectionItem, ContentType } from '../common/KnowledgePointSelector';
 import './NodeComponent.css';
 
 interface PromotionStrategyNodeProps extends BaseNodeProps {
@@ -15,79 +31,163 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
   initialData,
   isLoading = false
 }) => {
-  const [techPackageContent, setTechPackageContent] = useState('');
+  const [query, setQuery] = useState(initialData?.query || '');
+  const [activeTab, setActiveTab] = useState('技术策略');
+  const [aiResponse, setAiResponse] = useState('');
+  const [userContent, setUserContent] = useState('');
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+  
+  // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
-  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(false);
-  const [selectedKnowledgePointForDetail, setSelectedKnowledgePointForDetail] = useState<KnowledgePointType | null>(null);
-  const [activeVehicleModel, setActiveVehicleModel] = useState('全部车型');
-  const [activeTechCategory, setActiveTechCategory] = useState('全部分类');
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  // 模拟知识点数据 - 三维度结构：车型-技术分类-技术点
-  const knowledgePoints: KnowledgePointType[] = [
-    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电系统集成', description: '高压电池包与电机控制系统的深度集成技术' },
-    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '电池热管理', description: '先进的液冷电池热管理系统，确保电池性能和寿命' },
-    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自研全自动驾驶芯片，算力达144TOPS' },
-    { id: '4', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: '神经网络', description: '端到端神经网络架构，实现复杂场景理解' },
-    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '4680电池', description: '新一代4680圆柱电池技术，能量密度提升5倍' },
-    { id: '6', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '前后车身一体化压铸技术，减重提效' },
-    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，双铰链结构' },
-    { id: '8', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动格栅', description: '智能主动进气格栅，优化空气动力学性能' },
-    { id: '9', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '结构化电池包', description: '电池包作为车身结构件，提升刚性' },
-    { id: '10', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '热泵系统', techPoint: '八通阀热泵', description: '高效八通阀热泵系统，冬季续航提升' },
-    { id: '11', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '材料技术', techPoint: '不锈钢车身', description: '30X冷轧不锈钢外壳，防弹防刮' },
-    { id: '12', vehicleModel: 'Cybertruck', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三电机布局', description: '前单后双电机布局，实现极致性能' },
+  const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(true);
+  
+  // 保存知识点模态框状态
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const tabs = ['信息检索', '技术包装', '技术策略', '技术通稿', '技术发布稿'];
+  
+  // 模拟知识点数据
+  const knowledgePoints: KnowledgePoint[] = [
+    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三元锂电池', description: '高能量密度的锂离子电池技术，提供长续航里程' },
+    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '电池管理', techPoint: 'BMS系统', description: '智能电池管理系统，确保电池安全和性能' },
+    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自主研发的全自动驾驶芯片，算力强大' },
+    { id: '4', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '永磁同步电机', description: '高效率的永磁同步电机，提供强劲动力' },
+    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '智能网联', techPoint: '车载娱乐系统', description: '17英寸触控屏，集成丰富的娱乐功能' },
+    { id: '6', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，提升乘坐体验' },
+    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动进气格栅', description: '智能调节进气量，优化空气动力学性能' },
+    { id: '8', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '后车身一体化压铸技术，提高结构强度' }
   ];
 
-  // 处理知识点详情显示
-  const handleKnowledgePointClick = (knowledgePoint: KnowledgePointType) => {
-    setSelectedKnowledgePointForDetail(knowledgePoint);
+  // 获取唯一的车型和技术分类（如果需要在其他地方使用）
+  // const vehicleModels = [...new Set(knowledgePoints.map(kp => kp.vehicleModel))];
+  // const techCategories = [...new Set(knowledgePoints.map(kp => kp.techCategory))];
+
+  const handleAiSearch = async () => {
+    if (query.trim()) {
+      setInternalLoading(true);
+      setAiResponse('AI正在生成技术策略内容...');
+      
+      try {
+        // 调用后端技术策略API
+        const result = await workflowAPI.promotionStrategy(query.trim());
+        
+        if (result.success && result.data) {
+          // 设置AI响应内容
+          setAiResponse(result.data.answer || '抱歉，未能生成技术策略内容。');
+          
+          // 通知父组件执行完成
+          onExecute({ 
+            query: query.trim(),
+            response: result.data.answer,
+            metadata: result.data.metadata
+          });
+        } else {
+          setAiResponse(result.error || '技术策略生成失败，请稍后重试。');
+        }
+      } catch (error) {
+        console.error('技术策略生成错误:', error);
+        setAiResponse('网络错误，请检查连接后重试。');
+      } finally {
+        setInternalLoading(false);
+      }
+    }
   };
 
-  // 处理知识点选择变化
-  const handleKnowledgePointSelectionChange = (selectedItems: SelectionItem[]) => {
-    setSelectedItems(selectedItems);
+  const handleAdopt = () => {
+    // 直接打开知识点选择确认框
+    setModalSelectedItems(selectedItems);
+    setShowSaveModal(true);
   };
 
-  // 处理保存知识点选择
-  const handleKnowledgePointSave = (selectedItems: SelectionItem[]) => {
-    setSelectedItems(selectedItems);
-    setShowKnowledgeSelection(false);
+  // 处理打开保存模态框
+  const handleOpenSaveModal = () => {
+    setModalSelectedItems(selectedItems);
+    setShowSaveModal(true);
   };
 
-  const handleTechPackageGenerate = async () => {
-    setIsGenerating(true);
-    // 模拟AI生成过程
-    setTimeout(() => {
-      setTechPackageContent(`# 技术包装内容
+  // 处理关闭保存模态框
+  const handleCloseSaveModal = () => {
+    setShowSaveModal(false);
+    setModalSelectedItems([]);
+  };
 
-## 技术概述
-基于所选知识点：${selectedItems.map(item => {
-  const kp = item.knowledgePoint;
-  return `${kp.vehicleModel} - ${kp.techCategory} - ${kp.techPoint}`;
-}).join(', ')}
+  // 处理确认保存
+  const handleConfirmSave = async () => {
+    setIsSaving(true);
+    try {
+      console.log('保存知识点:', modalSelectedItems);
+      // 这里可以添加实际的保存逻辑
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟保存延迟
+      alert(`已保存 ${modalSelectedItems.length} 个知识点`);
+      setShowSaveModal(false);
+      setModalSelectedItems([]);
+    } catch (error) {
+      console.error('保存失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-这是一个基于现代Web技术栈的创新解决方案，采用React + TypeScript + Node.js架构，为用户提供高效、稳定的服务体验。
+  const handleExport = () => {
+    if (userContent) {
+      // 创建一个Blob对象包含用户内容，使用markdown格式
+      const blob = new Blob([userContent], { type: 'text/markdown;charset=utf-8' });
+      
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `promotion-strategy-result-${new Date().toISOString().slice(0, 10)}.md`;
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // 清理URL对象
+      URL.revokeObjectURL(url);
+    }
+  };
 
-## 核心技术特点
-- **前端技术**：React 18 + TypeScript + Tailwind CSS
-- **后端技术**：Node.js + Express + TypeScript  
-- **数据库**：MongoDB + Redis缓存
-- **部署方案**：Docker容器化 + Nginx负载均衡
+  // 快捷功能按钮处理函数
+  const handleCopy = async () => {
+    if (aiResponse) {
+      try {
+        await navigator.clipboard.writeText(aiResponse);
+        // 可以添加一个临时的成功提示
+        console.log('内容已复制到剪贴板');
+      } catch (err) {
+        console.error('复制失败:', err);
+      }
+    }
+  };
 
-## 技术优势
-1. **高性能**：采用虚拟DOM和组件化架构，页面渲染速度提升40%
-2. **可扩展**：微服务架构设计，支持水平扩展
-3. **安全性**：JWT认证 + HTTPS加密传输
-4. **易维护**：TypeScript类型检查，减少90%的运行时错误
+  const handleLike = () => {
+    setLiked(!liked);
+    if (disliked) setDisliked(false); // 如果之前不喜欢，取消不喜欢状态
+  };
 
-## 应用场景
-- 企业级管理系统
-- 电商平台解决方案  
-- 数据分析平台
-- 内容管理系统`);
-      setIsGenerating(false);
-    }, 2000);
+  const handleDislike = () => {
+    setDisliked(!disliked);
+    if (liked) setLiked(false); // 如果之前喜欢，取消喜欢状态
+  };
+
+  const handleShare = () => {
+    // 传递功能 - 可以将内容传递到用户编辑区
+    if (aiResponse) {
+      setUserContent(aiResponse);
+    }
+  };
+
+  const handleRegenerate = () => {
+    // 重新生成功能 - 重新触发技术策略生成
+    if (query) {
+      handleAiSearch();
+    }
   };
 
   return (
@@ -97,239 +197,315 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <button className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm">返回</span>
               </button>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg text-white">
-                  <Package className="w-5 h-5" />
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Target className="w-4 h-4 text-blue-600" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900">推广策略</h1>
-                  <p className="text-sm text-gray-500">AI智能技术包装与推广策略</p>
-                </div>
+                <h1 className="text-lg font-semibold text-gray-900">技术策略</h1>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                导出
-              </button>
-              <button className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-                <Share2 className="w-4 h-4" />
-                分享
-              </button>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">中文</span>
+              <span className="text-sm text-gray-500">分享</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* 知识点选择区域 */}
-        <div className="mb-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <Package className="w-5 h-5 text-green-600" />
+      <div className="max-w-7xl mx-auto p-6">
+        {/* 选择知识点区域 */}
+        <KnowledgePointSelector
+          knowledgePoints={knowledgePoints}
+          initialSelectedItems={selectedItems}
+          allowedContentTypes={['knowledge_point', 'tech_packaging', 'tech_promotion', 'tech_press']}
+          initialExpanded={showKnowledgeSelection}
+          onSelectionChange={(selectedItems) => {
+            setSelectedItems(selectedItems);
+          }}
+          onSave={(selectedItems) => {
+            const content = selectedItems.map(item => {
+              if (item.contentType === 'knowledge_point') {
+                const kp = item.knowledgePoint;
+                return `【${kp.vehicleModel} - ${kp.techCategory}】${kp.techPoint}: ${kp.description}`;
+              }
+              return `【${item.contentType}】${item.knowledgePoint.techPoint}`;
+            }).join('\n\n');
+            
+            if (content) {
+              setUserContent(prev => prev ? `${prev}\n\n${content}` : content);
+            }
+          }}
+          className="mb-6"
+        />
+
+        {/* 主要内容区域 */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ height: 'calc(100vh - 200px)' }}>
+            {/* 左侧AI对话区域 */}
+            <div className="p-8 border-r border-gray-200">
+              <div className="h-full flex flex-col">
+                {/* AI助手头像和标识 */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Target className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">技术策略助手</span>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">选择知识点</h2>
-                  <p className="text-sm text-gray-500">选择需要进行技术包装的知识点</p>
+
+                {/* 对话内容区域 - 滚动对话框 */}
+                <div className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto">
+                  <div className="space-y-4">
+                    {/* 默认欢迎消息 */}
+                    <div className="flex justify-start">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                          <Target className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm">
+                          <p className="text-sm text-gray-800">您好！我是技术策略助手，专门为您制定专业的技术推广策略。请输入您的技术内容，我会为您生成有效的推广策略方案。</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 用户问题和AI回答 */}
+                    {query && (
+                      <>
+                        {/* 用户问题 */}
+                        <div className="flex justify-end">
+                          <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-3 max-w-xs">
+                            <p className="text-sm">{query}</p>
+                          </div>
+                        </div>
+                        
+                        {/* AI回答 */}
+                        <div className="flex justify-start">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                              <Target className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm">
+                              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                                {aiResponse || '正在生成技术策略方案...'}
+                              </p>
+                              
+                              {/* 快捷功能按钮 */}
+                              {aiResponse && (
+                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                                  <button
+                                    onClick={handleCopy}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    title="复制"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    <span>复制</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleLike}
+                                    className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                                      liked 
+                                        ? 'text-green-600 bg-green-50' 
+                                        : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                                    }`}
+                                    title="点赞"
+                                  >
+                                    <ThumbsUp className="w-3 h-3" />
+                                    <span>点赞</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleDislike}
+                                    className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                                      disliked 
+                                        ? 'text-red-600 bg-red-50' 
+                                        : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
+                                    }`}
+                                    title="不符合"
+                                  >
+                                    <ThumbsDown className="w-3 h-3" />
+                                    <span>不符合</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleShare}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                    title="采纳"
+                                  >
+                                    <Share2 className="w-3 h-3" />
+                                    <span>采纳</span>
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleRegenerate}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    title="重新生成"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    <span>重新生成</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 输入区域 */}
+                <div className="space-y-4">
+                  <textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="请输入需要制定策略的技术内容..."
+                    disabled={isLoading}
+                    rows={3}
+                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm"
+                  />
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleAiSearch}
+                      disabled={internalLoading || !query.trim()}
+                      className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                    >
+                      {internalLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>生成中...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>生成技术策略</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowKnowledgeSelection(!showKnowledgeSelection)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <Package className="w-4 h-4" />
-                <span className="text-sm">{showKnowledgeSelection ? '收起' : '展开'}</span>
-              </button>
             </div>
 
-            {showKnowledgeSelection && (
-               <KnowledgePointSelector
-              knowledgePoints={knowledgePoints}
-              initialSelectedItems={selectedItems}
-              allowedContentTypes={['knowledge_point', 'tech_packaging', 'tech_promotion', 'tech_press']}
-              initialExpanded={true}
-              onSelectionChange={handleKnowledgePointSelectionChange}
-              onSave={handleKnowledgePointSave}
-              onKnowledgePointClick={handleKnowledgePointClick}
-              collapsible={false}
-              showSaveButton={true}
-              saveButtonText="保存选择"
-            />
-             )}
+            {/* 右侧用户编辑区域 */}
+            <div className="p-8">
+              <div className="h-full flex flex-col">
+                {/* 编辑区标题 */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-green-600" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">编辑修订</h2>
+                </div>
+
+                {/* 编辑文本区域 */}
+                <div className="flex-1 mb-6">
+                  <textarea
+                    value={userContent}
+                    onChange={(e) => setUserContent(e.target.value)}
+                    placeholder="在这里编辑和完善技术策略内容..."
+                    className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed min-h-[500px]"
+                  />
+                </div>
+
+                {/* 采纳建议和导出按钮 */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleAdopt}
+                    disabled={!aiResponse}
+                    className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    <span>保存知识点</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleExport}
+                    disabled={!userContent}
+                    className="flex-1 px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>导出</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 主要内容区域 */}
-        <div className="flex gap-6 h-[calc(100vh-200px)]">
-          {/* 左侧占位区域 - 显示知识点详情 */}
-          {!showKnowledgeSelection && (
-            <div className="w-1/2 bg-white rounded-lg border border-gray-200 p-6">
-              {selectedKnowledgePointForDetail ? (
-                <div className="space-y-6">
-                  {/* 详情标题 */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-green-50 rounded-lg">
-                        <Package className="w-5 h-5 text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">知识点详情</h3>
-                    </div>
-                    <p className="text-sm text-gray-500">查看选中知识点的详细信息</p>
-                  </div>
-
-                  {/* 基本信息 */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <label className="text-sm font-medium text-gray-600 block mb-1">车型</label>
-                        <p className="text-base font-semibold text-gray-900">{selectedKnowledgePointForDetail.vehicleModel}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <label className="text-sm font-medium text-gray-600 block mb-1">技术分类</label>
-                        <p className="text-base font-semibold text-gray-900">{selectedKnowledgePointForDetail.techCategory}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <label className="text-sm font-medium text-blue-700 block mb-2">技术点</label>
-                      <p className="text-lg font-bold text-blue-900">{selectedKnowledgePointForDetail.techPoint}</p>
-                    </div>
-                    
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <label className="text-sm font-medium text-gray-600 block mb-2">详细描述</label>
-                      <p className="text-sm text-gray-700 leading-relaxed">{selectedKnowledgePointForDetail.description}</p>
-                    </div>
-                  </div>
-
-                  {/* 操作按钮 */}
-                  <div className="flex gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => {
-                        const isAlreadySelected = selectedItems.some(item => 
-                          item.knowledgePoint.id === selectedKnowledgePointForDetail.id
-                        );
-                        if (!isAlreadySelected) {
-                          setSelectedItems(prev => [...prev, {
-                            knowledgePointId: selectedKnowledgePointForDetail.id,
-                            contentType: 'knowledge_point',
-                            knowledgePoint: selectedKnowledgePointForDetail
-                          }]);
-                        }
-                      }}
-                      disabled={selectedItems.some(item => 
-                        item.knowledgePoint.id === selectedKnowledgePointForDetail.id
-                      )}
-                      className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedItems.some(item => 
-                          item.knowledgePoint.id === selectedKnowledgePointForDetail.id
-                        )
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                    >
-                      {selectedItems.some(item => 
-                        item.knowledgePoint.id === selectedKnowledgePointForDetail.id
-                      ) ? '已选择' : '选择此知识点'}
-                    </button>
-                    <button
-                      onClick={() => setSelectedKnowledgePointForDetail(null)}
-                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      清除选择
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 h-full flex flex-col items-center justify-center">
-                  <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium mb-2">知识点详情区域</p>
-                  <p className="text-sm">点击上方表格中的知识点查看详情</p>
-                  <p className="text-xs text-gray-400 mt-2">或点击"展开"按钮选择知识点</p>
-                </div>
-              )}
-            </div>
-          )}
-          {/* 右侧：技术包装内容 */}
-          <div className={`${showKnowledgeSelection ? 'w-full' : 'w-1/2'} bg-white rounded-lg border border-gray-200 flex flex-col`}>
-
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Code className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">推广策略内容</h2>
-                    <p className="text-sm text-gray-500">推广策略内容</p>
-                  </div>
-                </div>
+        {/* 知识点保存确认模态框 */}
+        {showSaveModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3 className="modal-title">
+                  <Save className="w-5 h-5 text-blue-600" />
+                  确认保存知识点
+                </h3>
                 <button
-                  onClick={handleTechPackageGenerate}
-                  disabled={isGenerating || selectedItems.length === 0}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleCloseSaveModal}
+                  className="modal-close-button"
+                  disabled={isSaving}
                 >
-                  {isGenerating ? (
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <p className="modal-description">
+                  您即将保存以下 {modalSelectedItems.length} 个知识点，请确认选择：
+                </p>
+                
+                <div className="knowledge-points-preview">
+                  <KnowledgePointSelector
+                    knowledgePoints={knowledgePoints}
+                    initialSelectedItems={modalSelectedItems}
+                    initialExpanded={true}
+                    title=""
+                    description=""
+                    onSelectionChange={setModalSelectedItems}
+                    showSaveButton={false}
+                    collapsible={false}
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button
+                  onClick={handleCloseSaveModal}
+                  className="modal-cancel-button"
+                  disabled={isSaving}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleConfirmSave}
+                  className="modal-confirm-button"
+                  disabled={isSaving || modalSelectedItems.length === 0}
+                >
+                  {isSaving ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      生成中...
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      保存中...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      编辑内容
+                      <Check className="w-4 h-4" />
+                      确认保存 ({modalSelectedItems.length})
                     </>
                   )}
                 </button>
               </div>
             </div>
-            
-            <div className="flex-1 p-4">
-              {techPackageContent ? (
-                <div className="h-full">
-                  <textarea
-                    value={techPackageContent}
-                    onChange={(e) => setTechPackageContent(e.target.value)}
-                    className="w-full h-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
-                    placeholder="推广策略内容将在这里显示..."
-                  />
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400">
-                  <div className="text-center">
-                    <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium mb-2">暂无推广策略</p>
-                    <p className="text-sm">点击"生成内容"按钮开始AI生成</p>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* 底部操作栏 */}
-      <ActionBar
-        onRegenerate={() => {
-          setTechPackageContent('');
-          setSelectedItems([]);
-        }}
-        onSaveDraft={() => {
-          // 保存草稿逻辑
-          console.log('保存草稿');
-        }}
-        onSaveContent={() => onExecute({ techPackageContent, selectedItems })}
-        saveContentText="保存推广策略"
-        saveContentIcon={<Sparkles className="w-4 h-4" />}
-        disabled={!techPackageContent}
-        isGenerating={isGenerating}
-        hasContent={!!techPackageContent}
-      />
+
+      </div>
     </div>
   );
 };

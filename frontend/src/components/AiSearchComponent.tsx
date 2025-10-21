@@ -274,8 +274,33 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
 
         {/* AI响应区域 */}
         {aiResponse && (
-          <div className="response-section">
-            <div className="response-header">
+          <div 
+            className="response-section-fixed"
+            style={{
+              marginBottom: '28px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'white'
+            }}
+          >
+            <div 
+              className="response-header-fixed"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '16px 20px',
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                borderBottom: '1px solid #e2e8f0',
+                fontWeight: '600',
+                flexShrink: '0',
+                minHeight: '60px'
+              }}
+            >
               <Sparkles className="w-5 h-5 text-blue-600" />
               <span className="font-medium text-gray-800">AI回答</span>
               <div className="response-actions">
@@ -317,14 +342,60 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
                 </button>
               </div>
             </div>
-            <div className="response-content">
-              <div className="ai-response">
+            <div 
+              className="response-content-fixed"
+              style={{
+                padding: '0',
+                flex: '1',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '0',
+                background: 'white'
+              }}
+            >
+              <div 
+                className="ai-response-fixed"
+                style={{
+                  lineHeight: '1.7',
+                  color: '#334155',
+                  margin: '20px',
+                  whiteSpace: 'pre-wrap',
+                  fontSize: '15px',
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  borderLeft: '4px solid #3b82f6',
+                  wordWrap: 'break-word',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word'
+                }}
+              >
                 {aiResponse}
               </div>
               {!isLoading && aiResponse !== 'AI正在分析您的问题...' && (
                 <button
                   onClick={handleAdopt}
-                  className="adopt-button"
+                  className="adopt-button-fixed"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 20px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                    flexShrink: '0',
+                    alignSelf: 'flex-start',
+                    margin: '0 20px 20px 20px'
+                  }}
                 >
                   <ArrowRight className="w-4 h-4" />
                   采纳回答
@@ -443,9 +514,14 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           background: white;
           border-radius: 16px;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-          overflow: hidden;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           border: 1px solid #f1f5f9;
+          height: 100vh;
+          max-height: 100vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+          display: flex;
+          flex-direction: column;
         }
 
         .ai-search-header {
@@ -453,6 +529,8 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           border-bottom: 1px solid #e2e8f0;
           background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
           position: relative;
+          max-height: 80px;
+          overflow: hidden;
         }
 
         .ai-search-header::before {
@@ -479,16 +557,28 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
         }
 
         .knowledge-selector-section {
-          border-bottom: 1px solid #e2e8f0;
-          background: #fafbfc;
+          padding: 16px 24px;
+          border-bottom: 1px solid #f1f5f9;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          position: relative;
+          max-height: 100px;
+          overflow: hidden;
+          flex-shrink: 0;
         }
 
         .ai-search-content {
           padding: 24px;
+          flex: 1;
+          overflow-y: auto;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
         }
 
         .input-section {
           margin-bottom: 28px;
+          max-height: 120px;
+          overflow: hidden;
         }
 
         .input-container {
@@ -557,15 +647,143 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           box-shadow: none;
         }
 
-        .response-section, .user-content-section {
+        /* 全新的响应区域样式 */
+        .response-section-fixed {
           margin-bottom: 28px;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
-          overflow: hidden;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          height: 500px;
+          max-height: 500px;
+          min-height: 300px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          display: flex;
+          flex-direction: column;
+          background: white;
         }
 
-        .response-header, .content-header {
+        .response-header-fixed {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 16px 20px;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          border-bottom: 1px solid #e2e8f0;
+          font-weight: 600;
+          flex-shrink: 0;
+          min-height: 60px;
+          max-height: 60px;
+        }
+
+        .response-content-fixed {
+          padding: 0;
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+          max-height: 440px;
+          background: white;
+        }
+
+        .ai-response-fixed {
+          line-height: 1.7;
+          color: #334155;
+          margin: 20px;
+          white-space: pre-wrap;
+          font-size: 15px;
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          padding: 20px;
+          border-radius: 8px;
+          border-left: 4px solid #3b82f6;
+          word-wrap: break-word;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          flex-shrink: 0;
+          min-height: auto;
+          max-height: 350px;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        /* p元素严格高度限制 */
+        .ai-search-component p {
+          margin: 0 0 12px 0;
+          line-height: 1.5;
+          color: #374151;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          max-height: 120px !important;
+          height: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 8px 0;
+          box-sizing: border-box;
+        }
+        
+        .ai-response-fixed p {
+          margin: 0 0 16px 0;
+          line-height: 1.6;
+          color: #374151;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          max-height: 150px !important;
+          height: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
+          box-sizing: border-box;
+        }
+        
+        .modal-description p {
+          max-height: 80px !important;
+          height: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
+          margin: 8px 0;
+          box-sizing: border-box;
+        }
+
+        /* 全局p元素限制 */
+        p {
+          max-height: 120px !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          box-sizing: border-box !important;
+        }
+
+        .adopt-button-fixed {
+          display: flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+          padding: 12px 20px !important;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+          color: white !important;
+          border: none !important;
+          border-radius: 8px !important;
+          font-size: 14px !important;
+          font-weight: 600 !important;
+          cursor: pointer !important;
+          transition: all 0.3s ease !important;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+          flex-shrink: 0 !important;
+          align-self: flex-start !important;
+          margin: 0 20px 20px 20px !important;
+        }
+
+        .user-content-section {
+          margin-bottom: 28px;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          max-height: 70vh;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .content-header {
           display: flex;
           align-items: center;
           gap: 10px;
@@ -608,42 +826,11 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           background: #fef2f2;
         }
 
-        .response-content {
-          padding: 20px;
-        }
 
-        .ai-response {
-          line-height: 1.7;
-          color: #334155;
-          margin-bottom: 20px;
-          white-space: pre-wrap;
-          font-size: 15px;
-          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-          padding: 20px;
-          border-radius: 8px;
-          border-left: 4px solid #3b82f6;
-        }
-
-        .adopt-button {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 20px;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-        }
-
-        .adopt-button:hover {
-          background: linear-gradient(135deg, #059669 0%, #047857 100%);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        .adopt-button-fixed:hover {
+          background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+          transform: translateY(-1px) !important;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
         }
 
         .export-button {
@@ -663,7 +850,7 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
         }
 
         .export-button:hover {
-          background: #f1f5f9;
+          background: linear-gradient(135deg, #475569 0%, #334155 100%);
           transform: translateY(-1px);
         }
 
@@ -878,6 +1065,9 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           font-family: inherit;
           background: #fafbfc;
           transition: all 0.2s ease;
+          min-height: 200px;
+          max-height: 60vh;
+          overflow-y: auto;
         }
 
         .content-textarea:focus {
@@ -886,6 +1076,64 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
           background: white;
         }
+
+        /* 全局高度约束 - 严格限制 */
+        * {
+          box-sizing: border-box;
+        }
+        
+        .ai-search-component * {
+          max-height: inherit;
+        }
+        
+        .ai-search-component div {
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          box-sizing: border-box !important;
+        }
+        
+        .ai-search-component div:not(.response-content-fixed):not(.ai-response-fixed) {
+          max-height: 100vh !important;
+        }
+
+        /* 全局div元素严格限制 */
+        div {
+          max-height: 100vh !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          box-sizing: border-box !important;
+        }
+
+        /* 特定div元素的更严格限制 */
+        .ai-search-header {
+          max-height: 80px !important;
+        }
+
+        .knowledge-selector-section {
+          max-height: 100px !important;
+        }
+
+        .input-section {
+          max-height: 120px !important;
+        }
+
+        .response-section-fixed {
+          max-height: 500px !important;
+          height: 500px !important;
+        }
+
+        .response-content-fixed {
+          max-height: 440px !important;
+        }
+
+        .ai-response-fixed {
+          max-height: 350px !important;
+        }
+
+        .user-content-section {
+          max-height: 70vh !important;
+        }
+        /* 移除所有媒体查询的动态高度调整，保持固定高度 */
       `}</style>
     </div>
   );

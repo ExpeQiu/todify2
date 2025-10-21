@@ -57,6 +57,7 @@
 
 AI检索与编辑组件：AiSearchComponent，独立测试页面：http://localhost:3000/ai-search-test
 
+AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwork/todify2/frontend/src/components/AIInterArea.tsx
 
 
 #### 知识点管理
@@ -68,3 +69,10 @@ AI检索与编辑组件：AiSearchComponent，独立测试页面：http://localh
 车型与车系管理页：http://localhost:3000/car-series
 车系关联：知识点、核心卖点、技术通稿、技术发布会，
 
+
+
+### API
+
+#### dify-API
+1. 技术问答
+2. 技术包装：app-GgD3uUNDWOFu7DlBgSVkIrIt

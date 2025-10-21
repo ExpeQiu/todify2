@@ -257,7 +257,11 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                 </div>
 
                 {/* 对话内容区域 - 滚动对话框 */}
-                <div className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto">
+                <div className="bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto overflow-x-hidden" style={{ 
+                  height: '530px', 
+                  maxHeight: '530px', 
+                  minHeight: '200px' 
+                }}>
                   <div className="space-y-4">
                     {/* 默认欢迎消息 */}
                     <div className="flex justify-start">
@@ -266,7 +270,12 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                           <Brain className="w-4 h-4 text-blue-600" />
                         </div>
                         <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm">
-                          <p className="text-sm text-gray-800">您好！我是AI智能助手，很高兴为您服务。请输入您的技术问题，我会为您提供专业的解答和建议。</p>
+                          <p className="text-sm text-gray-800" style={{ 
+                            maxHeight: '120px', 
+                            overflowY: 'auto', 
+                            overflowX: 'hidden',
+                            boxSizing: 'border-box'
+                          }}>您好！我是AI智能助手，很高兴为您服务。请输入您的技术问题，我会为您提供专业的解答和建议。</p>
                         </div>
                       </div>
                     </div>
@@ -277,7 +286,12 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                         {/* 用户问题 */}
                         <div className="flex justify-end">
                           <div className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-3 max-w-xs">
-                            <p className="text-sm">{query}</p>
+                            <p className="text-sm" style={{ 
+                              maxHeight: '100px', 
+                              overflowY: 'auto', 
+                              overflowX: 'hidden',
+                              boxSizing: 'border-box'
+                            }}>{query}</p>
                           </div>
                         </div>
                         
@@ -288,7 +302,12 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                               <Brain className="w-4 h-4 text-blue-600" />
                             </div>
                             <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm">
-                              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                              <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed" style={{ 
+                                maxHeight: '150px', 
+                                overflowY: 'auto', 
+                                overflowX: 'hidden',
+                                boxSizing: 'border-box'
+                              }}>
                                 {aiResponse || '正在思考中...'}
                               </p>
                               

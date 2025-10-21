@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://localhost:3001/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -19,7 +19,7 @@ export const workflowAPI = {
   // AI问答
   aiSearch: async (query: string, inputs: any = {}): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/ai-search', { 
+      const response = await api.post('/workflow/ai-search', { 
         query,
         inputs 
       });
@@ -36,7 +36,7 @@ export const workflowAPI = {
   // 智能搜索
   smartSearch: async (query: string): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/smart-search', { query });
+      const response = await api.post('/workflow/smart-search', { query });
       return response.data;
     } catch (error) {
       console.error('Smart search API error:', error);
@@ -50,9 +50,8 @@ export const workflowAPI = {
   // 技术包装
   techPackage: async (searchResults: any, template?: string): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/tech-package', { 
-        searchResults, 
-        template 
+      const response = await api.post('/workflow/tech-package', { 
+        inputs: { searchResults, template }
       });
       return response.data;
     } catch (error) {
@@ -67,7 +66,9 @@ export const workflowAPI = {
   // 推广策略
   promotionStrategy: async (techPackage: any): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/promotion-strategy', { techPackage });
+      const response = await api.post('/workflow/tech-strategy', { 
+        inputs: { techPackage }
+      });
       return response.data;
     } catch (error) {
       console.error('Promotion strategy API error:', error);
@@ -81,9 +82,8 @@ export const workflowAPI = {
   // 核心稿件
   coreDraft: async (promotionStrategy: any, techPackage: any): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/core-draft', { 
-        promotionStrategy, 
-        techPackage 
+      const response = await api.post('/workflow/tech-article', { 
+        inputs: { promotionStrategy, techPackage }
       });
       return response.data;
     } catch (error) {
@@ -98,7 +98,9 @@ export const workflowAPI = {
   // 演讲稿
   speech: async (coreDraft: any): Promise<WorkflowResponse> => {
     try {
-      const response = await api.post('/workflows/speech', { coreDraft });
+      const response = await api.post('/workflow/tech-publish', { 
+        inputs: { coreDraft }
+      });
       return response.data;
     } catch (error) {
       console.error('Speech API error:', error);

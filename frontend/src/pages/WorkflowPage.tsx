@@ -4,7 +4,6 @@ import { workflowAPI } from '../services/api';
 import DocumentEditor from '../components/DocumentEditor';
 import LoadingAnimation, { LoadingOverlay, LoadingButton } from '../components/LoadingAnimation';
 import PageTransition, { StepTransition, AnimatedPage } from '../components/PageTransition';
-import TechPackageLayout from '../components/TechPackageLayout';
 import { documentService } from '../services/documentService';
 import TopNavigation from '../components/TopNavigation';
 import './WorkflowPage.css';
@@ -36,6 +35,7 @@ const WorkflowPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [stepData, setStepData] = useState<StepData>({});
   const [loading, setLoading] = useState(false);
+  // 新增状态管理
   const [loadingText, setLoadingText] = useState('');
   const [loadingProgress, setLoadingProgress] = useState<number | undefined>(undefined);
   // const [searchQuery, setSearchQuery] = useState('');
@@ -301,17 +301,30 @@ const WorkflowPage: React.FC = () => {
         return (
           <AnimatedPage className="space-y-6">
             <StepTransition currentStep={currentStep} direction="forward">
-              <TechPackageLayout
-                inputData={stepData.smartSearch}
-                generatedContent={techPackageState.generatedContent}
-                editedContent={techPackageState.editedContent}
-                selectedTemplate={techPackageState.selectedTemplate}
-                isGenerating={techPackageState.isGenerating}
-                onGenerate={handleTechPackage}
-                onRegenerate={handleTechPackageRegenerate}
-                onContentChange={handleTechPackageContentChange}
-                onNext={() => handleStepChange(3)}
-              />
+              <div className="bg-orange-50 p-6 rounded-lg">
+                <Package className="w-12 h-12 text-orange-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-center mb-4">技术包装</h3>
+                <p className="text-gray-600 text-center mb-6">
+                  基于智能搜索结果，生成专业的技术包装内容
+                </p>
+                <div className="space-y-4">
+                  <button
+                     onClick={() => handleTechPackage()}
+                     disabled={techPackageState.isGenerating}
+                     className="w-full bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                   >
+                    {techPackageState.isGenerating ? '生成中...' : '开始技术包装'}
+                  </button>
+                  {techPackageState.generatedContent && (
+                    <div className="mt-4 p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold mb-2">生成的技术包装内容：</h4>
+                      <div className="text-gray-700">
+                        {techPackageState.generatedContent}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </StepTransition>
           </AnimatedPage>
         );
@@ -413,19 +426,19 @@ const WorkflowPage: React.FC = () => {
     <div className="workflow-page">
       <TopNavigation currentPageTitle="智能工作流" />
       <PageTransition isVisible={true} direction="fade" duration={300}>
-        <div className="max-w-6xl mx-auto p-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">智能工作流</h1>
-            <p className="text-gray-600">
+        <div className="container">
+          <div className="page-header">
+            <h1 className="page-title">智能工作流</h1>
+            <p className="page-subtitle">
               通过五个步骤完成从搜索到演讲稿的完整流程
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="workflow-container">
             {/* 侧边栏 - 步骤指示器 */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-6">
-                <h2 className="font-semibold text-gray-800 mb-6 text-center">工作流步骤</h2>
+            <div className="sidebar">
+              <div className="sidebar-content">
+                <h2 className="sidebar-title">工作流步骤</h2>
                 
                 {/* 进度条 */}
                 <div className="mb-6">
@@ -526,13 +539,15 @@ const WorkflowPage: React.FC = () => {
             </div>
 
             {/* 主内容区域 */}
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="main-content">
+              <div className="step-content-wrapper">
                 <StepTransition currentStep={currentStep} direction="forward">
                   <div className={`step-content ${stepTransition || ''}`}>
                     {renderStepContent()}
                   </div>
                 </StepTransition>
+
+
 
                 {/* Progress Bar */}
                  <div className="progress-container">
