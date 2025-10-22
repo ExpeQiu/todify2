@@ -1,7 +1,7 @@
-import React from 'react';
-import { KnowledgePointConfigManager } from '../components/management/KnowledgePointConfigManager';
-import TopNavigation from '../components/TopNavigation';
-import './ConfigManagementPage.css';
+import React from "react";
+import { KnowledgePointConfigManager } from "../components/management/KnowledgePointConfigManager";
+import TopNavigation from "../components/TopNavigation";
+import "./ConfigManagementPage.css";
 
 const ConfigManagementPage: React.FC = () => {
   return (

@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { TechPoint, TechPointFormData, TechPointSearchParams } from '../types/techPoint';
-import { useTechPoints } from '../hooks/useTechPoints';
-import TechPointStats from '../components/techPoint/TechPointStats';
-import TechPointList from '../components/techPoint/TechPointList';
-import TechPointForm from '../components/techPoint/TechPointForm';
+import React, { useState, useEffect } from "react";
+import {
+  TechPoint,
+  TechPointFormData,
+  TechPointSearchParams,
+} from "../types/techPoint";
+import { useTechPoints } from "../hooks/useTechPoints";
+import TechPointStats from "../components/techPoint/TechPointStats";
+import TechPointList from "../components/techPoint/TechPointList";
+import TechPointForm from "../components/techPoint/TechPointForm";
 
 const TechPointManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
-  const [editingTechPoint, setEditingTechPoint] = useState<TechPoint | undefined>();
+  const [editingTechPoint, setEditingTechPoint] = useState<
+    TechPoint | undefined
+  >();
   const [searchParams, setSearchParams] = useState<TechPointSearchParams>({});
-  
+
   const {
     techPoints,
     loading,
@@ -19,7 +25,7 @@ const TechPointManagement: React.FC = () => {
     createTechPoint,
     updateTechPoint,
     deleteTechPoint,
-    searchTechPoints
+    searchTechPoints,
   } = useTechPoints();
 
   // 初始加载数据
@@ -37,17 +43,19 @@ const TechPointManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleFormSubmit = async (formData: TechPointFormData): Promise<boolean> => {
+  const handleFormSubmit = async (
+    formData: TechPointFormData,
+  ): Promise<boolean> => {
     try {
       if (editingTechPoint) {
         await updateTechPoint(editingTechPoint.id, formData);
       } else {
         await createTechPoint(formData);
       }
-      
+
       return true;
     } catch (error) {
-      console.error('保存技术点失败:', error);
+      console.error("保存技术点失败:", error);
       return false;
     }
   };
@@ -56,18 +64,18 @@ const TechPointManagement: React.FC = () => {
     try {
       await deleteTechPoint(id);
     } catch (error) {
-      console.error('删除技术点失败:', error);
+      console.error("删除技术点失败:", error);
     }
   };
 
   const handleSearch = async (params: TechPointSearchParams) => {
     setSearchParams(params);
-    
+
     // 如果搜索参数为空，则获取全部数据
-    const hasSearchParams = Object.values(params).some(value => 
-      value !== undefined && value !== '' && value !== null
+    const hasSearchParams = Object.values(params).some(
+      (value) => value !== undefined && value !== "" && value !== null,
     );
-    
+
     if (hasSearchParams && params.keyword) {
       await searchTechPoints(params.keyword, params);
     } else {
@@ -105,8 +113,18 @@ const TechPointManagement: React.FC = () => {
               onClick={handleCreateNew}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               创建技术点
             </button>
@@ -118,17 +136,21 @@ const TechPointManagement: React.FC = () => {
           <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  操作失败
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  {error}
-                </div>
+                <h3 className="text-sm font-medium text-red-800">操作失败</h3>
+                <div className="mt-2 text-sm text-red-700">{error}</div>
               </div>
             </div>
           </div>

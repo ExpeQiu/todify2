@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { 
-  Brain, 
-  ArrowLeft, 
+import React, { useState } from "react";
+import {
+  Brain,
+  ArrowLeft,
   Package,
-  BookOpen, 
-  ArrowRight, 
-  Download, 
-  ThumbsUp, 
-  ThumbsDown, 
+  BookOpen,
+  ArrowRight,
+  Download,
+  ThumbsUp,
+  ThumbsDown,
   RotateCcw,
   Copy,
   Share2,
@@ -16,11 +16,15 @@ import {
   Loader2,
   Save,
   X,
-  Check
-} from 'lucide-react';
-import { workflowAPI } from '../services/api';
-import KnowledgePointSelector, { KnowledgePoint, SelectionItem, ContentType } from './common/KnowledgePointSelector';
-import './nodes/NodeComponent.css';
+  Check,
+} from "lucide-react";
+import { workflowAPI } from "../services/api";
+import KnowledgePointSelector, {
+  KnowledgePoint,
+  SelectionItem,
+  ContentType,
+} from "./common/KnowledgePointSelector";
+import "./nodes/NodeComponent.css";
 
 interface AiSearchComponentProps {
   onResult?: (result: any) => void;
@@ -32,68 +36,126 @@ interface AiSearchComponentProps {
 
 const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
   onResult,
-  initialQuery = '',
+  initialQuery = "",
   showKnowledgeSelector = true,
-  className = '',
-  compact = false
+  className = "",
+  compact = false,
 }) => {
   const [query, setQuery] = useState(initialQuery);
-  const [aiResponse, setAiResponse] = useState('');
-  const [userContent, setUserContent] = useState('');
+  const [aiResponse, setAiResponse] = useState("");
+  const [userContent, setUserContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(true); // 始终显示知识点选择器
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
-  
+
   // 新增：知识点保存确认模态框状态
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>([]);
+  const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>(
+    [],
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   // 模拟知识点数据
   const knowledgePoints: KnowledgePoint[] = [
-    { id: '1', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '三元锂电池', description: '高能量密度的锂离子电池技术，提供长续航里程' },
-    { id: '2', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '电池管理', techPoint: 'BMS系统', description: '智能电池管理系统，确保电池安全和性能' },
-    { id: '3', vehicleModel: 'Model S', vehicleSeries: 'Tesla', techCategory: '自动驾驶', techPoint: 'FSD芯片', description: '自主研发的全自动驾驶芯片，算力强大' },
-    { id: '4', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '动力系统', techPoint: '永磁同步电机', description: '高效率的永磁同步电机，提供强劲动力' },
-    { id: '5', vehicleModel: 'Model 3', vehicleSeries: 'Tesla', techCategory: '智能网联', techPoint: '车载娱乐系统', description: '17英寸触控屏，集成丰富的娱乐功能' },
-    { id: '6', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '车身结构', techPoint: '鹰翼门', description: '独特的鹰翼门设计，提升乘坐体验' },
-    { id: '7', vehicleModel: 'Model X', vehicleSeries: 'Tesla', techCategory: '空气动力学', techPoint: '主动进气格栅', description: '智能调节进气量，优化空气动力学性能' },
-    { id: '8', vehicleModel: 'Model Y', vehicleSeries: 'Tesla', techCategory: '制造工艺', techPoint: '一体化压铸', description: '后车身一体化压铸技术，提高结构强度' }
+    {
+      id: "1",
+      vehicleModel: "Model S",
+      vehicleSeries: "Tesla",
+      techCategory: "动力系统",
+      techPoint: "三元锂电池",
+      description: "高能量密度的锂离子电池技术，提供长续航里程",
+    },
+    {
+      id: "2",
+      vehicleModel: "Model S",
+      vehicleSeries: "Tesla",
+      techCategory: "电池管理",
+      techPoint: "BMS系统",
+      description: "智能电池管理系统，确保电池安全和性能",
+    },
+    {
+      id: "3",
+      vehicleModel: "Model S",
+      vehicleSeries: "Tesla",
+      techCategory: "自动驾驶",
+      techPoint: "FSD芯片",
+      description: "自主研发的全自动驾驶芯片，算力强大",
+    },
+    {
+      id: "4",
+      vehicleModel: "Model 3",
+      vehicleSeries: "Tesla",
+      techCategory: "动力系统",
+      techPoint: "永磁同步电机",
+      description: "高效率的永磁同步电机，提供强劲动力",
+    },
+    {
+      id: "5",
+      vehicleModel: "Model 3",
+      vehicleSeries: "Tesla",
+      techCategory: "智能网联",
+      techPoint: "车载娱乐系统",
+      description: "17英寸触控屏，集成丰富的娱乐功能",
+    },
+    {
+      id: "6",
+      vehicleModel: "Model X",
+      vehicleSeries: "Tesla",
+      techCategory: "车身结构",
+      techPoint: "鹰翼门",
+      description: "独特的鹰翼门设计，提升乘坐体验",
+    },
+    {
+      id: "7",
+      vehicleModel: "Model X",
+      vehicleSeries: "Tesla",
+      techCategory: "空气动力学",
+      techPoint: "主动进气格栅",
+      description: "智能调节进气量，优化空气动力学性能",
+    },
+    {
+      id: "8",
+      vehicleModel: "Model Y",
+      vehicleSeries: "Tesla",
+      techCategory: "制造工艺",
+      techPoint: "一体化压铸",
+      description: "后车身一体化压铸技术，提高结构强度",
+    },
   ];
 
   const handleAiSearch = async () => {
     if (query.trim()) {
       setIsLoading(true);
-      setAiResponse('AI正在分析您的问题...');
-      
+      setAiResponse("AI正在分析您的问题...");
+
       try {
         // 调用后端AI搜索API
         const result = await workflowAPI.aiSearch(query.trim(), {
-          selectedKnowledgePoints: selectedItems
+          selectedKnowledgePoints: selectedItems,
         });
-        
+
         if (result.success && result.data) {
           // 设置AI响应内容
-          const response = result.data.answer || '抱歉，未能获取到有效回答。';
+          const response = result.data.answer || "抱歉，未能获取到有效回答。";
           setAiResponse(response);
-          
+
           // 通知父组件
           if (onResult) {
-            onResult({ 
+            onResult({
               query: query.trim(),
               response: response,
               metadata: result.data.metadata,
-              selectedKnowledgePoints: selectedItems
+              selectedKnowledgePoints: selectedItems,
             });
           }
         } else {
-          setAiResponse(result.error || 'AI搜索失败，请稍后重试。');
+          setAiResponse(result.error || "AI搜索失败，请稍后重试。");
         }
       } catch (error) {
-        console.error('AI搜索错误:', error);
-        setAiResponse('网络错误，请检查连接后重试。');
+        console.error("AI搜索错误:", error);
+        setAiResponse("网络错误，请检查连接后重试。");
       } finally {
         setIsLoading(false);
       }
@@ -102,21 +164,24 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
 
   // 将AI响应内容保存到用户内容区域
   const handleAdopt = () => {
-    if (aiResponse && aiResponse !== 'AI正在分析您的问题...') {
+    if (aiResponse && aiResponse !== "AI正在分析您的问题...") {
       setUserContent(aiResponse);
     }
   };
 
   // 新增：打开知识点保存确认模态框
   const handleOpenSaveModal = () => {
-    console.log('点击保存知识点按钮，当前选择的知识点数量:', selectedItems.length);
-    console.log('选择的知识点:', selectedItems);
-    console.log('showSaveModal状态:', showSaveModal);
-    
+    console.log(
+      "点击保存知识点按钮，当前选择的知识点数量:",
+      selectedItems.length,
+    );
+    console.log("选择的知识点:", selectedItems);
+    console.log("showSaveModal状态:", showSaveModal);
+
     // 直接打开模态框，不管是否已选择知识点
     setModalSelectedItems([...selectedItems]); // 复制当前选择的知识点
     setShowSaveModal(true);
-    console.log('设置showSaveModal为true');
+    console.log("设置showSaveModal为true");
   };
 
   // 新增：关闭知识点保存确认模态框
@@ -130,19 +195,19 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
     setIsSaving(true);
     try {
       // 这里可以调用API保存知识点
-      console.log('保存知识点:', modalSelectedItems);
-      
+      console.log("保存知识点:", modalSelectedItems);
+
       // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // 保存成功后关闭模态框
       setShowSaveModal(false);
       setModalSelectedItems([]);
-      
+
       // 可以添加成功提示
-      console.log('知识点保存成功');
+      console.log("知识点保存成功");
     } catch (error) {
-      console.error('保存知识点失败:', error);
+      console.error("保存知识点失败:", error);
     } finally {
       setIsSaving(false);
     }
@@ -151,19 +216,21 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
   const handleExport = () => {
     if (userContent) {
       // 创建一个Blob对象包含用户内容，使用markdown格式
-      const blob = new Blob([userContent], { type: 'text/markdown;charset=utf-8' });
-      
+      const blob = new Blob([userContent], {
+        type: "text/markdown;charset=utf-8",
+      });
+
       // 创建下载链接
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `ai-search-result-${new Date().toISOString().slice(0, 10)}.md`;
-      
+
       // 触发下载
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // 清理URL对象
       URL.revokeObjectURL(url);
     }
@@ -174,9 +241,9 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
       try {
         await navigator.clipboard.writeText(aiResponse);
         // 可以添加一个临时的成功提示
-        console.log('内容已复制到剪贴板');
+        console.log("内容已复制到剪贴板");
       } catch (err) {
-        console.error('复制失败:', err);
+        console.error("复制失败:", err);
       }
     }
   };
@@ -206,22 +273,30 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleAiSearch();
     }
   };
 
   return (
-    <div className={`ai-search-component ${compact ? 'compact' : ''} ${className}`}>
+    <div
+      className={`ai-search-component ${compact ? "compact" : ""} ${className}`}
+      data-oid="ub4y0aq"
+    >
       {/* 头部 */}
-      <div className="ai-search-header">
-        <div className="header-left">
-          <Brain className="header-icon text-blue-600" />
-          <h2 className="text-xl font-semibold text-gray-800">AI智能助手</h2>
+      <div className="ai-search-header" data-oid="hiw0oj4">
+        <div className="header-left" data-oid="f63l5_y">
+          <Brain className="header-icon text-blue-600" data-oid="-fz.3lg" />
+          <h2
+            className="text-xl font-semibold text-gray-800"
+            data-oid="2kdx325"
+          >
+            AI智能助手
+          </h2>
         </div>
-        <div className="header-description">
-          <p className="text-sm text-gray-600">
+        <div className="header-description" data-oid="x_vde5k">
+          <p className="text-sm text-gray-600" data-oid="pfc3c.w">
             您好！我是AI智能助手，很高兴为您服务。请输入您的技术问题，我会为您提供专业的解答和建议。
           </p>
         </div>
@@ -229,7 +304,7 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
 
       {/* 知识点选择器 */}
       {showKnowledgeSelection && (
-        <div className="knowledge-selector-section">
+        <div className="knowledge-selector-section" data-oid="q2rxczv">
           <KnowledgePointSelector
             knowledgePoints={knowledgePoints}
             initialSelectedItems={selectedItems}
@@ -239,15 +314,16 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
             onSelectionChange={setSelectedItems}
             showSaveButton={false}
             collapsible={true}
+            data-oid="bnm87n8"
           />
         </div>
       )}
 
       {/* 主要内容区域 */}
-      <div className="ai-search-content">
+      <div className="ai-search-content" data-oid="hu4wfu7">
         {/* 输入区域 */}
-        <div className="input-section">
-          <div className="input-container">
+        <div className="input-section" data-oid="7w-9mtr">
+          <div className="input-container" data-oid="wv4of17">
             <textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -256,148 +332,165 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
               className="query-input"
               rows={compact ? 2 : 3}
               disabled={isLoading}
+              data-oid=":u_ze7h"
             />
+
             <button
               onClick={handleAiSearch}
               disabled={!query.trim() || isLoading}
               className="send-button"
+              data-oid="j96:51r"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" data-oid="l9t95di" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4" data-oid="1x78ta8" />
               )}
-              {isLoading ? '发送中...' : '发送问题'}
+              {isLoading ? "发送中..." : "发送问题"}
             </button>
           </div>
         </div>
 
         {/* AI响应区域 */}
         {aiResponse && (
-          <div 
+          <div
             className="response-section-fixed"
             style={{
-              marginBottom: '28px',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'white'
+              marginBottom: "28px",
+              border: "1px solid #e2e8f0",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              background: "white",
             }}
+            data-oid="moo7pg3"
           >
-            <div 
+            <div
               className="response-header-fixed"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '16px 20px',
-                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                borderBottom: '1px solid #e2e8f0',
-                fontWeight: '600',
-                flexShrink: '0',
-                minHeight: '60px'
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "16px 20px",
+                background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                borderBottom: "1px solid #e2e8f0",
+                fontWeight: "600",
+                flexShrink: "0",
+                minHeight: "60px",
               }}
+              data-oid="m_nqagl"
             >
-              <Sparkles className="w-5 h-5 text-blue-600" />
-              <span className="font-medium text-gray-800">AI回答</span>
-              <div className="response-actions">
+              <Sparkles className="w-5 h-5 text-blue-600" data-oid="3f9.tbt" />
+              <span className="font-medium text-gray-800" data-oid="o.dacsj">
+                AI回答
+              </span>
+              <div className="response-actions" data-oid="i-nemfp">
                 <button
                   onClick={handleLike}
-                  className={`action-btn ${liked ? 'liked' : ''}`}
+                  className={`action-btn ${liked ? "liked" : ""}`}
                   title="点赞"
+                  data-oid="va.hrq-"
                 >
-                  <ThumbsUp className="w-4 h-4" />
+                  <ThumbsUp className="w-4 h-4" data-oid="imyf0wh" />
                 </button>
                 <button
                   onClick={handleDislike}
-                  className={`action-btn ${disliked ? 'disliked' : ''}`}
+                  className={`action-btn ${disliked ? "disliked" : ""}`}
                   title="点踩"
+                  data-oid="oni6_ay"
                 >
-                  <ThumbsDown className="w-4 h-4" />
+                  <ThumbsDown className="w-4 h-4" data-oid="4sn83h6" />
                 </button>
                 <button
                   onClick={handleCopy}
                   className="action-btn"
                   title="复制"
+                  data-oid="pmbc2md"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-4 h-4" data-oid="lu7fe-h" />
                 </button>
                 <button
                   onClick={handleShare}
                   className="action-btn"
                   title="传递到编辑区"
+                  data-oid="l4hzibg"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-4 h-4" data-oid="yo25pxe" />
                 </button>
                 <button
                   onClick={handleRegenerate}
                   className="action-btn"
                   title="重新生成"
                   disabled={isLoading}
+                  data-oid="b6c8-j_"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-4 h-4" data-oid="7p:hlyg" />
                 </button>
               </div>
             </div>
-            <div 
+            <div
               className="response-content-fixed"
               style={{
-                padding: '0',
-                flex: '1',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: '0',
-                background: 'white'
+                padding: "0",
+                flex: "1",
+                overflowY: "auto",
+                overflowX: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "0",
+                background: "white",
               }}
+              data-oid="gytjo:y"
             >
-              <div 
+              <div
                 className="ai-response-fixed"
                 style={{
-                  lineHeight: '1.7',
-                  color: '#334155',
-                  margin: '20px',
-                  whiteSpace: 'pre-wrap',
-                  fontSize: '15px',
-                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  borderLeft: '4px solid #3b82f6',
-                  wordWrap: 'break-word',
-                  wordBreak: 'break-word',
-                  overflowWrap: 'break-word'
+                  lineHeight: "1.7",
+                  color: "#334155",
+                  margin: "20px",
+                  whiteSpace: "pre-wrap",
+                  fontSize: "15px",
+                  background:
+                    "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                  padding: "20px",
+                  borderRadius: "8px",
+                  borderLeft: "4px solid #3b82f6",
+                  wordWrap: "break-word",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
                 }}
+                data-oid="63pui6v"
               >
                 {aiResponse}
               </div>
-              {!isLoading && aiResponse !== 'AI正在分析您的问题...' && (
+              {!isLoading && aiResponse !== "AI正在分析您的问题..." && (
                 <button
                   onClick={handleAdopt}
                   className="adopt-button-fixed"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 20px',
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-                    flexShrink: '0',
-                    alignSelf: 'flex-start',
-                    margin: '0 20px 20px 20px'
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "12px 20px",
+                    background:
+                      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
+                    flexShrink: "0",
+                    alignSelf: "flex-start",
+                    margin: "0 20px 20px 20px",
                   }}
+                  data-oid="ft6z4:."
                 >
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" data-oid=".hcv.59" />
                   采纳回答
                 </button>
               )}
@@ -407,35 +500,40 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
 
         {/* 用户编辑区域 */}
         {userContent && (
-          <div className="user-content-section">
-            <div className="content-header">
-              <BookOpen className="w-5 h-5 text-green-600" />
-              <span className="font-medium text-gray-800">编辑修订</span>
-              <div className="header-actions">
+          <div className="user-content-section" data-oid="s2zhz2c">
+            <div className="content-header" data-oid=".oa-z_l">
+              <BookOpen className="w-5 h-5 text-green-600" data-oid="zhv_-ir" />
+              <span className="font-medium text-gray-800" data-oid="scbl-oo">
+                编辑修订
+              </span>
+              <div className="header-actions" data-oid="al5v9mr">
                 <button
                   onClick={handleOpenSaveModal}
                   className="save-knowledge-button"
                   disabled={false} // 移除禁用条件，让用户可以点击
+                  data-oid="5n73s5e"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4" data-oid="0z2y7st" />
                   保存知识点 ({selectedItems.length})
                 </button>
                 <button
                   onClick={handleExport}
                   className="export-button"
+                  data-oid="gg9ls3m"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4" data-oid="_-_7wc9" />
                   导出
                 </button>
               </div>
             </div>
-            <div className="content-editor">
+            <div className="content-editor" data-oid=":h:z2vi">
               <textarea
                 value={userContent}
                 onChange={(e) => setUserContent(e.target.value)}
                 placeholder="在这里编辑和完善内容..."
                 className="content-textarea"
                 rows={8}
+                data-oid="6iwphsi"
               />
             </div>
           </div>
@@ -443,28 +541,30 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
 
         {/* 知识点保存确认模态框 */}
         {showSaveModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3 className="modal-title">
-                  <Save className="w-5 h-5 text-blue-600" />
+          <div className="modal-overlay" data-oid="iimuf9y">
+            <div className="modal-content" data-oid="wvyl0yh">
+              <div className="modal-header" data-oid="qaujyzs">
+                <h3 className="modal-title" data-oid="ulzwmhe">
+                  <Save className="w-5 h-5 text-blue-600" data-oid="48ax1yf" />
                   确认保存知识点
                 </h3>
                 <button
                   onClick={handleCloseSaveModal}
                   className="modal-close-button"
                   disabled={isSaving}
+                  data-oid="pz.v53g"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" data-oid="ojsl:7z" />
                 </button>
               </div>
-              
-              <div className="modal-body">
-                <p className="modal-description">
-                  您即将保存以下 {modalSelectedItems.length} 个知识点，请确认选择：
+
+              <div className="modal-body" data-oid="gqw8xq0">
+                <p className="modal-description" data-oid="_4g0vvt">
+                  您即将保存以下 {modalSelectedItems.length}{" "}
+                  个知识点，请确认选择：
                 </p>
-                
-                <div className="knowledge-points-preview">
+
+                <div className="knowledge-points-preview" data-oid=".msrhy7">
                   <KnowledgePointSelector
                     knowledgePoints={knowledgePoints}
                     initialSelectedItems={modalSelectedItems}
@@ -474,15 +574,17 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
                     onSelectionChange={setModalSelectedItems}
                     showSaveButton={false}
                     collapsible={false}
+                    data-oid="v-a85yw"
                   />
                 </div>
               </div>
-              
-              <div className="modal-footer">
+
+              <div className="modal-footer" data-oid="8wd577p">
                 <button
                   onClick={handleCloseSaveModal}
                   className="modal-cancel-button"
                   disabled={isSaving}
+                  data-oid="x_3b_ar"
                 >
                   取消
                 </button>
@@ -490,15 +592,19 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
                   onClick={handleConfirmSave}
                   className="modal-confirm-button"
                   disabled={isSaving || modalSelectedItems.length === 0}
+                  data-oid="j8zdh_c"
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2
+                        className="w-4 h-4 animate-spin"
+                        data-oid="tjme1m_"
+                      />
                       保存中...
                     </>
                   ) : (
                     <>
-                      <Check className="w-4 h-4" />
+                      <Check className="w-4 h-4" data-oid="xdvkncf" />
                       确认保存 ({modalSelectedItems.length})
                     </>
                   )}
@@ -509,7 +615,7 @@ const AiSearchComponent: React.FC<AiSearchComponentProps> = ({
         )}
       </div>
 
-      <style>{`
+      <style data-oid="mqazvn0">{`
         .ai-search-component {
           background: white;
           border-radius: 16px;

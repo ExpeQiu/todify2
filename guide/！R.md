@@ -1,4 +1,8 @@
 ### 滚动需求
+任务6:优化内容编辑框 markdown渲染效果
+
+
+
 任务1:
 优化前端UI设计
 
@@ -14,6 +18,9 @@
 任务5:
 流程可以脱钩，可以从任意节点页面进入
 为每个节点页面分配独立的http入口
+
+
+
 
 
 
@@ -60,6 +67,8 @@ AI检索与编辑组件：AiSearchComponent，独立测试页面：http://localh
 AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwork/todify2/frontend/src/components/AIInterArea.tsx
 
 
+聊天测试页面：http://localhost:3000/ai-chat
+
 #### 知识点管理
 技术点管理页：http://localhost:3000/tech-points
 知识点关联：原AI知识信息，技术包装、技术推广、技术通稿、技术发布会
@@ -73,6 +82,54 @@ AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwor
 
 ### API
 
-#### dify-API
-1. 技术问答
-2. 技术包装：app-GgD3uUNDWOFu7DlBgSVkIrIt
+
+#### 智能工作流页 对接的dify API key信息：
+
+
+1. 智能工作流配置 (SmartWorkflowNodeConfig)
+- AI问答 : app-t1X4eu8B4eucyO6IfrTbw1t2 (chatflow方式)
+
+- 技术包装 : app-YDVb91faDHwTqIei4WWSNaTM (workflow方式)
+
+- 技术策略 : app-awRZf7tKfvC73DEVANAGGNr8 (workflow方式)
+
+- 技术通稿 : app-3TK9U2F3WwFP7vOoq0Ut84KA (workflow方式)
+
+- 发布会稿 : app-WcV5IDjuNKbOKIBDPWdb7HF4 (workflow方式) 
+
+
+
+
+2. 独立页面配置 (IndependentPageConfig)
+- AI问答 : app-HC8dx24idIWm1uva66VmHXsm (chatflow方式)
+
+- 技术包装 : app-GgD3uUNDWOFu7DlBgSVkIrIt (chatflow方式)
+
+- 技术策略 : app-DesVds4LQch6k7Unu7KpBCS4 (chatflow方式)
+
+- 技术通稿 : app-c7HLp8OGiTgnpvg5cIYqQCYZ (chatflow方式)
+
+- 技术发布 : app-iAiKRQ7h8zCwkz2TBkezgtGs (chatflow方式)
+
+
+
+http://localhost:3000/的完整 工作流：
+1. 用户通过 AI问答，提出问题，传递给dify-API，dify-API 调用 技术问答模型，返回答案，用户在前端页面查看答案
+2. 用户采纳答案，点击下一步，传递给 技术包装的dify-API，继续生成技术包装材料，展示在 技术包装节点页面的 编辑区
+3. 用户可以编辑 技术包装节点的编辑区内容，然后保存，然后点击下一步，传递给 技术推广策略 dify-API，继续生成技术推广策略材料，展示在 推广策略节点页面的 编辑区
+4. 用户可以编辑 技术推广策略的编辑区内容，然后保存，然后点击下一步，传递给 技术通稿dify-API，继续生成技术通稿材料，展示在 技术通稿节点页面的 编辑区
+5. 用户可以编辑 技术通稿节点的编辑区内容，然后保存，然后点击下一步，传递给 发布会演讲稿dify-API，继续生成发布会演讲稿材料，展示在 演讲稿节点页面的 编辑区
+
+
+
+http://localhost:3000/ 各节点对应的dify- API
+与 
+- ✅ 智能搜索节点 : http://localhost:3000/node/ai-search
+- ✅ 技术包装节点 : http://localhost:3000/node/tech-package
+- ✅ 推广策略节点 : http://localhost:3000/node/promotion-strategy
+- ✅ 核心稿件节点 : http://localhost:3000/node/core-draft
+- ✅ 演讲稿节点 : http://localhost:3000/node/speech
+不同的，需单独配置
+
+
+

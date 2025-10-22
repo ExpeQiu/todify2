@@ -1,8 +1,62 @@
-import { Search, Package, Target, FileText, Mic, MessageCircle } from 'lucide-react';
+import { Search, Package, Target, FileText, Mic, MessageCircle, Lightbulb, Newspaper, Megaphone } from 'lucide-react';
 import { WorkflowNode, NodeConfig } from '../types/workflow';
+
+// 节点配置
+export const NODE_CONFIGS = {
+  ai_qa: {
+    title: 'AI问答',
+    description: '智能问答助手',
+    icon: 'Brain',
+    color: '#3B82F6',
+    category: 'ai'
+  },
+  ai_search: {
+    title: 'AI搜索',
+    description: 'AI智能搜索助手',
+    icon: 'Search',
+    color: '#3B82F6',
+    category: 'ai'
+  },
+  tech_package: {
+    title: '技术包装',
+    description: '技术内容包装',
+    icon: 'Package',
+    color: '#F59E0B',
+    category: 'content'
+  },
+  promotion_strategy: {
+    title: '推广策略',
+    description: '推广策略制定',
+    icon: 'Target',
+    color: '#8B5CF6',
+    category: 'strategy'
+  },
+  core_draft: {
+    title: '核心稿件',
+    description: '核心稿件撰写',
+    icon: 'FileText',
+    color: '#10B981',
+    category: 'content'
+  },
+  speech: {
+    title: '演讲稿',
+    description: '演讲稿撰写',
+    icon: 'Megaphone',
+    color: '#EF4444',
+    category: 'content'
+  }
+};
 
 // 节点配置定义
 export const nodeConfigs: Record<string, NodeConfig> = {
+  ai_qa: {
+    canStartIndependently: true,
+    requiredInputs: ['query'],
+    defaultValues: {
+      query: ''
+    }
+  },
+
   ai_search: {
     canStartIndependently: true,
     requiredInputs: ['query'],
@@ -19,6 +73,7 @@ export const nodeConfigs: Record<string, NodeConfig> = {
       template: 'default'
     }
   },
+  
   promotion_strategy: {
     canStartIndependently: true,
     requiredInputs: [],
@@ -34,18 +89,28 @@ export const nodeConfigs: Record<string, NodeConfig> = {
     requiredInputs: [],
     optionalInputs: ['coreDraftData', 'speechType', 'duration']
   }
-};
+}
 
 // 工作流节点定义
 export const workflowNodes: WorkflowNode[] = [
   {
-    id: 'ai_search',
+    id: 'ai_qa',
     name: 'AI问答',
-    type: 'ai_search',
+    type: 'ai_qa',
     description: '向AI助手提问获取专业解答',
     icon: MessageCircle,
+    path: '/node/ai-qa',
+    nextSteps: ['tech_package', 'promotion_strategy', 'core_draft', 'speech']
+  },
+
+  {
+    id: 'ai_search',
+    name: 'AI搜索',
+    type: 'ai_search',
+    description: 'AI智能搜索助手',
+    icon: Search,
     path: '/node/ai-search',
-    nextSteps: ['tech_package', 'promotion_strategy']
+    nextSteps: ['tech_package', 'promotion_strategy', 'core_draft', 'speech']
   },
 
   {
@@ -55,9 +120,10 @@ export const workflowNodes: WorkflowNode[] = [
     description: '对搜索结果进行技术包装',
     icon: Package,
     path: '/node/tech-package',
-    dependencies: ['ai_search'],
-    nextSteps: ['promotion_strategy', 'core_draft']
+    dependencies: ['ai_qa'],
+    nextSteps: ['promotion_strategy', 'core_draft', 'speech']
   },
+  
   {
     id: 'promotion_strategy',
     name: '推广策略',

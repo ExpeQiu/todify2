@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, User, Bot, Brain } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Send, Loader2, User, Bot, Brain } from "lucide-react";
 
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: Date;
 }
 
@@ -14,13 +14,13 @@ interface AIChatProps {
 
 const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) {
+    if (e.key === "Enter" && !isLoading) {
       handleSendMessage();
     }
   };
@@ -39,12 +39,12 @@ const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage.trim(),
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
     setIsLoading(true);
     onMessageSend?.(inputMessage.trim());
 
@@ -53,76 +53,131 @@ const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: `我理解您的问题："${inputMessage.trim()}"。让我为您提供一些建议和帮助。这是一个很好的问题，我会根据您的需求提供相应的解决方案。`,
-        sender: 'ai',
-        timestamp: new Date()
+        sender: "ai",
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
       setIsLoading(false);
     }, 1500);
   };
 
   return (
-    <div className="ai-search-component">
+    <div className="ai-search-component" data-oid="iy9xey3">
       {/* 头部 */}
-      <div className="ai-search-header">
-        <div className="header-left">
-          <Brain className="header-icon text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-800">AI智能助手</h3>
+      <div className="ai-search-header" data-oid="idevt4r">
+        <div className="header-left" data-oid="8j22kyy">
+          <Brain className="header-icon text-blue-600" data-oid=":v0o0yj" />
+          <h3
+            className="text-lg font-semibold text-gray-800"
+            data-oid="ik5uihr"
+          >
+            AI智能助手
+          </h3>
         </div>
-        <p className="text-sm text-gray-600">与AI助手对话，获取专业的技术解答和建议</p>
+        <p className="text-sm text-gray-600" data-oid="qujuo60">
+          与AI助手对话，获取专业的技术解答和建议
+        </p>
       </div>
 
       {/* 内容区域 */}
-      <div className="ai-search-content">
+      <div className="ai-search-content" data-oid="u-coewo">
         {/* 消息区域 */}
-        <div className="response-section">
-          <div className="response-header">
-            <Bot className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-gray-800">对话记录</span>
+        <div className="response-section" data-oid="ucgrp12">
+          <div className="response-header" data-oid="gq835c4">
+            <Bot className="w-5 h-5 text-blue-600" data-oid="9c0cmju" />
+            <span className="font-medium text-gray-800" data-oid="istvpe1">
+              对话记录
+            </span>
           </div>
-          <div className="response-content">
-            <div className="space-y-4 max-h-80 overflow-y-auto">
+          <div className="response-content" data-oid=".hlv8zz">
+            <div
+              className="space-y-4 max-h-80 overflow-y-auto"
+              data-oid="r9kt3b5"
+            >
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                  data-oid=":n7:0n0"
                 >
-                  <div className={`flex items-start gap-3 max-w-xs ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div
+                    className={`flex items-start gap-3 max-w-xs ${message.sender === "user" ? "flex-row-reverse" : ""}`}
+                    data-oid="1_u2_tx"
+                  >
                     {/* 头像 */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.sender === 'user' 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-blue-100 text-blue-600'
-                    }`}>
-                      {message.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.sender === "user"
+                          ? "bg-blue-500 text-white"
+                          : "bg-blue-100 text-blue-600"
+                      }`}
+                      data-oid="z-5han0"
+                    >
+                      {message.sender === "user" ? (
+                        <User className="w-4 h-4" data-oid=".4afjk4" />
+                      ) : (
+                        <Bot className="w-4 h-4" data-oid="ki36xhm" />
+                      )}
                     </div>
-                    
+
                     {/* 消息内容 */}
-                    <div className={`px-4 py-3 rounded-2xl shadow-sm ${
-                      message.sender === 'user'
-                        ? 'bg-blue-500 text-white rounded-br-md'
-                        : 'bg-white border border-gray-200 rounded-tl-md'
-                    }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      <div className="text-xs opacity-70 mt-1">
+                    <div
+                      className={`px-4 py-3 rounded-2xl shadow-sm ${
+                        message.sender === "user"
+                          ? "bg-blue-500 text-white rounded-br-md"
+                          : "bg-white border border-gray-200 rounded-tl-md"
+                      }`}
+                      data-oid="81l4fw."
+                    >
+                      <p
+                        className="text-sm whitespace-pre-wrap"
+                        data-oid="g19:qzr"
+                      >
+                        {message.content}
+                      </p>
+                      <div
+                        className="text-xs opacity-70 mt-1"
+                        data-oid="04kwte2"
+                      >
                         {message.timestamp.toLocaleTimeString()}
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
-              
+
               {/* 加载状态 */}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-blue-600" />
+                <div className="flex justify-start" data-oid="nvw.1_b">
+                  <div className="flex items-start gap-3" data-oid="7nl9jqx">
+                    <div
+                      className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0"
+                      data-oid="8-v2xki"
+                    >
+                      <Bot
+                        className="w-4 h-4 text-blue-600"
+                        data-oid="nfm9zkj"
+                      />
                     </div>
-                    <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                        <span className="text-sm text-gray-600">AI正在思考中...</span>
+                    <div
+                      className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3"
+                      data-oid="42bourr"
+                    >
+                      <div
+                        className="flex items-center gap-2"
+                        data-oid="olckxy7"
+                      >
+                        <Loader2
+                          className="w-4 h-4 animate-spin text-blue-600"
+                          data-oid="8-vuxg2"
+                        />
+
+                        <span
+                          className="text-sm text-gray-600"
+                          data-oid=".jp:-.z"
+                        >
+                          AI正在思考中...
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -131,13 +186,13 @@ const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
             </div>
           </div>
         </div>
-        
-        <div ref={messagesEndRef} />
+
+        <div ref={messagesEndRef} data-oid=":jq5773" />
       </div>
 
       {/* 输入区域 */}
-      <div className="input-section">
-        <div className="input-container">
+      <div className="input-section" data-oid="3fruv-d">
+        <div className="input-container" data-oid="43ngdkh">
           <input
             ref={inputRef}
             type="text"
@@ -147,22 +202,25 @@ const AIChat: React.FC<AIChatProps> = ({ onMessageSend }) => {
             placeholder="请输入您的问题..."
             className="query-input"
             disabled={isLoading}
+            data-oid="oloscr9"
           />
+
           <button
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading}
             className="send-button"
+            data-oid="l6mlyf8"
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" data-oid="10tpbr6" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4" data-oid=".esmg8x" />
             )}
           </button>
         </div>
       </div>
 
-      <style>{`
+      <style data-oid="bu1yc0a">{`
         .ai-search-component {
           background: white;
           border-radius: 16px;

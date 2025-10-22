@@ -6,7 +6,7 @@ http://47.113.225.93/v1
 ### APi info
 
 #### 对接方式：POST/chat-messages
-AI问答：app-DJzEj8nSOqkVXaMmvyhPoYEN
+AI问答：app-t1X4eu8B4eucyO6IfrTbw1t2
 
 ##### 对接方式：POST/workflows/run
 技术包装：app-YDVb91faDHwTqIei4WWSNaTM

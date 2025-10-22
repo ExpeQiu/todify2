@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface PageTransitionProps {
   children: React.ReactNode;
   isVisible: boolean;
-  direction?: 'fade' | 'slide-up' | 'slide-right' | 'scale' | 'rotate';
+  direction?: "fade" | "slide-up" | "slide-right" | "scale" | "rotate";
   duration?: number;
   delay?: number;
   className?: string;
@@ -12,13 +12,13 @@ interface PageTransitionProps {
 const PageTransition: React.FC<PageTransitionProps> = ({
   children,
   isVisible,
-  direction = 'fade',
+  direction = "fade",
   duration = 300,
   delay = 0,
-  className = ''
+  className = "",
 }) => {
   const [shouldRender, setShouldRender] = useState(isVisible);
-  const [animationClass, setAnimationClass] = useState('');
+  const [animationClass, setAnimationClass] = useState("");
 
   useEffect(() => {
     if (isVisible) {
@@ -36,46 +36,46 @@ const PageTransition: React.FC<PageTransitionProps> = ({
 
   const getEnterClass = (dir: string) => {
     switch (dir) {
-      case 'slide-up':
-        return 'translate-y-0 opacity-100';
-      case 'slide-right':
-        return 'translate-x-0 opacity-100';
-      case 'scale':
-        return 'scale-100 opacity-100';
-      case 'rotate':
-        return 'rotate-0 opacity-100';
+      case "slide-up":
+        return "translate-y-0 opacity-100";
+      case "slide-right":
+        return "translate-x-0 opacity-100";
+      case "scale":
+        return "scale-100 opacity-100";
+      case "rotate":
+        return "rotate-0 opacity-100";
       default:
-        return 'opacity-100';
+        return "opacity-100";
     }
   };
 
   const getExitClass = (dir: string) => {
     switch (dir) {
-      case 'slide-up':
-        return 'translate-y-4 opacity-0';
-      case 'slide-right':
-        return 'translate-x-4 opacity-0';
-      case 'scale':
-        return 'scale-95 opacity-0';
-      case 'rotate':
-        return 'rotate-1 opacity-0';
+      case "slide-up":
+        return "translate-y-4 opacity-0";
+      case "slide-right":
+        return "translate-x-4 opacity-0";
+      case "scale":
+        return "scale-95 opacity-0";
+      case "rotate":
+        return "rotate-1 opacity-0";
       default:
-        return 'opacity-0';
+        return "opacity-0";
     }
   };
 
   const getInitialClass = (dir: string) => {
     switch (dir) {
-      case 'slide-up':
-        return 'translate-y-4 opacity-0';
-      case 'slide-right':
-        return 'translate-x-4 opacity-0';
-      case 'scale':
-        return 'scale-95 opacity-0';
-      case 'rotate':
-        return 'rotate-1 opacity-0';
+      case "slide-up":
+        return "translate-y-4 opacity-0";
+      case "slide-right":
+        return "translate-x-4 opacity-0";
+      case "scale":
+        return "scale-95 opacity-0";
+      case "rotate":
+        return "rotate-1 opacity-0";
       default:
-        return 'opacity-0';
+        return "opacity-0";
     }
   };
 
@@ -91,8 +91,9 @@ const PageTransition: React.FC<PageTransitionProps> = ({
       `}
       style={{
         transitionDuration: `${duration}ms`,
-        transitionDelay: `${delay}ms`
+        transitionDelay: `${delay}ms`,
       }}
+      data-oid="fw8sq-."
     >
       {children}
     </div>
@@ -107,7 +108,7 @@ interface AnimatedPageProps {
 
 export const AnimatedPage: React.FC<AnimatedPageProps> = ({
   children,
-  className = ''
+  className = "",
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -121,6 +122,7 @@ export const AnimatedPage: React.FC<AnimatedPageProps> = ({
       direction="fade"
       duration={300}
       className={className}
+      data-oid="pka2bxu"
     >
       {children}
     </PageTransition>
@@ -131,15 +133,15 @@ export const AnimatedPage: React.FC<AnimatedPageProps> = ({
 interface StepTransitionProps {
   children: React.ReactNode;
   currentStep: number;
-  direction?: 'forward' | 'backward';
+  direction?: "forward" | "backward";
   className?: string;
 }
 
 export const StepTransition: React.FC<StepTransitionProps> = ({
   children,
   currentStep,
-  direction = 'forward',
-  className = ''
+  direction = "forward",
+  className = "",
 }) => {
   const [displayStep, setDisplayStep] = useState(currentStep);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -155,17 +157,19 @@ export const StepTransition: React.FC<StepTransitionProps> = ({
   }, [currentStep, displayStep]);
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`} data-oid="93vtd1i">
       <div
         className={`
           transition-all duration-300 ease-in-out
-          ${isAnimating 
-            ? direction === 'forward' 
-              ? '-translate-x-full opacity-0' 
-              : 'translate-x-full opacity-0'
-            : 'translate-x-0 opacity-100'
+          ${
+            isAnimating
+              ? direction === "forward"
+                ? "-translate-x-full opacity-0"
+                : "translate-x-full opacity-0"
+              : "translate-x-0 opacity-100"
           }
         `}
+        data-oid="lcqddfo"
       >
         {children}
       </div>
@@ -185,22 +189,32 @@ export const FlipCard: React.FC<FlipCardProps> = ({
   front,
   back,
   isFlipped,
-  className = ''
+  className = "",
 }) => (
-  <div className={`relative w-full h-full perspective-1000 ${className}`}>
+  <div
+    className={`relative w-full h-full perspective-1000 ${className}`}
+    data-oid="plehqg8"
+  >
     <div
       className={`
         relative w-full h-full transition-transform duration-600 transform-style-preserve-3d
-        ${isFlipped ? 'rotate-y-180' : ''}
+        ${isFlipped ? "rotate-y-180" : ""}
       `}
+      data-oid="9:ucu:q"
     >
       {/* 正面 */}
-      <div className="absolute inset-0 w-full h-full backface-hidden">
+      <div
+        className="absolute inset-0 w-full h-full backface-hidden"
+        data-oid="30zdn1c"
+      >
         {front}
       </div>
-      
+
       {/* 背面 */}
-      <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
+      <div
+        className="absolute inset-0 w-full h-full backface-hidden rotate-y-180"
+        data-oid="00d_umx"
+      >
         {back}
       </div>
     </div>
@@ -210,8 +224,8 @@ export const FlipCard: React.FC<FlipCardProps> = ({
 // 悬浮动画组件
 interface FloatingElementProps {
   children: React.ReactNode;
-  intensity?: 'subtle' | 'medium' | 'strong';
-  direction?: 'vertical' | 'horizontal' | 'circular';
+  intensity?: "subtle" | "medium" | "strong";
+  direction?: "vertical" | "horizontal" | "circular";
   duration?: number;
   className?: string;
 }
@@ -219,9 +233,9 @@ interface FloatingElementProps {
 export const FloatingElement: React.FC<FloatingElementProps> = ({
   children,
   // intensity = 'medium',
-  direction = 'vertical',
+  direction = "vertical",
   duration = 3000,
-  className = ''
+  className = "",
 }) => {
   const getAnimationClass = () => {
     // const intensityMap = {
@@ -229,13 +243,13 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
     //   medium: '4px',
     //   strong: '8px'
     // };
-    
+
     // const distance = intensityMap[intensity];
-    
+
     switch (direction) {
-      case 'horizontal':
+      case "horizontal":
         return `animate-float-horizontal`;
-      case 'circular':
+      case "circular":
         return `animate-float-circular`;
       default:
         return `animate-float-vertical`;
@@ -246,8 +260,9 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
     <div
       className={`${getAnimationClass()} ${className}`}
       style={{
-        animationDuration: `${duration}ms`
+        animationDuration: `${duration}ms`,
       }}
+      data-oid="f:rw5kw"
     >
       {children}
     </div>
@@ -265,18 +280,21 @@ interface PulseElementProps {
 
 export const PulseElement: React.FC<PulseElementProps> = ({
   children,
-  color = 'rgba(99, 102, 241, 0.4)',
+  color = "rgba(99, 102, 241, 0.4)",
   intensity = 1.05,
   duration = 2000,
-  className = ''
+  className = "",
 }) => (
   <div
     className={`animate-pulse-custom ${className}`}
-    style={{
-      animationDuration: `${duration}ms`,
-      '--pulse-color': color,
-      '--pulse-scale': intensity
-    } as React.CSSProperties}
+    style={
+      {
+        animationDuration: `${duration}ms`,
+        "--pulse-color": color,
+        "--pulse-scale": intensity,
+      } as React.CSSProperties
+    }
+    data-oid="znx_so0"
   >
     {children}
   </div>

@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import { CarSeries, CarSeriesFormData, CarSeriesSearchParams, UpdateCarSeriesFormData } from '../types/carSeries';
-import { useCarSeries, useCarSeriesStats } from '../hooks/useCarSeries';
-import CarSeriesList from '../components/carSeries/CarSeriesList';
-import CarSeriesForm from '../components/carSeries/CarSeriesForm';
-import CarSeriesStats from '../components/carSeries/CarSeriesStats';
-import CarSeriesDetail from '../components/carSeries/CarSeriesDetail';
+import React, { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
+import {
+  CarSeries,
+  CarSeriesFormData,
+  CarSeriesSearchParams,
+  UpdateCarSeriesFormData,
+} from "../types/carSeries";
+import { useCarSeries, useCarSeriesStats } from "../hooks/useCarSeries";
+import CarSeriesList from "../components/carSeries/CarSeriesList";
+import CarSeriesForm from "../components/carSeries/CarSeriesForm";
+import CarSeriesStats from "../components/carSeries/CarSeriesStats";
+import CarSeriesDetail from "../components/carSeries/CarSeriesDetail";
 
 const CarSeriesManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
-  const [editingCarSeries, setEditingCarSeries] = useState<CarSeries | undefined>();
+  const [editingCarSeries, setEditingCarSeries] = useState<
+    CarSeries | undefined
+  >();
   const [showDetail, setShowDetail] = useState(false);
-  const [selectedCarSeries, setSelectedCarSeries] = useState<CarSeries | undefined>();
+  const [selectedCarSeries, setSelectedCarSeries] = useState<
+    CarSeries | undefined
+  >();
   const [showStats, setShowStats] = useState(false);
   const [searchParams, setSearchParams] = useState<CarSeriesSearchParams>({
-    keyword: '',
+    keyword: "",
     page: 1,
-    pageSize: 20
+    pageSize: 20,
   });
 
   const {
@@ -29,7 +38,7 @@ const CarSeriesManagement: React.FC = () => {
     updateCarSeries,
     discontinueCarSeries,
     deleteCarSeries,
-    searchCarSeries
+    searchCarSeries,
   } = useCarSeries();
 
   // 初始加载数据
@@ -62,7 +71,7 @@ const CarSeriesManagement: React.FC = () => {
   };
 
   const handleReset = () => {
-    const resetParams = { page: 1, pageSize: 20, keyword: '' };
+    const resetParams = { page: 1, pageSize: 20, keyword: "" };
     setSearchParams(resetParams);
     fetchCarSeries(resetParams);
   };
@@ -77,12 +86,17 @@ const CarSeriesManagement: React.FC = () => {
     }
   };
 
-  const handleFormSubmit = async (data: CarSeriesFormData | UpdateCarSeriesFormData): Promise<boolean> => {
+  const handleFormSubmit = async (
+    data: CarSeriesFormData | UpdateCarSeriesFormData,
+  ): Promise<boolean> => {
     try {
       if (editingCarSeries) {
-        const success = await updateCarSeries(editingCarSeries.id, data as UpdateCarSeriesFormData);
+        const success = await updateCarSeries(
+          editingCarSeries.id,
+          data as UpdateCarSeriesFormData,
+        );
         if (success) {
-          console.log('车系更新成功');
+          console.log("车系更新成功");
           setShowForm(false);
           setEditingCarSeries(undefined);
           return true;
@@ -91,14 +105,14 @@ const CarSeriesManagement: React.FC = () => {
       } else {
         const success = await createCarSeries(data as CarSeriesFormData);
         if (success) {
-          console.log('车系创建成功');
+          console.log("车系创建成功");
           setShowForm(false);
           return true;
         }
         return false;
       }
     } catch (err) {
-      console.error('操作失败:', err);
+      console.error("操作失败:", err);
       return false;
     }
   };
@@ -107,10 +121,10 @@ const CarSeriesManagement: React.FC = () => {
     try {
       const success = await deleteCarSeries(id);
       if (success) {
-        console.log('车系删除成功');
+        console.log("车系删除成功");
       }
     } catch (err) {
-      console.error('删除失败:', err);
+      console.error("删除失败:", err);
     }
   };
 
@@ -118,10 +132,10 @@ const CarSeriesManagement: React.FC = () => {
     try {
       const success = await discontinueCarSeries(id);
       if (success) {
-        console.log('车系已停产');
+        console.log("车系已停产");
       }
     } catch (err) {
-      console.error('停产操作失败:', err);
+      console.error("停产操作失败:", err);
     }
   };
 

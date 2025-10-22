@@ -12,9 +12,9 @@ export interface WorkflowNode {
 }
 
 export type NodeType = 
+  | 'ai_qa'
   | 'ai_search'
-  | 'smart_search'
-  | 'tech_package' 
+  | 'tech_package'
   | 'promotion_strategy'
   | 'core_draft'
   | 'speech';

@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
-import { Search, Package, Target, FileText, Mic } from 'lucide-react';
-import { workflowAPI } from '../services/api';
-import DocumentEditor from '../components/DocumentEditor';
-import LoadingAnimation, { LoadingOverlay, LoadingButton } from '../components/LoadingAnimation';
-import PageTransition, { StepTransition, AnimatedPage } from '../components/PageTransition';
-import { documentService } from '../services/documentService';
-import TopNavigation from '../components/TopNavigation';
-import './WorkflowPage.css';
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Package,
+  Target,
+  FileText,
+  Mic,
+  MessageCircle,
+  Send,
+  Edit3,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+} from "lucide-react";
+import { workflowAPI } from "../services/api";
+import DocumentEditor from "../components/DocumentEditor";
+import LoadingAnimation, {
+  LoadingOverlay,
+  LoadingButton,
+} from "../components/LoadingAnimation";
+import PageTransition, {
+  StepTransition,
+  AnimatedPage,
+} from "../components/PageTransition";
+import { documentService } from "../services/documentService";
+import TopNavigation from "../components/TopNavigation";
+import configService, { DifyAPIConfig, WorkflowStepConfig } from "../services/configService";
+import "./WorkflowPage.css";
 
 interface StepData {
   smartSearch?: any;
@@ -14,6 +36,8 @@ interface StepData {
   promotionStrategy?: any;
   coreDraft?: any;
   speechGeneration?: any;
+  aiSearch?: any;
+  [key: string]: any; // 添加索引签名以支持动态键访问
 }
 
 interface Document {
@@ -24,599 +48,938 @@ interface Document {
   updatedAt: Date;
 }
 
-interface TechPackageState {
-  generatedContent?: any;
-  editedContent?: string;
-  selectedTemplate?: string;
-  isGenerating: boolean;
+interface ChatMessage {
+  id: string;
+  type: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+  liked?: boolean;
+  disliked?: boolean;
+  isRegenerating?: boolean;
 }
 
 const WorkflowPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1); // 默认设置为步骤1（AI问答），按照工作流程从第一步开始
   const [stepData, setStepData] = useState<StepData>({});
   const [loading, setLoading] = useState(false);
-  // 新增状态管理
-  const [loadingText, setLoadingText] = useState('');
-  const [loadingProgress, setLoadingProgress] = useState<number | undefined>(undefined);
-  // const [searchQuery, setSearchQuery] = useState('');
+  const [loadingText, setLoadingText] = useState("");
+  const [loadingProgress, setLoadingProgress] = useState<number | undefined>(
+    undefined,
+  );
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
-  const [techPackageState, setTechPackageState] = useState<TechPackageState>({
-    isGenerating: false
-  });
 
-  const steps = [
-    { id: 1, title: '智能搜索', description: '收集相关信息', icon: Search, key: 'smartSearch' },
-    { id: 2, title: '技术包装', description: '对搜索结果进行技术包装', icon: Package, key: 'techPackage' },
-    { id: 3, title: '推广策略', description: '生成推广策略方案', icon: Target, key: 'promotionStrategy' },
-    { id: 4, title: '核心稿件', description: '生成核心文档稿件', icon: FileText, key: 'coreDraft' },
-    { id: 5, title: '演讲稿', description: '生成演讲稿内容', icon: Mic, key: 'speechGeneration' }
-  ];
+  // 配置管理状态
+  const [difyConfigs, setDifyConfigs] = useState<DifyAPIConfig[]>([]);
+  const [workflowConfigs, setWorkflowConfigs] = useState<WorkflowStepConfig[]>([]);
+  const [configsLoaded, setConfigsLoaded] = useState(false);
 
-  // 添加步骤过渡动画状态
-  const [stepTransition, setStepTransition] = useState<'entering' | 'exiting' | null>(null);
+  // AI对话相关状态
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: "1",
+      type: "assistant",
+      content:
+        "你好！我是智能助手，请输入您的问题或需求，我将为您提供专业的技术分析和内容生成服务。",
+      timestamp: new Date(),
+    },
+  ]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  
+  // 编辑器内容状态
+  const [editorContent, setEditorContent] = useState("");
+  
+  // 工作流处理状态
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
+  const [isFullscreenEditor, setIsFullscreenEditor] = useState(true); // 默认开启全屏编辑器模式
 
-  // 增强的步骤切换处理
-  const handleStepChange = (newStep: number) => {
-    if (newStep < 1 || newStep > 5 || newStep === currentStep) return;
-    
-    setStepTransition('exiting');
-    setTimeout(() => {
-      setCurrentStep(newStep);
-      setStepTransition('entering');
-      setTimeout(() => setStepTransition(null), 600);
-    }, 400);
-  };
+  const [steps, setSteps] = useState([
+    {
+      id: 1,
+      title: "AI问答",
+      description: "进行中",
+      icon: MessageCircle,
+      key: "smartSearch",
+      status: "active",
+    },
+    {
+      id: 2,
+      title: "技术包装",
+      description: "未开始",
+      icon: Package,
+      key: "techPackage",
+      status: "pending",
+    },
+    {
+      id: 3,
+      title: "技术策略",
+      description: "未开始",
+      icon: Target,
+      key: "techStrategy",
+      status: "pending",
+    },
+    {
+      id: 4,
+      title: "技术推广策略",
+      description: "未开始",
+      icon: Target,
+      key: "promotionStrategy",
+      status: "pending",
+    },
+    {
+      id: 5,
+      title: "技术通稿",
+      description: "未开始",
+      icon: FileText,
+      key: "coreDraft",
+      status: "pending",
+    },
+    {
+      id: 6,
+      title: "发布会演讲稿",
+      description: "未开始",
+      icon: Mic,
+      key: "speechGeneration",
+      status: "pending",
+    },
+  ]);
 
-  const handleSmartSearch = async (query: string) => {
-    setLoading(true);
-    setLoadingText('正在进行智能搜索...');
-    setLoadingProgress(0);
-    
-    try {
-      // 模拟进度更新
-      const progressSteps = [20, 40, 60, 80, 100];
-      const textSteps = [
-        '分析搜索关键词...',
-        '检索相关信息...',
-        '整理搜索结果...',
-        '生成智能摘要...',
-        '搜索完成！'
-      ];
-      
-      for (let i = 0; i < progressSteps.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setLoadingProgress(progressSteps[i]);
-        setLoadingText(textSteps[i]);
-      }
-      
-      const result = await workflowAPI.smartSearch(query);
-      
-      if (result.success) {
-        setStepData(prev => ({ ...prev, smartSearch: result.data }));
-        setTimeout(() => {
-          setCurrentStep(1);
-        }, 500);
-      } else {
-        alert(result.error || '智能搜索失败');
-      }
-    } catch (error) {
-      alert('搜索请求失败，请稍后重试');
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setLoadingText('');
-        setLoadingProgress(undefined);
-      }, 1000);
-    }
-  };
-
-  const handleTechPackage = async (template?: string) => {
-    setTechPackageState(prev => ({ ...prev, isGenerating: true, selectedTemplate: template }));
-    
-    try {
-      const result = await workflowAPI.techPackage(stepData.smartSearch, template);
-      
-      if (result.success) {
-        setTechPackageState(prev => ({
-          ...prev,
-          generatedContent: result.data,
-          isGenerating: false
-        }));
-        setStepData(prev => ({ ...prev, techPackage: result.data }));
-      } else {
-        alert(result.error || '技术包装失败');
-        setTechPackageState(prev => ({ ...prev, isGenerating: false }));
-      }
-    } catch (error) {
-      alert('技术包装请求失败，请稍后重试');
-      setTechPackageState(prev => ({ ...prev, isGenerating: false }));
-    }
-  };
-
-  const handleTechPackageRegenerate = async () => {
-    await handleTechPackage(techPackageState.selectedTemplate);
-  };
-
-  const handleTechPackageContentChange = (content: string) => {
-    setTechPackageState(prev => ({ ...prev, editedContent: content }));
-  };
-
-  const handlePromotionStrategy = async () => {
-    setLoading(true);
-    setLoadingText('正在生成推广策略...');
-    setLoadingProgress(undefined);
-    
-    try {
-      setLoadingProgress(25);
-      setLoadingText('分析技术包装数据...');
-      
-      const result = await workflowAPI.promotionStrategy(stepData.techPackage);
-      
-      setLoadingProgress(85);
-      setLoadingText('制定推广方案...');
-      
-      if (result.success) {
-        setLoadingProgress(100);
-        setLoadingText('推广策略完成！');
+  // 加载配置
+  useEffect(() => {
+    const loadConfigs = async () => {
+      try {
+        const difyConfigsData = await configService.getDifyConfigs();
+        const workflowConfigsData = await configService.getWorkflowConfigs();
         
-        setTimeout(() => {
-          setStepData(prev => ({ ...prev, promotionStrategy: result.data }));
-          setCurrentStep(4);
-        }, 500);
-      } else {
-        alert(result.error || '推广策略生成失败');
+        setDifyConfigs(difyConfigsData);
+        setWorkflowConfigs(workflowConfigsData);
+        setConfigsLoaded(true);
+      } catch (error) {
+        console.error('加载配置失败:', error);
+        setConfigsLoaded(true); // 即使失败也设置为已加载，使用默认配置
       }
-    } catch (error) {
-      alert('推广策略请求失败，请稍后重试');
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setLoadingText('');
-        setLoadingProgress(undefined);
-      }, 1000);
-    }
-  };
-
-  const handleCoreDraft = async () => {
-    setLoading(true);
-    setLoadingText('正在生成核心草稿...');
-    setLoadingProgress(undefined);
-    
-    try {
-      setLoadingProgress(20);
-      setLoadingText('整合推广策略和技术方案...');
-      
-      const result = await workflowAPI.coreDraft(stepData.promotionStrategy, stepData.techPackage);
-      
-      setLoadingProgress(70);
-      setLoadingText('生成文档内容...');
-      
-      if (result.success) {
-        setLoadingProgress(90);
-        setLoadingText('创建文档对象...');
-        
-        setStepData(prev => ({ ...prev, coreDraft: result.data }));
-        
-        // Create document from core draft
-        const document: Document = {
-          id: Date.now().toString(),
-          title: '智能生成文档',
-          content: result.data.content || JSON.stringify(result.data, null, 2),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        setCurrentDocument(document);
-        
-        setLoadingProgress(100);
-        setLoadingText('核心草稿完成！');
-        
-        setTimeout(() => {
-          setCurrentStep(5);
-        }, 500);
-      } else {
-        alert(result.error || '核心稿件生成失败');
-      }
-    } catch (error) {
-      alert('核心稿件请求失败，请稍后重试');
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-        setLoadingText('');
-        setLoadingProgress(undefined);
-      }, 1000);
-    }
-  };
-
-  const handleSaveDocument = async (content: string, title: string) => {
-    if (!currentDocument) return;
-    
-    const updatedDocument = {
-      ...currentDocument,
-      title,
-      content,
-      updatedAt: new Date()
     };
+
+    loadConfigs();
+  }, []);
+
+  // 获取当前步骤的Dify API配置
+  const getCurrentStepDifyConfig = (stepKey: string): DifyAPIConfig | null => {
+    if (!configsLoaded) return null;
     
-    documentService.saveDocument(updatedDocument);
-    setCurrentDocument(updatedDocument);
+    const workflowConfig = workflowConfigs.find(config => config.stepKey === stepKey);
+    if (!workflowConfig || !workflowConfig.difyConfigId) return null;
+    
+    return difyConfigs.find(config => config.id === workflowConfig.difyConfigId) || null;
   };
 
-  const handleExportDocument = async (content: string, title: string) => {
-    if (!currentDocument) return;
+  const calculateProgress = () => {
+    const completedSteps = steps.filter(
+      (step) => step.status === "completed",
+    ).length;
+    return Math.round((completedSteps / steps.length) * 100);
+  };
+
+  // 处理下一步点击事件
+  const handleNextStep = async () => {
+    console.log('handleNextStep 被调用');
+    console.log('当前步骤:', currentStep);
+    console.log('总步骤数:', steps.length);
     
-    try {
-      await documentService.exportToPDF(content, title);
-    } catch (error) {
-      console.error('导出PDF失败:', error);
-      alert('导出PDF失败，请稍后重试');
+    if (currentStep >= steps.length - 1) {
+      console.log('已经是最后一步，无法继续');
+      return;
     }
-  };
-
-  const handleSpeechGeneration = async () => {
-    setLoading(true);
+    
+    console.log('开始处理下一步...');
+    setIsProcessing(true);
+    setProcessError(null);
+    
     try {
-      const result = await workflowAPI.speech(stepData.coreDraft);
-      if (result.success) {
-        setStepData(prev => ({ ...prev, speech: result.data }));
-        alert('语音生成完成！');
+      // 保存当前编辑区内容到步骤数据
+      const currentStepKey = steps[currentStep].key;
+      console.log('当前步骤键:', currentStepKey);
+      console.log('当前步骤索引:', currentStep);
+      const updatedStepData = { ...stepData };
+      
+      // 根据当前步骤调用对应的API，每个步骤使用自己的Dify配置
+      let apiResult = null;
+      
+      // 特殊处理：如果当前步骤是技术包装(1)，但我们需要从AI问答(0)获取内容
+      if (currentStepKey === 'techPackage' && currentStep === 1) {
+        console.log('检测到从AI问答步骤切换到技术包装步骤');
+        
+        // 获取最新的AI回答内容
+        const latestAiMessage = chatMessages
+          .filter(msg => msg.type === 'assistant')
+          .slice(-1)[0];
+        
+        // 获取最新的用户输入
+        const latestUserMessage = chatMessages
+          .filter(msg => msg.type === 'user')
+          .slice(-1)[0];
+        
+        console.log('最新的AI回答:', latestAiMessage?.content);
+        console.log('最新的用户输入:', latestUserMessage?.content);
+        
+        // 检查AI回答是否有效（不是默认欢迎消息）
+        const isDefaultMessage = latestAiMessage?.content?.includes('我是智能助手') || 
+                                 latestAiMessage?.content?.includes('请输入您的问题') ||
+                                 latestAiMessage?.content?.includes('你好!我是智能助手');
+        
+        // 优先使用有效的AI回答，否则使用用户输入
+        const inputForTechPackage = (!isDefaultMessage && latestAiMessage?.content && latestAiMessage.content.length > 50) ? 
+                                   latestAiMessage.content : 
+                                   latestUserMessage?.content;
+        
+        console.log('AI回答是否有效:', !isDefaultMessage);
+        console.log('AI回答长度:', latestAiMessage?.content?.length || 0);
+        console.log('传递给技术包装的内容:', inputForTechPackage);
+        
+        if (inputForTechPackage && inputForTechPackage.trim()) {
+          const techPackageDifyConfig = getCurrentStepDifyConfig('techPackage');
+          console.log('技术包装Dify配置:', techPackageDifyConfig);
+          
+          // 使用Dify Workflow API处理AI回答内容
+          apiResult = await workflowAPI.techPackage(
+            inputForTechPackage, 
+            undefined, 
+            techPackageDifyConfig || undefined
+          );
+          
+          console.log('技术包装API结果:', apiResult);
+          
+          if (apiResult.success) {
+            updatedStepData.techPackage = apiResult.data;
+            // 将API返回的结果显示在下一步的编辑区
+            let resultContent = '';
+            
+            // 处理不同的数据结构
+            if (typeof apiResult.data === 'string') {
+              resultContent = apiResult.data;
+            } else if (apiResult.data?.result) {
+              resultContent = apiResult.data.result;
+            } else if (apiResult.data?.answer) {
+              resultContent = apiResult.data.answer;
+            } else if (apiResult.data?.content) {
+              resultContent = apiResult.data.content;
+            } else if (apiResult.data?.data?.outputs?.answer) {
+              resultContent = apiResult.data.data.outputs.answer;
+            } else if (apiResult.data?.data?.outputs?.text) {
+              resultContent = apiResult.data.data.outputs.text;
+            } else if (apiResult.data?.outputs?.answer) {
+              resultContent = apiResult.data.outputs.answer;
+            } else if (apiResult.data?.outputs?.text) {
+              resultContent = apiResult.data.outputs.text;
+            } else if (apiResult.data?.outputs?.text3) {
+              resultContent = apiResult.data.outputs.text3;
+            } else if (apiResult.data?.data?.outputs?.text3) {
+              resultContent = apiResult.data.data.outputs.text3;
+            } else if (apiResult.data?.data?.outputs?.text) {
+              resultContent = apiResult.data.data.outputs.text;
+            } else if (apiResult.data?.data?.outputs?.answer) {
+              resultContent = apiResult.data.data.outputs.answer;
+            } else {
+              // 如果无法提取内容，使用JSON字符串
+              resultContent = JSON.stringify(apiResult.data, null, 2);
+            }
+            
+            console.log('技术包装生成的内容:', resultContent);
+            console.log('API返回的完整数据:', apiResult.data);
+            setEditorContent(resultContent);
+          } else {
+            throw new Error(apiResult.error || '技术包装处理失败');
+          }
+        } else {
+          throw new Error('没有找到可用的输入内容，请先在AI问答步骤中获取回答');
+        }
       } else {
-        alert(result.error || '语音生成失败');
+        // 其他步骤的正常处理逻辑
+        switch (currentStepKey) {
+          case 'techPackage':
+            // 技术包装步骤，将编辑区内容传递给技术策略
+            if (editorContent.trim()) {
+              let techStrategyDifyConfig = getCurrentStepDifyConfig('techStrategy');
+              
+              // 如果配置未加载，尝试直接获取默认配置
+              if (!techStrategyDifyConfig) {
+                console.log('技术策略配置未找到，尝试获取默认配置');
+                techStrategyDifyConfig = await configService.getDifyConfig('default-tech-strategy');
+              }
+              
+              console.log('技术策略Dify配置:', techStrategyDifyConfig);
+              console.log('传递给技术策略的内容:', editorContent.substring(0, 200) + '...');
+              
+              apiResult = await workflowAPI.techStrategy(editorContent, techStrategyDifyConfig || undefined);
+              
+              console.log('技术策略API结果:', apiResult);
+              
+              if (apiResult.success) {
+                updatedStepData.techStrategy = apiResult.data;
+                
+                // 提取技术策略生成的内容
+                let resultContent = '';
+                if (typeof apiResult.data === 'string') {
+                  resultContent = apiResult.data;
+                } else if (apiResult.data?.result) {
+                  resultContent = apiResult.data.result;
+                } else if (apiResult.data?.answer) {
+                  resultContent = apiResult.data.answer;
+                } else if (apiResult.data?.content) {
+                  resultContent = apiResult.data.content;
+                } else if (apiResult.data?.data?.outputs?.answer) {
+                  resultContent = apiResult.data.data.outputs.answer;
+                } else if (apiResult.data?.data?.outputs?.text) {
+                  resultContent = apiResult.data.data.outputs.text;
+                } else if (apiResult.data?.outputs?.answer) {
+                  resultContent = apiResult.data.outputs.answer;
+                } else if (apiResult.data?.outputs?.text) {
+                  resultContent = apiResult.data.outputs.text;
+                } else {
+                  resultContent = JSON.stringify(apiResult.data, null, 2);
+                }
+                
+                console.log('技术策略生成的内容:', resultContent);
+                setEditorContent(resultContent);
+              } else {
+                throw new Error(apiResult.error || '技术策略处理失败');
+              }
+            }
+            break;
+            
+          case 'techStrategy':
+            // 技术策略步骤，将编辑区内容传递给推广策略
+            if (editorContent.trim()) {
+              let promotionStrategyDifyConfig = getCurrentStepDifyConfig('promotionStrategy');
+              
+              // 如果配置未加载，尝试直接获取默认配置
+              if (!promotionStrategyDifyConfig) {
+                console.log('推广策略配置未找到，尝试获取默认配置');
+                promotionStrategyDifyConfig = await configService.getDifyConfig('default-promotion-strategy');
+              }
+              
+              console.log('推广策略Dify配置:', promotionStrategyDifyConfig);
+              console.log('传递给推广策略的内容:', editorContent.substring(0, 200) + '...');
+              
+              apiResult = await workflowAPI.promotionStrategy(editorContent, promotionStrategyDifyConfig || undefined);
+              
+              console.log('推广策略API结果:', apiResult);
+              
+              if (apiResult.success) {
+                updatedStepData.promotionStrategy = apiResult.data;
+                
+                // 提取推广策略生成的内容
+                let resultContent = '';
+                if (typeof apiResult.data === 'string') {
+                  resultContent = apiResult.data;
+                } else if (apiResult.data?.result) {
+                  resultContent = apiResult.data.result;
+                } else if (apiResult.data?.answer) {
+                  resultContent = apiResult.data.answer;
+                } else if (apiResult.data?.content) {
+                  resultContent = apiResult.data.content;
+                } else if (apiResult.data?.data?.outputs?.answer) {
+                  resultContent = apiResult.data.data.outputs.answer;
+                } else if (apiResult.data?.data?.outputs?.text) {
+                  resultContent = apiResult.data.data.outputs.text;
+                } else if (apiResult.data?.outputs?.answer) {
+                  resultContent = apiResult.data.outputs.answer;
+                } else if (apiResult.data?.outputs?.text) {
+                  resultContent = apiResult.data.outputs.text;
+                } else {
+                  resultContent = JSON.stringify(apiResult.data, null, 2);
+                }
+                
+                console.log('推广策略生成的内容:', resultContent);
+                setEditorContent(resultContent);
+              } else {
+                throw new Error(apiResult.error || '推广策略处理失败');
+              }
+            }
+            break;
+            
+          case 'promotionStrategy':
+            // 推广策略步骤，将编辑区内容传递给核心稿件
+            if (editorContent.trim()) {
+              let coreDraftDifyConfig = getCurrentStepDifyConfig('coreDraft');
+              
+              // 如果配置未加载，尝试直接获取默认配置
+              if (!coreDraftDifyConfig) {
+                console.log('技术通稿配置未找到，尝试获取默认配置');
+                coreDraftDifyConfig = await configService.getDifyConfig('default-core-draft');
+              }
+              
+              apiResult = await workflowAPI.coreDraft(editorContent, coreDraftDifyConfig || undefined);
+              
+              if (apiResult.success) {
+                updatedStepData.coreDraft = apiResult.data;
+                setEditorContent(apiResult.data?.result || '');
+              } else {
+                throw new Error(apiResult.error || '核心稿件处理失败');
+              }
+            }
+            break;
+            
+          case 'coreDraft':
+            // 核心稿件步骤，将编辑区内容传递给演讲稿
+            if (editorContent.trim()) {
+              let speechGenerationDifyConfig = getCurrentStepDifyConfig('speechGeneration');
+              
+              // 如果配置未加载，尝试直接获取默认配置
+              if (!speechGenerationDifyConfig) {
+                console.log('发布会稿配置未找到，尝试获取默认配置');
+                speechGenerationDifyConfig = await configService.getDifyConfig('default-speech-generation');
+              }
+              
+              apiResult = await workflowAPI.speechGeneration(editorContent, speechGenerationDifyConfig || undefined);
+              
+              if (apiResult.success) {
+                updatedStepData.speechGeneration = apiResult.data;
+                setEditorContent(apiResult.data?.result || '');
+              } else {
+                throw new Error(apiResult.error || '演讲稿处理失败');
+              }
+            }
+            break;
+            
+          default:
+            // 其他步骤直接保存内容
+            updatedStepData[currentStepKey] = editorContent;
+            break;
+        }
       }
+      
+      // 更新步骤数据
+      setStepData(updatedStepData);
+      
+      // 切换到下一步
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      
+      // 更新步骤状态
+      const updatedSteps = steps.map((step, index) => ({
+        ...step,
+        status: index < nextStep ? 'completed' : index === nextStep ? 'current' : 'pending'
+      }));
+      setSteps(updatedSteps);
+      
     } catch (error) {
-      alert('语音请求失败，请稍后重试');
+      console.error('处理下一步时出错:', error);
+      setProcessError(error instanceof Error ? error.message : '处理失败，请重试');
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <AnimatedPage className="space-y-6">
-            <StepTransition currentStep={currentStep} direction="forward">
-              <div className="text-center space-y-4">
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <Search className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">智能搜索</h3>
-                  <p className="text-gray-600 mb-4">
-                    输入您的搜索关键词，我们将为您收集相关信息
-                  </p>
-                  <LoadingButton
-                    onClick={() => handleSmartSearch('默认搜索')}
-                    isLoading={loading && currentStep === 1}
-                    loadingText={loadingText}
-                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Search className="w-5 h-5 mr-2" />
-                    开始智能搜索
-                  </LoadingButton>
-                </div>
-              </div>
-            </StepTransition>
-          </AnimatedPage>
-        );
+  // 处理上一步点击事件
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      
+      // 恢复上一步的编辑区内容
+      const prevStepKey = steps[prevStep].key;
+      const prevContent = stepData[prevStepKey] || '';
+      setEditorContent(prevContent);
+      
+      // 更新步骤状态
+      const updatedSteps = steps.map((step, index) => ({
+        ...step,
+        status: index < prevStep ? 'completed' : index === prevStep ? 'current' : 'pending'
+      }));
+      setSteps(updatedSteps);
+    }
+  };
 
-      case 2:
-        return (
-          <AnimatedPage className="space-y-6">
-            <StepTransition currentStep={currentStep} direction="forward">
-              <div className="bg-orange-50 p-6 rounded-lg">
-                <Package className="w-12 h-12 text-orange-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-center mb-4">技术包装</h3>
-                <p className="text-gray-600 text-center mb-6">
-                  基于智能搜索结果，生成专业的技术包装内容
-                </p>
-                <div className="space-y-4">
-                  <button
-                     onClick={() => handleTechPackage()}
-                     disabled={techPackageState.isGenerating}
-                     className="w-full bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 disabled:opacity-50"
-                   >
-                    {techPackageState.isGenerating ? '生成中...' : '开始技术包装'}
-                  </button>
-                  {techPackageState.generatedContent && (
-                    <div className="mt-4 p-4 bg-white rounded-lg border">
-                      <h4 className="font-semibold mb-2">生成的技术包装内容：</h4>
-                      <div className="text-gray-700">
-                        {techPackageState.generatedContent}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </StepTransition>
-          </AnimatedPage>
-        );
+  const handleStepClick = (stepId: number) => {
+    setCurrentStep(stepId);
+  };
 
-      case 3:
-        return (
-          <AnimatedPage className="space-y-6">
-            <StepTransition currentStep={currentStep} direction="forward">
-              <div className="bg-orange-50 p-6 rounded-lg">
-                <Target className="w-12 h-12 text-orange-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">推广策略</h3>
-                <p className="text-gray-600 mb-4">
-                  基于技术包装内容生成推广策略
-                </p>
-                <LoadingButton
-                  onClick={handlePromotionStrategy}
-                  isLoading={loading && currentStep === 3}
-                  loadingText={loadingText}
-                  className="w-full bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  <Target className="w-5 h-5 mr-2" />
-                  生成推广策略
-                </LoadingButton>
-              </div>
-            </StepTransition>
-          </AnimatedPage>
-        );
+  // 处理编辑器内容变化
+  const handleEditorChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditorContent(event.target.value);
+  };
 
-      case 4:
-        return (
-          <AnimatedPage className="space-y-6">
-            <StepTransition currentStep={currentStep} direction="forward">
-              <div className="bg-green-50 p-6 rounded-lg">
-                <FileText className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">核心稿件</h3>
-                <p className="text-gray-600 mb-4">
-                  生成最终的核心文档稿件
-                </p>
-                {stepData.coreDraft && (
-                   <DocumentEditor
-                     initialContent={stepData.coreDraft.content}
-                     title={stepData.coreDraft.title}
-                     onSave={handleSaveDocument}
-                     onExportPDF={handleExportDocument}
-                   />
-                 )}
-                <LoadingButton
-                  onClick={handleCoreDraft}
-                  isLoading={loading && currentStep === 4}
-                  loadingText={loadingText}
-                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <FileText className="w-5 h-5 mr-2" />
-                  生成核心稿件
-                </LoadingButton>
-              </div>
-            </StepTransition>
-          </AnimatedPage>
-        );
+  // 处理粘贴事件
+  const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    // 允许默认粘贴行为
+    setTimeout(() => {
+      const target = event.target as HTMLTextAreaElement;
+      setEditorContent(target.value);
+    }, 0);
+  };
 
-      case 5:
-        return (
-          <AnimatedPage className="space-y-6">
-            <StepTransition currentStep={currentStep} direction="forward">
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <Mic className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">演讲稿生成</h3>
-                <p className="text-gray-600 mb-4">
-                  基于核心稿件生成演讲稿
-                </p>
-                {stepData.speechGeneration && (
-                  <div className="mt-4 p-4 bg-white rounded border">
-                    <h4 className="font-medium mb-2">生成的演讲稿：</h4>
-                    <div className="prose max-w-none">
-                      {stepData.speechGeneration.content}
-                    </div>
-                  </div>
-                )}
-                <LoadingButton
-                  onClick={handleSpeechGeneration}
-                  isLoading={loading && currentStep === 5}
-                  loadingText={loadingText}
-                  className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <Mic className="w-5 h-5 mr-2" />
-                  生成演讲稿
-                </LoadingButton>
-              </div>
-            </StepTransition>
-          </AnimatedPage>
-        );
+  // 处理键盘快捷键
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Ctrl+V 或 Cmd+V 粘贴（浏览器默认处理）
+    if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+      // 让浏览器处理粘贴，然后更新状态
+      setTimeout(() => {
+        const target = event.target as HTMLTextAreaElement;
+        setEditorContent(target.value);
+      }, 0);
+    }
+    
+    // Ctrl+S 或 Cmd+S 保存
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+      event.preventDefault();
+      handleSave();
+    }
+  };
 
-      default:
-        return null;
+  // 保存功能
+  const handleSave = () => {
+    // 这里可以添加保存到后端的逻辑
+    console.log('保存内容:', editorContent);
+    // 可以显示保存成功的提示
+  };
+
+  // 导出功能
+  const handleExport = () => {
+    // 创建下载链接
+    const element = document.createElement('a');
+    const file = new Blob([editorContent], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = '编辑内容.txt';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: "user",
+      content: inputMessage,
+      timestamp: new Date(),
+    };
+
+    setChatMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
+    setIsTyping(true);
+
+    try {
+      // 获取智能搜索节点的Dify配置
+      let smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+      
+      // 如果配置不存在，尝试初始化默认配置
+      if (!smartSearchDifyConfig) {
+        console.error("智能搜索配置未找到，尝试初始化默认配置");
+        // 尝试初始化默认配置
+        await configService.getDifyConfigs(); // 这会自动创建默认配置
+        await configService.getWorkflowConfigs(); // 这会自动创建工作流配置
+        
+        // 重新获取配置
+        smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+        
+        // 如果仍然没有配置，使用默认的AI搜索配置
+        if (!smartSearchDifyConfig) {
+          smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
+        }
+      }
+      
+      // 调用智能搜索API
+      const result = await workflowAPI.aiSearch(
+        inputMessage,
+        { context: chatMessages.map(msg => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content })) },
+        smartSearchDifyConfig || undefined
+      );
+
+      let responseContent = "抱歉，我无法处理您的请求。";
+      
+      if (result.success && result.data) {
+        // 处理不同的返回格式
+        if (result.data.result) {
+          responseContent = result.data.result;
+        } else if (result.data.answer) {
+          responseContent = result.data.answer;
+        } else {
+          responseContent = "抱歉，未能获取到有效回答。";
+        }
+      } else if (result.error) {
+        responseContent = `抱歉，处理您的请求时出现了问题：${result.error}`;
+      }
+
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: responseContent,
+        timestamp: new Date(),
+      };
+      
+      setChatMessages((prev) => [...prev, assistantMessage]);
+      setIsTyping(false);
+    } catch (error) {
+      console.error('智能搜索API调用失败:', error);
+      
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: `抱歉，处理您的请求时出现了错误。请检查智能搜索节点的Dify配置是否正确。`,
+        timestamp: new Date(),
+      };
+      
+      setChatMessages((prev) => [...prev, errorMessage]);
+      setIsTyping(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // 快捷操作处理函数
+  const handleCopyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      console.log('消息已复制到剪贴板');
+    } catch (error) {
+      console.error('复制失败:', error);
+    }
+  };
+
+  const handleLikeMessage = (messageId: string) => {
+    setChatMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, liked: !msg.liked, disliked: false }
+        : msg
+    ));
+  };
+
+  const handleDislikeMessage = (messageId: string) => {
+    setChatMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, disliked: !msg.disliked, liked: false }
+        : msg
+    ));
+  };
+
+  const handleRegenerateMessage = async (messageId: string) => {
+    // 找到要重新生成的消息
+    const messageToRegenerate = chatMessages.find(msg => msg.id === messageId);
+    if (!messageToRegenerate) return;
+
+    // 标记消息为重新生成中
+    setChatMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, isRegenerating: true }
+        : msg
+    ));
+
+    try {
+      // 获取智能搜索节点的Dify配置
+      let smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+      
+      if (!smartSearchDifyConfig) {
+        await configService.getDifyConfigs();
+        await configService.getWorkflowConfigs();
+        smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+        
+        if (!smartSearchDifyConfig) {
+          smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
+        }
+      }
+
+      // 重新调用智能搜索API
+      const result = await workflowAPI.aiSearch(
+        messageToRegenerate.content,
+        { context: chatMessages.map(msg => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content })) },
+        smartSearchDifyConfig || undefined
+      );
+
+      let responseContent = "抱歉，我无法处理您的请求。";
+      
+      if (result.success && result.data) {
+        if (result.data.result) {
+          responseContent = result.data.result;
+        } else if (result.data.answer) {
+          responseContent = result.data.answer;
+        } else {
+          responseContent = "抱歉，未能获取到有效回答。";
+        }
+      } else if (result.error) {
+        responseContent = `处理请求时出现问题：${result.error}`;
+      }
+
+      // 更新消息内容
+      setChatMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { 
+              ...msg, 
+              content: responseContent, 
+              isRegenerating: false,
+              timestamp: new Date()
+            }
+          : msg
+      ));
+    } catch (error) {
+      console.error('重新生成消息失败:', error);
+      
+      // 恢复消息状态
+      setChatMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, isRegenerating: false }
+          : msg
+      ));
     }
   };
 
   return (
     <div className="workflow-page">
-      <TopNavigation currentPageTitle="智能工作流" />
-      <PageTransition isVisible={true} direction="fade" duration={300}>
-        <div className="container">
-          <div className="page-header">
-            <h1 className="page-title">智能工作流</h1>
-            <p className="page-subtitle">
-              通过五个步骤完成从搜索到演讲稿的完整流程
-            </p>
+      <TopNavigation />
+
+      <div className={`workflow-container ${isFullscreenEditor ? 'fullscreen-editor' : ''}`}>
+        {/* 左侧工作流程导航 */}
+        <div className="workflow-sidebar">
+          <div className="workflow-header">
+            <h2>智能工作流</h2>
+            <p>通过五个步骤完成从搜索到演讲稿的完整流程</p>
           </div>
 
-          <div className="workflow-container">
-            {/* 侧边栏 - 步骤指示器 */}
-            <div className="sidebar">
-              <div className="sidebar-content">
-                <h2 className="sidebar-title">工作流步骤</h2>
-                
-                {/* 进度条 */}
-                <div className="mb-6">
-                  <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>进度</span>
-                    <span>{Math.round((Object.keys(stepData).length / steps.length) * 100)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${(Object.keys(stepData).length / steps.length) * 100}%` }}
-                    ></div>
-                  </div>
+          <div className="workflow-steps">
+            <div className="progress-header">
+              <span>工作流步骤</span>
+              <span className="progress-text">{calculateProgress()}%</span>
+            </div>
+
+            {steps.map((step, index) => (
+              <div
+                key={step.id}
+                className={`workflow-step ${currentStep === step.id ? "active" : ""} ${step.status}`}
+                onClick={() => handleStepClick(step.id)}
+              >
+                <div className="step-icon">
+                  <step.icon size={20} />
                 </div>
+                <div className="step-content">
+                  <div className="step-title">{step.title}</div>
+                  <div className="step-description">{step.description}</div>
+                </div>
+                {step.status === "completed" && (
+                  <div className="step-status completed">✓</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                <div className="space-y-2 relative">
-                  {/* 连接线 */}
-                  <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gray-200"></div>
-                  <div 
-                    className="absolute left-6 top-8 w-0.5 bg-gradient-to-b from-blue-500 to-green-500 transition-all duration-500 ease-out"
-                    style={{ height: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-                  ></div>
+        {/* 右侧内容区域 */}
+        <div className="content-section">
+          {/* 根据当前步骤显示不同的界面 */}
+          {currentStep === 1 ? (
+            /* AI问答步骤 - 聊天界面 */
+            <div className="ai-chat-section">
+              {/* 顶部状态栏 */}
+              <div className="chat-header">
+                <div className="chat-status">
+                  <div className="status-indicator online"></div>
+                  <span>AI助手在线</span>
+                </div>
+                <div className="chat-actions">
+                  <button className="chat-action-btn" onClick={handleSave}>
+                    <Edit3 size={16} />
+                    保存
+                  </button>
+                  <button className="chat-action-btn" onClick={handleExport}>
+                    <FileText size={16} />
+                    导出
+                  </button>
+                </div>
+              </div>
 
-                  {steps.map((step, index) => {
-                    const isCompleted = stepData[step.key as keyof typeof stepData];
-                    const isCurrent = currentStep === step.id;
-                    const isAccessible = index === 0 || stepData[steps[index - 1].key as keyof typeof stepData];
-                    
-                    return (
-                      <div
-                        key={step.id}
-                        className={`relative flex items-center p-3 rounded-lg cursor-pointer transition-all duration-300 ${stepTransition || ''} ${
-                          isCurrent
-                            ? 'bg-blue-50 border-blue-200 border shadow-sm transform scale-105'
-                            : isCompleted
-                            ? 'bg-green-50 border-green-200 border hover:shadow-sm'
-                            : isAccessible
-                            ? 'bg-gray-50 hover:bg-gray-100 hover:shadow-sm'
-                            : 'bg-gray-25 opacity-60 cursor-not-allowed'
-                        }`}
-                        onClick={() => isAccessible && handleStepChange(step.id)}
-                      >
-                        {/* 步骤圆圈 */}
-                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center mr-3 transition-all duration-300 ${
-                          isCurrent
-                            ? 'bg-blue-500 text-white shadow-lg'
-                            : isCompleted
-                            ? 'bg-green-500 text-white'
-                            : isAccessible
-                            ? 'bg-white border-2 border-gray-300 text-gray-600'
-                            : 'bg-gray-100 border-2 border-gray-200 text-gray-400'
-                        }`}>
-                          {isCompleted ? (
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <step.icon className="w-6 h-6" />
+              {/* 聊天消息区域 */}
+              <div className="chat-messages">
+                {chatMessages.length === 0 ? (
+                  <div className="chat-welcome">
+                    <div className="welcome-content">
+                      <h3>您在忙什么？</h3>
+                      <p>我是您的AI助手，可以帮助您完成智能工作流的各个步骤</p>
+                    </div>
+                  </div>
+                ) : (
+                  chatMessages.map((message) => (
+                    <div key={message.id} className={`message ${message.type} group`}>
+                      <div className="message-content">
+                        <p>{message.content}</p>
+                        <div className="message-footer">
+                          <span className="message-time">
+                            {message.timestamp.toLocaleTimeString()}
+                          </span>
+                          
+                          {/* AI消息的快捷操作按钮 */}
+                          {message.type === "assistant" && (
+                            <div className="message-actions opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* 复制按钮 */}
+                              <button
+                                onClick={() => handleCopyMessage(message.content)}
+                                className="action-btn"
+                                title="复制消息"
+                              >
+                                <Copy size={14} />
+                              </button>
+                              
+                              {/* 重新生成按钮 */}
+                              <button
+                                onClick={() => handleRegenerateMessage(message.id)}
+                                disabled={message.isRegenerating}
+                                className="action-btn disabled:opacity-50"
+                                title="重新生成"
+                              >
+                                <RotateCcw size={14} className={message.isRegenerating ? 'animate-spin' : ''} />
+                              </button>
+                              
+                              {/* 点赞按钮 */}
+                              <button
+                                onClick={() => handleLikeMessage(message.id)}
+                                className={`action-btn ${message.liked ? 'text-green-500' : 'text-gray-500'}`}
+                                title="点赞"
+                              >
+                                <ThumbsUp size={14} />
+                              </button>
+                              
+                              {/* 点踩按钮 */}
+                              <button
+                                onClick={() => handleDislikeMessage(message.id)}
+                                className={`action-btn ${message.disliked ? 'text-red-500' : 'text-gray-500'}`}
+                                title="点踩"
+                              >
+                                <ThumbsDown size={14} />
+                              </button>
+                            </div>
                           )}
                         </div>
-
-                        <div className="flex-1">
-                          <div className={`font-medium text-sm mb-1 ${
-                            isCurrent
-                              ? 'text-blue-800'
-                              : isCompleted
-                              ? 'text-green-800'
-                              : isAccessible
-                              ? 'text-gray-700'
-                              : 'text-gray-400'
-                          }`}>
-                            {step.title}
-                          </div>
-                          <div className={`text-xs ${
-                            isCurrent
-                              ? 'text-blue-600'
-                              : isCompleted
-                              ? 'text-green-600'
-                              : isAccessible
-                              ? 'text-gray-500'
-                              : 'text-gray-400'
-                          }`}>
-                            {isCurrent ? '进行中' : isCompleted ? '已完成' : isAccessible ? '待执行' : '未解锁'}
-                          </div>
-                        </div>
-
-                        {/* 当前步骤指示器 */}
-                        {isCurrent && (
-                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                          </div>
-                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* 主内容区域 */}
-            <div className="main-content">
-              <div className="step-content-wrapper">
-                <StepTransition currentStep={currentStep} direction="forward">
-                  <div className={`step-content ${stepTransition || ''}`}>
-                    {renderStepContent()}
+                    </div>
+                  ))
+                )}
+                
+                {isTyping && (
+                  <div className="message assistant">
+                    <div className="message-content">
+                      <div className="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    </div>
                   </div>
-                </StepTransition>
+                )}
 
+                {/* 错误提示 */}
+                {processError && (
+                   <div className="error-message">
+                     <span>⚠️ {processError}</span>
+                     <button 
+                       className="error-close"
+                       onClick={() => setProcessError(null)}
+                     >
+                       ×
+                     </button>
+                   </div>
+                 )}
+               </div>
 
-
-                {/* Progress Bar */}
-                 <div className="progress-container">
-                   <div 
-                     className="progress-bar" 
-                     style={{ width: `${((currentStep) / steps.length) * 100}%` }}
+               {/* 输入区域 */}
+               <div className="chat-input-area">
+                 <div className="input-container">
+                   <input
+                     type="text"
+                     value={inputMessage}
+                     onChange={(e) => setInputMessage(e.target.value)}
+                     onKeyPress={handleKeyPress}
+                     placeholder="输入您的问题或需求..."
+                     className="chat-input"
+                     disabled={isProcessing}
                    />
+                   <div className="input-actions">
+                     <button className="voice-btn" disabled={isProcessing}>
+                       <Mic size={20} />
+                     </button>
+                     <button 
+                       className="send-btn" 
+                       onClick={handleSendMessage}
+                       disabled={!inputMessage.trim() || isProcessing}
+                     >
+                       <Send size={20} />
+                     </button>
+                   </div>
                  </div>
+               </div>
+             </div>
+           ) : (
+             /* 其他步骤 - 文本编辑器界面 */
+             <div className="content-editor-section">
+               <DocumentEditor
+                 initialContent={editorContent}
+                 title={steps.find(step => step.id === currentStep)?.title}
+                 onSave={(content, title) => {
+                   setEditorContent(content);
+                   handleSave();
+                 }}
+                 onExportPDF={(content, title) => {
+                   setEditorContent(content);
+                   handleExport();
+                 }}
+               />
+               
+               {processError && (
+                 <div className="error-message">
+                   <span>⚠️ {processError}</span>
+                   <button 
+                     className="error-close"
+                     onClick={() => setProcessError(null)}
+                   >
+                     ×
+                   </button>
+                 </div>
+               )}
+             </div>
+           )}
+         </div>
+      </div>
 
-                {/* Enhanced Navigation */}
-                <div className="navigation-container">
-                  <button
-                    className={`nav-button ${currentStep === 1 ? 'secondary' : 'primary'}`}
-                    onClick={() => handleStepChange(currentStep - 1)}
-                    disabled={currentStep === 1}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                    </svg>
-                    上一步
-                  </button>
+      {/* 底部导航栏 */}
+      <div className="bottom-navigation">
+        <button
+          className="nav-button nav-button-left"
+          onClick={handlePrevStep}
+          disabled={currentStep === 0 || isProcessing}
+        >
+          <ChevronLeft size={20} />
+          <span>上一步</span>
+        </button>
 
-                  <div className="step-indicators">
-                    {steps.map((step) => (
-                      <div
-                        key={step.id}
-                        className={`step-indicator ${
-                          step.id < currentStep ? 'completed' : 
-                          step.id === currentStep ? 'current' : 
-                          step.id <= currentStep + 1 ? 'accessible' : 'locked'
-                        }`}
-                        onClick={() => {
-                          if (step.id <= currentStep + 1) {
-                            handleStepChange(step.id);
-                          }
-                        }}
-                        title={`步骤 ${step.id}: ${step.title}`}
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    className={`nav-button ${currentStep === 5 ? 'secondary' : 'primary'}`}
-                    onClick={() => handleStepChange(currentStep + 1)}
-                    disabled={currentStep === 5}
-                  >
-                    下一步
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </PageTransition>
+        <button
+          className="nav-button nav-button-right"
+          onClick={handleNextStep}
+          disabled={currentStep === steps.length - 1 || isProcessing}
+        >
+          {isProcessing ? (
+            <>
+              <div className="loading-spinner"></div>
+              <span>处理中...</span>
+            </>
+          ) : (
+            <>
+              <span>下一步</span>
+              <ChevronRight size={20} />
+            </>
+          )}
+        </button>
+      </div>
 
       {/* 加载覆盖层 */}
-      <LoadingOverlay isVisible={loading}>
-        <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full mx-4">
-          <LoadingAnimation 
-            type="ai"
-            size="lg"
-            text={loadingText}
-            progress={loadingProgress}
-          />
-        </div>
-      </LoadingOverlay>
+      {loading && (
+        <LoadingOverlay isVisible={loading}>
+          <LoadingAnimation text={loadingText} progress={loadingProgress} />
+        </LoadingOverlay>
+      )}
     </div>
   );
 };

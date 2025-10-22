@@ -1,19 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import {
   TechPoint,
   TechType,
   TechPriority,
   TechStatus,
-  TechPointSearchParams
-} from '../../types/techPoint';
-import { Brand } from '../../types/brand';
-import { CarModel } from '../../types/carModel';
-import { CarSeries } from '../../types/carSeries';
-import { brandService } from '../../services/brandService';
-import { carModelService } from '../../services/carModelService';
-import { carSeriesService } from '../../services/carSeriesService';
-import TechPointDetail from './TechPointDetail';
+  TechPointSearchParams,
+} from "../../types/techPoint";
+import { Brand } from "../../types/brand";
+import { CarModel } from "../../types/carModel";
+import { CarSeries } from "../../types/carSeries";
+import { brandService } from "../../services/brandService";
+import { carModelService } from "../../services/carModelService";
+import { carSeriesService } from "../../services/carSeriesService";
+import TechPointDetail from "./TechPointDetail";
 
 interface TechPointListProps {
   techPoints: TechPoint[];
@@ -36,19 +45,23 @@ const TechPointList: React.FC<TechPointListProps> = ({
   totalCount,
   currentPage,
   pageSize,
-  onPageChange
+  onPageChange,
 }) => {
   const [searchParams, setSearchParams] = useState<TechPointSearchParams>({
-    keyword: '',
+    keyword: "",
     category_id: undefined,
     type: undefined,
     priority: undefined,
-    status: undefined
+    status: undefined,
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-  const [selectedTechPoint, setSelectedTechPoint] = useState<TechPoint | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(
+    null,
+  );
+  const [selectedTechPoint, setSelectedTechPoint] = useState<TechPoint | null>(
+    null,
+  );
 
   // 三层级数据状态
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -56,7 +69,9 @@ const TechPointList: React.FC<TechPointListProps> = ({
   const [carSeries, setCarSeries] = useState<CarSeries[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<number | undefined>();
   const [selectedModelId, setSelectedModelId] = useState<number | undefined>();
-  const [selectedSeriesId, setSelectedSeriesId] = useState<number | undefined>();
+  const [selectedSeriesId, setSelectedSeriesId] = useState<
+    number | undefined
+  >();
 
   // 加载状态
   const [brandsLoading, setBrandsLoading] = useState(false);
@@ -70,7 +85,7 @@ const TechPointList: React.FC<TechPointListProps> = ({
       const response = await brandService.getAll();
       setBrands(response.data || []);
     } catch (error) {
-      console.error('获取品牌列表失败:', error);
+      console.error("获取品牌列表失败:", error);
     } finally {
       setBrandsLoading(false);
     }
@@ -83,7 +98,7 @@ const TechPointList: React.FC<TechPointListProps> = ({
       const response = await carModelService.getByBrand(brandId);
       setCarModels(response.data || []);
     } catch (error) {
-      console.error('获取车型列表失败:', error);
+      console.error("获取车型列表失败:", error);
       setCarModels([]);
     } finally {
       setModelsLoading(false);
@@ -97,7 +112,7 @@ const TechPointList: React.FC<TechPointListProps> = ({
       const response = await carSeriesService.getByModel(modelId);
       setCarSeries(response.data || []);
     } catch (error) {
-      console.error('获取车系列表失败:', error);
+      console.error("获取车系列表失败:", error);
       setCarSeries([]);
     } finally {
       setSeriesLoading(false);
@@ -141,11 +156,11 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
   const handleReset = () => {
     const resetParams: TechPointSearchParams = {
-      keyword: '',
+      keyword: "",
       category_id: undefined,
       type: undefined,
       priority: undefined,
-      status: undefined
+      status: undefined,
     };
     setSearchParams(resetParams);
     setSelectedBrandId(undefined);
@@ -161,48 +176,48 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
   const getTypeLabel = (type: TechType): string => {
     const typeLabels = {
-      [TechType.FEATURE]: '功能特性',
-      [TechType.IMPROVEMENT]: '改进优化',
-      [TechType.INNOVATION]: '创新技术',
-      [TechType.TECHNOLOGY]: '核心技术'
+      [TechType.FEATURE]: "功能特性",
+      [TechType.IMPROVEMENT]: "改进优化",
+      [TechType.INNOVATION]: "创新技术",
+      [TechType.TECHNOLOGY]: "核心技术",
     };
     return typeLabels[type];
   };
 
   const getPriorityLabel = (priority: TechPriority): string => {
     const priorityLabels = {
-      [TechPriority.LOW]: '低',
-      [TechPriority.MEDIUM]: '中',
-      [TechPriority.HIGH]: '高'
+      [TechPriority.LOW]: "低",
+      [TechPriority.MEDIUM]: "中",
+      [TechPriority.HIGH]: "高",
     };
     return priorityLabels[priority];
   };
 
   const getStatusLabel = (status: TechStatus): string => {
     const statusLabels = {
-      [TechStatus.ACTIVE]: '活跃',
-      [TechStatus.INACTIVE]: '非活跃',
-      [TechStatus.DRAFT]: '草稿',
-      [TechStatus.ARCHIVED]: '已归档'
+      [TechStatus.ACTIVE]: "活跃",
+      [TechStatus.INACTIVE]: "非活跃",
+      [TechStatus.DRAFT]: "草稿",
+      [TechStatus.ARCHIVED]: "已归档",
     };
     return statusLabels[status];
   };
 
   const getPriorityColor = (priority: TechPriority): string => {
     const colors = {
-      [TechPriority.LOW]: 'bg-green-100 text-green-800',
-      [TechPriority.MEDIUM]: 'bg-yellow-100 text-yellow-800',
-      [TechPriority.HIGH]: 'bg-red-100 text-red-800'
+      [TechPriority.LOW]: "bg-green-100 text-green-800",
+      [TechPriority.MEDIUM]: "bg-yellow-100 text-yellow-800",
+      [TechPriority.HIGH]: "bg-red-100 text-red-800",
     };
     return colors[priority];
   };
 
   const getStatusColor = (status: TechStatus): string => {
     const colors = {
-      [TechStatus.ACTIVE]: 'bg-green-100 text-green-800',
-      [TechStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
-      [TechStatus.DRAFT]: 'bg-blue-100 text-blue-800',
-      [TechStatus.ARCHIVED]: 'bg-red-100 text-red-800'
+      [TechStatus.ACTIVE]: "bg-green-100 text-green-800",
+      [TechStatus.INACTIVE]: "bg-gray-100 text-gray-800",
+      [TechStatus.DRAFT]: "bg-blue-100 text-blue-800",
+      [TechStatus.ARCHIVED]: "bg-red-100 text-red-800",
     };
     return colors[status];
   };
@@ -218,11 +233,14 @@ const TechPointList: React.FC<TechPointListProps> = ({
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+
               <input
                 type="text"
                 placeholder="搜索技术点名称或描述..."
-                value={searchParams.keyword || ''}
-                onChange={(e) => setSearchParams({ ...searchParams, keyword: e.target.value })}
+                value={searchParams.keyword || ""}
+                onChange={(e) =>
+                  setSearchParams({ ...searchParams, keyword: e.target.value })
+                }
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -252,10 +270,16 @@ const TechPointList: React.FC<TechPointListProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
               {/* 品牌筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">品牌</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  品牌
+                </label>
                 <select
-                  value={selectedBrandId || ''}
-                  onChange={(e) => setSelectedBrandId(e.target.value ? Number(e.target.value) : undefined)}
+                  value={selectedBrandId || ""}
+                  onChange={(e) =>
+                    setSelectedBrandId(
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={brandsLoading}
                 >
@@ -270,10 +294,16 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
               {/* 车型筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">车型</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  车型
+                </label>
                 <select
-                  value={selectedModelId || ''}
-                  onChange={(e) => setSelectedModelId(e.target.value ? Number(e.target.value) : undefined)}
+                  value={selectedModelId || ""}
+                  onChange={(e) =>
+                    setSelectedModelId(
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={!selectedBrandId || modelsLoading}
                 >
@@ -288,10 +318,16 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
               {/* 车系筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">车系</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  车系
+                </label>
                 <select
-                  value={selectedSeriesId || ''}
-                  onChange={(e) => setSelectedSeriesId(e.target.value ? Number(e.target.value) : undefined)}
+                  value={selectedSeriesId || ""}
+                  onChange={(e) =>
+                    setSelectedSeriesId(
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={!selectedModelId || seriesLoading}
                 >
@@ -306,10 +342,17 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
               {/* 类型筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">类型</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  类型
+                </label>
                 <select
-                  value={searchParams.type || ''}
-                  onChange={(e) => setSearchParams({ ...searchParams, type: e.target.value as TechType || undefined })}
+                  value={searchParams.type || ""}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      type: (e.target.value as TechType) || undefined,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">全部类型</option>
@@ -322,10 +365,17 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
               {/* 优先级筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  优先级
+                </label>
                 <select
-                  value={searchParams.priority || ''}
-                  onChange={(e) => setSearchParams({ ...searchParams, priority: e.target.value as TechPriority || undefined })}
+                  value={searchParams.priority || ""}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      priority: (e.target.value as TechPriority) || undefined,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">全部优先级</option>
@@ -337,10 +387,17 @@ const TechPointList: React.FC<TechPointListProps> = ({
 
               {/* 状态筛选 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  状态
+                </label>
                 <select
-                  value={searchParams.status || ''}
-                  onChange={(e) => setSearchParams({ ...searchParams, status: e.target.value as TechStatus || undefined })}
+                  value={searchParams.status || ""}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      status: (e.target.value as TechStatus) || undefined,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">全部状态</option>
@@ -396,7 +453,9 @@ const TechPointList: React.FC<TechPointListProps> = ({
                   <tr key={techPoint.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{techPoint.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {techPoint.name}
+                        </div>
                         {techPoint.description && (
                           <div className="text-sm text-gray-500 truncate max-w-xs">
                             {techPoint.description}
@@ -410,12 +469,16 @@ const TechPointList: React.FC<TechPointListProps> = ({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(techPoint.priority)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(techPoint.priority)}`}
+                      >
                         {getPriorityLabel(techPoint.priority)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(techPoint.status)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(techPoint.status)}`}
+                      >
                         {getStatusLabel(techPoint.status)}
                       </span>
                     </td>
@@ -476,15 +539,23 @@ const TechPointList: React.FC<TechPointListProps> = ({
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到{' '}
+                  显示第{" "}
+                  <span className="font-medium">
+                    {(currentPage - 1) * pageSize + 1}
+                  </span>{" "}
+                  到{" "}
                   <span className="font-medium">
                     {Math.min(currentPage * pageSize, totalCount)}
-                  </span>{' '}
-                  条，共 <span className="font-medium">{totalCount}</span> 条记录
+                  </span>{" "}
+                  条，共 <span className="font-medium">{totalCount}</span>{" "}
+                  条记录
                 </p>
               </div>
               <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <nav
+                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
+                >
                   <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage <= 1}
@@ -500,8 +571,8 @@ const TechPointList: React.FC<TechPointListProps> = ({
                         onClick={() => onPageChange(page)}
                         className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                           currentPage === page
-                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                         }`}
                       >
                         {page}
@@ -563,12 +634,25 @@ const TechPointList: React.FC<TechPointListProps> = ({
                 className="text-gray-400 hover:text-gray-600"
               >
                 <span className="sr-only">关闭</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            <TechPointDetail techPoint={selectedTechPoint} onClose={() => setSelectedTechPoint(null)} />
+            <TechPointDetail
+              techPoint={selectedTechPoint}
+              onClose={() => setSelectedTechPoint(null)}
+            />
           </div>
         </div>
       )}

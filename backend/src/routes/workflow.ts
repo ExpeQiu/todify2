@@ -1,6 +1,7 @@
 import express from 'express';
 import DifyClient, { DifyAppType, DifyChatResponse } from '../services/DifyClient';
 import { createContentConcatenationService } from '../services/ContentConcatenationService';
+import { ChatMessageService } from '../services/ChatMessageService';
 import { db } from '../config/database';
 import { 
   validateAiSearchRequest, 
@@ -12,6 +13,63 @@ import {
 } from '../utils/validation';
 
 const router = express.Router();
+
+// 格式化前端数据为Dify工作流期望的Additional_information格式
+function formatAdditionalInformation(inputs: any): string {
+  try {
+    // 如果inputs包含searchResults（智能搜索结果）
+    if (inputs.searchResults) {
+      const searchData = inputs.searchResults;
+      let formattedInfo = '';
+      
+      // 添加搜索查询信息
+      if (searchData.query) {
+        formattedInfo += `查询内容：${searchData.query}\n\n`;
+      }
+      
+      // 添加搜索结果
+      if (searchData.results && Array.isArray(searchData.results)) {
+        formattedInfo += '搜索结果：\n';
+        searchData.results.forEach((result: any, index: number) => {
+          formattedInfo += `${index + 1}. ${result.title || result.content || JSON.stringify(result)}\n`;
+        });
+        formattedInfo += '\n';
+      }
+      
+      // 添加模板信息
+      if (inputs.template) {
+        formattedInfo += `包装模板：${inputs.template}\n\n`;
+      }
+      
+      return formattedInfo.trim() || JSON.stringify(inputs);
+    }
+    
+    // 如果inputs包含query和selectedKnowledgePoints（来自TechPackageNode）
+    if (inputs.query || inputs.selectedKnowledgePoints) {
+      let formattedInfo = '';
+      
+      if (inputs.query) {
+        formattedInfo += `查询内容：${inputs.query}\n\n`;
+      }
+      
+      if (inputs.selectedKnowledgePoints && Array.isArray(inputs.selectedKnowledgePoints)) {
+        formattedInfo += '相关知识点：\n';
+        inputs.selectedKnowledgePoints.forEach((kp: any, index: number) => {
+          formattedInfo += `${index + 1}. ${kp.title || kp.content || JSON.stringify(kp)}\n`;
+        });
+        formattedInfo += '\n';
+      }
+      
+      return formattedInfo.trim() || JSON.stringify(inputs);
+    }
+    
+    // 默认情况：将整个inputs对象转换为字符串
+    return JSON.stringify(inputs, null, 2);
+  } catch (error) {
+    console.error('格式化Additional_information时出错:', error);
+    return JSON.stringify(inputs);
+  }
+}
 
 // AI搜索接口
 router.post('/ai-search', async (req, res) => {
@@ -67,6 +125,15 @@ router.post('/ai-search', async (req, res) => {
     const result: DifyChatResponse = await DifyClient.aiSearch(query, processedInputs);
     console.log('AI搜索API调用成功:', result);
     
+    // 保存Dify返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyChatResponse(result, query, 'ai-search', processedInputs);
+      console.log('AI搜索消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存AI搜索消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
+    
     // 验证响应数据格式
     const responseValidation = validateAiSearchResponse(result);
     if (!responseValidation.isValid) {
@@ -89,14 +156,26 @@ router.post('/ai-search', async (req, res) => {
 // 技术包装接口
 router.post('/tech-package', async (req, res) => {
   try {
+    console.log('收到技术包装请求:', JSON.stringify(req.body, null, 2));
+    
     // 验证请求参数
     const validation = validateTechAppRequest(req.body);
     if (!validation.isValid) {
+      console.log('请求验证失败:', validation.errors);
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
     const { inputs } = req.body;
-    const result = await DifyClient.techPackage(inputs);
+    console.log('提取的inputs:', JSON.stringify(inputs, null, 2));
+    
+    // 将前端数据映射到Dify工作流期望的格式
+    const difyInputs = {
+      Additional_information: formatAdditionalInformation(inputs)
+    };
+    console.log('格式化后的Dify输入:', JSON.stringify(difyInputs, null, 2));
+    
+    const result = await DifyClient.techPackage(difyInputs);
+    console.log('Dify返回结果:', JSON.stringify(result, null, 2));
     
     // 验证响应数据格式
     const responseValidation = validateTechAppResponse(result);
@@ -107,6 +186,7 @@ router.post('/tech-package', async (req, res) => {
     res.json(formatApiResponse(true, result, '技术包装完成'));
   } catch (error) {
     console.error('技术包装API错误:', error);
+    console.error('错误堆栈:', error instanceof Error ? error.stack : '无堆栈信息');
     res.status(500).json(formatApiResponse(
       false, 
       null, 
@@ -126,7 +206,26 @@ router.post('/tech-strategy', async (req, res) => {
     }
 
     const { inputs } = req.body;
-    const result = await DifyClient.techStrategy(inputs);
+    
+    // 构造Dify API所需的参数格式
+    const difyInputs = {
+      input1: inputs.techPackage || JSON.stringify(inputs),
+      input2: inputs.techPackage || JSON.stringify(inputs),
+      query: inputs.techPackage || JSON.stringify(inputs),
+      techPackage: inputs.techPackage || JSON.stringify(inputs),
+      template: inputs.template || 'default'
+    };
+    
+    const result = await DifyClient.techStrategy(difyInputs);
+    
+    // 保存Dify工作流返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术策略生成', 'tech-strategy', inputs);
+      console.log('技术策略消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存技术策略消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
     
     // 验证响应数据格式
     const responseValidation = validateTechAppResponse(result);
@@ -156,7 +255,24 @@ router.post('/tech-article', async (req, res) => {
     }
 
     const { inputs } = req.body;
-    const result = await DifyClient.techArticle(inputs);
+    
+    // 构造Dify API所需的参数格式 - 技术通稿使用input参数
+    const inputContent = `${inputs.techTopic || ''}。${inputs.tech_content || ''}。车型：${inputs.vehicle_model || ''}。核心技术：${inputs.Highlight_tech || ''}。关联技术：${inputs.Associate_tech || ''}`;
+    
+    const difyInputs = {
+      input: inputContent
+    };
+    
+    const result = await DifyClient.techArticle(difyInputs);
+    
+    // 保存Dify工作流返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术通稿生成', 'tech-article', inputs);
+      console.log('技术通稿消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存技术通稿消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
     
     // 验证响应数据格式
     const responseValidation = validateTechAppResponse(result);
@@ -176,6 +292,55 @@ router.post('/tech-article', async (req, res) => {
   }
 });
 
+// 核心稿件接口
+router.post('/core-draft', async (req, res) => {
+  try {
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
+
+    const { inputs } = req.body;
+    
+    // 格式化输入数据为Dify期望的格式
+    const formattedInputs = {
+      input: typeof inputs.promotionStrategy === 'string' 
+        ? inputs.promotionStrategy 
+        : JSON.stringify(inputs.promotionStrategy),
+      promotionStrategy: inputs.promotionStrategy,
+      template: inputs.template || 'default'
+    };
+    
+    const result = await DifyClient.coreDraft(formattedInputs);
+    
+    // 保存Dify工作流返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyWorkflowResponse(result, '核心稿件生成', 'core-draft', inputs);
+      console.log('核心稿件消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存核心稿件消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('核心稿件响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '核心稿件生成完成'));
+  } catch (error) {
+    console.error('核心稿件API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '核心稿件生成失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
 // 技术发布接口
 router.post('/tech-publish', async (req, res) => {
   try {
@@ -186,7 +351,25 @@ router.post('/tech-publish', async (req, res) => {
     }
 
     const { inputs } = req.body;
-    const result = await DifyClient.techPublish(inputs);
+    
+    // 格式化输入数据为Dify期望的格式
+    const formattedInputs = {
+      input: typeof inputs.coreDraft === 'string' 
+        ? inputs.coreDraft 
+        : JSON.stringify(inputs.coreDraft),
+      coreDraft: inputs.coreDraft
+    };
+    
+    const result = await DifyClient.techPublish(formattedInputs);
+    
+    // 保存Dify工作流返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术发布生成', 'tech-publish', inputs);
+      console.log('技术发布消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存技术发布消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
     
     // 验证响应数据格式
     const responseValidation = validateTechAppResponse(result);

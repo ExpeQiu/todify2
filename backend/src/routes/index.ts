@@ -6,6 +6,7 @@ import carModelsRouter from './carModels';
 import carSeriesRouter from './carSeries';
 import workflowRouter from './workflow';
 import knowledgePointsRouter from './knowledgePointRoutes';
+import chatRouter from './chat';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use('/car-models', carModelsRouter);
 router.use('/car-series', carSeriesRouter);
 router.use('/workflow', workflowRouter);
 router.use('/knowledge-points', knowledgePointsRouter);
+router.use('/chat', chatRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {
