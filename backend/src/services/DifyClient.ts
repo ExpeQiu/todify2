@@ -113,7 +113,7 @@ class DifyClient {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 30000 // 30秒超时
+          timeout: 60000 // 60秒超时，增加到60秒以适应Dify工作流处理时间
         }
       );
 

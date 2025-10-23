@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import {
   Brain,
   ArrowLeft,
@@ -15,6 +18,8 @@ import {
   Save,
   X,
   Check,
+  Edit3,
+  Eye,
 } from "lucide-react";
 import { BaseNodeProps } from "../../types/nodeComponent";
 import { workflowAPI } from "../../services/api";
@@ -42,6 +47,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   const [internalLoading, setInternalLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
 
   // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
@@ -576,37 +583,76 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
             {/* 右侧用户编辑区域 */}
             <div className="p-8" data-oid="560ldo4">
               <div className="h-full flex flex-col" data-oid="ff2q1_t">
-                {/* 编辑区标题 */}
+                {/* 编辑区域标题 */}
                 <div
-                  className="flex items-center gap-3 mb-6"
-                  data-oid="o6.27ki"
+                  className="flex items-center justify-between mb-6 flex-shrink-0"
+                  data-oid="92.xcoj"
                 >
-                  <div
-                    className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
-                    data-oid="_kp7rxi"
-                  >
-                    <BookOpen
-                      className="w-4 h-4 text-green-600"
-                      data-oid="k-8qo-8"
-                    />
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
+                      data-oid="-llk8s_"
+                    >
+                      <BookOpen
+                        className="w-4 h-4 text-green-600"
+                        data-oid="-qtuy:i"
+                      />
+                    </div>
+                    <h2
+                      className="text-lg font-semibold text-gray-900"
+                      data-oid=":w2f61r"
+                    >
+                      编辑修订
+                    </h2>
                   </div>
-                  <h2
-                    className="text-lg font-semibold text-gray-900"
-                    data-oid="ymo6po8"
+                  
+                  {/* 预览/编辑切换按钮 */}
+                  <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 text-sm font-medium"
                   >
-                    编辑修订
-                  </h2>
+                    {isEditMode ? (
+                      <>
+                        <Eye className="w-4 h-4" />
+                        预览
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4" />
+                        编辑
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                {/* 编辑文本区域 */}
-                <div className="flex-1 mb-6" data-oid="jxpkard">
-                  <textarea
-                    value={userContent}
-                    onChange={(e) => setUserContent(e.target.value)}
-                    placeholder="在这里编辑和完善发布会稿内容..."
-                    className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed min-h-[500px]"
-                    data-oid="gb8_7oj"
-                  />
+                {/* 文本编辑/预览区域 */}
+                <div className="flex-1 mb-6 overflow-hidden" data-oid="isxa6c3">
+                  {isEditMode ? (
+                    <textarea
+                      value={userContent}
+                      onChange={(e) => setUserContent(e.target.value)}
+                      placeholder="在这里编辑和完善发布会稿内容..."
+                      className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed overflow-y-auto"
+                      data-oid="fqtkebj"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
+                       {userContent ? (
+                         <div className="prose prose-sm max-w-none">
+                           <ReactMarkdown 
+                             remarkPlugins={[remarkGfm]}
+                             rehypePlugins={[rehypeHighlight]}
+                           >
+                             {userContent}
+                           </ReactMarkdown>
+                         </div>
+                       ) : (
+                         <div className="text-gray-500 text-sm italic">
+                           暂无内容，请先编辑或从AI回复中采纳内容...
+                         </div>
+                       )}
+                     </div>
+                  )}
                 </div>
 
                 {/* 采纳建议和导出按钮 */}

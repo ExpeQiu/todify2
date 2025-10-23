@@ -305,6 +305,9 @@ router.post('/core-draft', async (req, res) => {
     
     // 格式化输入数据为Dify期望的格式
     const formattedInputs = {
+      input3: typeof inputs.promotionStrategy === 'string' 
+        ? inputs.promotionStrategy 
+        : JSON.stringify(inputs.promotionStrategy),
       input: typeof inputs.promotionStrategy === 'string' 
         ? inputs.promotionStrategy 
         : JSON.stringify(inputs.promotionStrategy),
@@ -354,6 +357,9 @@ router.post('/tech-publish', async (req, res) => {
     
     // 格式化输入数据为Dify期望的格式
     const formattedInputs = {
+      input4: typeof inputs.coreDraft === 'string' 
+        ? inputs.coreDraft 
+        : JSON.stringify(inputs.coreDraft),
       input: typeof inputs.coreDraft === 'string' 
         ? inputs.coreDraft 
         : JSON.stringify(inputs.coreDraft),

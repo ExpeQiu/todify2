@@ -202,7 +202,7 @@
   position: relative;
 }
 
-.content-editable,
+.content-textarea,
 .content-preview {
   flex: 1;
   padding: var(--spacing-8);
@@ -215,18 +215,21 @@
   position: relative;
 }
 
-.content-editable {
+.content-textarea {
   outline: none;
   border: none;
   resize: none;
   min-height: 400px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
-.content-editable:focus {
+.content-textarea:focus {
   background: var(--bg-secondary);
 }
 
-.content-editable::before {
+.content-textarea::before {
   content: '';
   position: absolute;
   top: 0;
@@ -245,17 +248,22 @@
   background: var(--bg-secondary);
 }
 
-/* 编辑器内容样式 */
-.content-editable h1,
+/* Markdown预览样式 */
+.content-preview .prose {
+  max-width: none;
+  color: var(--text-primary);
+}
+
 .content-preview h1 {
   font-size: var(--text-3xl);
   font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: var(--spacing-6) 0 var(--spacing-4) 0;
   line-height: var(--leading-tight);
+  border-bottom: 2px solid var(--border-primary);
+  padding-bottom: var(--spacing-2);
 }
 
-.content-editable h2,
 .content-preview h2 {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
@@ -264,7 +272,6 @@
   line-height: var(--leading-tight);
 }
 
-.content-editable h3,
 .content-preview h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -273,35 +280,105 @@
   line-height: var(--leading-tight);
 }
 
-.content-editable p,
 .content-preview p {
   margin: var(--spacing-3) 0;
   line-height: var(--leading-relaxed);
 }
 
-.content-editable ul,
-.content-preview ul {
+.content-preview ul,
+.content-preview ol {
   margin: var(--spacing-3) 0;
   padding-left: var(--spacing-6);
 }
 
-.content-editable li,
 .content-preview li {
   margin: var(--spacing-1) 0;
   line-height: var(--leading-relaxed);
 }
 
-.content-editable strong,
 .content-preview strong {
   font-weight: 600;
+  color: var(--text-primary);
 }
 
-.content-editable em,
 .content-preview em {
   font-style: italic;
 }
 
-.content-editable u,
-.content-preview u {
-  text-decoration: underline;
+.content-preview hr {
+  border: none;
+  border-top: 2px solid var(--border-primary);
+  margin: var(--spacing-6) 0;
+}
+
+.content-preview blockquote {
+  border-left: 4px solid var(--primary-500);
+  padding-left: var(--spacing-4);
+  margin: var(--spacing-4) 0;
+  background: var(--primary-50);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+}
+
+.content-preview code {
+  background: var(--bg-secondary);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+.content-preview pre {
+  background: var(--bg-secondary);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: var(--spacing-4) 0;
+}
+
+.content-preview pre code {
+  background: none;
+  padding: 0;
+}
+
+/* 工具栏按钮样式更新 */
+.toolbar-group button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-group button:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.toolbar-group button:active,
+.toolbar-group button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.toolbar-group select {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toolbar-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
 }

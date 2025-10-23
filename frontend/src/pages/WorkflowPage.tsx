@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Search,
   Package,
@@ -14,6 +15,8 @@ import {
   RotateCcw,
   ThumbsUp,
   ThumbsDown,
+  Check,
+  CheckCircle,
 } from "lucide-react";
 import { workflowAPI } from "../services/api";
 import DocumentEditor from "../components/DocumentEditor";
@@ -33,7 +36,6 @@ import "./WorkflowPage.css";
 interface StepData {
   smartSearch?: any;
   techPackage?: any;
-  promotionStrategy?: any;
   coreDraft?: any;
   speechGeneration?: any;
   aiSearch?: any;
@@ -56,10 +58,11 @@ interface ChatMessage {
   liked?: boolean;
   disliked?: boolean;
   isRegenerating?: boolean;
+  adopted?: boolean; // 新增：标记消息是否被采纳
 }
 
 const WorkflowPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(1); // 默认设置为步骤1（AI问答），按照工作流程从第一步开始
+  const [currentStep, setCurrentStep] = useState(0); // 默认设置为步骤0（AI问答），按照工作流程从第一步开始
   const [stepData, setStepData] = useState<StepData>({});
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
@@ -96,7 +99,7 @@ const WorkflowPage: React.FC = () => {
 
   const [steps, setSteps] = useState([
     {
-      id: 1,
+      id: 0,
       title: "AI问答",
       description: "进行中",
       icon: MessageCircle,
@@ -104,7 +107,7 @@ const WorkflowPage: React.FC = () => {
       status: "active",
     },
     {
-      id: 2,
+      id: 1,
       title: "技术包装",
       description: "未开始",
       icon: Package,
@@ -112,7 +115,7 @@ const WorkflowPage: React.FC = () => {
       status: "pending",
     },
     {
-      id: 3,
+      id: 2,
       title: "技术策略",
       description: "未开始",
       icon: Target,
@@ -120,15 +123,7 @@ const WorkflowPage: React.FC = () => {
       status: "pending",
     },
     {
-      id: 4,
-      title: "技术推广策略",
-      description: "未开始",
-      icon: Target,
-      key: "promotionStrategy",
-      status: "pending",
-    },
-    {
-      id: 5,
+      id: 3,
       title: "技术通稿",
       description: "未开始",
       icon: FileText,
@@ -136,7 +131,7 @@ const WorkflowPage: React.FC = () => {
       status: "pending",
     },
     {
-      id: 6,
+      id: 4,
       title: "发布会演讲稿",
       description: "未开始",
       icon: Mic,
@@ -206,8 +201,8 @@ const WorkflowPage: React.FC = () => {
       // 根据当前步骤调用对应的API，每个步骤使用自己的Dify配置
       let apiResult = null;
       
-      // 特殊处理：如果当前步骤是技术包装(1)，但我们需要从AI问答(0)获取内容
-      if (currentStepKey === 'techPackage' && currentStep === 1) {
+      // 特殊处理：如果当前步骤是AI问答(0)，下一步是技术包装(1)
+      if (currentStep === 0 && steps[currentStep + 1]?.key === 'techPackage') {
         console.log('检测到从AI问答步骤切换到技术包装步骤');
         
         // 获取最新的AI回答内容
@@ -223,19 +218,35 @@ const WorkflowPage: React.FC = () => {
         console.log('最新的AI回答:', latestAiMessage?.content);
         console.log('最新的用户输入:', latestUserMessage?.content);
         
-        // 检查AI回答是否有效（不是默认欢迎消息）
-        const isDefaultMessage = latestAiMessage?.content?.includes('我是智能助手') || 
-                                 latestAiMessage?.content?.includes('请输入您的问题') ||
-                                 latestAiMessage?.content?.includes('你好!我是智能助手');
+        // 首先检查是否有被采纳的消息
+        const adoptedMessage = chatMessages.find(msg => msg.type === 'assistant' && msg.adopted);
         
-        // 优先使用有效的AI回答，否则使用用户输入
-        const inputForTechPackage = (!isDefaultMessage && latestAiMessage?.content && latestAiMessage.content.length > 50) ? 
-                                   latestAiMessage.content : 
-                                   latestUserMessage?.content;
+        // 如果有被采纳的消息，优先使用它
+        let inputForTechPackage = adoptedMessage?.content;
         
-        console.log('AI回答是否有效:', !isDefaultMessage);
+        // 如果没有被采纳的消息，使用原有逻辑
+        if (!inputForTechPackage) {
+          // 检查AI回答是否有效（不是默认欢迎消息）
+          const isDefaultMessage = latestAiMessage?.content?.includes('我是智能助手') || 
+                                   latestAiMessage?.content?.includes('请输入您的问题') ||
+                                   latestAiMessage?.content?.includes('你好!我是智能助手');
+          
+          // 优先使用有效的AI回答，否则使用用户输入
+          // 降低AI回答长度要求从50改为20
+          inputForTechPackage = (!isDefaultMessage && latestAiMessage?.content && latestAiMessage.content.length > 20) ? 
+                               latestAiMessage.content : 
+                               latestUserMessage?.content;
+        }
+        
+        console.log('是否有被采纳的消息:', !!adoptedMessage);
+        console.log('被采纳的消息内容:', adoptedMessage?.content?.substring(0, 100) + '...' || '无');
+        console.log('AI回答是否有效:', latestAiMessage && !latestAiMessage.content?.includes('我是智能助手'));
         console.log('AI回答长度:', latestAiMessage?.content?.length || 0);
-        console.log('传递给技术包装的内容:', inputForTechPackage);
+        console.log('用户输入长度:', latestUserMessage?.content?.length || 0);
+        console.log('传递给技术包装的内容:', inputForTechPackage?.substring(0, 100) + '...');
+        console.log('聊天消息总数:', chatMessages.length);
+        console.log('AI消息数量:', chatMessages.filter(msg => msg.type === 'assistant').length);
+        console.log('用户消息数量:', chatMessages.filter(msg => msg.type === 'user').length);
         
         if (inputForTechPackage && inputForTechPackage.trim()) {
           const techPackageDifyConfig = getCurrentStepDifyConfig('techPackage');
@@ -255,9 +266,13 @@ const WorkflowPage: React.FC = () => {
             // 将API返回的结果显示在下一步的编辑区
             let resultContent = '';
             
-            // 处理不同的数据结构
+            // 处理不同的数据结构，优先查找text1字段
             if (typeof apiResult.data === 'string') {
               resultContent = apiResult.data;
+            } else if (apiResult.data?.data?.outputs?.text1) {
+              resultContent = apiResult.data.data.outputs.text1;
+            } else if (apiResult.data?.outputs?.text1) {
+              resultContent = apiResult.data.outputs.text1;
             } else if (apiResult.data?.result) {
               resultContent = apiResult.data.result;
             } else if (apiResult.data?.answer) {
@@ -288,6 +303,9 @@ const WorkflowPage: React.FC = () => {
             console.log('技术包装生成的内容:', resultContent);
             console.log('API返回的完整数据:', apiResult.data);
             setEditorContent(resultContent);
+            
+            // 同时保存生成的内容到步骤数据中，确保后续步骤可以访问
+            updatedStepData.techPackageContent = resultContent;
           } else {
             throw new Error(apiResult.error || '技术包装处理失败');
           }
@@ -296,10 +314,28 @@ const WorkflowPage: React.FC = () => {
         }
       } else {
         // 其他步骤的正常处理逻辑
-        switch (currentStepKey) {
-          case 'techPackage':
-            // 技术包装步骤，将编辑区内容传递给技术策略
-            if (editorContent.trim()) {
+        switch (steps[currentStep + 1]?.key) {
+          case 'techStrategy':
+            // 技术策略步骤，将编辑区内容传递给技术策略
+            // 优先使用当前编辑区内容，如果没有则尝试从步骤数据中获取
+            let techStrategyInput = editorContent.trim();
+            
+            if (!techStrategyInput) {
+              // 如果编辑区为空，尝试从步骤数据中获取技术包装内容
+              if (stepData.techPackageContent) {
+                // 优先使用保存的技术包装内容
+                techStrategyInput = stepData.techPackageContent;
+                console.log('从步骤数据中获取技术包装内容作为技术策略输入:', techStrategyInput.substring(0, 200) + '...');
+              } else if (stepData.techPackage) {
+                // 如果没有techPackageContent，尝试从techPackage中提取
+                techStrategyInput = typeof stepData.techPackage === 'string' 
+                  ? stepData.techPackage 
+                  : JSON.stringify(stepData.techPackage);
+                console.log('从步骤数据中获取技术包装原始数据作为技术策略输入:', techStrategyInput.substring(0, 200) + '...');
+              }
+            }
+            
+            if (techStrategyInput) {
               let techStrategyDifyConfig = getCurrentStepDifyConfig('techStrategy');
               
               // 如果配置未加载，尝试直接获取默认配置
@@ -309,19 +345,23 @@ const WorkflowPage: React.FC = () => {
               }
               
               console.log('技术策略Dify配置:', techStrategyDifyConfig);
-              console.log('传递给技术策略的内容:', editorContent.substring(0, 200) + '...');
+              console.log('传递给技术策略的内容:', techStrategyInput.substring(0, 200) + '...');
               
-              apiResult = await workflowAPI.techStrategy(editorContent, techStrategyDifyConfig || undefined);
+              apiResult = await workflowAPI.techStrategy(techStrategyInput, techStrategyDifyConfig || undefined);
               
               console.log('技术策略API结果:', apiResult);
               
               if (apiResult.success) {
                 updatedStepData.techStrategy = apiResult.data;
                 
-                // 提取技术策略生成的内容
+                // 提取技术策略生成的内容，优先查找text2字段
                 let resultContent = '';
                 if (typeof apiResult.data === 'string') {
                   resultContent = apiResult.data;
+                } else if (apiResult.data?.data?.outputs?.text2) {
+                  resultContent = apiResult.data.data.outputs.text2;
+                } else if (apiResult.data?.outputs?.text2) {
+                  resultContent = apiResult.data.outputs.text2;
                 } else if (apiResult.data?.result) {
                   resultContent = apiResult.data.result;
                 } else if (apiResult.data?.answer) {
@@ -342,65 +382,20 @@ const WorkflowPage: React.FC = () => {
                 
                 console.log('技术策略生成的内容:', resultContent);
                 setEditorContent(resultContent);
+                
+                // 同时保存生成的内容到专用的内容字段，确保后续步骤切换时可以正确显示
+                updatedStepData.techStrategyContent = resultContent;
               } else {
                 throw new Error(apiResult.error || '技术策略处理失败');
               }
+            } else {
+              // 如果没有可用的输入内容，给出明确的错误提示
+              throw new Error('没有找到技术包装内容，请先在技术包装步骤中生成内容，或确保编辑区中有可用的内容');
             }
             break;
             
-          case 'techStrategy':
-            // 技术策略步骤，将编辑区内容传递给推广策略
-            if (editorContent.trim()) {
-              let promotionStrategyDifyConfig = getCurrentStepDifyConfig('promotionStrategy');
-              
-              // 如果配置未加载，尝试直接获取默认配置
-              if (!promotionStrategyDifyConfig) {
-                console.log('推广策略配置未找到，尝试获取默认配置');
-                promotionStrategyDifyConfig = await configService.getDifyConfig('default-promotion-strategy');
-              }
-              
-              console.log('推广策略Dify配置:', promotionStrategyDifyConfig);
-              console.log('传递给推广策略的内容:', editorContent.substring(0, 200) + '...');
-              
-              apiResult = await workflowAPI.promotionStrategy(editorContent, promotionStrategyDifyConfig || undefined);
-              
-              console.log('推广策略API结果:', apiResult);
-              
-              if (apiResult.success) {
-                updatedStepData.promotionStrategy = apiResult.data;
-                
-                // 提取推广策略生成的内容
-                let resultContent = '';
-                if (typeof apiResult.data === 'string') {
-                  resultContent = apiResult.data;
-                } else if (apiResult.data?.result) {
-                  resultContent = apiResult.data.result;
-                } else if (apiResult.data?.answer) {
-                  resultContent = apiResult.data.answer;
-                } else if (apiResult.data?.content) {
-                  resultContent = apiResult.data.content;
-                } else if (apiResult.data?.data?.outputs?.answer) {
-                  resultContent = apiResult.data.data.outputs.answer;
-                } else if (apiResult.data?.data?.outputs?.text) {
-                  resultContent = apiResult.data.data.outputs.text;
-                } else if (apiResult.data?.outputs?.answer) {
-                  resultContent = apiResult.data.outputs.answer;
-                } else if (apiResult.data?.outputs?.text) {
-                  resultContent = apiResult.data.outputs.text;
-                } else {
-                  resultContent = JSON.stringify(apiResult.data, null, 2);
-                }
-                
-                console.log('推广策略生成的内容:', resultContent);
-                setEditorContent(resultContent);
-              } else {
-                throw new Error(apiResult.error || '推广策略处理失败');
-              }
-            }
-            break;
-            
-          case 'promotionStrategy':
-            // 推广策略步骤，将编辑区内容传递给核心稿件
+          case 'coreDraft':
+            // 技术策略步骤，将编辑区内容传递给核心稿件
             if (editorContent.trim()) {
               let coreDraftDifyConfig = getCurrentStepDifyConfig('coreDraft');
               
@@ -414,14 +409,30 @@ const WorkflowPage: React.FC = () => {
               
               if (apiResult.success) {
                 updatedStepData.coreDraft = apiResult.data;
-                setEditorContent(apiResult.data?.result || '');
+                
+                // 提取技术通稿的输出内容，优先查找text3字段
+                let resultContent = '';
+                if (apiResult.data?.data?.outputs?.text3) {
+                  resultContent = apiResult.data.data.outputs.text3;
+                } else if (apiResult.data?.outputs?.text3) {
+                  resultContent = apiResult.data.outputs.text3;
+                } else if (apiResult.data?.result) {
+                  resultContent = apiResult.data.result;
+                } else {
+                  resultContent = JSON.stringify(apiResult.data, null, 2);
+                }
+                
+                setEditorContent(resultContent);
+                
+                // 同时保存生成的内容到专用的内容字段
+                updatedStepData.coreDraftContent = resultContent;
               } else {
                 throw new Error(apiResult.error || '核心稿件处理失败');
               }
             }
             break;
             
-          case 'coreDraft':
+          case 'speechGeneration':
             // 核心稿件步骤，将编辑区内容传递给演讲稿
             if (editorContent.trim()) {
               let speechGenerationDifyConfig = getCurrentStepDifyConfig('speechGeneration');
@@ -436,7 +447,23 @@ const WorkflowPage: React.FC = () => {
               
               if (apiResult.success) {
                 updatedStepData.speechGeneration = apiResult.data;
-                setEditorContent(apiResult.data?.result || '');
+                
+                // 提取发布会稿的输出内容，优先查找text4字段
+                let resultContent = '';
+                if (apiResult.data?.data?.outputs?.text4) {
+                  resultContent = apiResult.data.data.outputs.text4;
+                } else if (apiResult.data?.outputs?.text4) {
+                  resultContent = apiResult.data.outputs.text4;
+                } else if (apiResult.data?.result) {
+                  resultContent = apiResult.data.result;
+                } else {
+                  resultContent = JSON.stringify(apiResult.data, null, 2);
+                }
+                
+                setEditorContent(resultContent);
+                
+                // 同时保存生成的内容到专用的内容字段
+                updatedStepData.speechGenerationContent = resultContent;
               } else {
                 throw new Error(apiResult.error || '演讲稿处理失败');
               }
@@ -445,7 +472,10 @@ const WorkflowPage: React.FC = () => {
             
           default:
             // 其他步骤直接保存内容
-            updatedStepData[currentStepKey] = editorContent;
+            const nextStepKey = steps[currentStep + 1]?.key;
+            if (nextStepKey) {
+              updatedStepData[nextStepKey] = editorContent;
+            }
             break;
         }
       }
@@ -460,7 +490,7 @@ const WorkflowPage: React.FC = () => {
       // 更新步骤状态
       const updatedSteps = steps.map((step, index) => ({
         ...step,
-        status: index < nextStep ? 'completed' : index === nextStep ? 'current' : 'pending'
+        status: index < nextStep ? 'completed' : index === nextStep ? 'active' : 'pending'
       }));
       setSteps(updatedSteps);
       
@@ -486,7 +516,7 @@ const WorkflowPage: React.FC = () => {
       // 更新步骤状态
       const updatedSteps = steps.map((step, index) => ({
         ...step,
-        status: index < prevStep ? 'completed' : index === prevStep ? 'current' : 'pending'
+        status: index < prevStep ? 'completed' : index === prevStep ? 'active' : 'pending'
       }));
       setSteps(updatedSteps);
     }
@@ -494,6 +524,72 @@ const WorkflowPage: React.FC = () => {
 
   const handleStepClick = (stepId: number) => {
     setCurrentStep(stepId);
+    
+    // 更新步骤状态
+    const updatedSteps = steps.map((step, index) => ({
+      ...step,
+      status: index < stepId ? 'completed' : index === stepId ? 'active' : 'pending'
+    }));
+    setSteps(updatedSteps);
+    
+    // 恢复对应步骤的编辑区内容
+    const stepKey = steps[stepId]?.key;
+    let contentToShow = '';
+    
+    if (stepKey) {
+      // 优先使用步骤专用的内容字段
+      if (stepKey === 'techPackage' && stepData.techPackageContent) {
+        contentToShow = stepData.techPackageContent;
+      } else if (stepKey === 'techStrategy' && stepData.techStrategyContent) {
+        contentToShow = stepData.techStrategyContent;
+      } else if (stepKey === 'coreDraft' && stepData.coreDraftContent) {
+        contentToShow = stepData.coreDraftContent;
+      } else if (stepKey === 'speechGeneration' && stepData.speechGenerationContent) {
+        contentToShow = stepData.speechGenerationContent;
+      } else if (stepData[stepKey]) {
+        // 如果没有专用内容字段，尝试从原始数据中提取
+        const stepDataValue = stepData[stepKey];
+        if (typeof stepDataValue === 'string') {
+          contentToShow = stepDataValue;
+        } else if (stepDataValue && typeof stepDataValue === 'object') {
+          // 尝试从API响应中提取内容
+          if (stepDataValue.data?.outputs?.text1) {
+            contentToShow = stepDataValue.data.outputs.text1;
+          } else if (stepDataValue.data?.outputs?.text2) {
+            contentToShow = stepDataValue.data.outputs.text2;
+          } else if (stepDataValue.data?.outputs?.text3) {
+            contentToShow = stepDataValue.data.outputs.text3;
+          } else if (stepDataValue.data?.outputs?.text4) {
+            contentToShow = stepDataValue.data.outputs.text4;
+          } else if (stepDataValue.data?.outputs?.answer) {
+            contentToShow = stepDataValue.data.outputs.answer;
+          } else if (stepDataValue.data?.outputs?.text) {
+            contentToShow = stepDataValue.data.outputs.text;
+          } else if (stepDataValue.result) {
+            contentToShow = stepDataValue.result;
+          } else if (stepDataValue.answer) {
+            contentToShow = stepDataValue.answer;
+          } else if (stepDataValue.content) {
+            contentToShow = stepDataValue.content;
+          } else {
+            contentToShow = JSON.stringify(stepDataValue, null, 2);
+          }
+        }
+      }
+    }
+    
+    console.log(`切换到步骤 ${stepId} (${stepKey}):`, {
+      stepKey,
+      hasStepData: !!stepData[stepKey],
+      contentToShow: contentToShow.substring(0, 100) + '...',
+      contentLength: contentToShow.length,
+      stepTitle: steps[stepId]?.title
+    });
+    
+    console.log(`设置editorContent: ${contentToShow.substring(0, 100)}...`);
+    console.log(`设置步骤标题: ${steps[stepId]?.title}`);
+    
+    setEditorContent(contentToShow);
   };
 
   // 处理编辑器内容变化
@@ -568,16 +664,30 @@ const WorkflowPage: React.FC = () => {
       // 如果配置不存在，尝试初始化默认配置
       if (!smartSearchDifyConfig) {
         console.error("智能搜索配置未找到，尝试初始化默认配置");
-        // 尝试初始化默认配置
-        await configService.getDifyConfigs(); // 这会自动创建默认配置
-        await configService.getWorkflowConfigs(); // 这会自动创建工作流配置
-        
-        // 重新获取配置
-        smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
-        
-        // 如果仍然没有配置，使用默认的AI搜索配置
-        if (!smartSearchDifyConfig) {
-          smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
+        try {
+          // 尝试初始化默认配置
+          const refreshedDifyConfigs = await configService.getDifyConfigs(); // 这会自动创建默认配置
+          const refreshedWorkflowConfigs = await configService.getWorkflowConfigs(); // 这会自动创建工作流配置
+          
+          // 更新本地状态
+          setDifyConfigs(refreshedDifyConfigs);
+          setWorkflowConfigs(refreshedWorkflowConfigs);
+          
+          // 重新获取配置
+          smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+          
+          // 如果仍然没有配置，使用默认的AI搜索配置
+          if (!smartSearchDifyConfig) {
+            smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
+            console.log("使用默认AI搜索配置:", smartSearchDifyConfig?.name);
+          }
+          
+          if (!smartSearchDifyConfig) {
+            throw new Error("无法获取任何可用的智能搜索配置");
+          }
+        } catch (initError) {
+          console.error("配置初始化失败:", initError);
+          throw new Error("智能搜索配置初始化失败，请检查配置设置");
         }
       }
       
@@ -657,6 +767,15 @@ const WorkflowPage: React.FC = () => {
       msg.id === messageId 
         ? { ...msg, disliked: !msg.disliked, liked: false }
         : msg
+    ));
+  };
+
+  // 处理采纳消息
+  const handleAdoptMessage = (messageId: string) => {
+    setChatMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, adopted: !msg.adopted }
+        : { ...msg, adopted: false } // 取消其他消息的采纳状态，确保只有一条消息被采纳
     ));
   };
 
@@ -772,7 +891,7 @@ const WorkflowPage: React.FC = () => {
         {/* 右侧内容区域 */}
         <div className="content-section">
           {/* 根据当前步骤显示不同的界面 */}
-          {currentStep === 1 ? (
+          {currentStep === 0 ? (
             /* AI问答步骤 - 聊天界面 */
             <div className="ai-chat-section">
               {/* 顶部状态栏 */}
@@ -806,7 +925,9 @@ const WorkflowPage: React.FC = () => {
                   chatMessages.map((message) => (
                     <div key={message.id} className={`message ${message.type} group`}>
                       <div className="message-content">
-                        <p>{message.content}</p>
+                        <div className="markdown-content">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
                         <div className="message-footer">
                           <span className="message-time">
                             {message.timestamp.toLocaleTimeString()}
@@ -814,42 +935,51 @@ const WorkflowPage: React.FC = () => {
                           
                           {/* AI消息的快捷操作按钮 */}
                           {message.type === "assistant" && (
-                            <div className="message-actions opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="message-actions">
+                              {/* 采纳按钮 */}
+                              <button
+                                onClick={() => handleAdoptMessage(message.id)}
+                                className={`action-btn adopt-btn ${message.adopted ? 'adopted' : ''}`}
+                                title={message.adopted ? "已采纳" : "采纳此消息"}
+                              >
+                                {message.adopted ? <CheckCircle size={18} /> : <Check size={18} />}
+                              </button>
+                              
                               {/* 复制按钮 */}
                               <button
                                 onClick={() => handleCopyMessage(message.content)}
-                                className="action-btn"
+                                className="action-btn copy-btn"
                                 title="复制消息"
                               >
-                                <Copy size={14} />
+                                <Copy size={18} />
                               </button>
                               
                               {/* 重新生成按钮 */}
                               <button
                                 onClick={() => handleRegenerateMessage(message.id)}
                                 disabled={message.isRegenerating}
-                                className="action-btn disabled:opacity-50"
+                                className="action-btn regenerate-btn disabled:opacity-50"
                                 title="重新生成"
                               >
-                                <RotateCcw size={14} className={message.isRegenerating ? 'animate-spin' : ''} />
+                                <RotateCcw size={18} className={message.isRegenerating ? 'animate-spin' : ''} />
                               </button>
                               
                               {/* 点赞按钮 */}
                               <button
                                 onClick={() => handleLikeMessage(message.id)}
-                                className={`action-btn ${message.liked ? 'text-green-500' : 'text-gray-500'}`}
+                                className={`action-btn like-btn ${message.liked ? 'liked' : ''}`}
                                 title="点赞"
                               >
-                                <ThumbsUp size={14} />
+                                <ThumbsUp size={18} />
                               </button>
                               
                               {/* 点踩按钮 */}
                               <button
                                 onClick={() => handleDislikeMessage(message.id)}
-                                className={`action-btn ${message.disliked ? 'text-red-500' : 'text-gray-500'}`}
+                                className={`action-btn dislike-btn ${message.disliked ? 'disliked' : ''}`}
                                 title="点踩"
                               >
-                                <ThumbsDown size={14} />
+                                <ThumbsDown size={18} />
                               </button>
                             </div>
                           )}

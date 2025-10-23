@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
 import TechPackageNode from "../components/nodes/TechPackageNode";
-import PromotionStrategyNode from "../components/nodes/PromotionStrategyNode";
 import CoreDraftNode from "../components/nodes/CoreDraftNode";
 import SpeechNode from "../components/nodes/SpeechNode";
 import AiSearchNode from "../components/nodes/AiSearchNode";
@@ -17,7 +16,6 @@ import TopNavigation from "../components/TopNavigation";
 // 节点组件映射
 const nodeComponents = {
   tech_package: TechPackageNode,
-  promotion_strategy: PromotionStrategyNode,
   core_draft: CoreDraftNode,
   speech: SpeechNode,
   ai_search: AiSearchNode,

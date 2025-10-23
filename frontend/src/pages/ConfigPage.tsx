@@ -529,7 +529,7 @@ const ConfigPage: React.FC = () => {
                           <p className="step-description">
                             {stepConfig.stepKey === 'aiSearch' && '智能搜索节点 - 处理用户问答和信息检索'}
                             {stepConfig.stepKey === 'techPackage' && '技术包装节点 - 对技术内容进行包装和优化'}
-                            {stepConfig.stepKey === 'promotionStrategy' && '推广策略节点 - 生成技术推广策略'}
+                            {stepConfig.stepKey === 'techStrategy' && '技术策略节点 - 生成技术策略分析'}
                             {stepConfig.stepKey === 'coreDraft' && '核心稿件节点 - 生成技术通稿'}
                             {stepConfig.stepKey === 'speechGeneration' && '演讲稿节点 - 生成发布会演讲稿'}
                           </p>

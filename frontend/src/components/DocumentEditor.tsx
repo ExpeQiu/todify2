@@ -1,4 +1,7 @@
 import React, { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import {
   Save,
   Download,
@@ -29,10 +32,22 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
 }) => {
   const [content, setContent] = useState(initialContent);
   const [title, setTitle] = useState(initialTitle);
+
+  // 当props发生变化时，更新内部状态
+  React.useEffect(() => {
+    console.log('DocumentEditor: initialContent changed:', initialContent.substring(0, 100) + '...');
+    setContent(initialContent);
+  }, [initialContent]);
+
+  React.useEffect(() => {
+    console.log('DocumentEditor: title changed:', initialTitle);
+    setTitle(initialTitle);
+  }, [initialTitle]);
   const [isEditing, setIsEditing] = useState(true); // 默认设置为编辑状态
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSave = async () => {
     if (!onSave) return;
@@ -61,16 +76,23 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     }
   };
 
-  const formatText = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
+  // 处理文本区域内容变化
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  };
+
+  // 处理富文本编辑器内容变化
+  const handleContentChange = () => {
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
   };
 
-  const handleContentChange = () => {
-    if (editorRef.current) {
-      setContent(editorRef.current.innerHTML);
+  // 格式化文本（仅用于富文本模式）
+  const formatText = (command: string, value?: string) => {
+    if (isEditing && editorRef.current) {
+      document.execCommand(command, false, value);
+      handleContentChange();
     }
   };
 
@@ -224,21 +246,23 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
 
       <div className="editor-content" data-oid="3ehr5pn">
         {isEditing ? (
-          <div
-            ref={editorRef}
-            contentEditable
-            className="content-editable"
-            dangerouslySetInnerHTML={{ __html: content }}
-            onInput={handleContentChange}
-            onBlur={handleContentChange}
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={handleTextareaChange}
+            className="content-textarea"
+            placeholder="请输入markdown格式的内容..."
             data-oid="6z1u-8b"
           />
         ) : (
-          <div
-            className="content-preview"
-            dangerouslySetInnerHTML={{ __html: content }}
-            data-oid="g67pz6h"
-          />
+          <div className="content-preview" data-oid="g67pz6h">
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
         )}
       </div>
     </div>

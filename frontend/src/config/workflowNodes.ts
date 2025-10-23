@@ -24,13 +24,6 @@ export const NODE_CONFIGS = {
     color: '#F59E0B',
     category: 'content'
   },
-  promotion_strategy: {
-    title: '推广策略',
-    description: '推广策略制定',
-    icon: 'Target',
-    color: '#8B5CF6',
-    category: 'strategy'
-  },
   core_draft: {
     title: '核心稿件',
     description: '核心稿件撰写',
@@ -73,16 +66,11 @@ export const nodeConfigs: Record<string, NodeConfig> = {
       template: 'default'
     }
   },
-  
-  promotion_strategy: {
-    canStartIndependently: true,
-    requiredInputs: [],
-    optionalInputs: ['techPackageData', 'targetAudience']
-  },
+
   core_draft: {
     canStartIndependently: true,
     requiredInputs: [],
-    optionalInputs: ['promotionStrategyData', 'contentType']
+    optionalInputs: ['techPackageData', 'contentType']
   },
   speech: {
     canStartIndependently: true,
@@ -100,7 +88,7 @@ export const workflowNodes: WorkflowNode[] = [
     description: '向AI助手提问获取专业解答',
     icon: MessageCircle,
     path: '/node/ai-qa',
-    nextSteps: ['tech_package', 'promotion_strategy', 'core_draft', 'speech']
+    nextSteps: ['tech_package', 'core_draft', 'speech']
   },
 
   {
@@ -110,7 +98,7 @@ export const workflowNodes: WorkflowNode[] = [
     description: 'AI智能搜索助手',
     icon: Search,
     path: '/node/ai-search',
-    nextSteps: ['tech_package', 'promotion_strategy', 'core_draft', 'speech']
+    nextSteps: ['tech_package', 'core_draft', 'speech']
   },
 
   {
@@ -121,19 +109,9 @@ export const workflowNodes: WorkflowNode[] = [
     icon: Package,
     path: '/node/tech-package',
     dependencies: ['ai_qa'],
-    nextSteps: ['promotion_strategy', 'core_draft', 'speech']
+    nextSteps: ['core_draft', 'speech']
   },
-  
-  {
-    id: 'promotion_strategy',
-    name: '推广策略',
-    type: 'promotion_strategy',
-    description: '生成推广策略方案',
-    icon: Target,
-    path: '/node/promotion-strategy',
-    dependencies: ['tech_package'],
-    nextSteps: ['core_draft']
-  },
+
   {
     id: 'core_draft',
     name: '核心稿件',
@@ -141,7 +119,7 @@ export const workflowNodes: WorkflowNode[] = [
     description: '生成核心文档稿件',
     icon: FileText,
     path: '/node/core-draft',
-    dependencies: ['promotion_strategy'],
+    dependencies: ['tech_package'],
     nextSteps: ['speech']
   },
   {

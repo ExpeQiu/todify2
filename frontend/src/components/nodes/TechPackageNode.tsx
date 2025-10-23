@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import {
   Brain,
   ArrowLeft,
@@ -15,6 +18,8 @@ import {
   Save,
   X,
   Check,
+  Edit3,
+  Eye,
 } from "lucide-react";
 import { BaseNodeProps } from "../../types/nodeComponent";
 import { workflowAPI } from "../../services/api";
@@ -49,11 +54,27 @@ const TechPackageNode: React.FC<TechPackageNodeProps> = ({
   const [query, setQuery] = useState(initialData?.query || "");
   const [activeTab, setActiveTab] = useState("技术包装");
   const [aiResponse, setAiResponse] = useState("");
-  const [userContent, setUserContent] = useState("");
+  const [userContent, setUserContent] = useState(`# 测试标题
+
+## 二级标题
+
+**这是粗体文本**
+
+- 列表项目1
+- 列表项目2
+
+---
+
+> 这是一个引用
+
+\`\`\`javascript
+console.log("代码块测试");
+\`\`\``);
   const [internalLoading, setInternalLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false); // 新增状态：是否已生成过内容
   const [disliked, setDisliked] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true); // 默认为编辑模式
 
   // 对话历史状态
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -207,6 +228,7 @@ const TechPackageNode: React.FC<TechPackageNodeProps> = ({
             response: content,
             selectedKnowledgePoints: selectedItems,
             rawResponse: responseData,
+            userContent: userContent, // 添加编辑区内容
           });
         }
       } else {
@@ -494,35 +516,90 @@ const TechPackageNode: React.FC<TechPackageNodeProps> = ({
               <div className="h-full flex flex-col" data-oid="pix0u7f">
                 {/* 编辑区域标题 */}
                 <div
-                  className="flex items-center gap-3 mb-6 flex-shrink-0"
+                  className="flex items-center justify-between mb-6 flex-shrink-0"
                   data-oid="92.xcoj"
                 >
-                  <div
-                    className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
-                    data-oid="-llk8s_"
-                  >
-                    <BookOpen
-                      className="w-4 h-4 text-green-600"
-                      data-oid="-qtuy:i"
-                    />
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
+                      data-oid="-llk8s_"
+                    >
+                      <BookOpen
+                        className="w-4 h-4 text-green-600"
+                        data-oid="-qtuy:i"
+                      />
+                    </div>
+                    <h2
+                      className="text-lg font-semibold text-gray-900"
+                      data-oid=":w2f61r"
+                    >
+                      编辑修订
+                    </h2>
                   </div>
-                  <h2
-                    className="text-lg font-semibold text-gray-900"
-                    data-oid=":w2f61r"
-                  >
-                    编辑修订
-                  </h2>
+                  
+                  {/* 预览/编辑切换按钮 */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsEditMode(true)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                        isEditMode 
+                          ? 'bg-orange-500 text-white' 
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      编辑
+                    </button>
+                    <button
+                      onClick={() => setIsEditMode(false)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
+                        !isEditMode 
+                          ? 'bg-orange-500 text-white' 
+                          : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <Eye className="w-4 h-4" />
+                      预览
+                    </button>
+                  </div>
                 </div>
 
-                {/* 文本编辑区域 */}
+                {/* 文本编辑/预览区域 */}
                 <div className="flex-1 mb-6 overflow-hidden" data-oid="isxa6c3">
-                  <textarea
-                    value={userContent}
-                    onChange={(e) => setUserContent(e.target.value)}
-                    placeholder="在这里编辑和完善技术包装内容..."
-                    className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed overflow-y-auto"
-                    data-oid="fqtkebj"
-                  />
+                  {isEditMode ? (
+                    <textarea
+                      value={userContent}
+                      onChange={(e) => setUserContent(e.target.value)}
+                      placeholder="在这里编辑和完善技术包装内容..."
+                      className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed overflow-y-auto"
+                      data-oid="fqtkebj"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
+                       {userContent ? (
+                         <div className="prose prose-sm max-w-none">
+                           <ReactMarkdown 
+                             remarkPlugins={[remarkGfm]}
+                             rehypePlugins={[rehypeHighlight]}
+                           >
+                             {userContent}
+                           </ReactMarkdown>
+                         </div>
+                       ) : (
+                         <div className="text-gray-500 text-sm italic">
+                           暂无内容，请先编辑或从AI回复中采纳内容...
+                         </div>
+                       )}
+                       
+                       {/* 调试信息 */}
+                       <div className="mt-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
+                         <strong>调试信息:</strong><br/>
+                         内容长度: {userContent.length}<br/>
+                         编辑模式: {isEditMode ? '是' : '否'}<br/>
+                         内容预览: {userContent.substring(0, 100)}...
+                       </div>
+                     </div>
+                  )}
                 </div>
 
                 {/* 底部操作按钮 */}

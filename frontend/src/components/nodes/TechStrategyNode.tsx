@@ -1,8 +1,11 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import {
   Brain,
   ArrowLeft,
-  FileText,
+  Target,
   BookOpen,
   ArrowRight,
   Download,
@@ -15,6 +18,8 @@ import {
   Save,
   X,
   Check,
+  Edit3,
+  Eye,
 } from "lucide-react";
 import { BaseNodeProps } from "../../types/nodeComponent";
 import { workflowAPI } from "../../services/api";
@@ -53,6 +58,8 @@ const TechStrategyNode: React.FC<TechStrategyNodeProps> = ({
   const [internalLoading, setInternalLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -157,153 +164,235 @@ const TechStrategyNode: React.FC<TechStrategyNodeProps> = ({
   };
 
   return (
-    <div className="node-container" data-oid="z348.cp">
+    <div className="min-h-screen bg-gray-50" data-oid="n8wj1d.">
       {/* 顶部导航栏 */}
-      <div className="node-header" data-oid="2c79e-.">
-        <div className="flex items-center justify-between" data-oid="s1o0qd.">
-          <div className="flex items-center gap-4" data-oid="bebu-r1">
-            <button
-              onClick={() => window.history.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              data-oid="tcvd8d1"
-            >
-              <ArrowLeft className="w-5 h-5" data-oid="khxr9rs" />
-              <span data-oid="um3s85y">返回</span>
-            </button>
-            <div className="flex items-center gap-3" data-oid="pmbc:fi">
-              <div
-                className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
-                data-oid="ju1p-xa"
+      <div className="bg-white border-b border-gray-200" data-oid="t:c5bw-">
+        <div className="max-w-7xl mx-auto px-6 py-4" data-oid="m_2_t0g">
+          <div className="flex items-center justify-between" data-oid="qhprqju">
+            <div className="flex items-center gap-4" data-oid="xefyahy">
+              <button
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                data-oid="vsriuk7"
               >
-                <FileText
-                  className="w-5 h-5 text-blue-600"
-                  data-oid="gv5-m1t"
+                <ArrowLeft className="w-4 h-4" data-oid="ydbq3qr" />
+                <span className="text-sm" data-oid="gd3:wm:">
+                  返回
+                </span>
+              </button>
+              <div className="flex items-center gap-3" data-oid="j0.7_2s">
+                <div
+                  className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center"
+                  data-oid="mu84osu"
+                >
+                  <Target
+                    className="w-4 h-4 text-blue-600"
+                    data-oid="97gzt14"
+                  />
+                </div>
+                <h1
+                  className="text-lg font-semibold text-gray-900"
+                  data-oid=".j6mt:1"
+                >
+                  技术策略
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-3" data-oid="-d.vc_j">
+              <span className="text-sm text-gray-500" data-oid="y1jxgu9">
+                中文
+              </span>
+              <span className="text-sm text-gray-500" data-oid="ccvy59_">
+                分享
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-6" data-oid="aaa814k">
+        {/* 知识点选择器 */}
+        <KnowledgePointSelector
+          knowledgePoints={[]}
+          initialSelectedItems={selectedItems}
+          allowedContentTypes={[
+            "knowledge_point",
+            "tech_strategy",
+            "tech_promotion",
+            "tech_press",
+          ]}
+          initialExpanded={true}
+          onSelectionChange={(selectedItems) => {
+            setSelectedItems(selectedItems);
+          }}
+          onSave={(selectedItems) => {
+            const content = selectedItems
+              .filter((item) => item.contentType !== "knowledge_point")
+              .map((item) => {
+                const kp = item.knowledgePoint;
+                return `【${kp.vehicleModel} - ${kp.techCategory}】${kp.techPoint}: ${kp.description}`;
+              })
+              .join("\n\n");
+
+            if (content) {
+              setUserContent((prev) =>
+                prev ? `${prev}\n\n${content}` : content,
+              );
+            }
+          }}
+          className="mb-6"
+          data-oid="d8uvl4g"
+        />
+
+        {/* 主要内容区域 */}
+        <div
+          className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col"
+          style={{ maxHeight: "70vh" }}
+          data-oid="yvqyxfx"
+        >
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 flex-1 overflow-hidden"
+            data-oid="fg74_zm"
+          >
+            {/* 左侧AI对话区域 */}
+            <div
+              className="p-8 border-r border-gray-200 flex flex-col overflow-hidden"
+              data-oid="yd.xzqx"
+            >
+              <div className="flex-1 overflow-y-auto" data-oid="5h22ctr">
+                <AIInterArea
+                  pageType="tech_strategy"
+                  query={query}
+                  aiResponse={aiResponse}
+                  liked={liked}
+                  disliked={disliked}
+                  onCopy={handleCopy}
+                  onLike={handleLike}
+                  onDislike={handleDislike}
+                  onShare={handleShare}
+                  onRegenerate={handleRegenerate}
+                  onQueryChange={setQuery}
+                  onSubmit={handleAiSearch}
+                  loading={internalLoading}
+                  chatHistory={chatHistory}
+                  hasGenerated={hasGenerated}
+                  hasSelectedKnowledgePoints={selectedItems.length > 0}
+                  data-oid="zg.zsso"
                 />
               </div>
-              <h1
-                className="text-xl font-semibold text-gray-900"
-                data-oid="_p2-_u9"
-              >
-                技术策略
-              </h1>
             </div>
-          </div>
-          <div className="flex items-center gap-3" data-oid="4jfce-4">
-            <select
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
-              data-oid=":hr65i4"
-            >
-              <option data-oid="t6g6s7g">中文</option>
-              <option data-oid=".1k.6tj">English</option>
-            </select>
-            <button
-              className="p-2 text-gray-600 hover:text-gray-800 transition-colors"
-              data-oid="0r9fw0-"
-            >
-              <Share2 className="w-4 h-4" data-oid="u:1ukwm" />
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* 知识点选择器 */}
-      <div className="mb-6" data-oid="g7.ytso">
-        <KnowledgePointSelector
-          onSelectionChange={handleSelectionChange}
-          allowedContentTypes={
-            ["knowledge_point", "tech_strategy"] as ContentType[]
-          }
-          data-oid="n5:3:zg"
-        />
-      </div>
-
-      {/* 主要内容区域 */}
-      <div className="node-content" data-oid="pb8jden">
-        <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          data-oid="fkqum4."
-        >
-          {/* 左侧：AI交互区域 */}
-          <div className="space-y-4" data-oid="lyf59w_">
-            <AIInterArea
-              pageType="tech_strategy"
-              query={query}
-              aiResponse={aiResponse}
-              liked={liked}
-              disliked={disliked}
-              loading={internalLoading}
-              onQueryChange={setQuery}
-              onSubmit={handleAiSearch}
-              onLike={handleLike}
-              onDislike={handleDislike}
-              onCopy={handleCopy}
-              onShare={handleShare}
-              onRegenerate={handleRegenerate}
-              data-oid="s:yfgzk"
-            />
-          </div>
-
-          {/* 右侧：内容编辑区域 */}
-          <div className="space-y-4" data-oid="3i55h.b">
+            {/* 右侧编辑区域 */}
             <div
-              className="bg-white rounded-xl border border-gray-200 p-6"
-              data-oid="n.c3qp:"
+              className="p-8 flex flex-col overflow-hidden"
+              data-oid="3i63dk:"
             >
-              <div
-                className="flex items-center justify-between mb-4"
-                data-oid="u9iigvr"
-              >
-                <h3
-                  className="text-lg font-semibold text-gray-900 flex items-center gap-2"
-                  data-oid=".o3r:c0"
+              <div className="h-full flex flex-col" data-oid="pix0u7f">
+                {/* 编辑区域标题 */}
+                <div
+                  className="flex items-center justify-between mb-6 flex-shrink-0"
+                  data-oid="92.xcoj"
                 >
-                  <FileText
-                    className="w-5 h-5 text-blue-600"
-                    data-oid="e1yt_yo"
-                  />
-                  技术策略内容
-                </h3>
-                <div className="flex items-center gap-2" data-oid="8mhmhrf">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
+                      data-oid="-llk8s_"
+                    >
+                      <BookOpen
+                        className="w-4 h-4 text-green-600"
+                        data-oid="-qtuy:i"
+                      />
+                    </div>
+                    <h2
+                      className="text-lg font-semibold text-gray-900"
+                      data-oid=":w2f61r"
+                    >
+                      编辑修订
+                    </h2>
+                  </div>
+                  
+                  {/* 预览/编辑切换按钮 */}
+                  <button
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 text-sm font-medium"
+                  >
+                    {isEditMode ? (
+                      <>
+                        <Eye className="w-4 h-4" />
+                        预览
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4" />
+                        编辑
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* 文本编辑/预览区域 */}
+                <div className="flex-1 mb-6 overflow-hidden" data-oid="isxa6c3">
+                  {isEditMode ? (
+                    <textarea
+                      value={userContent}
+                      onChange={(e) => setUserContent(e.target.value)}
+                      placeholder="在这里编辑和完善技术策略内容..."
+                      className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed overflow-y-auto"
+                      data-oid="fqtkebj"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
+                       {userContent ? (
+                         <div className="prose prose-sm max-w-none">
+                           <ReactMarkdown 
+                             remarkPlugins={[remarkGfm]}
+                             rehypePlugins={[rehypeHighlight]}
+                           >
+                             {userContent}
+                           </ReactMarkdown>
+                         </div>
+                       ) : (
+                         <div className="text-gray-500 text-sm italic">
+                           暂无内容，请先编辑或从AI回复中采纳内容...
+                         </div>
+                       )}
+                     </div>
+                  )}
+                </div>
+
+                {/* 底部操作按钮 */}
+                <div className="flex gap-4 flex-shrink-0" data-oid="_xtzsk.">
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-                    data-oid="v5d2kkm"
+                    disabled={!aiResponse}
+                    className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                    data-oid="d0m9q5:"
                   >
-                    <Save className="w-4 h-4" data-oid="-52y676" />
-                    保存
+                    <ArrowRight className="w-4 h-4" data-oid="jrrym-2" />
+                    <span data-oid=":z3ulze">保存技术策略点</span>
                   </button>
-                </div>
-              </div>
 
-              <textarea
-                value={userContent}
-                onChange={(e) => setUserContent(e.target.value)}
-                placeholder="在这里编辑您的技术策略内容..."
-                className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                data-oid="-xdrysj"
-              />
-
-              <div
-                className="flex justify-between items-center mt-4"
-                data-oid="ijnp-n9"
-              >
-                <div className="flex items-center gap-4" data-oid=".:ewnan">
                   <button
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                    data-oid="fy2wpkt"
+                    onClick={() => {
+                      const element = document.createElement('a');
+                      const file = new Blob([userContent], { type: 'text/plain' });
+                      element.href = URL.createObjectURL(file);
+                      element.download = '技术策略内容.txt';
+                      document.body.appendChild(element);
+                      element.click();
+                      document.body.removeChild(element);
+                    }}
+                    disabled={!userContent}
+                    className="flex-1 px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                    data-oid="am87jxw"
                   >
-                    <Download className="w-4 h-4" data-oid="cw__4jf" />
-                    导出
+                    <Download className="w-4 h-4" data-oid="29cq84y" />
+                    <span data-oid="1_p8lpt">导出</span>
                   </button>
-                </div>
-                <div className="text-sm text-gray-500" data-oid="iutg-zo">
-                  {userContent.length} 字符
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* 保存确认模态框 */}
       {showSaveModal && (

@@ -72,9 +72,8 @@ class ConfigService {
     { stepId: 1, stepName: "AI问答", stepKey: "smartSearch" },
     { stepId: 2, stepName: "技术包装", stepKey: "techPackage" },
     { stepId: 3, stepName: "技术策略", stepKey: "techStrategy" },
-    { stepId: 4, stepName: "技术推广策略", stepKey: "promotionStrategy" },
-    { stepId: 5, stepName: "技术通稿", stepKey: "coreDraft" },
-    { stepId: 6, stepName: "发布会演讲稿", stepKey: "speechGeneration" },
+    { stepId: 4, stepName: "技术通稿", stepKey: "coreDraft" },
+    { stepId: 5, stepName: "发布会演讲稿", stepKey: "speechGeneration" },
   ];
 
   // 默认的Dify API配置
@@ -83,7 +82,7 @@ class ConfigService {
       id: "default-ai-search",
       name: "AI问答模型",
       description: "用于处理用户问答的Dify API配置",
-      apiUrl: "http://47.113.225.93:9999/v1",
+      apiUrl: "http://47.113.225.93:9999/v1/chat-messages",
       apiKey: "app-t1X4eu8B4eucyO6IfrTbw1t2",
       enabled: true,
       createdAt: new Date(),
@@ -103,16 +102,6 @@ class ConfigService {
       id: "default-tech-strategy",
       name: "技术策略模型",
       description: "用于生成技术策略的Dify API配置",
-      apiUrl: "http://47.113.225.93:9999/v1",
-      apiKey: "app-awRZf7tKfvC73DEVANAGGNr8",
-      enabled: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "default-promotion-strategy",
-      name: "推广策略模型",
-      description: "用于生成技术推广策略的Dify API配置",
       apiUrl: "http://47.113.225.93:9999/v1",
       apiKey: "app-awRZf7tKfvC73DEVANAGGNr8",
       enabled: true,
@@ -265,14 +254,28 @@ class ConfigService {
   async getDifyConfigs(): Promise<DifyAPIConfig[]> {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEYS.DIFY_CONFIGS);
+      let configs: DifyAPIConfig[] = [];
+      
       if (stored) {
-        const configs = JSON.parse(stored);
+        configs = JSON.parse(stored);
+        
         // 检查是否有技术包装配置，如果没有或API Key不正确，强制更新
         const techPackageConfig = configs.find((config: any) => config.id === 'default-tech-package');
         if (!techPackageConfig || techPackageConfig.apiKey !== 'app-YDVb91faDHwTqIei4WWSNaTM') {
           console.log('技术包装配置需要更新，强制使用默认配置');
           await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
           return this.DEFAULT_DIFY_CONFIGS;
+        }
+        
+        // 检查是否缺少任何默认配置
+        const missingConfigs = this.DEFAULT_DIFY_CONFIGS.filter(
+          defaultConfig => !configs.find(config => config.id === defaultConfig.id)
+        );
+        
+        if (missingConfigs.length > 0) {
+          console.log(`添加缺失的默认配置: ${missingConfigs.map(c => c.id).join(', ')}`);
+          configs.push(...missingConfigs);
+          await this.saveDifyConfigs(configs);
         }
         
         // 确保日期对象正确解析
@@ -284,10 +287,13 @@ class ConfigService {
       }
       
       // 如果没有存储的配置，返回默认配置
+      console.log('未找到Dify配置，初始化默认配置');
       await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
       return this.DEFAULT_DIFY_CONFIGS;
     } catch (error) {
       console.error('获取Dify配置失败:', error);
+      console.log('使用默认配置');
+      await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
       return this.DEFAULT_DIFY_CONFIGS;
     }
   }
