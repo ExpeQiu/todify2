@@ -15,7 +15,13 @@ const port = process.env.PORT || 8088;
 app.use(cors());
 app.use(express.json());
 
-// 移除静态文件服务配置，直接通过前端开发服务器访问
+// 生产环境静态文件服务：直接从 frontend/dist 提供资源
+const distDir = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(distDir, {
+  maxAge: 0,
+  etag: true,
+  lastModified: true,
+}));
 
 // 添加请求日志中间件
 app.use((req, res, next) => {
@@ -25,10 +31,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// 路由配置
+// 路由配置（API 保持 /api/v1 前缀）
 app.use('/api/v1', apiRoutes);
-
-// 移除前端页面路由，直接通过前端开发服务器访问
 
 // API 健康检查
 app.get('/api/health', (req, res) => {
@@ -38,6 +42,11 @@ app.get('/api/health', (req, res) => {
     status: 'running',
     timestamp: new Date().toISOString()
   });
+});
+
+// SPA Fallback：除 /api/* 外的所有路由都返回 index.html
+app.get(/^(\/(?!api).*)$/, (_req, res) => {
+  res.sendFile(path.join(distDir, 'index.html'));
 });
 
 // 全局错误处理中间件

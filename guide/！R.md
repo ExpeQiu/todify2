@@ -163,3 +163,25 @@ http://localhost:3000/ 各节点对应的dify- API
 访问统计页面:
 http://localhost:3000/workflow-stats
 http://localhost:3000/enhanced-workflow-stats
+
+
+
+✅ Dify API 配置验证完成
+📋 配置概览
+Dify API 基础URL: http://47.113.225.93:9999/v1 ✅
+代理服务地址: http://47.113.225.93:8088/api/dify ✅
+🔑 API Key 配置状态
+智能工作流配置 (SmartWorkflowNodeConfig)
+功能	API Key	连接类型	状态
+AI问答	app-t1X4eu8B4eucyO6IfrTbw1t2	chatflow	✅ 正常
+技术包装	app-YDVb91faDHwTqIei4WWSNaTM	workflow	✅ 正常
+技术策略	app-awRZf7tKfvC73DEVANAGGNr8	workflow	✅ 正常
+技术通稿	app-3TK9U2F3WwFP7vOoq0Ut84KA	workflow	✅ 正常
+发布会稿	app-WcV5IDjuNKbOKIBDPWdb7HF4	workflow	✅ 正常
+独立页面配置 (IndependentPageConfig)
+功能	API Key	连接类型	状态
+AI问答	app-HC8dx24idIWm1uva66VmHXsm	chatflow	✅ 正常
+技术包装	app-GgD3uUNDWOFu7DlBgSVkIrIt	chatflow	✅ 正常
+技术策略	app-DesVds4LQch6k7Unu7KpBCS4	chatflow	✅ 正常
+技术通稿	app-c7HLp8OGiTgnpvg5cIYqQCYZ	chatflow	✅ 正常
+技术发布	app-iAiKRQ7h8zCwkz2TBkezgtGs	chatflow	✅ 正常

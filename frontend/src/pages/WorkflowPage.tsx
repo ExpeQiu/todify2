@@ -150,15 +150,32 @@ const WorkflowPage: React.FC = () => {
   useEffect(() => {
     const loadConfigs = async () => {
       try {
+        console.log('开始加载配置...');
         const difyConfigsData = await configService.getDifyConfigs();
         const workflowConfigsData = await configService.getWorkflowConfigs();
+        
+        console.log('Dify配置加载完成:', difyConfigsData.length, '个配置');
+        console.log('工作流配置加载完成:', workflowConfigsData.length, '个配置');
         
         setDifyConfigs(difyConfigsData);
         setWorkflowConfigs(workflowConfigsData);
         setConfigsLoaded(true);
+        
+        // 验证智能搜索配置是否存在
+        const smartSearchConfig = workflowConfigsData.find(config => config.stepKey === 'smartSearch');
+        if (smartSearchConfig) {
+          const difyConfig = difyConfigsData.find(config => config.id === smartSearchConfig.difyConfigId);
+          console.log('智能搜索配置验证:', {
+            workflowConfig: smartSearchConfig,
+            difyConfig: difyConfig
+          });
+        } else {
+          console.warn('未找到智能搜索工作流配置');
+        }
       } catch (error) {
         console.error('加载配置失败:', error);
-        setConfigsLoaded(true); // 即使失败也设置为已加载，使用默认配置
+        // 即使失败也设置为已加载，但会在使用时触发重新初始化
+        setConfigsLoaded(true);
       }
     };
 
@@ -167,12 +184,23 @@ const WorkflowPage: React.FC = () => {
 
   // 获取当前步骤的Dify API配置
   const getCurrentStepDifyConfig = (stepKey: string): DifyAPIConfig | null => {
-    if (!configsLoaded) return null;
+    if (!configsLoaded || !workflowConfigs.length || !difyConfigs.length) {
+      console.warn(`配置未完全加载: configsLoaded=${configsLoaded}, workflowConfigs.length=${workflowConfigs.length}, difyConfigs.length=${difyConfigs.length}`);
+      return null;
+    }
     
     const workflowConfig = workflowConfigs.find(config => config.stepKey === stepKey);
-    if (!workflowConfig || !workflowConfig.difyConfigId) return null;
+    if (!workflowConfig || !workflowConfig.difyConfigId) {
+      console.warn(`未找到步骤配置: stepKey=${stepKey}, workflowConfig=`, workflowConfig);
+      return null;
+    }
     
-    return difyConfigs.find(config => config.id === workflowConfig.difyConfigId) || null;
+    const difyConfig = difyConfigs.find(config => config.id === workflowConfig.difyConfigId);
+    if (!difyConfig) {
+      console.warn(`未找到Dify配置: difyConfigId=${workflowConfig.difyConfigId}`);
+    }
+    
+    return difyConfig || null;
   };
 
   const calculateProgress = () => {
@@ -343,7 +371,7 @@ const WorkflowPage: React.FC = () => {
             console.log('API返回的完整数据:', apiResult.data);
             setEditorContent(resultContent);
             
-            // 同时保存生成的内容到步骤数据中，确保后续步骤可以访问
+            // 同时保存生成的内容到下一步的编辑区，确保后续步骤可以访问
             updatedStepData.techPackageContent = resultContent;
           } else {
             throw new Error(apiResult.error || '技术包装处理失败');
@@ -815,18 +843,27 @@ const WorkflowPage: React.FC = () => {
       
       // 如果配置不存在，尝试初始化默认配置
       if (!smartSearchDifyConfig) {
-        console.error("智能搜索配置未找到，尝试初始化默认配置");
+        console.log("智能搜索配置未找到，尝试初始化默认配置");
         try {
           // 尝试初始化默认配置
           const refreshedDifyConfigs = await configService.getDifyConfigs(); // 这会自动创建默认配置
           const refreshedWorkflowConfigs = await configService.getWorkflowConfigs(); // 这会自动创建工作流配置
+          
+          console.log('重新加载配置完成:', {
+            difyConfigs: refreshedDifyConfigs.length,
+            workflowConfigs: refreshedWorkflowConfigs.length
+          });
           
           // 更新本地状态
           setDifyConfigs(refreshedDifyConfigs);
           setWorkflowConfigs(refreshedWorkflowConfigs);
           
           // 重新获取配置
-          smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
+          const workflowConfig = refreshedWorkflowConfigs.find(config => config.stepKey === 'smartSearch');
+          if (workflowConfig) {
+            smartSearchDifyConfig = refreshedDifyConfigs.find(config => config.id === workflowConfig.difyConfigId) || null;
+            console.log("重新获取智能搜索配置成功:", smartSearchDifyConfig?.name);
+          }
           
           // 如果仍然没有配置，使用默认的AI搜索配置
           if (!smartSearchDifyConfig) {
@@ -835,11 +872,21 @@ const WorkflowPage: React.FC = () => {
           }
           
           if (!smartSearchDifyConfig) {
-            throw new Error("无法获取任何可用的智能搜索配置");
+            throw new Error("无法获取任何可用的智能搜索配置，请检查配置服务");
           }
         } catch (initError) {
-          console.error("配置初始化失败:", initError);
-          throw new Error("智能搜索配置初始化失败，请检查配置设置");
+          console.error("初始化配置失败:", initError);
+          setIsTyping(false);
+          
+          // 添加错误消息到聊天记录
+          const errorMessage: ChatMessage = {
+            id: Date.now().toString(),
+            type: "assistant",
+            content: "抱歉，系统配置初始化失败。请刷新页面重试，或联系管理员检查配置服务。",
+            timestamp: new Date(),
+          };
+          setChatMessages(prev => [...prev, errorMessage]);
+          return;
         }
       }
       
