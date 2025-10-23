@@ -73,6 +73,13 @@ AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwor
 
 ### API
 
+
+
+
+
+## 智能工作流：WorkflowPage
+
+
 #### 智能工作流页 对接的dify API key信息：
 
 
@@ -84,7 +91,6 @@ AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwor
 - 发布会稿 : app-WcV5IDjuNKbOKIBDPWdb7HF4 (workflow方式) 
 
 
-智能工作流：WorkflowPage
 
 步骤	API端点	状态	响应时间	输出字段
 AI问答	/workflow/ai-search	✅ 正常	~3秒	answer
@@ -115,7 +121,11 @@ http://localhost:3000/的完整 工作流：
 点击下一步 → 自动调用技术发布API，生成演讲稿内容
 
 
-
+AI问答 (id: 0, key: "smartSearch")
+技术包装 (id: 1, key: "techPackage")
+技术策略 (id: 2, key: "techStrategy")
+技术通稿 (id: 3, key: "coreDraft")
+发布会演讲稿 (id: 4, key: "speechGeneration")
 
 
 ## 独立功能

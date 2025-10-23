@@ -92,6 +92,12 @@ const WorkflowPage: React.FC = () => {
   // 编辑器内容状态
   const [editorContent, setEditorContent] = useState("");
   
+  // 编辑模式状态 - 为每个步骤维护独立的编辑状态
+  const [editingStates, setEditingStates] = useState<{[key: number]: boolean}>({});
+  
+  // 自动保存定时器
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  
   // 工作流处理状态
   const [isProcessing, setIsProcessing] = useState(false);
   const [processError, setProcessError] = useState<string | null>(null);
@@ -198,6 +204,21 @@ const WorkflowPage: React.FC = () => {
       console.log('当前步骤索引:', currentStep);
       const updatedStepData = { ...stepData };
       
+      // 确保当前编辑区内容被保存到步骤数据中
+      if (currentStepKey === 'techPackage') {
+        updatedStepData.techPackageContent = editorContent;
+        console.log('保存技术包装内容到步骤数据:', editorContent.substring(0, 100) + '...');
+      } else if (currentStepKey === 'techStrategy') {
+        updatedStepData.techStrategyContent = editorContent;
+        console.log('保存技术策略内容到步骤数据:', editorContent.substring(0, 100) + '...');
+      } else if (currentStepKey === 'coreDraft') {
+        updatedStepData.coreDraftContent = editorContent;
+        console.log('保存技术通稿内容到步骤数据:', editorContent.substring(0, 100) + '...');
+      } else if (currentStepKey === 'speechGeneration') {
+        updatedStepData.speechGenerationContent = editorContent;
+        console.log('保存演讲稿内容到步骤数据:', editorContent.substring(0, 100) + '...');
+      }
+      
       // 根据当前步骤调用对应的API，每个步骤使用自己的Dify配置
       let apiResult = null;
       
@@ -221,29 +242,47 @@ const WorkflowPage: React.FC = () => {
         // 首先检查是否有被采纳的消息
         const adoptedMessage = chatMessages.find(msg => msg.type === 'assistant' && msg.adopted);
         
-        // 如果有被采纳的消息，优先使用它
-        let inputForTechPackage = adoptedMessage?.content;
+        // 获取最新的有效AI回复消息（排除默认欢迎消息）
+        const latestValidAiMessage = chatMessages
+          .filter(msg => msg.type === 'assistant')
+          .reverse() // 从最新的开始查找
+          .find(msg => {
+            const content = msg.content || '';
+            // 排除默认欢迎消息
+            return !content.includes('我是智能助手') && 
+                   !content.includes('请输入您的问题') && 
+                   !content.includes('你好!我是智能助手') &&
+                   content.trim().length > 20; // 确保内容有实际意义
+          });
         
-        // 如果没有被采纳的消息，使用原有逻辑
-        if (!inputForTechPackage) {
-          // 检查AI回答是否有效（不是默认欢迎消息）
-          const isDefaultMessage = latestAiMessage?.content?.includes('我是智能助手') || 
-                                   latestAiMessage?.content?.includes('请输入您的问题') ||
-                                   latestAiMessage?.content?.includes('你好!我是智能助手');
-          
-          // 优先使用有效的AI回答，否则使用用户输入
-          // 降低AI回答长度要求从50改为20
-          inputForTechPackage = (!isDefaultMessage && latestAiMessage?.content && latestAiMessage.content.length > 20) ? 
-                               latestAiMessage.content : 
-                               latestUserMessage?.content;
-        }
-        
+        console.log('=== 消息选择逻辑调试 ===');
         console.log('是否有被采纳的消息:', !!adoptedMessage);
         console.log('被采纳的消息内容:', adoptedMessage?.content?.substring(0, 100) + '...' || '无');
-        console.log('AI回答是否有效:', latestAiMessage && !latestAiMessage.content?.includes('我是智能助手'));
-        console.log('AI回答长度:', latestAiMessage?.content?.length || 0);
-        console.log('用户输入长度:', latestUserMessage?.content?.length || 0);
-        console.log('传递给技术包装的内容:', inputForTechPackage?.substring(0, 100) + '...');
+        console.log('最新的有效AI回复:', latestValidAiMessage?.content?.substring(0, 100) + '...' || '无');
+        console.log('最新的用户输入:', latestUserMessage?.content?.substring(0, 100) + '...' || '无');
+        
+        // 消息选择优先级：
+        // 1. 如果有被采纳的消息，优先使用它
+        // 2. 如果没有被采纳的消息，使用最新的有效AI回复
+        // 3. 如果都没有，使用最新的用户输入
+        let inputForTechPackage = '';
+        
+        if (adoptedMessage?.content?.trim()) {
+          inputForTechPackage = adoptedMessage.content;
+          console.log('✅ 使用被采纳的消息作为技术包装输入');
+        } else if (latestValidAiMessage?.content?.trim()) {
+          inputForTechPackage = latestValidAiMessage.content;
+          console.log('✅ 使用最新的AI回复作为技术包装输入（用户忘记点击采纳）');
+          
+          // 给用户一个友好的提示
+          console.log('💡 提示：系统检测到您没有点击"采纳"按钮，已自动使用最新的AI回复进行技术包装处理');
+        } else if (latestUserMessage?.content?.trim()) {
+          inputForTechPackage = latestUserMessage.content;
+          console.log('✅ 使用最新的用户输入作为技术包装输入');
+        }
+        
+        console.log('最终传递给技术包装的内容长度:', inputForTechPackage.length);
+        console.log('内容预览:', inputForTechPackage.substring(0, 200) + '...');
         console.log('聊天消息总数:', chatMessages.length);
         console.log('AI消息数量:', chatMessages.filter(msg => msg.type === 'assistant').length);
         console.log('用户消息数量:', chatMessages.filter(msg => msg.type === 'user').length);
@@ -320,17 +359,20 @@ const WorkflowPage: React.FC = () => {
             // 优先使用当前编辑区内容，如果没有则尝试从步骤数据中获取
             let techStrategyInput = editorContent.trim();
             
+            console.log('技术策略步骤 - 当前编辑区内容长度:', editorContent.length);
+            console.log('技术策略步骤 - 编辑区内容预览:', editorContent.substring(0, 200) + '...');
+            
             if (!techStrategyInput) {
               // 如果编辑区为空，尝试从步骤数据中获取技术包装内容
-              if (stepData.techPackageContent) {
+              if (updatedStepData.techPackageContent) {
                 // 优先使用保存的技术包装内容
-                techStrategyInput = stepData.techPackageContent;
+                techStrategyInput = updatedStepData.techPackageContent;
                 console.log('从步骤数据中获取技术包装内容作为技术策略输入:', techStrategyInput.substring(0, 200) + '...');
-              } else if (stepData.techPackage) {
+              } else if (updatedStepData.techPackage) {
                 // 如果没有techPackageContent，尝试从techPackage中提取
-                techStrategyInput = typeof stepData.techPackage === 'string' 
-                  ? stepData.techPackage 
-                  : JSON.stringify(stepData.techPackage);
+                techStrategyInput = typeof updatedStepData.techPackage === 'string' 
+                  ? updatedStepData.techPackage 
+                  : JSON.stringify(updatedStepData.techPackage);
                 console.log('从步骤数据中获取技术包装原始数据作为技术策略输入:', techStrategyInput.substring(0, 200) + '...');
               }
             }
@@ -395,7 +437,10 @@ const WorkflowPage: React.FC = () => {
             break;
             
           case 'coreDraft':
-            // 技术策略步骤，将编辑区内容传递给核心稿件
+            // 技术通稿步骤，将编辑区内容传递给核心稿件
+            console.log('技术通稿步骤 - 当前编辑区内容长度:', editorContent.length);
+            console.log('技术通稿步骤 - 编辑区内容预览:', editorContent.substring(0, 200) + '...');
+            
             if (editorContent.trim()) {
               let coreDraftDifyConfig = getCurrentStepDifyConfig('coreDraft');
               
@@ -433,7 +478,10 @@ const WorkflowPage: React.FC = () => {
             break;
             
           case 'speechGeneration':
-            // 核心稿件步骤，将编辑区内容传递给演讲稿
+            // 演讲稿步骤，将编辑区内容传递给演讲稿
+            console.log('演讲稿步骤 - 当前编辑区内容长度:', editorContent.length);
+            console.log('演讲稿步骤 - 编辑区内容预览:', editorContent.substring(0, 200) + '...');
+            
             if (editorContent.trim()) {
               let speechGenerationDifyConfig = getCurrentStepDifyConfig('speechGeneration');
               
@@ -508,17 +556,68 @@ const WorkflowPage: React.FC = () => {
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
       
-      // 恢复上一步的编辑区内容
-      const prevStepKey = steps[prevStep].key;
-      const prevContent = stepData[prevStepKey] || '';
-      setEditorContent(prevContent);
-      
       // 更新步骤状态
       const updatedSteps = steps.map((step, index) => ({
         ...step,
         status: index < prevStep ? 'completed' : index === prevStep ? 'active' : 'pending'
       }));
       setSteps(updatedSteps);
+      
+      // 恢复对应步骤的编辑区内容（使用与handleStepClick相同的逻辑）
+      const stepKey = steps[prevStep]?.key;
+      let contentToShow = '';
+      
+      if (stepKey) {
+        // 优先使用步骤专用的内容字段
+        if (stepKey === 'techPackage' && stepData.techPackageContent) {
+          contentToShow = stepData.techPackageContent;
+        } else if (stepKey === 'techStrategy' && stepData.techStrategyContent) {
+          contentToShow = stepData.techStrategyContent;
+        } else if (stepKey === 'coreDraft' && stepData.coreDraftContent) {
+          contentToShow = stepData.coreDraftContent;
+        } else if (stepKey === 'speechGeneration' && stepData.speechGenerationContent) {
+          contentToShow = stepData.speechGenerationContent;
+        } else if (stepData[stepKey]) {
+          // 如果没有专用内容字段，尝试从原始数据中提取
+          const stepDataValue = stepData[stepKey];
+          if (typeof stepDataValue === 'string') {
+            contentToShow = stepDataValue;
+          } else if (stepDataValue && typeof stepDataValue === 'object') {
+            // 尝试从API响应中提取内容
+            if (stepDataValue.data?.outputs?.text1) {
+              contentToShow = stepDataValue.data.outputs.text1;
+            } else if (stepDataValue.data?.outputs?.text2) {
+              contentToShow = stepDataValue.data.outputs.text2;
+            } else if (stepDataValue.data?.outputs?.text3) {
+              contentToShow = stepDataValue.data.outputs.text3;
+            } else if (stepDataValue.data?.outputs?.text4) {
+              contentToShow = stepDataValue.data.outputs.text4;
+            } else if (stepDataValue.data?.outputs?.answer) {
+              contentToShow = stepDataValue.data.outputs.answer;
+            } else if (stepDataValue.data?.outputs?.text) {
+              contentToShow = stepDataValue.data.outputs.text;
+            } else if (stepDataValue.result) {
+              contentToShow = stepDataValue.result;
+            } else if (stepDataValue.answer) {
+              contentToShow = stepDataValue.answer;
+            } else if (stepDataValue.content) {
+              contentToShow = stepDataValue.content;
+            } else {
+              contentToShow = JSON.stringify(stepDataValue, null, 2);
+            }
+          }
+        }
+      }
+      
+      console.log(`切换到上一步 ${prevStep} (${stepKey}):`, {
+        stepKey,
+        hasStepData: !!stepData[stepKey],
+        contentToShow: contentToShow.substring(0, 100) + '...',
+        contentLength: contentToShow.length,
+        stepTitle: steps[prevStep]?.title
+      });
+      
+      setEditorContent(contentToShow);
     }
   };
 
@@ -595,6 +694,59 @@ const WorkflowPage: React.FC = () => {
   // 处理编辑器内容变化
   const handleEditorChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditorContent(event.target.value);
+    
+    // 清除之前的定时器
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+    
+    // 设置3秒自动保存
+    const timer = setTimeout(() => {
+      handleAutoSave();
+    }, 3000);
+    
+    setAutoSaveTimer(timer);
+  };
+  
+  // 自动保存功能
+  const handleAutoSave = () => {
+    const currentStepKey = steps[currentStep].key;
+    const updatedStepData = { ...stepData };
+    
+    // 保存当前编辑区内容到步骤数据
+    if (currentStepKey === 'techPackage') {
+      updatedStepData.techPackageContent = editorContent;
+    } else if (currentStepKey === 'techStrategy') {
+      updatedStepData.techStrategyContent = editorContent;
+    } else if (currentStepKey === 'coreDraft') {
+      updatedStepData.coreDraftContent = editorContent;
+    } else if (currentStepKey === 'speechGeneration') {
+      updatedStepData.speechGenerationContent = editorContent;
+    }
+    
+    setStepData(updatedStepData);
+    console.log(`自动保存步骤 ${currentStep} (${currentStepKey}) 的内容`);
+  };
+  
+  // 切换编辑模式
+  const toggleEditingMode = (stepId: number) => {
+    setEditingStates(prev => ({
+      ...prev,
+      [stepId]: !prev[stepId]
+    }));
+  };
+  
+  // 获取当前步骤的编辑状态
+  const getCurrentStepEditingState = () => {
+    // 对于技术包装、技术策略、技术通稿、发布会演讲稿步骤，默认显示预览模式
+    const previewSteps = [1, 2, 3, 4]; // techPackage, techStrategy, coreDraft, speechGeneration
+    
+    if (previewSteps.includes(currentStep)) {
+      return editingStates[currentStep] || false; // 默认false，即预览模式
+    }
+    
+    // AI问答步骤始终显示聊天界面
+    return false;
   };
 
   // 处理粘贴事件
@@ -1048,6 +1200,9 @@ const WorkflowPage: React.FC = () => {
                <DocumentEditor
                  initialContent={editorContent}
                  title={steps.find(step => step.id === currentStep)?.title}
+                 isEditing={getCurrentStepEditingState()}
+                 onToggleEdit={() => toggleEditingMode(currentStep)}
+                 onContentChange={handleEditorChange}
                  onSave={(content, title) => {
                    setEditorContent(content);
                    handleSave();
@@ -1082,7 +1237,12 @@ const WorkflowPage: React.FC = () => {
           disabled={currentStep === 0 || isProcessing}
         >
           <ChevronLeft size={20} />
-          <span>上一步</span>
+          <span>
+            {currentStep > 0 
+              ? `上一步：${steps[currentStep - 1].title}` 
+              : '上一步'
+            }
+          </span>
         </button>
 
         <button
@@ -1097,7 +1257,12 @@ const WorkflowPage: React.FC = () => {
             </>
           ) : (
             <>
-              <span>下一步</span>
+              <span>
+                {currentStep < steps.length - 1 
+                  ? `下一步：${steps[currentStep + 1].title}` 
+                  : '下一步'
+                }
+              </span>
               <ChevronRight size={20} />
             </>
           )}

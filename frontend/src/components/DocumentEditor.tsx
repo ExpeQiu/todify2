@@ -20,6 +20,9 @@ import "./DocumentEditor.css";
 interface DocumentEditorProps {
   initialContent?: string;
   title?: string;
+  isEditing?: boolean;
+  onToggleEdit?: () => void;
+  onContentChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSave?: (content: string, title: string) => void;
   onExportPDF?: (content: string, title: string) => void;
 }
@@ -27,6 +30,9 @@ interface DocumentEditorProps {
 const DocumentEditor: React.FC<DocumentEditorProps> = ({
   initialContent = "",
   title: initialTitle = "未命名文档",
+  isEditing: externalIsEditing,
+  onToggleEdit,
+  onContentChange,
   onSave,
   onExportPDF,
 }) => {
@@ -43,7 +49,10 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     console.log('DocumentEditor: title changed:', initialTitle);
     setTitle(initialTitle);
   }, [initialTitle]);
-  const [isEditing, setIsEditing] = useState(true); // 默认设置为编辑状态
+  const [internalIsEditing, setInternalIsEditing] = useState(true); // 内部编辑状态
+  
+  // 使用外部传入的编辑状态，如果没有传入则使用内部状态
+  const isEditing = externalIsEditing !== undefined ? externalIsEditing : internalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -55,7 +64,10 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
     setIsSaving(true);
     try {
       await onSave(content, title);
-      setIsEditing(false);
+      // 只有在内部控制模式下才自动切换到预览模式
+      if (externalIsEditing === undefined) {
+        setInternalIsEditing(false);
+      }
     } catch (error) {
       console.error("保存失败:", error);
     } finally {
@@ -79,6 +91,11 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
   // 处理文本区域内容变化
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
+    
+    // 如果传入了外部的内容变化处理函数，则调用它
+    if (onContentChange) {
+      onContentChange(e);
+    }
   };
 
   // 处理富文本编辑器内容变化
@@ -110,7 +127,13 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
 
         <div className="editor-actions" data-oid="fp87qt2">
           <button
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={() => {
+              if (onToggleEdit) {
+                onToggleEdit();
+              } else {
+                setInternalIsEditing(!internalIsEditing);
+              }
+            }}
             className={`btn btn-secondary btn-sm ${isEditing ? "btn-active" : ""}`}
             title="编辑模式"
             data-oid="8x:38w2"

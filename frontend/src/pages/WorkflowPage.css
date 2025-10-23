@@ -148,8 +148,10 @@
 .message-actions {
   display: flex;
   align-items: center;
-  gap: 8px; /* 增加按钮间距，避免重叠 */
+  gap: 12px; /* 进一步增加按钮间距，避免重叠 */
   flex-wrap: wrap; /* 允许换行，防止在小屏幕上重叠 */
+  margin-top: 8px; /* 增加与消息内容的间距 */
+  padding: 4px 0; /* 增加上下内边距 */
   /* 移除 opacity 和 transition，让按钮始终显示 */
 }
 
@@ -157,101 +159,128 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px; /* 增加按钮宽度 */
-  height: 32px; /* 增加按钮高度 */
-  border: none;
-  background: transparent;
-  border-radius: 6px; /* 稍微增加圆角 */
+  width: 36px; /* 进一步增加按钮宽度 */
+  height: 36px; /* 进一步增加按钮高度 */
+  border: 1px solid transparent; /* 添加边框，提高可见性 */
+  background: rgba(255, 255, 255, 0.9); /* 添加半透明背景 */
+  border-radius: 8px; /* 增加圆角 */
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0; /* 防止按钮被压缩 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 添加阴影，提高可见性 */
+  position: relative; /* 为工具提示定位 */
 }
 
 .action-btn:hover {
   background: #f1f5f9;
   color: #475569;
+  transform: translateY(-1px); /* 添加轻微上移效果 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* 增强悬停阴影 */
 }
 
 .action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none; /* 禁用状态下不移位 */
 }
 
 .action-btn:disabled:hover {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.9);
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* 不同按钮的颜色样式 */
 .action-btn.adopt-btn {
   background: #f0f9ff;
   color: #0284c7;
-  border: 1px solid #e0f2fe;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.2);
 }
 
 .action-btn.adopt-btn:hover {
   background: #e0f2fe;
   color: #0369a1;
+  border-color: #7dd3fc;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 
 .action-btn.adopt-btn.adopted {
   background: #dcfce7;
   color: #16a34a;
   border: 1px solid #bbf7d0;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
 }
 
 .action-btn.copy-btn {
   background: #fefce8;
   color: #ca8a04;
   border: 1px solid #fef3c7;
+  box-shadow: 0 1px 3px rgba(202, 138, 4, 0.2);
 }
 
 .action-btn.copy-btn:hover {
   background: #fef3c7;
   color: #a16207;
+  border-color: #fde68a;
+  box-shadow: 0 2px 6px rgba(202, 138, 4, 0.3);
 }
 
 .action-btn.regenerate-btn {
   background: #f3e8ff;
   color: #9333ea;
   border: 1px solid #e9d5ff;
+  box-shadow: 0 1px 3px rgba(147, 51, 234, 0.2);
 }
 
 .action-btn.regenerate-btn:hover {
   background: #e9d5ff;
   color: #7c3aed;
+  border-color: #d8b4fe;
+  box-shadow: 0 2px 6px rgba(147, 51, 234, 0.3);
 }
 
 .action-btn.like-btn {
   background: #f0fdf4;
   color: #16a34a;
   border: 1px solid #dcfce7;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
 }
 
 .action-btn.like-btn:hover {
   background: #dcfce7;
   color: #15803d;
+  border-color: #bbf7d0;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
 }
 
 .action-btn.like-btn.liked {
   background: #16a34a;
   color: white;
+  border-color: #15803d;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.4);
 }
 
 .action-btn.dislike-btn {
   background: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
 }
 
 .action-btn.dislike-btn:hover {
   background: #fecaca;
   color: #b91c1c;
+  border-color: #fca5a5;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
 }
 
 .action-btn.dislike-btn.disliked {
   background: #dc2626;
   color: white;
+  border-color: #b91c1c;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
 }
 
 /* Markdown 内容样式 */
@@ -514,6 +543,64 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* 按钮动画效果 */
+@keyframes buttonPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes buttonBounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-2px); }
+  60% { transform: translateY(-1px); }
+}
+
+/* 按钮点击动画 */
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+/* 采纳按钮的特殊动画 */
+.action-btn.adopt-btn.adopted {
+  animation: buttonPulse 0.6s ease-in-out;
+}
+
+/* 点赞/点踩按钮的特殊动画 */
+.action-btn.like-btn.liked,
+.action-btn.dislike-btn.disliked {
+  animation: buttonBounce 0.6s ease-in-out;
+}
+
+/* 工具提示样式 */
+.action-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.action-btn[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  pointer-events: none;
 }
 
 /* 处理中状态的编辑器样式 */
@@ -1014,6 +1101,15 @@
     padding: 12px 16px;
   }
   
+  .message-actions {
+    gap: 8px; /* 在平板尺寸下减少间距 */
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
   .chat-input-area {
     padding: 16px 20px;
   }
@@ -1232,6 +1328,18 @@
   .message-content {
     font-size: 14px;
     padding: 8px 12px;
+  }
+  
+  .message-actions {
+    gap: 4px; /* 在超小屏幕下最小间距 */
+    margin-top: 4px;
+    flex-wrap: wrap; /* 确保按钮可以换行 */
+  }
+  
+  .action-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 12px; /* 减小图标尺寸 */
   }
   
   .chat-input-area {
