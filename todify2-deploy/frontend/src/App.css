@@ -1,0 +1,68 @@
+/* 引入设计令牌系统 */
+@import './styles/design-tokens.css';
+@import './styles/components.css';
+@import './styles/loading.css';
+@import './styles/responsive.css';
+@import './styles/sidebar.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.App {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 全局焦点样式 */
+*:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-base);
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: var(--radius-full);
+  transition: var(--transition-colors);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* 选择文本样式 */
+::selection {
+  background-color: var(--primary-100);
+  color: var(--primary-900);
+}

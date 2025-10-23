@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
 import workflowRoutes from './routes/workflow';
 import apiRoutes from './routes';
 import { testConnection } from './config/database';
@@ -8,11 +9,13 @@ import { testConnection } from './config/database';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8088;
 
 // 中间件
 app.use(cors());
 app.use(express.json());
+
+// 移除静态文件服务配置，直接通过前端开发服务器访问
 
 // 添加请求日志中间件
 app.use((req, res, next) => {
@@ -25,11 +28,15 @@ app.use((req, res, next) => {
 // 路由配置
 app.use('/api/v1', apiRoutes);
 
-app.get('/', (req, res) => {
+// 移除前端页面路由，直接通过前端开发服务器访问
+
+// API 健康检查
+app.get('/api/health', (req, res) => {
   res.json({ 
     message: 'Todify2 Backend API',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    timestamp: new Date().toISOString()
   });
 });
 

@@ -157,3 +157,9 @@ http://localhost:3000/ 各节点对应的dify- API
 - 技术策略 : app-DesVds4LQch6k7Unu7KpBCS4 (chatflow方式)
 - 技术通稿 : app-c7HLp8OGiTgnpvg5cIYqQCYZ (chatflow方式)
 - 技术发布 : app-iAiKRQ7h8zCwkz2TBkezgtGs (chatflow方式)
+
+
+
+访问统计页面:
+http://localhost:3000/workflow-stats
+http://localhost:3000/enhanced-workflow-stats

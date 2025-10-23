@@ -17,10 +17,14 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'dist',
+    assetsDir: 'static',
     rollupOptions: {
       input: {
         main: './index.html'
       }
     }
-  }
+  },
+  base: '/',
+  publicDir: 'public'
 })
