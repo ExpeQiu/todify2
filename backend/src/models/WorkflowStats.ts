@@ -273,51 +273,76 @@ export class WorkflowStatsModel {
   async upsertWorkflowNodeUsage(data: CreateWorkflowNodeUsageDTO): Promise<WorkflowNodeUsage> {
     await this.ensureConnection();
 
-    const sql = `
-      INSERT INTO workflow_node_usage (
-        node_id, node_name, node_type, session_id, user_id,
-        usage_count, total_time_spent, avg_response_time, success_count, failure_count,
-        total_characters, avg_characters, content_quality_score,
-        likes_count, dislikes_count, regenerations_count, adoptions_count, edits_count,
-        is_workflow_mode, is_standalone_mode, previous_node_id, next_node_id,
-        last_used_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      ON CONFLICT(node_id, session_id) DO UPDATE SET
-        usage_count = usage_count + 1,
-        total_time_spent = total_time_spent + ?,
-        avg_response_time = (avg_response_time * usage_count + ?) / (usage_count + 1),
-        success_count = success_count + ?,
-        failure_count = failure_count + ?,
-        total_characters = total_characters + ?,
-        avg_characters = (avg_characters * usage_count + ?) / (usage_count + 1),
-        content_quality_score = (content_quality_score * usage_count + ?) / (usage_count + 1),
-        likes_count = likes_count + ?,
-        dislikes_count = dislikes_count + ?,
-        regenerations_count = regenerations_count + ?,
-        adoptions_count = adoptions_count + ?,
-        edits_count = edits_count + ?,
-        last_used_at = CURRENT_TIMESTAMP,
-        updated_at = CURRENT_TIMESTAMP
-    `;
+    // 首先检查是否已存在相同的node_id和session_id的记录
+    const existingRecord = await this.getWorkflowNodeUsageByNodeAndSession(data.node_id, data.session_id);
+    
+    if (existingRecord) {
+      // 如果存在，则更新记录
+      const updateSql = `
+        UPDATE workflow_node_usage SET
+          usage_count = usage_count + ?,
+          total_time_spent = total_time_spent + ?,
+          avg_response_time = (avg_response_time * usage_count + ?) / (usage_count + ?),
+          success_count = success_count + ?,
+          failure_count = failure_count + ?,
+          total_characters = total_characters + ?,
+          avg_characters = (avg_characters * usage_count + ?) / (usage_count + ?),
+          content_quality_score = (content_quality_score * usage_count + ?) / (usage_count + ?),
+          likes_count = likes_count + ?,
+          dislikes_count = dislikes_count + ?,
+          regenerations_count = regenerations_count + ?,
+          adoptions_count = adoptions_count + ?,
+          edits_count = edits_count + ?,
+          last_used_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE node_id = ? AND session_id = ?
+      `;
 
-    const params = [
-      data.node_id, data.node_name, data.node_type, data.session_id, data.user_id,
-      data.usage_count || 1, data.total_time_spent || 0, data.avg_response_time || 0,
-      data.success_count || 0, data.failure_count || 0,
-      data.total_characters || 0, data.avg_characters || 0, data.content_quality_score || 0,
-      data.likes_count || 0, data.dislikes_count || 0, data.regenerations_count || 0,
-      data.adoptions_count || 0, data.edits_count || 0,
-      data.is_workflow_mode || false, data.is_standalone_mode || false,
-      data.previous_node_id, data.next_node_id,
-      // 更新参数
-      data.total_time_spent || 0, data.avg_response_time || 0,
-      data.success_count || 0, data.failure_count || 0,
-      data.total_characters || 0, data.avg_characters || 0, data.content_quality_score || 0,
-      data.likes_count || 0, data.dislikes_count || 0, data.regenerations_count || 0,
-      data.adoptions_count || 0, data.edits_count || 0
-    ];
+      const updateParams = [
+        data.usage_count || 1,
+        data.total_time_spent || 0,
+        data.avg_response_time || 0, data.usage_count || 1,
+        data.success_count || 0,
+        data.failure_count || 0,
+        data.total_characters || 0,
+        data.avg_characters || 0, data.usage_count || 1,
+        data.content_quality_score || 0, data.usage_count || 1,
+        data.likes_count || 0,
+        data.dislikes_count || 0,
+        data.regenerations_count || 0,
+        data.adoptions_count || 0,
+        data.edits_count || 0,
+        data.node_id,
+        data.session_id
+      ];
 
-    await this.db.query(sql, params);
+      await this.db.query(updateSql, updateParams);
+    } else {
+      // 如果不存在，则插入新记录
+      const insertSql = `
+        INSERT INTO workflow_node_usage (
+          node_id, node_name, node_type, session_id, user_id,
+          usage_count, total_time_spent, avg_response_time, success_count, failure_count,
+          total_characters, avg_characters, content_quality_score,
+          likes_count, dislikes_count, regenerations_count, adoptions_count, edits_count,
+          is_workflow_mode, is_standalone_mode, previous_node_id, next_node_id,
+          last_used_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `;
+
+      const insertParams = [
+        data.node_id, data.node_name, data.node_type, data.session_id, data.user_id,
+        data.usage_count || 1, data.total_time_spent || 0, data.avg_response_time || 0,
+        data.success_count || 0, data.failure_count || 0,
+        data.total_characters || 0, data.avg_characters || 0, data.content_quality_score || 0,
+        data.likes_count || 0, data.dislikes_count || 0, data.regenerations_count || 0,
+        data.adoptions_count || 0, data.edits_count || 0,
+        data.is_workflow_mode || false, data.is_standalone_mode || false,
+        data.previous_node_id, data.next_node_id
+      ];
+
+      await this.db.query(insertSql, insertParams);
+    }
 
     return await this.getWorkflowNodeUsageByNodeAndSession(data.node_id, data.session_id) as WorkflowNodeUsage;
   }
@@ -435,12 +460,12 @@ export class WorkflowStatsModel {
     `;
 
     const params = [
-      data.session_id, data.user_id, data.session_start_time, data.session_end_time, data.session_duration || 0,
+      data.session_id, data.user_id, null, null, data.session_duration || 0,
       data.total_nodes_visited || 0, data.completed_nodes || 0, data.skipped_nodes || 0, data.node_visit_sequence,
       data.node_completion_status, data.exit_node_id, data.exit_reason, data.exit_time,
       data.workflow_path, data.path_efficiency_score || 0, data.overall_satisfaction_score, data.user_feedback,
       // 更新参数
-      data.session_end_time, data.session_duration, data.total_nodes_visited, data.completed_nodes,
+      null, data.session_duration, data.total_nodes_visited, data.completed_nodes,
       data.skipped_nodes, data.node_visit_sequence, data.node_completion_status, data.exit_node_id,
       data.exit_reason, data.exit_time, data.workflow_path, data.path_efficiency_score,
       data.overall_satisfaction_score, data.user_feedback
