@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { InlineLoading } from "./LoadingSpinner";
 import "./DocumentEditor.css";
+import "../styles/markdown.css";
 
 interface DocumentEditorProps {
   initialContent?: string;
@@ -278,7 +279,7 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
             data-oid="6z1u-8b"
           />
         ) : (
-          <div className="content-preview" data-oid="g67pz6h">
+          <div className="content-preview markdown-preview prose prose-sm max-w-none" data-oid="g67pz6h">
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}

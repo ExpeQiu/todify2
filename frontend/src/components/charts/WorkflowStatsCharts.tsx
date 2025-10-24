@@ -2,7 +2,7 @@ import React from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
-  PieChart, 
+  PieChart as PieChartIcon, 
   Activity,
   Users,
   Clock,
@@ -123,7 +123,7 @@ export const PieChart: React.FC<ChartProps & {
   return (
     <div className={`bg-white rounded-lg shadow-sm p-6 ${className}`}>
       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-        <PieChart className="h-5 w-5 mr-2" />
+        <PieChartIcon className="h-5 w-5 mr-2" />
         {title}
       </h3>
       <div className="flex items-center">

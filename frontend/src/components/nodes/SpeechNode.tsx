@@ -29,6 +29,7 @@ import KnowledgePointSelector, {
   ContentType,
 } from "../common/KnowledgePointSelector";
 import "./NodeComponent.css";
+import "../../styles/markdown.css";
 
 interface SpeechNodeProps extends BaseNodeProps {
   initialData?: any;
@@ -638,7 +639,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   ) : (
                     <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
                        {userContent ? (
-                         <div className="prose prose-sm max-w-none">
+                         <div className="markdown-preview prose prose-sm max-w-none">
                            <ReactMarkdown 
                              remarkPlugins={[remarkGfm]}
                              rehypePlugins={[rehypeHighlight]}

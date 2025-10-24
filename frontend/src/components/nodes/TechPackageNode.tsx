@@ -30,6 +30,7 @@ import KnowledgePointSelector, {
 } from "../common/KnowledgePointSelector";
 import AIInterArea from "../AIInterArea";
 import "./NodeComponent.css";
+import "../../styles/markdown.css";
 
 interface TechPackageNodeProps extends BaseNodeProps {
   initialData?: any;
@@ -577,7 +578,7 @@ console.log("代码块测试");
                   ) : (
                     <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
                        {userContent ? (
-                         <div className="prose prose-sm max-w-none">
+                         <div className="markdown-preview prose prose-sm max-w-none">
                            <ReactMarkdown 
                              remarkPlugins={[remarkGfm]}
                              rehypePlugins={[rehypeHighlight]}
@@ -590,14 +591,6 @@ console.log("代码块测试");
                            暂无内容，请先编辑或从AI回复中采纳内容...
                          </div>
                        )}
-                       
-                       {/* 调试信息 */}
-                       <div className="mt-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
-                         <strong>调试信息:</strong><br/>
-                         内容长度: {userContent.length}<br/>
-                         编辑模式: {isEditMode ? '是' : '否'}<br/>
-                         内容预览: {userContent.substring(0, 100)}...
-                       </div>
                      </div>
                   )}
                 </div>

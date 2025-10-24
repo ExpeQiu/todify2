@@ -17,6 +17,7 @@ import {
   ThumbsDown,
   Check,
   CheckCircle,
+  Plus,
 } from "lucide-react";
 import { workflowAPI } from "../services/api";
 import DocumentEditor from "../components/DocumentEditor";
@@ -32,6 +33,7 @@ import { documentService } from "../services/documentService";
 import TopNavigation from "../components/TopNavigation";
 import configService, { DifyAPIConfig, WorkflowStepConfig } from "../services/configService";
 import "./WorkflowPage.css";
+import { useNavigate } from "react-router-dom";
 
 interface StepData {
   smartSearch?: any;
@@ -62,6 +64,7 @@ interface ChatMessage {
 }
 
 const WorkflowPage: React.FC = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0); // 默认设置为步骤0（AI问答），按照工作流程从第一步开始
   const [stepData, setStepData] = useState<StepData>({});
   const [loading, setLoading] = useState(false);
@@ -102,6 +105,9 @@ const WorkflowPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processError, setProcessError] = useState<string | null>(null);
   const [isFullscreenEditor, setIsFullscreenEditor] = useState(true); // 默认开启全屏编辑器模式
+  
+  // 会话ID状态 - 用于跨步骤保持对话连续性
+  const [conversationId, setConversationId] = useState<string>('');
 
   const [steps, setSteps] = useState([
     {
@@ -204,10 +210,22 @@ const WorkflowPage: React.FC = () => {
   };
 
   const calculateProgress = () => {
+    // 修复进度计算逻辑：基于当前步骤索引计算进度
     const completedSteps = steps.filter(
       (step) => step.status === "completed",
     ).length;
-    return Math.round((completedSteps / steps.length) * 100);
+    
+    // 如果当前步骤是active状态，说明已经开始这一步，应该计算部分进度
+    const currentActiveStep = steps.find(step => step.status === "active");
+    let activeStepProgress = 0;
+    
+    if (currentActiveStep) {
+      // 基于currentStep索引而不是step.id来判断
+      activeStepProgress = currentStep > 0 ? 0.5 : 0;
+    }
+    
+    const totalProgress = (completedSteps + activeStepProgress) / steps.length;
+    return Math.round(totalProgress * 100);
   };
 
   // 处理下一步点击事件
@@ -323,12 +341,18 @@ const WorkflowPage: React.FC = () => {
           apiResult = await workflowAPI.techPackage(
             inputForTechPackage, 
             undefined, 
-            techPackageDifyConfig || undefined
+            techPackageDifyConfig || undefined,
+            conversationId
           );
           
           console.log('技术包装API结果:', apiResult);
           
           if (apiResult.success) {
+            // 更新conversationId（如果API返回了新的）
+            if (apiResult.data?.conversation_id) {
+              setConversationId(apiResult.data.conversation_id);
+            }
+            
             updatedStepData.techPackage = apiResult.data;
             // 将API返回的结果显示在下一步的编辑区
             let resultContent = '';
@@ -417,11 +441,16 @@ const WorkflowPage: React.FC = () => {
               console.log('技术策略Dify配置:', techStrategyDifyConfig);
               console.log('传递给技术策略的内容:', techStrategyInput.substring(0, 200) + '...');
               
-              apiResult = await workflowAPI.techStrategy(techStrategyInput, techStrategyDifyConfig || undefined);
+              apiResult = await workflowAPI.techStrategy(techStrategyInput, techStrategyDifyConfig || undefined, conversationId);
               
               console.log('技术策略API结果:', apiResult);
               
               if (apiResult.success) {
+                // 更新conversationId（如果API返回了新的）
+                if (apiResult.data?.conversation_id) {
+                  setConversationId(apiResult.data.conversation_id);
+                }
+                
                 updatedStepData.techStrategy = apiResult.data;
                 
                 // 提取技术策略生成的内容，优先查找text2字段
@@ -478,9 +507,14 @@ const WorkflowPage: React.FC = () => {
                 coreDraftDifyConfig = await configService.getDifyConfig('default-core-draft');
               }
               
-              apiResult = await workflowAPI.coreDraft(editorContent, coreDraftDifyConfig || undefined);
+              apiResult = await workflowAPI.coreDraft(editorContent, coreDraftDifyConfig || undefined, conversationId);
               
               if (apiResult.success) {
+                // 更新conversationId（如果API返回了新的）
+                if (apiResult.data?.conversation_id) {
+                  setConversationId(apiResult.data.conversation_id);
+                }
+                
                 updatedStepData.coreDraft = apiResult.data;
                 
                 // 提取技术通稿的输出内容，优先查找text3字段
@@ -519,9 +553,14 @@ const WorkflowPage: React.FC = () => {
                 speechGenerationDifyConfig = await configService.getDifyConfig('default-speech-generation');
               }
               
-              apiResult = await workflowAPI.speechGeneration(editorContent, speechGenerationDifyConfig || undefined);
+              apiResult = await workflowAPI.speechGeneration(editorContent, speechGenerationDifyConfig || undefined, conversationId);
               
               if (apiResult.success) {
+                // 更新conversationId（如果API返回了新的）
+                if (apiResult.data?.conversation_id) {
+                  setConversationId(apiResult.data.conversation_id);
+                }
+                
                 updatedStepData.speechGeneration = apiResult.data;
                 
                 // 提取发布会稿的输出内容，优先查找text4字段
@@ -652,13 +691,33 @@ const WorkflowPage: React.FC = () => {
   const handleStepClick = (stepId: number) => {
     setCurrentStep(stepId);
     
-    // 更新步骤状态
-    const updatedSteps = steps.map((step, index) => ({
-      ...step,
-      status: index < stepId ? 'completed' : index === stepId ? 'active' : 'pending'
-    }));
+    // 修复步骤状态更新逻辑：
+    // - 当前步骤之前的步骤应该标记为completed
+    // - 当前步骤标记为active  
+    // - 当前步骤之后的步骤标记为pending
+    const updatedSteps = steps.map((step, index) => {
+      let status: string;
+      let description: string;
+      
+      if (index < stepId) {
+        status = 'completed';
+        description = '已完成';
+      } else if (index === stepId) {
+        status = 'active';
+        description = '进行中';
+      } else {
+        status = 'pending';
+        description = '未开始';
+      }
+      
+      return {
+        ...step,
+        status,
+        description
+      };
+    });
     setSteps(updatedSteps);
-    
+
     // 恢复对应步骤的编辑区内容
     const stepKey = steps[stepId]?.key;
     let contentToShow = '';
@@ -894,7 +953,8 @@ const WorkflowPage: React.FC = () => {
       const result = await workflowAPI.aiSearch(
         inputMessage,
         { context: chatMessages.map(msg => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content })) },
-        smartSearchDifyConfig || undefined
+        smartSearchDifyConfig || undefined,
+        conversationId || undefined
       );
 
       let responseContent = "抱歉，我无法处理您的请求。";
@@ -907,6 +967,12 @@ const WorkflowPage: React.FC = () => {
           responseContent = result.data.answer;
         } else {
           responseContent = "抱歉，未能获取到有效回答。";
+        }
+        
+        // 更新conversationId（如果返回了新的）
+        if (result.data.conversationId && result.data.conversationId !== conversationId) {
+          setConversationId(result.data.conversationId);
+          console.log('更新conversationId:', result.data.conversationId);
         }
       } else if (result.error) {
         responseContent = `抱歉，处理您的请求时出现了问题：${result.error}`;
@@ -1100,6 +1166,37 @@ const WorkflowPage: React.FC = () => {
                   <span>AI助手在线</span>
                 </div>
                 <div className="chat-actions">
+                  {/* AI聊天和搜索历史按钮 */}
+                  <button 
+                    onClick={() => {
+                      // 重置聊天记录到初始状态
+                      setChatMessages([
+                        {
+                          id: "1",
+                          type: "assistant",
+                          content: "你好！我是智能助手，请输入您的问题或需求，我将为您提供专业的技术分析和内容生成服务。",
+                          timestamp: new Date(),
+                        },
+                      ]);
+                      // 清空输入框
+                      setInputMessage("");
+                    }}
+                    className="flex items-center space-x-2 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 shadow-sm text-sm"
+                    data-oid="new-question-btn"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>提一个新问题</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate("/history")}
+                    className="flex items-center space-x-2 px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 shadow-sm text-sm"
+                    data-oid="search-history-btn"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>搜索历史记录</span>
+                  </button>
+                  
                   <button className="chat-action-btn" onClick={handleSave}>
                     <Edit3 size={16} />
                     保存

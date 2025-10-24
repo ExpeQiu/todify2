@@ -161,8 +161,8 @@ http://localhost:3000/ 各节点对应的dify- API
 
 
 访问统计页面:
-http://localhost:3000/workflow-stats
-http://localhost:3000/enhanced-workflow-stats
+http://localhost:3001/workflow-stats
+http://localhost:3001/enhanced-workflow-stats
 
 
 
@@ -185,3 +185,24 @@ AI问答	app-HC8dx24idIWm1uva66VmHXsm	chatflow	✅ 正常
 技术策略	app-DesVds4LQch6k7Unu7KpBCS4	chatflow	✅ 正常
 技术通稿	app-c7HLp8OGiTgnpvg5cIYqQCYZ	chatflow	✅ 正常
 技术发布	app-iAiKRQ7h8zCwkz2TBkezgtGs	chatflow	✅ 正常
+
+
+
+
+所有工作流API接口都已正确配置数据库保存功能：
+
+- /ai-search : 使用 ChatMessageService.saveDifyChatResponse
+- /tech-package : 使用 ChatMessageService.saveDifyWorkflowResponse
+- /tech-strategy : 使用 ChatMessageService.saveDifyWorkflowResponse
+- /tech-article : 使用 ChatMessageService.saveDifyWorkflowResponse（删除）
+- /core-draft : 使用 ChatMessageService.saveDifyWorkflowResponse
+- /tech-publish : 使用 ChatMessageService.saveDifyWorkflowResponse
+
+
+
+- AI问答 ( /api/v1/workflow/ai-search ) - 使用 saveDifyChatResponse 保存对话
+- 技术包装 ( /api/v1/workflow/tech-package ) - 使用 saveDifyWorkflowResponse 保存工作流执行
+- 技术策略 ( /api/v1/workflow/tech-strategy ) - 使用 saveDifyWorkflowResponse 保存工作流执行
+- 技术通稿 ( /api/v1/workflow/tech-article ) - 使用 saveDifyWorkflowResponse 保存工作流执行（删除）
+- 技术通稿 ( /api/v1/workflow/core-draft ) - 使用 saveDifyWorkflowResponse 保存工作流执行
+- 发布会稿 ( /api/v1/workflow/tech-publish ) - 使用 saveDifyWorkflowResponse 保存工作流执行

@@ -265,7 +265,7 @@ export class WorkflowStatsService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = '/api';
+    this.baseURL = '/api/v1';
   }
 
   // ==============================================

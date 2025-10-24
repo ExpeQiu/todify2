@@ -25,6 +25,11 @@ class WorkflowStatsInitializer {
       console.log('🚀 开始初始化工作流统计系统...');
       console.log('=====================================');
       
+      // 0. 连接数据库
+      console.log('🔌 步骤0: 连接数据库');
+      await this.db.connect();
+      console.log('✅ 数据库连接成功');
+      
       // 1. 创建数据库表
       console.log('📋 步骤1: 创建数据库表');
       await this.tableCreator.createTables();

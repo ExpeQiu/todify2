@@ -256,8 +256,21 @@ export class ChatMessageService {
     response: DifyWorkflowResponse,
     userQuery: string,
     appType: string,
-    inputs?: any
-  ): Promise<{ workflowExecution: WorkflowExecutionRecord }> {
+    inputs?: any,
+    existingConversationId?: string
+  ): Promise<{ conversation: ConversationRecord; workflowExecution: WorkflowExecutionRecord }> {
+    // 使用传入的conversation_id或生成新的对话ID
+    const conversationId = existingConversationId || response.workflow_run_id;
+    
+    // 创建或更新对话记录
+    const conversation = await this.upsertConversation({
+      conversation_id: conversationId,
+      session_name: userQuery || `${appType}工作流`,
+      app_type: existingConversationId ? 'ai-search' : appType, // 如果是关联的工作流，保持原始类型
+      status: 'active',
+      metadata: inputs ? JSON.stringify(inputs) : undefined
+    });
+
     // 保存工作流执行记录
     const workflowExecution = await this.saveWorkflowExecution({
       workflow_run_id: response.workflow_run_id,
@@ -275,7 +288,7 @@ export class ChatMessageService {
       finished_at: response.data?.finished_at ? new Date(response.data.finished_at * 1000).toISOString() : undefined
     });
 
-    return { workflowExecution };
+    return { conversation, workflowExecution };
   }
 
   /**

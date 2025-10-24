@@ -11,6 +11,9 @@ import CarSeriesEditPage from "./pages/CarSeriesEditPage";
 import AiSearchTestPage from "./pages/AiSearchTestPage";
 import AIChatPage from "./pages/AIChatPage";
 import WorkflowStatsPage from "./pages/WorkflowStatsPage";
+import EnhancedWorkflowStatsPage from "./pages/EnhancedWorkflowStatsPage";
+import SearchHistoryPage from "./pages/SearchHistoryPage";
+import SearchHistoryDetailPage from "./pages/SearchHistoryDetailPage";
 import "./App.css";
 
 function App() {
@@ -88,6 +91,22 @@ function App() {
             path="/workflow-stats"
             element={<WorkflowStatsPage />}
             data-oid="workflow-stats"
+          />
+
+          <Route
+            path="/enhanced-workflow-stats"
+            element={<EnhancedWorkflowStatsPage />}
+            data-oid="enhanced-workflow-stats"
+          />
+
+          <Route
+            path="/history"
+            element={<SearchHistoryPage />}
+          />
+
+          <Route
+            path="/history/:id"
+            element={<SearchHistoryDetailPage />}
           />
         </Routes>
       </div>

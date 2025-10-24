@@ -8,6 +8,7 @@ import {
   FileText,
   Mic,
   Settings,
+  History,
 } from "lucide-react";
 
 interface TopNavigationProps {
@@ -137,6 +138,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
               );
             })}
           </div>
+
+
 
           {/* 当前页面标题 */}
           {currentPageTitle && (

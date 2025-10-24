@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import "../styles/markdown.css";
 
 const MarkdownTest: React.FC = () => {
   const testMarkdown = `# 测试标题
@@ -34,7 +35,7 @@ console.log("代码块测试");
       
       <div>
         <h3 className="text-lg font-semibold mb-2">渲染结果:</h3>
-        <div className="border border-gray-300 p-4 rounded">
+        <div className="border border-gray-300 p-4 rounded markdown-preview prose prose-sm max-w-none">
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}

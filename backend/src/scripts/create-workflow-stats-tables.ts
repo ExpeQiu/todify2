@@ -19,6 +19,9 @@ class WorkflowStatsTableCreator {
     try {
       console.log('🚀 开始创建工作流统计数据表...');
       
+      // 确保数据库已连接
+      await this.db.connect();
+      
       // 读取SQL脚本
       const schemaPath = path.join(__dirname, 'workflow-stats-schema.sql');
       const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
@@ -60,6 +63,9 @@ class WorkflowStatsTableCreator {
   private async verifyTables(): Promise<void> {
     console.log('🔍 验证表创建结果...');
     
+    // 确保数据库已连接
+    await this.db.connect();
+    
     const expectedTables = [
       'workflow_node_usage',
       'ai_qa_feedback',
@@ -96,6 +102,9 @@ class WorkflowStatsTableCreator {
     console.log('📝 插入示例数据...');
     
     try {
+      // 确保数据库已连接
+      await this.db.connect();
+      
       // 插入示例工作流节点使用数据
       const sampleNodeUsage = [
         {

@@ -260,6 +260,7 @@ export class WorkflowStatsModel {
     if (!this.db) {
       this.db = new DatabaseManager();
     }
+    await this.db.connect();
   }
 
   // ==============================================

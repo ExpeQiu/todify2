@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Mic, Plus, ArrowLeft, Bot, User, Zap, FileText, Megaphone, Newspaper, Presentation, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal } from "lucide-react";
+import { Send, Mic, Plus, ArrowLeft, Bot, User, Zap, FileText, Megaphone, Newspaper, Presentation, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, History } from "lucide-react";
 import { workflowAPI } from "../services/api";
 import { configService } from "../services/configService";
 
@@ -357,6 +357,23 @@ const AIChatPage: React.FC = () => {
                 </span>
               </div>
             </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md border-2 border-blue-500"
+                style={{ minWidth: '120px', zIndex: 1000 }}
+              >
+                <span>提一个新问题</span>
+              </button>
+              <button
+                onClick={() => (window.location.href = "/history")}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-all duration-200 shadow-md border-2 border-green-500"
+                style={{ minWidth: '140px', zIndex: 1000 }}
+              >
+                <History className="w-4 h-4" />
+                <span>搜索历史记录</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -384,7 +401,7 @@ const AIChatPage: React.FC = () => {
                   }`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg group ${
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg group relative ${
                       message.sender === "user"
                         ? "bg-blue-600 text-white"
                         : "bg-white border border-gray-200 text-gray-800"
@@ -392,65 +409,65 @@ const AIChatPage: React.FC = () => {
                   >
                     <div className="flex items-start space-x-2">
                       {message.sender === "ai" && (
-                        <Bot className="w-4 h-4 mt-1 text-blue-600" />
+                        <Bot className="w-4 h-4 mt-1 text-blue-600 flex-shrink-0" />
                       )}
-                      <div className="flex-1">
-                        <p className="text-sm">{message.content}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm break-words">{message.content}</p>
                         <div className="flex items-center justify-between mt-1">
                           <p className={`text-xs ${
                             message.sender === "user" ? "text-blue-100" : "text-gray-400"
                           }`}>
                             {message.timestamp.toLocaleTimeString()}
                           </p>
-                          
-                          {/* AI消息的快捷操作按钮 */}
-                          {message.sender === "ai" && (
-                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {/* 复制按钮 */}
-                              <button
-                                onClick={() => handleCopyMessage(message.content)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                                title="复制消息"
-                              >
-                                <Copy className="w-3 h-3 text-gray-500" />
-                              </button>
-                              
-                              {/* 重新生成按钮 */}
-                              <button
-                                onClick={() => handleRegenerateMessage(message.id)}
-                                disabled={message.isRegenerating}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
-                                title="重新生成"
-                              >
-                                <RotateCcw className={`w-3 h-3 text-gray-500 ${message.isRegenerating ? 'animate-spin' : ''}`} />
-                              </button>
-                              
-                              {/* 点赞按钮 */}
-                              <button
-                                onClick={() => handleLikeMessage(message.id)}
-                                className={`p-1 hover:bg-gray-100 rounded transition-colors ${
-                                  message.liked ? 'text-green-500' : 'text-gray-500'
-                                }`}
-                                title="点赞"
-                              >
-                                <ThumbsUp className="w-3 h-3" />
-                              </button>
-                              
-                              {/* 点踩按钮 */}
-                              <button
-                                onClick={() => handleDislikeMessage(message.id)}
-                                className={`p-1 hover:bg-gray-100 rounded transition-colors ${
-                                  message.disliked ? 'text-red-500' : 'text-gray-500'
-                                }`}
-                                title="点踩"
-                              >
-                                <ThumbsDown className="w-3 h-3" />
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
+                    
+                    {/* AI消息的快捷操作按钮 - 移到消息框外部 */}
+                    {message.sender === "ai" && (
+                      <div className="absolute -right-2 top-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white border border-gray-200 rounded-lg shadow-md p-0.5 z-10">
+                        {/* 复制按钮 */}
+                        <button
+                          onClick={() => handleCopyMessage(message.content)}
+                          className="flex items-center justify-center w-7 h-7 hover:bg-gray-100 rounded-md transition-all duration-150 hover:scale-105"
+                          title="复制消息"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-gray-600 hover:text-gray-800" />
+                        </button>
+                        
+                        {/* 重新生成按钮 */}
+                        <button
+                          onClick={() => handleRegenerateMessage(message.id)}
+                          disabled={message.isRegenerating}
+                          className="flex items-center justify-center w-7 h-7 hover:bg-gray-100 rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 disabled:hover:scale-100"
+                          title="重新生成"
+                        >
+                          <RotateCcw className={`w-3.5 h-3.5 text-gray-600 hover:text-gray-800 ${message.isRegenerating ? 'animate-spin' : ''}`} />
+                        </button>
+                        
+                        {/* 点赞按钮 */}
+                        <button
+                          onClick={() => handleLikeMessage(message.id)}
+                          className={`flex items-center justify-center w-7 h-7 hover:bg-gray-100 rounded-md transition-all duration-150 hover:scale-105 ${
+                            message.liked ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                          title="点赞"
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                        </button>
+                        
+                        {/* 点踩按钮 */}
+                        <button
+                          onClick={() => handleDislikeMessage(message.id)}
+                          className={`flex items-center justify-center w-7 h-7 hover:bg-gray-100 rounded-md transition-all duration-150 hover:scale-105 ${
+                            message.disliked ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:text-gray-800'
+                          }`}
+                          title="点踩"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

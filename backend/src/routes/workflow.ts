@@ -165,8 +165,9 @@ router.post('/tech-package', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { inputs } = req.body;
+    const { inputs, conversation_id } = req.body;
     console.log('提取的inputs:', JSON.stringify(inputs, null, 2));
+    console.log('传入的conversation_id:', conversation_id);
     
     // 将前端数据映射到Dify工作流期望的格式
     const difyInputs = {
@@ -176,6 +177,16 @@ router.post('/tech-package', async (req, res) => {
     
     const result = await DifyClient.techPackage(difyInputs);
     console.log('Dify返回结果:', JSON.stringify(result, null, 2));
+    
+    // 保存Dify返回消息到数据库
+    try {
+      const userQuery = inputs.query || '技术包装请求';
+      await ChatMessageService.saveDifyWorkflowResponse(result, userQuery, 'tech-package', inputs, conversation_id);
+      console.log('技术包装消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存技术包装消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
     
     // 验证响应数据格式
     const responseValidation = validateTechAppResponse(result);
@@ -205,7 +216,7 @@ router.post('/tech-strategy', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { inputs } = req.body;
+    const { inputs, conversation_id } = req.body;
     
     // 构造Dify API所需的参数格式
     const difyInputs = {
@@ -220,7 +231,7 @@ router.post('/tech-strategy', async (req, res) => {
     
     // 保存Dify工作流返回消息到数据库
     try {
-      await ChatMessageService.saveDifyWorkflowResponse(result, '技术策略生成', 'tech-strategy', inputs);
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术策略生成', 'tech-strategy', inputs, conversation_id);
       console.log('技术策略消息已保存到数据库');
     } catch (saveError) {
       console.error('保存技术策略消息到数据库失败:', saveError);
@@ -254,7 +265,7 @@ router.post('/tech-article', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { inputs } = req.body;
+    const { inputs, conversation_id } = req.body;
     
     // 构造Dify API所需的参数格式 - 技术通稿使用input参数
     const inputContent = `${inputs.techTopic || ''}。${inputs.tech_content || ''}。车型：${inputs.vehicle_model || ''}。核心技术：${inputs.Highlight_tech || ''}。关联技术：${inputs.Associate_tech || ''}`;
@@ -267,7 +278,7 @@ router.post('/tech-article', async (req, res) => {
     
     // 保存Dify工作流返回消息到数据库
     try {
-      await ChatMessageService.saveDifyWorkflowResponse(result, '技术通稿生成', 'tech-article', inputs);
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术通稿生成', 'tech-article', inputs, conversation_id);
       console.log('技术通稿消息已保存到数据库');
     } catch (saveError) {
       console.error('保存技术通稿消息到数据库失败:', saveError);
@@ -301,7 +312,7 @@ router.post('/core-draft', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { inputs } = req.body;
+    const { inputs, conversation_id } = req.body;
     
     // 格式化输入数据为Dify期望的格式
     const formattedInputs = {
@@ -319,7 +330,7 @@ router.post('/core-draft', async (req, res) => {
     
     // 保存Dify工作流返回消息到数据库
     try {
-      await ChatMessageService.saveDifyWorkflowResponse(result, '核心稿件生成', 'core-draft', inputs);
+      await ChatMessageService.saveDifyWorkflowResponse(result, '核心稿件生成', 'core-draft', inputs, conversation_id);
       console.log('核心稿件消息已保存到数据库');
     } catch (saveError) {
       console.error('保存核心稿件消息到数据库失败:', saveError);
@@ -353,7 +364,7 @@ router.post('/tech-publish', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { inputs } = req.body;
+    const { inputs, conversation_id } = req.body;
     
     // 格式化输入数据为Dify期望的格式
     const formattedInputs = {
@@ -370,7 +381,7 @@ router.post('/tech-publish', async (req, res) => {
     
     // 保存Dify工作流返回消息到数据库
     try {
-      await ChatMessageService.saveDifyWorkflowResponse(result, '技术发布生成', 'tech-publish', inputs);
+      await ChatMessageService.saveDifyWorkflowResponse(result, '技术发布生成', 'tech-publish', inputs, conversation_id);
       console.log('技术发布消息已保存到数据库');
     } catch (saveError) {
       console.error('保存技术发布消息到数据库失败:', saveError);

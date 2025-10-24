@@ -186,17 +186,18 @@ const callDifyWorkflowAPI = async (
 
 export const workflowAPI = {
   // AI问答 - 支持自定义Dify配置
-  aiSearch: async (query: string, inputs: any = {}, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  aiSearch: async (query: string, inputs: any = {}, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify API
     if (difyConfig) {
-      return await callDifyAPI(difyConfig, query, inputs);
+      return await callDifyAPI(difyConfig, query, inputs, conversationId);
     }
     
     // 否则使用原有的后端API
     try {
       const response = await api.post('/workflow/ai-search', { 
         query,
-        inputs 
+        inputs,
+        conversation_id: conversationId
       });
       return response.data;
     } catch (error) {
@@ -229,7 +230,7 @@ export const workflowAPI = {
   },
 
   // 技术包装 - 支持自定义Dify配置
-  techPackage: async (searchResults: any, template?: string, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  techPackage: async (searchResults: any, template?: string, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify Workflow API
     if (difyConfig) {
       // 技术包装使用Workflow API
@@ -274,9 +275,13 @@ export const workflowAPI = {
         };
       }
       
-      const response = await api.post('/workflow/tech-package', { 
-        inputs: inputs
-      });
+      // 添加conversationId到请求中
+      const requestData: any = { inputs: inputs };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/tech-package', requestData);
       return response.data;
     } catch (error) {
       console.error('Tech package API error:', error);
@@ -288,7 +293,7 @@ export const workflowAPI = {
   },
 
   // 技术策略 - 支持自定义Dify配置
-  techStrategy: async (techPackage: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  techStrategy: async (techPackage: any, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify Workflow API
     if (difyConfig) {
       // 技术策略使用Workflow API
@@ -314,9 +319,14 @@ export const workflowAPI = {
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/tech-strategy', { 
+      const requestData: any = { 
         inputs: { techPackage }
-      });
+      };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/tech-strategy', requestData);
       return response.data;
     } catch (error) {
       console.error('Tech strategy API error:', error);
@@ -351,7 +361,7 @@ export const workflowAPI = {
   },
 
   // 技术通稿 - 支持自定义Dify配置
-  coreDraft: async (promotionStrategy: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  coreDraft: async (promotionStrategy: any, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify Workflow API
     if (difyConfig) {
       // 技术通稿使用Workflow API
@@ -377,9 +387,14 @@ export const workflowAPI = {
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/core-draft', { 
+      const requestData: any = { 
         inputs: { promotionStrategy }
-      });
+      };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/core-draft', requestData);
       return response.data;
     } catch (error) {
       console.error('Core draft API error:', error);
@@ -391,7 +406,7 @@ export const workflowAPI = {
   },
 
   // 发布会演讲稿 - 支持自定义Dify配置
-  speechGeneration: async (coreDraft: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  speechGeneration: async (coreDraft: any, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify Workflow API
     if (difyConfig) {
       // 演讲稿生成使用Workflow API
@@ -417,15 +432,20 @@ export const workflowAPI = {
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/speech-generation', { 
+      const requestData: any = { 
         inputs: { coreDraft }
-      });
+      };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/speech-generation', requestData);
       return response.data;
     } catch (error) {
       console.error('Speech generation API error:', error);
       return {
         success: false,
-        error: '发布会演讲稿请求失败'
+        error: '演讲稿生成请求失败'
       };
     }
   },
