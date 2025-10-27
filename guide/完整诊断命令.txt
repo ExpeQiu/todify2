@@ -1,0 +1,40 @@
+================================
+正确的诊断命令
+================================
+
+请在控制台一行一行地输入以下命令（每次只输入一行）：
+
+第1行 - 查看HTML结构：
+document.getElementById('standalone-markdown-preview').innerHTML
+
+第2行 - 查看纯文本：
+document.getElementById('standalone-markdown-preview').textContent
+
+第3行 - 统计标题数量：
+document.getElementById('standalone-markdown-preview').querySelectorAll('h1, h2, h3').length
+
+================================
+如何判断结果
+================================
+
+✅ 如果看到：
+- 包含 <h1>, <h2>, <p>, <strong> 等HTML标签
+- 标题数量 > 0
+→ Markdown正在正确渲染
+
+❌ 如果看到：
+- 文本中有 ## 或 ** 符号
+- 标题数量 = 0
+→ Markdown未正确渲染
+
+================================
+快速测试（1行命令）
+================================
+
+如果要快速测试，只输入这一行：
+
+document.getElementById('standalone-markdown-preview').querySelectorAll('h1, h2, h3').length
+
+如果返回 0 → 问题在于Markdown未渲染
+如果返回 > 0 → Markdown正在渲染，可能需要检查样式
+

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>快速检查 - Markdown渲染问题</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { color: #1f2937; }
+    .step {
+      background: #f9fafb;
+      padding: 15px;
+      margin: 15px 0;
+      border-left: 4px solid #3b82f6;
+      border-radius: 4px;
+    }
+    .code {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: Monaco, Courier, monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Markdown渲染问题诊断工具</h1>
+    
+    <div class="step">
+      <h2>步骤 1: 确保已在 http://localhost:3001</h2>
+      <p>在浏览器打开 <code>http://localhost:3001</code>，进入工作流页面</p>
+    </div>
+    
+    <div class="step">
+      <h2>步骤 2: 打开开发者工具</h2>
+      <p>按 <code>F12</code> 或 <code>Cmd + Option + I</code> (Mac)</p>
+      <p>点击 <strong>Console</strong> 标签</p>
+    </div>
+    
+    <div class="step">
+      <h2>步骤 3: 复制下面的代码</h2>
+      <p>点击下面的按钮，代码会被复制到剪贴板</p>
+      <button onclick="copyCode()">📋 复制诊断代码</button>
+    </div>
+    
+    <div class="step">
+      <h2>步骤 4: 在控制台粘贴并运行</h2>
+      <p>在浏览器的控制台（Console）中按 <code>Cmd+V</code> 粘贴，然后按 <code>Enter</code></p>
+    </div>
+    
+    <div class="step">
+      <h2>步骤 5: 查看输出结果</h2>
+      <p>将控制台显示的所有内容复制给我</p>
+    </div>
+    
+    <hr style="margin: 30px 0;">
+    
+    <h2>诊断代码预览</h2>
+    <div class="code" id="code-block">
+console.log('=== 开始诊断 ===');
+const editor = document.getElementById('standalone-document-editor');
+console.log('1. StandaloneDocumentEditor存在:', !!editor);
+if (editor) {
+  const style = window.getComputedStyle(editor);
+  console.log('2. 背景色:', style.backgroundColor);
+  console.log('3. 文字颜色:', style.color);
+}
+const markdownPreview = document.getElementById('standalone-markdown-preview');
+console.log('4. Markdown预览区域存在:', !!markdownPreview);
+if (markdownPreview) {
+  const previewStyle = window.getComputedStyle(markdownPreview);
+  console.log('5. 预览背景色:', previewStyle.backgroundColor);
+  console.log('6. 预览文字颜色:', previewStyle.color);
+  const h1Elements = markdownPreview.querySelectorAll('h1, h2, h3');
+  console.log('7. 渲染的标题数量:', h1Elements.length);
+}
+console.log('8. HTML theme:', document.documentElement.getAttribute('data-theme'));
+console.log('9. 系统暗色模式:', window.matchMedia('(prefers-color-scheme: dark)').matches);
+console.log('=== 诊断完成 ===');
+    </div>
+  </div>
+  
+  <script>
+    function copyCode() {
+      const code = document.getElementById('code-block').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('✓ 代码已复制到剪贴板！');
+      }).catch(() => {
+        alert('无法复制，请手动复制代码块中的内容');
+      });
+    }
+  </script>
+</body>
+</html>
+

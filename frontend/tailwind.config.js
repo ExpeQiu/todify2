@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // darkMode: 'media', // 支持系统暗色模式检测，已在全局CSS中移除暗色模式支持
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -126,6 +127,8 @@ export default {
     },
   },
   plugins: [
-    require('@tailwindcss/typography'),
+    require('@tailwindcss/typography')({
+      target: 'modern',
+    }),
   ],
 }

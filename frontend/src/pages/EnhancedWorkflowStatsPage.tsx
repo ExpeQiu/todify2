@@ -41,6 +41,9 @@ const EnhancedWorkflowStatsPage: React.FC = () => {
   const [selectedDays, setSelectedDays] = useState(7);
   const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'realtime' | 'export'>('overview');
   const [chartData, setChartData] = useState<any>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30000); // 30秒刷新一次
 
   // 获取统计数据
   const fetchStatsData = async () => {
@@ -49,6 +52,7 @@ const EnhancedWorkflowStatsPage: React.FC = () => {
       setError(null);
       const data = await workflowStatsService.getOverallStats(selectedDays);
       setStatsData(data);
+      setLastUpdate(new Date());
       
       // 准备图表数据
       prepareChartData(data);
@@ -57,6 +61,16 @@ const EnhancedWorkflowStatsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 手动刷新数据
+  const handleRefresh = () => {
+    fetchStatsData();
+  };
+
+  // 切换自动刷新
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(!autoRefresh);
   };
 
   // 准备图表数据
@@ -124,9 +138,21 @@ const EnhancedWorkflowStatsPage: React.FC = () => {
     setChartData(chartData);
   };
 
+  // 初始加载和天数变化时刷新数据
   useEffect(() => {
     fetchStatsData();
   }, [selectedDays]);
+
+  // 自动刷新逻辑
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchStatsData();
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval, selectedDays]);
 
   // 下载统计数据
   const handleDownload = async () => {
@@ -188,6 +214,31 @@ const EnhancedWorkflowStatsPage: React.FC = () => {
               <p className="text-gray-600 mt-1">全面了解功能使用情况和性能指标</p>
             </div>
             <div className="flex items-center space-x-4">
+              {/* 刷新控制 */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span>刷新</span>
+                </button>
+                <button
+                  onClick={toggleAutoRefresh}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    autoRefresh 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  <Activity className="h-4 w-4" />
+                  <span>{autoRefresh ? '自动刷新' : '手动刷新'}</span>
+                </button>
+                <span className="text-sm text-gray-500">
+                  最后更新: {lastUpdate.toLocaleTimeString()}
+                </span>
+              </div>
               {/* 时间范围选择 */}
               <div className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5 text-gray-400" />

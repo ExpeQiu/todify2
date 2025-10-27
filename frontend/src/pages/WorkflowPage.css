@@ -816,9 +816,29 @@
 /* 右侧内容编辑区 - 占据剩余空间 */
 .content-editor-section {
   flex: 1; /* 占据剩余空间 */
-  background: white; /* 设置背景色为白色 */
+  background: white !important; /* 设置背景色为白色 */
   display: flex; /* 使用弹性布局 */
   flex-direction: column; /* 设置主轴方向为垂直方向 */
+  height: calc(100vh - 120px); /* 设置高度为视窗高度减去顶部导航和底部导航的高度 */
+  min-height: calc(100vh - 120px); /* 设置最小高度 */
+}
+
+/* 强制内容编辑器所有子元素使用白色背景 */
+.content-editor-section .document-editor {
+  background: white !important;
+}
+
+.content-editor-section .document-editor * {
+  background-color: white !important;
+}
+
+/* StandaloneDocumentEditor 样式保护 */
+.content-editor-section #standalone-document-editor {
+  background: white !important;
+}
+
+.content-editor-section #standalone-document-editor * {
+  color: #1f2937 !important;
 }
 
 /* 编辑器头部样式 */
@@ -888,13 +908,15 @@
   display: flex; /* 使用弹性布局 */
   flex-direction: column; /* 设置为垂直布局 */
   background: #fafbfc; /* 设置背景色为极浅灰色 */
+  height: calc(100vh - 200px); /* 设置高度为视窗高度减去200px */
+  min-height: calc(100vh - 200px); /* 设置最小高度 */
 }
 
 /* 编辑器文本区域样式 */
 .editor-textarea {
   width: 100%; /* 设置宽度为100% */
-  height: 100%; /* 设置高度为100% */
-  min-height: 400px; /* 设置最小高度为400px */
+  height: calc(100vh - 300px); /* 设置高度为视窗高度减去300px */
+  min-height: calc(100vh - 300px); /* 设置最小高度为视窗高度减去300px */
   border: 1px solid #e2e8f0; /* 设置边框为1px实线，颜色为浅灰色 */
   border-radius: 8px; /* 设置圆角半径为8px */
   padding: 16px; /* 设置内边距为16px */

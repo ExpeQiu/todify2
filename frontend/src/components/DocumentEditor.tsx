@@ -279,7 +279,15 @@ const DocumentEditor: React.FC<DocumentEditorProps> = ({
             data-oid="6z1u-8b"
           />
         ) : (
-          <div className="content-preview markdown-preview prose prose-sm max-w-none" data-oid="g67pz6h">
+          <div 
+            className="content-preview markdown-preview prose prose-slate max-w-none" 
+            data-oid="g67pz6h"
+            style={{ 
+              backgroundColor: 'white !important',
+              color: '#1f2937 !important',
+              padding: '20px'
+            }}
+          >
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}

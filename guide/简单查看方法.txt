@@ -1,0 +1,54 @@
+================================
+  如何查看浏览器控制台（最简单方法）
+================================
+
+【第一步】打开浏览器
+访问：http://localhost:3001
+
+
+【第二步】打开开发者工具
+方法A（最简单）：
+  - 按键盘上的 F12 键
+  - 按 Cmd + Option + I （Mac）
+  - 按 Ctrl + Shift + I （Windows）
+
+方法B：
+  - 在网页上右键点击任意位置
+  - 点击"检查"或"Inspect"
+
+
+【第三步】找到Console
+开发工具打开后，会看到多个标签：
+  
+  Elements | Console | Network | Sources | Performance
+           ↑
+       点这个！
+
+
+【第四步】粘贴下面的代码
+
+把下面这整段代码复制，粘贴到Console里，然后按回车：
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+console.log('开始检查');const ed=document.getElementById('standalone-document-editor');console.log('组件存在:',!!ed);if(ed){const s=window.getComputedStyle(ed);console.log('背景色:',s.backgroundColor);console.log('文字颜色:',s.color);}const mp=document.getElementById('standalone-markdown-preview');console.log('预览区存在:',!!mp);if(mp){const ps=window.getComputedStyle(mp);console.log('预览背景色:',ps.backgroundColor);console.log('预览文字颜色:',ps.color);const hs=mp.querySelectorAll('h1,h2,h3');console.log('标题数量:',hs.length);}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+【第五步】把结果发给我
+控制台会显示类似这样的结果：
+  
+  组件存在: true
+  背景色: rgb(255, 255, 255)
+  文字颜色: rgb(31, 41, 55)
+  预览区存在: true
+  预览背景色: rgb(255, 255, 255)
+  预览文字颜色: rgb(31, 41, 55)
+  标题数量: 3
+
+把这些结果复制给我，我就知道问题在哪里了！
+
+
+【不知道怎么操作？】
+1. 截图发给我（按 Cmd + Shift + 3 或 Win + PrintScreen）
+2. 或者告诉我具体卡在哪一步
+

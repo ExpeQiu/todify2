@@ -20,7 +20,8 @@ import {
   Plus,
 } from "lucide-react";
 import { workflowAPI } from "../services/api";
-import DocumentEditor from "../components/DocumentEditor";
+import { useWorkflowStats, useWorkflowSessionStats } from '../hooks/useWorkflowStats';
+import StandaloneDocumentEditor from "../components/StandaloneDocumentEditor";
 import LoadingAnimation, {
   LoadingOverlay,
   LoadingButton,
@@ -65,6 +66,11 @@ interface ChatMessage {
 
 const WorkflowPage: React.FC = () => {
   const navigate = useNavigate();
+  
+  // 统计收集钩子
+  const { recordNodeUsage, recordFeedback } = useWorkflowStats();
+  const { recordNodeVisit, recordNodeCompletion, recordSessionEnd } = useWorkflowSessionStats();
+  
   const [currentStep, setCurrentStep] = useState(0); // 默认设置为步骤0（AI问答），按照工作流程从第一步开始
   const [stepData, setStepData] = useState<StepData>({});
   const [loading, setLoading] = useState(false);
@@ -691,6 +697,22 @@ const WorkflowPage: React.FC = () => {
   const handleStepClick = (stepId: number) => {
     setCurrentStep(stepId);
     
+    // 记录节点访问统计
+    const step = steps[stepId];
+    if (step) {
+      recordNodeVisit(step.key);
+      
+      // 记录节点使用统计
+      recordNodeUsage({
+        node_id: step.key,
+        node_name: step.title,
+        node_type: step.key,
+        usage_count: 1,
+        is_workflow_mode: true,
+        is_standalone_mode: false
+      });
+    }
+    
     // 修复步骤状态更新逻辑：
     // - 当前步骤之前的步骤应该标记为completed
     // - 当前步骤标记为active  
@@ -986,6 +1008,25 @@ const WorkflowPage: React.FC = () => {
       };
       
       setChatMessages((prev) => [...prev, assistantMessage]);
+      
+      // 记录AI问答统计
+      if (result.success && result.data) {
+        const responseTime = Date.now() - Date.now(); // 这里应该计算实际的响应时间
+        recordNodeUsage({
+          node_id: 'ai_qa',
+          node_name: 'AI问答',
+          node_type: 'ai_qa',
+          usage_count: 1,
+          avg_response_time: responseTime,
+          success_count: 1,
+          is_workflow_mode: true,
+          is_standalone_mode: false
+        });
+        
+        // 记录节点完成
+        recordNodeCompletion('ai_qa');
+      }
+      
       setIsTyping(false);
     } catch (error) {
       console.error('智能搜索API调用失败:', error);
@@ -1025,6 +1066,20 @@ const WorkflowPage: React.FC = () => {
         ? { ...msg, liked: !msg.liked, disliked: false }
         : msg
     ));
+    
+    // 记录反馈统计
+    const message = chatMessages.find(msg => msg.id === messageId);
+    if (message) {
+      recordFeedback({
+        node_id: 'ai_qa',
+        node_name: 'AI问答',
+        node_type: 'ai_qa',
+        message_id: messageId,
+        feedback_type: 'like',
+        satisfaction_score: 5,
+        feedback_content: message.content.substring(0, 100)
+      });
+    }
   };
 
   const handleDislikeMessage = (messageId: string) => {
@@ -1033,6 +1088,20 @@ const WorkflowPage: React.FC = () => {
         ? { ...msg, disliked: !msg.disliked, liked: false }
         : msg
     ));
+    
+    // 记录反馈统计
+    const message = chatMessages.find(msg => msg.id === messageId);
+    if (message) {
+      recordFeedback({
+        node_id: 'ai_qa',
+        node_name: 'AI问答',
+        node_type: 'ai_qa',
+        message_id: messageId,
+        feedback_type: 'dislike',
+        satisfaction_score: 1,
+        feedback_content: message.content.substring(0, 100)
+      });
+    }
   };
 
   // 处理采纳消息
@@ -1180,6 +1249,9 @@ const WorkflowPage: React.FC = () => {
                       ]);
                       // 清空输入框
                       setInputMessage("");
+                      // 重置对话ID，开始新的对话
+                      setConversationId("");
+                      console.log('重置对话ID，开始新对话');
                     }}
                     className="flex items-center space-x-2 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 shadow-sm text-sm"
                     data-oid="new-question-btn"
@@ -1339,22 +1411,22 @@ const WorkflowPage: React.FC = () => {
                </div>
              </div>
            ) : (
-             /* 其他步骤 - 文本编辑器界面 */
-             <div className="content-editor-section">
-               <DocumentEditor
-                 initialContent={editorContent}
-                 title={steps.find(step => step.id === currentStep)?.title}
-                 isEditing={getCurrentStepEditingState()}
-                 onToggleEdit={() => toggleEditingMode(currentStep)}
-                 onContentChange={handleEditorChange}
-                 onSave={(content, title) => {
-                   setEditorContent(content);
-                   handleSave();
-                 }}
-                 onExportPDF={(content, title) => {
-                   setEditorContent(content);
-                   handleExport();
-                 }}
+            /* 其他步骤 - 文本编辑器界面 */
+            <div className="content-editor-section">
+              <StandaloneDocumentEditor
+                initialContent={editorContent}
+                title={steps.find(step => step.id === currentStep)?.title}
+                isEditing={getCurrentStepEditingState()}
+                onToggleEdit={() => toggleEditingMode(currentStep)}
+                onContentChange={handleEditorChange}
+                onSave={(content, _title) => {
+                  setEditorContent(content);
+                  handleSave();
+                }}
+                onExportPDF={(content, _title) => {
+                  setEditorContent(content);
+                  handleExport();
+                }}
                />
                
                {processError && (

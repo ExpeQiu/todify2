@@ -35,20 +35,55 @@ const callDifyAPI = async (
   conversationId?: string
 ): Promise<WorkflowResponse> => {
   try {
-    const response = await fetch(`${config.apiUrl}/chat-messages`, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 120秒超时
+    
+    // 所有远程URL都转换为本地代理路径
+    // 让后端代理到Dify 9999端口
+    let apiUrl = config.apiUrl;
+    if (config.apiUrl.includes('47.113.225.93')) {
+      if (config.apiUrl.includes('/chat-messages')) {
+        apiUrl = 'http://localhost:3001/api/dify/chat-messages';
+      } else if (config.apiUrl.includes('/workflows/run')) {
+        apiUrl = 'http://localhost:3001/api/dify/workflows/run';
+      }
+      console.log('🔄 URL转换:', config.apiUrl, '->', apiUrl);
+    }
+    
+    console.log('🔍 Dify API调用:', {
+      originalUrl: config.apiUrl,
+      finalUrl: apiUrl,
+      appType: config.id,
+      conversationId
+    });
+    
+    console.log('📤 请求体:', {
+      appType: config.id,
+      inputs,
+      query,
+      response_mode: 'blocking',
+      conversation_id: conversationId || '',
+      user: 'user-' + Date.now(),
+    });
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs,
+        appType: config.id, // 添加appType用于后端代理识别
+        inputs: inputs && Object.keys(inputs).length > 0 ? inputs : {}, // 确保inputs格式正确
         query,
         response_mode: 'blocking',
         conversation_id: conversationId || '',
         user: 'user-' + Date.now(),
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -109,6 +144,7 @@ const callDifyWorkflowAPI = async (
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          appType: config.id, // 添加appType用于后端代理识别
           inputs,
           response_mode: 'blocking',
           user: user || 'user-' + Date.now(),

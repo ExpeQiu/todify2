@@ -300,84 +300,7 @@
 }
 
 /* 深色模式支持 */
-@media (prefers-color-scheme: dark) {
-  .modal-overlay {
-    background: rgba(0, 0, 0, 0.8);
-  }
-
-  .modal-content {
-    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
-    border: 1px solid rgba(71, 85, 105, 0.3);
-    box-shadow: 
-      0 25px 50px -12px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(71, 85, 105, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  .modal-header {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.3);
-  }
-
-  .modal-title {
-    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .modal-close-button {
-    background: linear-gradient(135deg, #334155, #475569);
-    color: #cbd5e1;
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .modal-close-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #475569, #64748b);
-    color: #f1f5f9;
-  }
-
-  .modal-body {
-    background: #1e293b;
-  }
-
-  .modal-description {
-    color: #cbd5e1;
-  }
-
-  .knowledge-points-preview {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .modal-footer {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border-top: 1px solid rgba(71, 85, 105, 0.3);
-  }
-
-  .modal-cancel-button {
-    background: linear-gradient(135deg, #334155, #475569);
-    color: #cbd5e1;
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .modal-cancel-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #475569, #64748b);
-    color: #f1f5f9;
-  }
-
-  .modal-body::-webkit-scrollbar-track {
-    background: #334155;
-  }
-
-  .modal-body::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #475569, #64748b);
-  }
-
-  .modal-body::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #64748b, #94a3b8);
-  }
-}
+/* 已移除暗色主题支持，统一使用白色主题 */
 
 /* 知识点选择器优化样式 */
 .knowledge-point-selector {
@@ -621,40 +544,7 @@
 }
 
 /* 深色模式下的知识点选择器样式 */
-@media (prefers-color-scheme: dark) {
-  .knowledge-point-selector {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .knowledge-point-selector .filter-section {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .knowledge-point-selector .content-type-card {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .knowledge-point-selector .table-container {
-    background: #1e293b;
-    border: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .knowledge-point-selector .table-header {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-    border-bottom: 1px solid rgba(71, 85, 105, 0.5);
-  }
-
-  .knowledge-point-selector .table-row:hover {
-    background: linear-gradient(135deg, #334155 0%, #475569 100%);
-  }
-
-  .knowledge-point-selector .table-cell.clickable:hover {
-    color: #60a5fa;
-  }
-}
+/* 已移除暗色主题支持，统一使用白色主题 */
 
 .node-component:hover {
   transform: translateY(-2px);
@@ -986,56 +876,4 @@
 }
 
 /* 深色模式支持 */
-@media (prefers-color-scheme: dark) {
-  .node-component {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .node-header h2 {
-    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .node-description {
-    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-    border-left-color: #8b5cf6;
-  }
-  
-  .node-description p {
-    color: #cbd5e1;
-  }
-  
-  .form-group label {
-    color: #f1f5f9;
-  }
-  
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    background: #334155;
-    border-color: #475569;
-    color: #f1f5f9;
-  }
-  
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-  }
-  
-  .secondary-button {
-    background: #374151;
-    color: #d1d5db;
-    border-color: #4b5563;
-  }
-  
-  .secondary-button:hover:not(:disabled) {
-    background: #4b5563;
-    border-color: #6b7280;
-    color: #f3f4f6;
-  }
-}
+/* 已移除暗色主题支持，统一使用白色主题 */

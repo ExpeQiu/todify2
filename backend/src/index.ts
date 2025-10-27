@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import workflowRoutes from './routes/workflow';
 import apiRoutes from './routes';
+import difyProxyRoutes from './routes/dify-proxy';
 import { testConnection } from './config/database';
 
 dotenv.config();
@@ -33,6 +34,9 @@ app.use((req, res, next) => {
 
 // 路由配置（API 保持 /api/v1 前缀）
 app.use('/api/v1', apiRoutes);
+
+// Dify API 代理路由
+app.use('/api/dify', difyProxyRoutes);
 
 // API 健康检查
 app.get('/api/health', (req, res) => {
