@@ -259,10 +259,14 @@ class ConfigService {
       if (stored) {
         configs = JSON.parse(stored);
         
-        // 强制清理包含9999端口的旧配置
-        const has9999Url = configs.some((config: any) => config.apiUrl?.includes(':9999'));
-        if (has9999Url) {
-          console.log('⚠️ 检测到旧的9999端口配置，强制更新');
+        // 强制清理包含9999端口或8088/api/dify的旧配置
+        const hasInvalidUrl = configs.some((config: any) => 
+          config.apiUrl?.includes(':9999') || 
+          config.apiUrl?.includes('8088/api/dify') ||
+          config.apiUrl === 'http://47.113.225.93:8088/api/dify'
+        );
+        if (hasInvalidUrl) {
+          console.log('⚠️ 检测到旧的无效配置，强制更新为正确配置');
           await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
           return this.DEFAULT_DIFY_CONFIGS;
         }

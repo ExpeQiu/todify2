@@ -178,6 +178,8 @@ AI问答	app-t1X4eu8B4eucyO6IfrTbw1t2	chatflow	✅ 正常
 技术策略	app-awRZf7tKfvC73DEVANAGGNr8	workflow	✅ 正常
 技术通稿	app-3TK9U2F3WwFP7vOoq0Ut84KA	workflow	✅ 正常
 发布会稿	app-WcV5IDjuNKbOKIBDPWdb7HF4	workflow	✅ 正常
+
+
 独立页面配置 (IndependentPageConfig)
 功能	API Key	连接类型	状态
 AI问答	app-HC8dx24idIWm1uva66VmHXsm	chatflow	✅ 正常

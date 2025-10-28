@@ -79,8 +79,12 @@ router.post('/chat-messages', async (req, res) => {
       response_mode: 'blocking'
     });
 
+    // 正确的Dify API端点
+    const difyApiUrl = 'http://47.113.225.93:9999/v1/chat-messages';
+    console.log('请求Dify API URL:', difyApiUrl);
+    
     const difyResponse = await axios.post(
-      difyBaseUrl + '/chat-messages',
+      difyApiUrl,
       { 
         query: cleanedBody.query,
         inputs: cleanedBody.inputs || {},
@@ -123,10 +127,12 @@ router.post('/workflows/run', async (req, res) => {
     }
 
     console.log('Using API key for appType:', appType);
-    console.log('Dify workflow base URL:', process.env.DIFY_WORKFLOW_BASE_URL);
+    // 直接使用正确的Dify工作流API端点
+    const difyWorkflowUrl = 'http://47.113.225.93:9999/v1/workflows/run';
+    console.log('Dify workflow URL:', difyWorkflowUrl);
 
     const difyResponse = await axios.post(
-      process.env.DIFY_WORKFLOW_BASE_URL + '/workflows/run',
+      difyWorkflowUrl,
       { 
         ...requestBody, 
         user: requestBody.user || `user-${Date.now()}`, 

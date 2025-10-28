@@ -41,11 +41,12 @@ const callDifyAPI = async (
     // 所有远程URL都转换为本地代理路径
     // 让后端代理到Dify 9999端口
     let apiUrl = config.apiUrl;
-    if (config.apiUrl.includes('47.113.225.93')) {
+    if (config.apiUrl.includes('47.113.225.93') || config.apiUrl.includes('localhost')) {
+      // 通过8088端口的Nginx代理到后端
       if (config.apiUrl.includes('/chat-messages')) {
-        apiUrl = 'http://localhost:3001/api/dify/chat-messages';
+        apiUrl = 'http://47.113.225.93:8088/api/dify/chat-messages';
       } else if (config.apiUrl.includes('/workflows/run')) {
-        apiUrl = 'http://localhost:3001/api/dify/workflows/run';
+        apiUrl = 'http://47.113.225.93:8088/api/dify/workflows/run';
       }
       console.log('🔄 URL转换:', config.apiUrl, '->', apiUrl);
     }

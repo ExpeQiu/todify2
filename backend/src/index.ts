@@ -79,8 +79,8 @@ async function startServer() {
     }
     console.log('Database connection successful');
     
-    const server = app.listen(port, () => {
-      console.log(`Backend server is running on http://localhost:${port}`);
+    const server = app.listen(port, "0.0.0.0", () => {
+      console.log(`Backend server is running on http://0.0.0.0:${port}`);
       console.log('Server is ready to accept connections');
     });
 
