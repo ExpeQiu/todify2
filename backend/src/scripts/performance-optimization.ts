@@ -113,7 +113,7 @@ class DatabasePerformanceOptimizer {
       `);
       
       console.log(`📋 发现 ${indexes.length} 个用户索引:`);
-      indexes.forEach(index => {
+      indexes.forEach((index: any) => {
         console.log(`  ${index.tbl_name}.${index.name}`);
       });
       
@@ -158,9 +158,9 @@ class DatabasePerformanceOptimizer {
     
     if (duplicateIndexes.length > 0) {
       console.log('⚠️ 发现可能的重复索引:');
-      duplicateIndexes.forEach(dup => {
+      duplicateIndexes.forEach((dup: any) => {
         console.log(`  ${dup.pattern}:`);
-        dup.indexes.forEach(idx => {
+        dup.indexes.forEach((idx: any) => {
           console.log(`    ${idx.tbl_name}.${idx.name}`);
         });
       });

@@ -43,6 +43,14 @@ const getApiKey = (appType: string): string => {
       return process.env.TECH_ARTICLE_API_KEY || '';
     case 'INDEPENDENT_TECH_PUBLISH':
       return process.env.TECH_PUBLISH_API_KEY || '';
+    case 'speech-workflow':
+      return process.env.TECH_PUBLISH_API_KEY || '';
+    case 'tech-package-workflow':
+      return process.env.TECH_PACKAGE_API_KEY || '';
+    case 'tech-strategy-workflow':
+      return process.env.TECH_STRATEGY_API_KEY || '';
+    case 'tech-article-workflow':
+      return process.env.TECH_ARTICLE_API_KEY || '';
     default:
       return '';
   }

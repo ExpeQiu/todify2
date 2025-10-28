@@ -304,13 +304,13 @@ export class WorkflowStatsController {
       ]);
       
       // 计算综合指标
-      const totalUsage = nodeUsageOverview.reduce((sum, node) => sum + node.total_usage, 0);
+      const totalUsage = nodeUsageOverview.reduce((sum: number, node: any) => sum + node.total_usage, 0);
       const totalSessions = workflowCompletionStats.total_sessions || 0;
       const completionRate = workflowCompletionStats.completed_sessions / totalSessions * 100 || 0;
       const avgSatisfaction = workflowCompletionStats.avg_satisfaction_score || 0;
       
       // 计算各节点的采纳率
-      const nodeAdoptionRates = nodeUsageOverview.map(node => ({
+      const nodeAdoptionRates = nodeUsageOverview.map((node: any) => ({
         nodeId: node.node_id,
         nodeName: node.node_name,
         adoptionRate: node.adoption_rate * 100 || 0,
@@ -321,7 +321,7 @@ export class WorkflowStatsController {
       }));
       
       // 计算内容处理类型分布
-      const contentProcessingDistribution = contentAdoptionStats.reduce((acc, item) => {
+      const contentProcessingDistribution = contentAdoptionStats.reduce((acc: any, item: any) => {
         if (!acc[item.node_id]) {
           acc[item.node_id] = {};
         }

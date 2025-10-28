@@ -355,6 +355,54 @@ router.post('/core-draft', async (req, res) => {
   }
 });
 
+// 发布会稿生成接口 (根据专项-发布会稿.yml配置)
+router.post('/speech-generation', async (req, res) => {
+  try {
+    // 验证请求参数
+    const validation = validateTechAppRequest(req.body);
+    if (!validation.isValid) {
+      return res.status(400).json(formatValidationErrorResponse(validation.errors));
+    }
+
+    const { inputs, conversation_id } = req.body;
+    
+    // 根据专项-发布会稿.yml配置，支持多种参数映射方式
+    const speechInputs = {
+      Additional_information: inputs.Additional_information || inputs.coreDraft || inputs,
+      'sys.query': inputs['sys.query'] || inputs.query || '请根据提供的补充信息生成技术发布会稿'
+    };
+    
+    console.log('Speech Generation Inputs:', speechInputs);
+    
+    const result = await DifyClient.techPublish(speechInputs);
+    
+    // 保存Dify工作流返回消息到数据库
+    try {
+      await ChatMessageService.saveDifyWorkflowResponse(result, '发布会稿生成', 'speech-generation', inputs, conversation_id);
+      console.log('发布会稿消息已保存到数据库');
+    } catch (saveError) {
+      console.error('保存发布会稿消息到数据库失败:', saveError);
+      // 不影响主流程，继续执行
+    }
+    
+    // 验证响应数据格式
+    const responseValidation = validateTechAppResponse(result);
+    if (!responseValidation.isValid) {
+      console.warn('发布会稿响应格式验证失败:', responseValidation.errors);
+    }
+    
+    res.json(formatApiResponse(true, result, '发布会稿生成完成'));
+  } catch (error) {
+    console.error('发布会稿生成API错误:', error);
+    res.status(500).json(formatApiResponse(
+      false, 
+      null, 
+      '发布会稿生成失败', 
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
 // 技术发布接口 (使用chatflow模式)
 router.post('/tech-publish', async (req, res) => {
   try {

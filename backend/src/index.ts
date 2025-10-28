@@ -10,7 +10,7 @@ import { testConnection } from './config/database';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 8088;
+const port = Number(process.env.PORT) || 8088;
 
 // 中间件
 app.use(cors());

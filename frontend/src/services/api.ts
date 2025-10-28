@@ -453,10 +453,10 @@ export const workflowAPI = {
       
       // 使用workflow API，传递正确的输入参数
       const inputs = {
-        input4: query, // 发布会稿使用input4作为输入
+        'sys.query': query, // 用户需求
+        'Additional_information': query, // 附加信息，使用coreDraft内容
         query: query,
-        coreDraft: query,
-        template: 'default'
+        coreDraft: query
       };
       
       console.log('Dify Workflow API输入参数:', inputs);
@@ -496,8 +496,8 @@ export const workflowAPI = {
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/tech-publish', { 
-        inputs: { coreDraft: inputs }
+      const response = await api.post('/workflow/speech-generation', { 
+        inputs: inputs
       });
       return response.data;
     } catch (error) {

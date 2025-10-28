@@ -152,35 +152,64 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       setAiResponse("AI正在生成发布会稿内容...");
 
       try {
-        // 构建专项-发布会稿工作流的Dify配置
-        const speechWorkflowConfig = {
-          id: 'speech-workflow',
-          name: '专项-发布会稿',
-          description: '发布会稿生成工作流',
-          apiUrl: 'http://47.113.225.93:8088/api/dify/workflows/run',
-          apiKey: 'app-your-api-key', // 需要配置实际的API Key
-          enabled: true
-        };
-
         // 准备工作流输入参数，对接 Additional_information 和 sys.query
         const workflowInputs = {
           Additional_information: additionalInfo.trim() || "", // 对接补充信息输入框
           'sys.query': query.trim() // 对接主要查询输入框
         };
 
-        // 调用Dify工作流API
-        const result = await workflowAPI.speech(workflowInputs, speechWorkflowConfig);
+        // 调用本地后端API（不传递difyConfig参数，使用本地后端）
+        const result = await workflowAPI.speech(workflowInputs);
+
+        console.log("=== SpeechNode API Response Debug ===");
+        console.log("Full result:", JSON.stringify(result, null, 2));
+        console.log("result.data:", JSON.stringify(result.data, null, 2));
+        console.log("result.data type:", typeof result.data);
 
         if (result.success && result.data) {
-          // 设置AI响应内容 - 显示工作流结果输出
-          const workflowOutput = result.data.answer || result.data.output || result.data;
-          setAiResponse(typeof workflowOutput === 'string' ? workflowOutput : JSON.stringify(workflowOutput, null, 2));
+          // 提取text字段内容进行显示
+          let responseText = '';
+          
+          if (typeof result.data === 'string') {
+            try {
+              // 尝试解析JSON字符串
+              const parsedData = JSON.parse(result.data);
+              responseText = parsedData.text || parsedData.answer || parsedData.output || result.data;
+            } catch (e) {
+              // 如果不是JSON，直接使用字符串内容
+              responseText = result.data;
+            }
+          } else if (result.data.data && result.data.data.outputs && result.data.data.outputs.text) {
+            // 优先提取data.outputs.text字段（嵌套的Dify工作流响应格式）
+            responseText = result.data.data.outputs.text;
+          } else if (result.data.data && result.data.data.outputs && result.data.data.outputs.answer) {
+            // 备用：提取data.outputs.answer字段
+            responseText = result.data.data.outputs.answer;
+          } else if (result.data.outputs && result.data.outputs.text) {
+            // 提取outputs.text字段（直接的Dify工作流响应格式）
+            responseText = result.data.outputs.text;
+          } else if (result.data.outputs && result.data.outputs.answer) {
+            // 备用：提取outputs.answer字段
+            responseText = result.data.outputs.answer;
+          } else if (result.data.text) {
+            // 直接提取text字段（兼容其他格式）
+            responseText = result.data.text;
+          } else {
+            // 最后备用字段
+            responseText = result.data.answer || result.data.output || JSON.stringify(result.data, null, 2);
+          }
+          
+          console.log("=== Text Extraction Debug ===");
+          console.log("Extracted responseText:", responseText);
+          console.log("responseText length:", responseText.length);
+          
+          setAiResponse(responseText);
 
           // 通知父组件执行完成
           onExecute({
             query: query.trim(),
             additionalInfo: additionalInfo.trim(),
-            response: workflowOutput,
+            response: responseText,
             metadata: result.data.metadata,
             workflowInputs: workflowInputs
           });

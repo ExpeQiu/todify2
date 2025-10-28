@@ -341,20 +341,36 @@ ${inputs.Additional_information || '未提供具体信息'}
       console.log('Tech Publish API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
       console.log('Tech Publish Base URL:', this.baseUrl);
       
-      // 将coreDraft转换为chatflow期望的Additional_information格式
-      const chatflowInputs = {
-        Additional_information: typeof inputs.coreDraft === 'string' 
+      // 处理chatflow模式的参数映射
+      // 支持多种输入格式：Additional_information, coreDraft, 或直接传入的字符串
+      let additionalInfo = '';
+      if (inputs.Additional_information) {
+        additionalInfo = inputs.Additional_information;
+      } else if (inputs.coreDraft) {
+        additionalInfo = typeof inputs.coreDraft === 'string' 
           ? inputs.coreDraft 
-          : JSON.stringify(inputs.coreDraft)
+          : JSON.stringify(inputs.coreDraft);
+      } else if (typeof inputs === 'string') {
+        additionalInfo = inputs;
+      } else {
+        additionalInfo = JSON.stringify(inputs);
+      }
+      
+      // 处理query参数，支持sys.query或query字段
+      const queryText = inputs['sys.query'] || inputs.query || '请根据提供的补充信息生成技术发布会稿';
+      
+      const chatflowInputs = {
+        Additional_information: additionalInfo
       };
       
       console.log('Tech Publish Inputs:', chatflowInputs);
+      console.log('Tech Publish Query:', queryText);
       
       const response = await axios.post(
         `${this.baseUrl}/chat-messages`,
         {
           inputs: chatflowInputs,
-          query: '请根据提供的核心稿件生成技术发布会稿', // chatflow模式下需要提供有效的query
+          query: queryText,
           response_mode: 'blocking',
           user: 'todify2-user',
           conversation_id: '',
