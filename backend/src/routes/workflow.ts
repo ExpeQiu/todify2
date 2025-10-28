@@ -355,7 +355,7 @@ router.post('/core-draft', async (req, res) => {
   }
 });
 
-// 技术发布接口
+// 技术发布接口 (使用chatflow模式)
 router.post('/tech-publish', async (req, res) => {
   try {
     // 验证请求参数
@@ -366,18 +366,8 @@ router.post('/tech-publish', async (req, res) => {
 
     const { inputs, conversation_id } = req.body;
     
-    // 格式化输入数据为Dify期望的格式
-    const formattedInputs = {
-      input4: typeof inputs.coreDraft === 'string' 
-        ? inputs.coreDraft 
-        : JSON.stringify(inputs.coreDraft),
-      input: typeof inputs.coreDraft === 'string' 
-        ? inputs.coreDraft 
-        : JSON.stringify(inputs.coreDraft),
-      coreDraft: inputs.coreDraft
-    };
-    
-    const result = await DifyClient.techPublish(formattedInputs);
+    // 直接传递inputs给DifyClient，让其处理chatflow格式转换
+    const result = await DifyClient.techPublish(inputs);
     
     // 保存Dify工作流返回消息到数据库
     try {

@@ -488,17 +488,16 @@ export const workflowAPI = {
   },
 
   // 演讲稿 - 支持自定义Dify配置
-  speech: async (coreDraft: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
-    // 如果提供了自定义Dify配置，使用Dify API
+  speech: async (inputs: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+    // 如果提供了自定义Dify配置，使用Dify工作流API
     if (difyConfig) {
-      const query = typeof coreDraft === 'string' ? coreDraft : JSON.stringify(coreDraft);
-      return await callDifyAPI(difyConfig, query, { coreDraft });
+      return await callDifyWorkflowAPI(difyConfig, inputs);
     }
     
     // 否则使用原有的后端API
     try {
       const response = await api.post('/workflow/tech-publish', { 
-        inputs: { coreDraft }
+        inputs: { coreDraft: inputs }
       });
       return response.data;
     } catch (error) {

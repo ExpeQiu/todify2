@@ -160,6 +160,16 @@ http://localhost:3000/ 各节点对应的dify- API
 
 
 
+智能工作流"实际上包括：
+
+- AI搜索 ( ai-search ) - 智能问答和搜索功能
+- 技术包装 ( tech-package ) - 技术内容包装工作流
+- 技术策略 ( tech-strategy ) - 技术策略生成工作流
+- 技术通稿 ( tech-article ) - 技术文章生成工作流
+- 核心稿件 ( core-draft ) - 核心内容生成工作流
+- 技术发布 ( tech-publish ) - 技术发布内容生成工作流
+
+
 访问统计页面:
 http://localhost:3001/workflow-stats
 http://localhost:3001/enhanced-workflow-stats

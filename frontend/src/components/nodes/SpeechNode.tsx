@@ -51,6 +51,13 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isEditMode, setIsEditMode] = useState(true);
 
+  // 补充信息输入框状态 (对接工作流 Additional_information)
+  const [additionalInfo, setAdditionalInfo] = useState("");
+  
+  // 对话框显示控制状态
+  const [showConversation, setShowConversation] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState("");
+
   // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
   const [showKnowledgeSelection, setShowKnowledgeSelection] = useState(true);
@@ -137,22 +144,45 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
 
   const handleAiSearch = async () => {
     if (query.trim()) {
+      // 设置提交的查询内容并显示对话框
+      setSubmittedQuery(query.trim());
+      setShowConversation(true);
+      
       setInternalLoading(true);
       setAiResponse("AI正在生成发布会稿内容...");
 
       try {
-        // 调用后端发布会稿API
-        const result = await workflowAPI.speech(query.trim());
+        // 构建专项-发布会稿工作流的Dify配置
+        const speechWorkflowConfig = {
+          id: 'speech-workflow',
+          name: '专项-发布会稿',
+          description: '发布会稿生成工作流',
+          apiUrl: 'http://47.113.225.93:8088/api/dify/workflows/run',
+          apiKey: 'app-your-api-key', // 需要配置实际的API Key
+          enabled: true
+        };
+
+        // 准备工作流输入参数，对接 Additional_information 和 sys.query
+        const workflowInputs = {
+          Additional_information: additionalInfo.trim() || "", // 对接补充信息输入框
+          'sys.query': query.trim() // 对接主要查询输入框
+        };
+
+        // 调用Dify工作流API
+        const result = await workflowAPI.speech(workflowInputs, speechWorkflowConfig);
 
         if (result.success && result.data) {
-          // 设置AI响应内容
-          setAiResponse(result.data.answer || "抱歉，未能生成发布会稿内容。");
+          // 设置AI响应内容 - 显示工作流结果输出
+          const workflowOutput = result.data.answer || result.data.output || result.data;
+          setAiResponse(typeof workflowOutput === 'string' ? workflowOutput : JSON.stringify(workflowOutput, null, 2));
 
           // 通知父组件执行完成
           onExecute({
             query: query.trim(),
-            response: result.data.answer,
+            additionalInfo: additionalInfo.trim(),
+            response: workflowOutput,
             metadata: result.data.metadata,
+            workflowInputs: workflowInputs
           });
         } else {
           setAiResponse(result.error || "发布会稿生成失败，请稍后重试。");
@@ -163,6 +193,10 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       } finally {
         setInternalLoading(false);
       }
+      
+      // 清空输入框
+      setQuery("");
+      setAdditionalInfo("");
     }
   };
 
@@ -182,6 +216,14 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   const handleCloseSaveModal = () => {
     setShowSaveModal(false);
     setModalSelectedItems([]);
+  };
+
+  // 处理输入框回车键
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAiSearch();
+    }
   };
 
   // 处理确认保存
@@ -306,54 +348,40 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       </div>
 
       <div className="max-w-7xl mx-auto p-6" data-oid="i8f74zy">
-        {/* 选择知识点区域 */}
-        <KnowledgePointSelector
-          knowledgePoints={knowledgePoints}
-          initialSelectedItems={selectedItems}
-          allowedContentTypes={[
-            "knowledge_point",
-            "tech_packaging",
-            "tech_promotion",
-            "tech_press",
-          ]}
-          initialExpanded={showKnowledgeSelection}
-          onSelectionChange={(selectedItems) => {
-            setSelectedItems(selectedItems);
-          }}
-          onSave={(selectedItems) => {
-            const content = selectedItems
-              .map((item) => {
-                if (item.contentType === "knowledge_point") {
-                  const kp = item.knowledgePoint;
-                  return `【${kp.vehicleModel} - ${kp.techCategory}】${kp.techPoint}: ${kp.description}`;
-                }
-                return `【${item.contentType}】${item.knowledgePoint.techPoint}`;
-              })
-              .join("\n\n");
-
-            if (content) {
-              setUserContent((prev) =>
-                prev ? `${prev}\n\n${content}` : content,
-              );
-            }
-          }}
-          className="mb-6"
-          data-oid="p4k5au0"
-        />
-
-        {/* 主要内容区域 */}
+        {/* 主要内容区域 - 单栏布局，AI对话框占满整个页面 */}
         <div
           className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
           data-oid="xtye2j_"
         >
           <div
-            className="grid grid-cols-1 lg:grid-cols-2"
+            className="w-full"
             style={{ height: "calc(100vh - 200px)" }}
             data-oid=".ce84mh"
           >
-            {/* 左侧AI对话区域 */}
-            <div className="p-8 border-r border-gray-200" data-oid="08quqzc">
+            {/* AI对话区域 - 占满整个页面 */}
+            <div className="p-8 h-full" data-oid="08quqzc">
               <div className="h-full flex flex-col" data-oid="gfded2o">
+                {/* 补充信息输入框 (对接工作流 Additional_information) */}
+                <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl" data-oid="enhanced-info-section">
+                  <div className="flex items-center gap-2 mb-3" data-oid="enhanced-info-header">
+                    <Sparkles className="w-5 h-5 text-purple-600" data-oid="enhanced-info-icon" />
+                    <span className="text-sm font-medium text-purple-700" data-oid="enhanced-info-title">
+                      补充信息
+                    </span>
+                  </div>
+                  <textarea
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                    placeholder="请输入补充信息，如发布会背景、产品特色、目标受众等，这将帮助AI生成更精准的演讲稿..."
+                    className="w-full p-3 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none text-sm bg-white"
+                    rows={3}
+                    data-oid="enhanced-info-textarea"
+                  />
+                  <div className="mt-2 text-xs text-purple-600" data-oid="enhanced-info-hint">
+                    提示：详细的背景信息将帮助AI生成更专业、更符合您需求的发布会稿
+                  </div>
+                </div>
+
                 {/* AI助手头像和标识 */}
                 <div
                   className="flex items-center gap-3 mb-6"
@@ -373,9 +401,10 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   </span>
                 </div>
 
-                {/* 对话内容区域 - 滚动对话框 */}
+                {/* 对话区域 */}
                 <div
                   className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto"
+                  style={{ minHeight: "400px", maxHeight: "calc(100vh - 400px)" }}
                   data-oid=".to9y1w"
                 >
                   <div className="space-y-4" data-oid="ywydvus">
@@ -395,11 +424,11 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                           />
                         </div>
                         <div
-                          className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm"
+                          className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-4 max-w-2xl shadow-sm"
                           data-oid="dp9.b63"
                         >
                           <p
-                            className="text-sm text-gray-800"
+                            className="text-sm text-gray-800 leading-relaxed"
                             data-oid="ph23fsc"
                           >
                             您好！我是发布会稿助手，专门为您撰写专业的发布会演讲稿。请输入您的发布会主题和内容，我会为您生成精彩的演讲稿。
@@ -409,16 +438,17 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                     </div>
 
                     {/* 用户问题和AI回答 */}
-                    {query && (
+                    {showConversation && submittedQuery && (
                       <>
                         {/* 用户问题 */}
                         <div className="flex justify-end" data-oid="1l::3k4">
                           <div
-                            className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 py-3 max-w-xs"
+                            className="bg-blue-500 text-white rounded-2xl rounded-br-md px-6 py-4 max-w-xl"
+                            style={{ width: 'fit-content' }}
                             data-oid="qkkl81x"
                           >
-                            <p className="text-sm" data-oid="spbw3n:">
-                              {query}
+                            <p className="text-sm leading-relaxed" data-oid="spbw3n:">
+                              {submittedQuery}
                             </p>
                           </div>
                         </div>
@@ -439,89 +469,85 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                               />
                             </div>
                             <div
-                              className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3 max-w-md shadow-sm"
+                              className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-6 py-4 shadow-sm"
+                              style={{ width: 'fit-content', maxWidth: '80%' }}
                               data-oid="z1u3vkj"
                             >
-                              <p
-                                className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed"
+                              {/* 工作流结果输出显示 */}
+                              <div
+                                className="text-sm text-gray-800 leading-relaxed"
                                 data-oid="64izm28"
                               >
-                                {aiResponse || "正在生成发布会稿..."}
-                              </p>
+                                {aiResponse ? (
+                                  <div className="markdown-content">
+                                    <ReactMarkdown
+                                      remarkPlugins={[remarkGfm]}
+                                      rehypePlugins={[rehypeHighlight]}
+                                    >
+                                      {aiResponse}
+                                    </ReactMarkdown>
+                                  </div>
+                                ) : (
+                                  "正在生成发布会稿..."
+                                )}
+                              </div>
 
                               {/* 快捷功能按钮 */}
                               {aiResponse && (
                                 <div
-                                  className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100"
+                                  className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100"
                                   data-oid="9pe2wkw"
                                 >
                                   <button
-                                    onClick={handleCopy}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                    title="复制"
-                                    data-oid="vmlknnv"
-                                  >
-                                    <Copy
-                                      className="w-3 h-3"
-                                      data-oid="b1wlskd"
-                                    />
-
-                                    <span data-oid="7i-qalz">复制</span>
-                                  </button>
-
-                                  <button
                                     onClick={handleLike}
-                                    className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                                    className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
                                       liked
                                         ? "text-green-600 bg-green-50"
                                         : "text-gray-600 hover:text-green-600 hover:bg-green-50"
                                     }`}
                                     title="点赞"
-                                    data-oid="7h.web1"
+                                    data-oid="ixqhqhj"
                                   >
                                     <ThumbsUp
                                       className="w-3 h-3"
-                                      data-oid="i:10-vg"
+                                      data-oid="ixqhqhj"
                                     />
-
-                                    <span data-oid="p4l-x6o">点赞</span>
+                                    <span data-oid="135.0cc">赞</span>
                                   </button>
 
                                   <button
                                     onClick={handleDislike}
-                                    className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                                    className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
                                       disliked
                                         ? "text-red-600 bg-red-50"
                                         : "text-gray-600 hover:text-red-600 hover:bg-red-50"
                                     }`}
-                                    title="不符合"
-                                    data-oid="dslkhrp"
+                                    title="不满意"
+                                    data-oid="ixqhqhj"
                                   >
                                     <ThumbsDown
                                       className="w-3 h-3"
-                                      data-oid="2vq33ec"
+                                      data-oid="ixqhqhj"
                                     />
-
-                                    <span data-oid=":g:gewp">不符合</span>
+                                    <span data-oid="135.0cc">踩</span>
                                   </button>
 
                                   <button
-                                    onClick={handleShare}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                    title="采纳"
-                                    data-oid="jr99n8z"
+                                    onClick={handleCopy}
+                                    className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="复制"
+                                    data-oid="vcbtz7r"
                                   >
-                                    <Share2
+                                    <Copy
                                       className="w-3 h-3"
-                                      data-oid="1np8sl-"
+                                      data-oid="8q5qwqc"
                                     />
-
-                                    <span data-oid="135.0cc">采纳</span>
+                                    <span data-oid="1:8fhar">复制</span>
                                   </button>
 
                                   <button
                                     onClick={handleRegenerate}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                     title="重新生成"
                                     data-oid="vcbtz7r"
                                   >
@@ -529,7 +555,6 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                                       className="w-3 h-3"
                                       data-oid="8q5qwqc"
                                     />
-
                                     <span data-oid="1:8fhar">重新生成</span>
                                   </button>
                                 </div>
@@ -542,11 +567,12 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   </div>
                 </div>
 
-                {/* 输入区域 */}
+                {/* 输入区域 (对接工作流 sys.query) */}
                 <div className="space-y-4" data-oid="yp004h_">
                   <textarea
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     placeholder="请输入发布会主题和需要包含的内容..."
                     disabled={isLoading}
                     rows={3}
@@ -577,106 +603,21 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                       )}
                     </button>
                   </div>
-                </div>
-              </div>
-            </div>
 
-            {/* 右侧用户编辑区域 */}
-            <div className="p-8" data-oid="560ldo4">
-              <div className="h-full flex flex-col" data-oid="ff2q1_t">
-                {/* 编辑区域标题 */}
-                <div
-                  className="flex items-center justify-between mb-6 flex-shrink-0"
-                  data-oid="92.xcoj"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"
-                      data-oid="-llk8s_"
-                    >
-                      <BookOpen
-                        className="w-4 h-4 text-green-600"
-                        data-oid="-qtuy:i"
-                      />
+                  {/* 工作使用提醒文字 */}
+                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg" data-oid="work-reminder-section">
+                    <div className="flex items-start gap-2" data-oid="work-reminder-content">
+                      <div className="w-4 h-4 bg-orange-400 rounded-full flex-shrink-0 mt-0.5" data-oid="work-reminder-dot"></div>
+                      <div className="text-xs text-orange-700 leading-relaxed" data-oid="work-reminder-text">
+                        <span className="font-medium">对话提醒：</span>
+                        <span className="ml-1">1-生成内容大纲</span>
+                        <span className="mx-2 text-orange-500">📝</span>
+                        <span>2-生成初稿</span>
+                        <span className="mx-2 text-orange-500">📄</span>
+                        <span>3-风格化领导发言稿</span>
+                      </div>
                     </div>
-                    <h2
-                      className="text-lg font-semibold text-gray-900"
-                      data-oid=":w2f61r"
-                    >
-                      编辑修订
-                    </h2>
                   </div>
-                  
-                  {/* 预览/编辑切换按钮 */}
-                  <button
-                    onClick={() => setIsEditMode(!isEditMode)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 text-sm font-medium"
-                  >
-                    {isEditMode ? (
-                      <>
-                        <Eye className="w-4 h-4" />
-                        预览
-                      </>
-                    ) : (
-                      <>
-                        <Edit3 className="w-4 h-4" />
-                        编辑
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* 文本编辑/预览区域 */}
-                <div className="flex-1 mb-6 overflow-hidden" data-oid="isxa6c3">
-                  {isEditMode ? (
-                    <textarea
-                      value={userContent}
-                      onChange={(e) => setUserContent(e.target.value)}
-                      placeholder="在这里编辑和完善发布会稿内容..."
-                      className="w-full h-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none text-sm leading-relaxed overflow-y-auto"
-                      data-oid="fqtkebj"
-                    />
-                  ) : (
-                    <div className="w-full h-full p-4 border border-gray-200 rounded-xl bg-gray-50 overflow-y-auto">
-                       {userContent ? (
-                         <div className="markdown-preview prose prose-sm max-w-none">
-                           <ReactMarkdown 
-                             remarkPlugins={[remarkGfm]}
-                             rehypePlugins={[rehypeHighlight]}
-                           >
-                             {userContent}
-                           </ReactMarkdown>
-                         </div>
-                       ) : (
-                         <div className="text-gray-500 text-sm italic">
-                           暂无内容，请先编辑或从AI回复中采纳内容...
-                         </div>
-                       )}
-                     </div>
-                  )}
-                </div>
-
-                {/* 采纳建议和导出按钮 */}
-                <div className="flex gap-4" data-oid="ouooimk">
-                  <button
-                    onClick={handleAdopt}
-                    disabled={!aiResponse}
-                    className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
-                    data-oid="01klvm5"
-                  >
-                    <ArrowRight className="w-4 h-4" data-oid="eqkwlhu" />
-                    <span data-oid="xqdpvzi">保存知识点</span>
-                  </button>
-
-                  <button
-                    onClick={handleExport}
-                    disabled={!userContent}
-                    className="flex-1 px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
-                    data-oid="6fulo-9"
-                  >
-                    <Download className="w-4 h-4" data-oid="oh83kgy" />
-                    <span data-oid="sfc4b24">导出</span>
-                  </button>
                 </div>
               </div>
             </div>

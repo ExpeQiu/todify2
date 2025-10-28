@@ -56,7 +56,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
       label: "发布会稿",
       icon: Mic,
       path: "/node/speech",
-      disabled: true,
+      disabled: false,
     },
     {
       label: "配置管理",

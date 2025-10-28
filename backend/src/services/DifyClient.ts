@@ -328,9 +328,60 @@ ${inputs.Additional_information || '未提供具体信息'}
     return this.runWorkflow(DifyAppType.TECH_ARTICLE, inputs);
   }
 
-  // 技术发布应用 (使用工作流API)
+  // 技术发布生成 (使用chatflow模式)
   async techPublish(inputs: any): Promise<DifyWorkflowResponse> {
-    return this.runWorkflow(DifyAppType.TECH_PUBLISH, inputs);
+    try {
+      const apiKey = this.getApiKey(DifyAppType.TECH_PUBLISH);
+      
+      // 检查API key是否存在
+      if (!apiKey) {
+        throw new Error('TECH_PUBLISH_API_KEY is not configured in environment variables');
+      }
+      
+      console.log('Tech Publish API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
+      console.log('Tech Publish Base URL:', this.baseUrl);
+      
+      // 将coreDraft转换为chatflow期望的Additional_information格式
+      const chatflowInputs = {
+        Additional_information: typeof inputs.coreDraft === 'string' 
+          ? inputs.coreDraft 
+          : JSON.stringify(inputs.coreDraft)
+      };
+      
+      console.log('Tech Publish Inputs:', chatflowInputs);
+      
+      const response = await axios.post(
+        `${this.baseUrl}/chat-messages`,
+        {
+          inputs: chatflowInputs,
+          query: '请根据提供的核心稿件生成技术发布会稿', // chatflow模式下需要提供有效的query
+          response_mode: 'blocking',
+          user: 'todify2-user',
+          conversation_id: '',
+          files: []
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 60000 // 60秒超时
+        }
+      );
+
+      console.log('Tech Publish Response:', response.status, response.statusText);
+      
+      // 将chatflow响应转换为workflow响应格式以保持兼容性
+      return this.convertChatToWorkflowResponse(response.data);
+    } catch (error) {
+      console.error(`Dify chatflow API error for tech-publish:`, error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response data:', error.response?.data);
+        console.error('Response status:', error.response?.status);
+        console.error('Response headers:', error.response?.headers);
+      }
+      throw error;
+    }
   }
 
   // 核心稿件生成

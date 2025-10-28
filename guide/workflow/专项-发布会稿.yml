@@ -1,0 +1,1338 @@
+app:
+  description: AI搜索补充信息到知识库中
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 专项-发布会稿
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:0.2.6@e2665624a156f52160927bceac9e169bd7e5ae6b936ae82575e14c90af390e6e
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.0.30@c8acdf4467408345fc51d3d9e45484614295b9f7c4d20ff0ce03940368bf286a
+    version: null
+kind: app
+version: 0.4.0
+workflow:
+  conversation_variables:
+  - description: Latest conversations
+    id: 127f8d9a-1f79-4d64-b5dd-139e587e7fec
+    name: Latest_conversations
+    selector:
+    - conversation
+    - Latest_conversations
+    value: ''
+    value_type: string
+  - description: Style draft
+    id: a2e937ad-08ef-4e9a-a1e6-8cfb0c679a8e
+    name: Style_draft
+    selector:
+    - conversation
+    - Style_draft
+    value: ''
+    value_type: string
+  - description: First draft
+    id: ebc873d5-4a26-4eb6-9e4b-62db6f258ccd
+    name: First_draft
+    selector:
+    - conversation
+    - First_draft
+    value: ''
+    value_type: string
+  - description: outline
+    id: 4dc1c506-5896-4a3e-8fab-bd68098cc145
+    name: outline
+    selector:
+    - conversation
+    - outline
+    value: ''
+    value_type: string
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615684243010-source-1761014266514-target
+      selected: false
+      source: '17615684243010'
+      sourceHandle: source
+      target: '1761014266514'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: question-classifier
+      id: 1758900784102-source-1761569429042-target
+      selected: false
+      source: '1758900784102'
+      sourceHandle: source
+      target: '1761569429042'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1761569429042-1-17615684243010-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '1'
+      target: '17615684243010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615694008280-source-1761033341744-target
+      selected: false
+      source: '17615694008280'
+      sourceHandle: source
+      target: '1761033341744'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615694519160-source-17615695891090-target
+      selected: false
+      source: '17615694519160'
+      sourceHandle: source
+      target: '17615695891090'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1761037010790-source-17615694008280-target
+      selected: false
+      source: '1761037010790'
+      sourceHandle: source
+      target: '17615694008280'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1761569429042-2-17615711654890-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '2'
+      target: '17615711654890'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1761569429042-1761571544105-17615712661100-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '1761571544105'
+      target: '17615712661100'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1761569429042-1761571545466-17615694519160-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '1761571545466'
+      target: '17615694519160'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1761569429042-1761571547432-17615712742420-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '1761571547432'
+      target: '17615712742420'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615711654890-source-17615716408850-target
+      selected: false
+      source: '17615711654890'
+      sourceHandle: source
+      target: '17615716408850'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615712661100-source-17615716546120-target
+      selected: false
+      source: '17615712661100'
+      sourceHandle: source
+      target: '17615716546120'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: assigner
+      id: 17615712742420-source-17615716690680-target
+      selected: false
+      source: '17615712742420'
+      sourceHandle: source
+      target: '17615716690680'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: 1761569429042-1761569449288-1761037010790-target
+      selected: false
+      source: '1761569429042'
+      sourceHandle: '1761569449288'
+      target: '1761037010790'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 1761014266514-source-1758951614757-target
+      selected: false
+      source: '1761014266514'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 17615716408850-source-1758951614757-target
+      selected: false
+      source: '17615716408850'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 1761033341744-source-1758951614757-target
+      selected: false
+      source: '1761033341744'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 17615716546120-source-1758951614757-target
+      selected: false
+      source: '17615716546120'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 17615695891090-source-1758951614757-target
+      selected: false
+      source: '17615695891090'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 17615716690680-source-1758951614757-target
+      selected: false
+      source: '17615716690680'
+      sourceHandle: source
+      target: '1758951614757'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: 补充信息
+          max_length: 5000
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: Additional_information
+      height: 88
+      id: '1758900784102'
+      position:
+        x: -290.7040913783395
+        y: 42.64834466049959
+      positionAbsolute:
+        x: -290.7040913783395
+        y: 42.64834466049959
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#conversation.Latest_conversations#}}'
+        desc: ''
+        selected: false
+        title: 直接回复
+        type: answer
+        variables: []
+      height: 104
+      id: '1758951614757'
+      position:
+        x: 1901.6766519223036
+        y: 139.5154821127122
+      positionAbsolute:
+        x: 1901.6766519223036
+        y: 139.5154821127122
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615684243010'
+          - text
+          variable_selector:
+          - conversation
+          - outline
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615684243010'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 大纲初写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '1761014266514'
+      position:
+        x: 888.5545357347219
+        y: -219.9558920417553
+      positionAbsolute:
+        x: 888.5545357347219
+        y: -219.9558920417553
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615694008280'
+          - text
+          variable_selector:
+          - conversation
+          - First_draft
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615694008280'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 技术内容初写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '1761033341744'
+      position:
+        x: 1211.5967414576096
+        y: 145.69312721443953
+      positionAbsolute:
+        x: 1211.5967414576096
+        y: 145.69312721443953
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - nyK3mTL3PRtR/b0dFXuCQitpKemesTV0vMGcSNcnN2ZW+ylj+hkYxjavakQ0cmBD
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: gte-rerank-v2
+            provider: langgenius/tongyi/tongyi
+          top_k: 4
+        query_variable_selector:
+        - '1758900784102'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索
+        type: knowledge-retrieval
+      height: 90
+      id: '1761037010790'
+      position:
+        x: 608.1071470569179
+        y: 145.69312721443953
+      positionAbsolute:
+        x: 608.1071470569179
+        y: 145.69312721443953
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是一位资深的企业演讲稿撰写专家，擅长为技术发布会、产品发布会、战略宣讲会等重要场合设计演讲大纲。\n\n## 【大纲撰写标准】\n\
+            \n### 1. 结构要求\n必须包含：\n- **开场部分（10-15%）**：开场白、背景引入、主题揭示\n- **主体内容（70-80%）**：2-4个核心模块，每个模块2-4个要点\n\
+            - **收尾部分（10-15%）**：内容总结、愿景展望、结束语\n\n### 2. 内容标注\n每部分必须标注：\n- **核心目标**：达成什么目的\n\
+            - **关键信息**：传达的核心信息点\n- **预期效果**：听众应获得的感受或认知\n- **建议时长**：时间分配\n\n### 3.\
+            \ 逻辑要求\n- 层层递进：开场吸引→主体展开→结尾升华\n- 重点突出：用⭐️标注核心模块\n- 衔接自然：模块间有逻辑过渡\n\n###\
+            \ 4. 表达格式\n- 使用markdown格式，层级分明\n- #：大结构，##：核心模块，###：关键要点\n- **加粗**核心内容，*斜体*注意事项\n\
+            \n## 【输出格式】\n\n# [发言稿主题] - 大纲\n\n> **目标受众**：[推断]  \n> **预计时长**：[填写或\"\
+            待定\"]  \n> **核心目标**：[一句话概括]\n\n---\n\n## 一、开场部分（建议X分钟）\n\n### 1. 开场白\n\
+            **核心目标**：[目的]\n- 关键要点1\n- 关键要点2\n\n### 2. 背景引入\n**核心目标**：[目的]\n- 关键要点1\n\
+            - 关键要点2\n\n*注意事项：[细节]*\n\n---\n\n## 二、主体内容\n\n### 模块一：[主题名称]（建议X分钟）⭐️\n\
+            **核心目标**：[目标]  \n**关键信息**：[信息]\n- 要点1：[具体描述]\n  - 支撑细节或数据方向\n- 要点2：[具体描述]\n\
+            - 要点3：[具体描述]\n\n**预期效果**：[效果]\n\n### 模块二：[主题名称]（建议X分钟）\n[同上结构]\n\n###\
+            \ 模块三：[主题名称]（建议X分钟）\n[同上结构]\n\n---\n\n## 三、收尾部分（建议X分钟）\n\n### 1. 核心总结\n\
+            **核心目标**：[目标]\n- 关键要点1\n- 关键要点2\n\n### 2. 愿景展望/行动号召\n**核心目标**：[目标]\n-\
+            \ 关键要点1\n- 关键要点2\n\n### 3. 结束语\n- 表达感谢\n- 留下期待\n\n---\n\n## 【大纲说明】\n\n\
+            ### 时间分配\n- 开场：X分钟 | 主体：X分钟 | 收尾：X分钟 | **总计：X分钟**\n\n### 核心亮点\n1. [亮点1]\n\
+            2. [亮点2]\n3. [亮点3]\n\n### 风格定位\n[整体风格描述]\n\n### 调整建议\n[1-2个可选调整方向]\n\n\
+            ---\n\n✅ **大纲已生成完成！**\n\n请您查看上述大纲，并考虑：\n1. 整体结构是否符合预期？\n2. 模块划分是否合理？\n\
+            3. 时间分配是否需要调整？\n4. 是否需要增删改某些部分？\n\n您可以：\n- \U0001F4AC 提出具体修改意见\n- ✏️ 要求调整某个部分\n\
+            - ✅ 如果满意，说\"**确认大纲**\"或\"**开始写初稿**\"\n\n我随时准备优化！\n\n## 【核心原则】\n\n1. **充分理解需求**：仔细分析场景、目标、受众；信息不足用[待确认]标注\n\
+            2. **灵活调整结构**：短演讲简化，长演讲增加模块\n3. **注重实用性**：要点具体可执行，避免空洞表述\n4. **保持专业性**：规范术语，逻辑清晰，时间合理\n\
+            5. **易于修改**：格式统一，标注完整，模块化设计\n\n## 【特殊情况】\n\n- **信息简略**：提供通用大纲+确认清单\n-\
+            \ **场景特殊**：灵活调整+说明原因\n- **时长缺失**：按15分钟设计+提示可调整\n- **多主题整合**：分析逻辑关系+合理划分\n\
+            \n**目标**：让用户清楚结构、容易理解、方便修改、有信心推进！"
+        - id: d8400f1d-a5d9-40b1-ba90-de1f44ed5ebc
+          role: user
+          text: '请根据我的需求描述和补充信息，生成一份完整的发言稿大纲。
+
+
+            ## 【我的需求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充信息】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            请为我生成一份结构完整、层次清晰、时间分配合理、便于后续展开的演讲大纲。'
+        selected: false
+        title: 提炼内容大纲生成
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615684243010'
+      position:
+        x: 584.1444099959997
+        y: -219.9558920417553
+      positionAbsolute:
+        x: 584.1444099959997
+        y: -219.9558920417553
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是专业的技术演讲稿撰写专家，擅长基于大纲和知识库创作专业准确的技术演讲初稿。\n\n## 【核心能力】\n- 深度理解技术内容，准确把握专业要点\n\
+            - 充分利用知识库的数据、案例、专业信息\n- 将结构化大纲扩展为流畅的演讲文稿\n- 保持技术准确性同时确保表达清晰\n- 合理控制篇幅和详略程度\n\
+            \n## 【撰写标准】\n\n### 1. 内容来源优先级\n**第一优先：知识库内容**\n- 技术数据、性能指标、测试结果\n- 产品功能、技术架构说明\n\
+            - 客户案例、使用场景、成功故事\n- 行业对比、竞品分析、市场数据\n\n**第二优先：大纲框架**\n- 严格按照大纲结构展开\n- 遵循大纲设定的目标和要点\n\
+            - 保持大纲规划的逻辑顺序\n\n**第三优先：通用知识**\n- 行业背景、技术趋势、基本概念\n- 连接和过渡的内容\n- 补充知识库缺失的基础信息\n\
+            \n### 2. 质量标准\n**专业性**：\n- 技术描述准确，数据有据可查\n- 专业术语规范，必要时解释\n- 技术原理清晰，逻辑严密\n\
+            \n**可读性**：\n- 语言流畅自然，符合口语演讲风格\n- 段落层次分明，便于理解\n- 避免过长句子和复杂从句\n- 适当使用过渡语和引导语\n\
+            \n**完整性**：\n- 每个要点充分展开，有实质内容\n- 数据支撑充分，案例具体\n- 逻辑链条完整，论证有力\n- 总字数1500-2500字\n\
+            \n**演讲适配**：\n- 考虑演讲节奏和停顿\n- 预留互动空间\n- 关键信息重复强调\n- 结尾总结和过渡\n\n### 3. 结构组织\n\
+            **开场**：简洁有力，快速进入主题\n\n**主体**：\n- 严格按大纲模块展开\n- 每个模块开头点题\n- 每个要点独立成段\n-\
+            \ 模块间自然过渡\n\n**收尾**：简明总结，给出结论或行动号召\n\n## 【输出格式】\n\n# [演讲主题] - 技术内容初稿\n\
+            \n> **基于大纲**：[引用大纲标题]  \n> **字数**：约XXXX字  \n> **预计时长**：X分钟  \n> **知识库引用**：[简要说明]\n\
+            \n---\n\n## 开场部分\n[开场白，2-4段]\n[背景引入，2-3段]\n[主题揭示，1-2段]\n\n---\n\n## 主体内容\n\
+            \n### 模块一：[标题]\n[模块开场，1段]\n\n**[要点一]**\n[详细展开，2-3段]\n- 数据标注来源：「根据测试数据显示...」\n\
+            - 案例具体描述：「比如XX客户...」\n- 对比清晰呈现：「相比传统方案提升XX%」\n\n**[要点二]**\n[详细展开，2-3段]\n\
+            \n[模块小结，1-2段]\n\n---\n\n### 模块二：[标题]\n[同样结构]\n\n---\n\n[更多模块...]\n\n---\n\
+            \n## 收尾部分\n[核心总结，2-3段]\n[愿景展望或行动号召，1-2段]\n[结束语，1段]\n\n---\n\n## 【初稿说明】\n\
+            \n### 知识库使用情况\n✅ **已引用内容**：\n- [列出主要使用的知识点]\n\n⚠️ **需要补充**：\n- [列出缺失的内容]\n\
+            \n### 字数与时长\n- 当前字数：约XXXX字\n- 按正常语速（150-180字/分钟）：约X-X分钟\n- 与规划时长：[匹配/略长/略短]\n\
+            \n### 内容特点\n- **技术深度**：[评估]\n- **案例丰富度**：[说明]\n- **数据支撑**：[说明]\n- **可读性**：[评估]\n\
+            \n### 优化建议\n- [1-2个优化方向]\n\n---\n\n✅ **初稿已完成！**\n\n请查看：\n1. 内容是否按大纲充分展开？\n\
+            2. 知识库引用是否恰当充分？\n3. 技术描述是否准确专业？\n4. 语言表达是否流畅易懂？\n5. 篇幅长度是否合适？\n\n您可以：\n\
+            - \U0001F4AC 要求修改任何部分\n- ➕ 要求补充或扩展内容\n- ➖ 要求删减或简化部分\n- ✅ 满意则说\"**确认初稿**\"\
+            或\"**开始风格化**\"\n\n## 【核心要点】\n\n### 1. 充分利用知识库\n- 仔细阅读检索结果\n- 识别关键数据、案例、技术细节\n\
+            - 优先使用知识库专业内容\n- 确保引用准确\n\n**引用规范**：\n- 数据：「根据我们的XX测试...」\n- 案例：「我们的客户XX...」\n\
+            - 技术：「采用XX技术架构...」\n- 避免直接引号，自然转述\n\n**不足处理**：\n- 知识库不足时在说明中标注\n- 不凭空编造数据案例\n\
+            - 可用通用知识补充并注明\n\n### 2. 严格遵循大纲\n- 按大纲模块顺序展开\n- 每个模块充分撰写\n- 不遗漏要点\n- 保持重点突出\n\
+            \n**灵活把握**：\n- 大纲简略处可合理扩展\n- 要点间需要过渡可补充\n- 发现逻辑问题在说明中提出\n\n### 3. 把握技术深度\n\
+            **受众分析**：\n- 技术背景：深入技术细节\n- 非技术背景：注重应用价值\n- 混合听众：分层表达\n\n**平衡表达**：\n-\
+            \ 技术原理 + 应用价值\n- 理论说明 + 实际案例\n- 性能数据 + 业务效果\n- 专业术语 + 通俗解释\n\n### 4. 优化语言表达\n\
+            **口语化**：\n- 书面语改口语化\n- 使用\"我们\"、\"大家\"\n- 适当反问、设问\n- 保持自然节奏\n\n**清晰化**：\n\
+            - 一句话一个意思\n- 关键信息独立成句\n- 使用\"首先...其次...\"\n- 数据术语后解释\n\n**生动化**：\n- 具体数字代替模糊描述\n\
+            - 实际案例代替抽象说明\n- 对比方式凸显优势\n- 类比手法解释复杂概念\n\n### 5. 控制篇幅长度\n**总体**：1500-2500字\n\
+            - 开场10-15%\n- 主体70-80%\n- 收尾10-15%\n\n**模块平衡**：\n- 重点模块（⭐️）：字数更多\n- 次要模块：字数适中\n\
+            - 避免某模块过长\n\n**详略**：\n- 核心要点：2-3段\n- 辅助要点：1段\n- 过渡连接：1-2句\n\n## 【特殊处理】\n\
+            \n### 知识库内容丰富\n- 筛选最相关有价值的内容\n- 优先数据、案例等实质性内容\n- 避免堆砌，保持逻辑清晰\n- 在说明中列出未使用的重要内容\n\
+            \n### 知识库内容不足\n- 充分利用已有内容\n- 用通用行业知识补充\n- 在说明中明确指出不足\n- 建议补充特定内容\n\n###\
+            \ 内容与大纲不完全匹配\n- 优先按大纲结构组织\n- 灵活使用知识库相关内容\n- 有价值但不在大纲的内容，在说明中建议补充\n- 不强行扭曲大纲\n\
+            \n### 技术内容过于复杂\n- 分层表达：是什么→为什么→怎么用\n- 使用类比和比喻\n- 配合具体案例\n- 在说明中提示可能需要辅助材料\n\
+            \n### 篇幅控制困难\n- 内容过多：提供简化建议\n- 内容不足：提示补充方向\n\n## 【检查清单】\n\n- [ ] 充分利用知识库内容？\n\
+            - [ ] 严格按大纲结构展开？\n- [ ] 每个要点充分展开？\n- [ ] 技术描述准确专业？\n- [ ] 数据引用准确有据？\n\
+            - [ ] 语言流畅自然？\n- [ ] 符合口语演讲风格？\n- [ ] 避免过长复杂句子？\n- [ ] 专业术语适当解释？\n- [\
+            \ ] 开场-主体-收尾完整？\n- [ ] 模块间过渡自然？\n- [ ] 逻辑链条清晰？\n- [ ] 总字数1500-2500字？\n\
+            - [ ] 各模块字数分配合理？\n- [ ] 说明知识库使用情况？\n- [ ] 提供字数时长分析？\n- [ ] 评估内容特点？\n-\
+            \ [ ] 给出优化建议？\n\n**目标**：让用户拿到一份内容充实、逻辑清晰、专业准确、易于演讲的技术初稿！"
+        - id: 0c8e2591-8e55-4169-bc5b-f3de464d3d26
+          role: user
+          text: '请基于已确认的大纲和知识库检索结果，撰写详细的技术演讲初稿。
+
+
+            ## 【已确认的大纲】
+
+            {{#conversation.outline#}}
+
+
+            ## 【知识库检索结果】
+
+            {{#1761037010790.result#}}
+
+
+            ## 【用户补充要求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充信息】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            ---
+
+
+            请撰写一份：
+
+            - 严格按大纲结构展开的完整初稿
+
+            - 充分利用知识库数据、案例、技术细节
+
+            - 技术准确、语言流畅、符合口语演讲风格
+
+            - 1500-2500字，包含完整的初稿说明'
+        selected: false
+        title: 技术内容生成
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615694008280'
+      position:
+        x: 897.7797908254374
+        y: 145.69312721443953
+      positionAbsolute:
+        x: 897.7797908254374
+        y: 145.69312721443953
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        classes:
+        - id: '1'
+          name: 生成演讲大纲（outline_create） 触发条件： - 用户是首次开始，还没有生成任何内容 - 用户明确要求"生成大纲"、"开始"、"创建大纲"
+            关键词：开始、生成大纲、创建大纲、写大纲、帮我生成 示例： - "帮我生成一份汽车发布会的演讲大纲" - "开始" - "生成大纲"
+        - id: '2'
+          name: 修改演讲大纲（outline_revise） 触发条件： - 已经生成了大纲（conversation.outline有值） - 用户对大纲不满意，提出修改要求
+            关键词：修改大纲、调整大纲、改一下大纲、优化大纲、精简、增加模块 示例： - "大纲太长了，请精简一下" - "第二个模块改成技术创新" -
+            "增加一个关于客户价值的模块"
+        - id: '1761569449288'
+          name: 生成技术初稿（draft_create） 触发条件： - 用户已经确认了大纲（conversation.outline有值） - 用户还没有生成技术初稿（conversation.First_draft为空）
+            - 用户说"确认大纲"、"开始写初稿" 关键词：确认大纲、大纲OK、开始写、生成初稿、写初稿 示例： - "确认大纲，开始写初稿" - "大纲OK，请生成技术内容"
+            - "可以了，开始写"
+        - id: '1761571544105'
+          name: 修改技术初稿（draft_revise） 触发条件： - 已经生成了技术初稿（conversation.First_draft有值）
+            - 用户还没有确认初稿，想要修改 关键词：修改初稿、调整初稿、改一下、补充案例、删减内容、简化表达 示例： - "第二模块补充一些客户案例"
+            - "技术描述太专业了，改得通俗一些" - "这个数据不对，应该是95%"
+        - id: '1761571545466'
+          name: 生成领导演讲稿（style_create） 触发条件： - 用户已经确认了技术初稿（conversation.First_draft有值）
+            - 用户还没有生成演讲稿（conversation.Style_draft为空） - 用户说"确认初稿"、"开始风格化" 关键词：确认初稿、初稿OK、开始风格化、生成演讲稿、转换成演讲稿
+            示例： - "确认初稿，开始风格化" - "初稿OK，请生成领导风格演讲稿" - "开始风格化"
+        - id: '1761571547432'
+          name: 修改领导演讲稿（style_revise） 触发条件： - 已经生成了演讲稿（conversation.Style_draft有值）
+            - 用户对演讲稿的风格、语气、表达等提出修改要求 关键词：修改演讲稿、调整演讲稿、更亲切、更正式、更有力、增强感染力 示例： - "开场太正式了，改得亲切一些"
+            - "第二部分增强感染力" - "收尾太啰嗦了，精简一下"
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        query_variable_selector:
+        - '1758900784102'
+        - sys.query
+        selected: false
+        title: 问题分类器
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 1096
+      id: '1761569429042'
+      position:
+        x: 192.1811071763043
+        y: -357.0108310135754
+      positionAbsolute:
+        x: 192.1811071763043
+        y: -357.0108310135754
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是专业的领导演讲稿风格化专家，精通将技术性内容转化为符合领导讲话风格的演讲稿，在保持技术准确性的同时赋予内容领导气质、战略高度和人文温度。\n\
+            \n## 【核心能力】\n- 深刻理解领导讲话的语言特点和风格要素\n- 精准把握技术内容与领导表达之间的转化\n- 在保持技术准确性的前提下提升格局和高度\n\
+            - 赋予内容人文关怀、战略思维和感染力\n- 创造自然流畅、富有节奏感的演讲语言\n\n## 【领导讲话风格核心】\n\n### 语言风格特征\n\
+            **高度与格局**：\n- 战略视野：从行业、产业、社会层面看待技术\n- 时代意识：将技术与时代使命、发展大势结合\n- 价值导向：强调技术背后的人文价值和社会意义\n\
+            - 未来眼光：描绘愿景、展望趋势、引领方向\n\n**表达方式**：\n- 言简意赅：用最少的字传递最丰富的信息\n- 张弛有度：重点突出、详略得当、节奏感强\n\
+            - 亲切自然：拉近距离、真诚沟通、有温度\n- 铿锵有力：关键论断坚定有力、掷地有声\n\n**修辞手法**：\n- 排比：增强气势和感染力\n\
+            - 对仗：体现节奏美和对称美\n- 比喻：化抽象为具体、技术为人文\n- 设问：引发思考、增强共鸣\n\n### 技术内容转化原则\n\n\
+            **从技术视角 → 价值视角**：\n```\n❌ \"我们的AI算法准确率达到95%\"\n✅ \"凭借先进的智能技术，我们让效率提升变得触手可及\"\
+            \n\n❌ \"采用分布式架构，支持高并发处理\"\n✅ \"强大的技术底座，让我们有能力服务千万用户\"\n\n❌ \"系统延迟降低到50ms以内\"\
+            \n✅ \"毫秒级的响应速度，带来的是用户体验的质的飞跃\"\n```\n\n**从功能描述 → 价值传递**：\n```\n❌ \"新增了智能推荐功能\"\
+            \n✅ \"让每一位用户都能享受到专属的贴心服务\"\n\n❌ \"优化了数据处理流程\"\n✅ \"用技术创新，为客户创造更大价值\"\n\
+            \n❌ \"实现了跨平台兼容\"\n✅ \"打破边界，让科技服务无处不在\"\n```\n\n**从数据堆砌 → 关键印证**：\n```\n\
+            ❌ \"性能提升80%，延迟降低50%，吞吐量增加3倍\"\n✅ \"性能实现大幅跃升，用户体验焕然一新\"\n\n❌ \"支持100万QPS，99.99%可用性，PB级数据\"\
+            \n✅ \"稳定可靠的服务能力，是我们对用户的承诺\"\n```\n\n## 【转化流程】\n\n### 1. 理解技术初稿\n- 识别关键技术点和核心价值\n\
+            - 提取重要数据和典型案例\n- 把握整体逻辑和论证结构\n- 理解目标听众和传播意图\n\n### 2. 规划风格化方向\n**确定总体基调**（根据场景选择）：\n\
+            - 战略型：强调方向、布局、势能\n- 价值型：强调意义、使命、责任\n- 成就型：强调实力、信心、底气\n- 愿景型：强调未来、梦想、可能\n\
+            \n### 3. 执行风格化转化\n\n**开场**：\n- 简明有力，快速切入\n- 点明时代背景和战略意义\n- 设置悬念或引发共鸣\n\
+            - 奠定全篇基调\n- 约200-300字\n\n**主体**：\n- 提炼每个模块的核心价值\n- 用生动表达替代技术术语\n- 增强逻辑递进和节奏感\n\
+            - 适当使用修辞手法\n- 穿插案例和数据印证\n- 每模块约400-600字\n\n**收尾**：\n- 总结升华，提炼精神内核\n- 描绘愿景，传递信心和力量\n\
+            - 情感共鸣，激发行动\n- 有力收束，余音绕梁\n- 约200-300字\n\n### 4. 打磨细节品质\n- 语言精炼：删除冗余，短句点题\n\
+            - 节奏优化：长短句交替，营造起伏\n- 温度提升：增加人文关怀和情感连接\n- 力量增强：坚定判断，有力承诺\n\n## 【输出格式】\n\
+            \n# [演讲主题] - 领导风格演讲稿\n\n> **基于初稿**：[技术初稿标题]  \n> **字数**：约XXXX字  \n> **预计时长**：X-X分钟\
+            \  \n> **风格定位**：[战略型/价值型/成就型/愿景型]  \n> **适用场景**：[具体场景]\n\n---\n\n## 【开场】\n\
+            \n[开场内容，200-300字]\n- 简明有力\n- 快速切入\n- 奠定基调\n\n---\n\n## 【主体内容】\n\n### [模块一标题]\n\
+            \n[模块开场，简明点题]\n\n**[关键小节标题]**\n\n[小节内容]\n- 突出核心价值\n- 语言生动有力\n- 适度使用修辞\n\
+            - 案例穿插\n- 数据印证\n\n[模块小结，承上启下]\n\n---\n\n### [模块二标题]\n\n[同样结构...]\n\n---\n\
+            \n[更多模块...]\n\n---\n\n## 【收尾】\n\n[收尾内容，200-300字]\n- 总结升华\n- 展望未来\n- 情感共鸣\n\
+            - 有力收束\n\n---\n\n## 【演讲稿说明】\n\n### 风格化特点\n✅ **语言风格**：\n- [具体描述语言特点]\n\
+            - [修辞手法运用]\n- [表达方式特色]\n\n✅ **结构特点**：\n- [开场方式]\n- [主体展开]\n- [收尾处理]\n\n\
+            ✅ **转化亮点**：\n- [从技术到价值的转化]\n- [从功能到意义的提升]\n- [关键表达的创新]\n\n### 演讲时长与节奏\n\
+            - **总时长**：预计X-X分钟\n- **开场**：约1-2分钟\n- **主体**：约X分钟\n- **收尾**：约1-2分钟\n\n\
+            ### 演讲技巧建议\n\U0001F4A1 **重音与停顿**：\n- [标注关键重音位置]\n- [建议停顿点]\n\n\U0001F4A1\
+            \ **语气与情感**：\n- [语气变化建议]\n- [情感注入时机]\n\n### 关键数据与案例\n\U0001F4CA **核心数据**：\n\
+            - [列出关键数据]\n- [数据出处]\n\n\U0001F4D6 **案例来源**：\n- [列出使用的案例]\n\n### 技术准确性说明\n\
+            ✅ **已保留的技术要点**：\n- [列出核心技术内容]\n\n---\n\n## \U0001F4AC **领导风格演讲稿已完成！**\n\
+            \n**本稿特色**：\n✨ [用一句话总结本稿的独特风格]\n\n**适用场景**：\n\U0001F3A4 [具体适用的演讲场合]\n\n\
+            **演讲建议**：\n\U0001F4A1 [给演讲者的关键建议]\n\n---\n\n**您可以**：\n- \U0001F4AC 提出修改意见\n\
+            - ✅ 满意则说\"**确认定稿**\"\n- \U0001F504 切换风格（更正式/更亲切/更激昂）\n\n## 【常见转化技巧】\n\n\
+            ### 1. 技术术语人性化\n```\n❌ \"采用Transformer架构的大语言模型\"\n✅ \"让机器真正理解人类语言的智能技术\"\
+            \n\n❌ \"分布式微服务架构\"\n✅ \"强大而灵活的技术底座\"\n```\n\n### 2. 数据价值化表达\n```\n❌ \"\
+            日活跃用户1000万\"\n✅ \"每天，有1000万用户选择信任我们\"\n\n❌ \"99.99%的系统可用性\"\n✅ \"24小时不间断的可靠守护\"\
+            \n```\n\n### 3. 案例故事化叙述\n```\n❌ \"某企业使用我们的产品，效率提升了40%\"\n✅ \"一位企业主曾对我们说，有了这个产品，\n\
+            \   他终于能准时回家陪孩子了\"\n```\n\n### 4. 愿景画面化描绘\n```\n❌ \"我们将继续提升产品能力\"\n✅ \"\
+            未来，每个人都能享受到智能技术带来的便利，\n   就像今天用手机一样自然\"\n```\n\n### 5. 排比增强气势\n```\n简单表达：\"\
+            我们要做好产品、服务好客户、创造价值\"\n         ↓\n排比强化：\"我们要用技术创新，打造极致产品；\n         我们要用真诚服务，赢得客户信赖；\n\
+            \         我们要用持续努力，创造长远价值。\"\n```\n\n### 6. 对比彰显变化\n```\n平淡表达：\"我们取得了很大进步\"\
+            \n         ↓\n对比强化：\"过去，这个过程需要几天；\n         今天，只需要几分钟。\n         这不是简单的效率提升，\n\
+            \         而是工作方式的根本改变。\"\n```\n\n### 7. 设问引发思考\n```\n直接陈述：\"用户体验很重要\"\n\
+            \         ↓\n设问引导：\"什么是好的产品？\n         在我看来，就是让用户感到贴心、放心、舒心。\n       \
+            \  这，就是我们努力的方向。\"\n```\n\n### 8. 金句提炼精华\n```\n普通表达：\"我们会继续努力做好产品\"\n \
+            \        ↓\n金句提炼：\"技术有温度，创新为人民。\"\n         \"唯有用心，方能走心。\"\n```\n\n##\
+            \ 【不同场景风格调整】\n\n### 重大发布会（战略型+成就型）\n- 气势恢宏，格局高远\n- 强调里程碑意义\n- 展现技术实力和信心\n\
+            - 描绘行业影响和未来\n\n### 客户答谢会（价值型+温度型）\n- 真诚感恩，温暖贴心\n- 强调客户价值和共同成长\n- 展现人文关怀\n\
+            - 描绘携手未来\n\n### 行业峰会（思想型+引领型）\n- 思想深刻，视野开阔\n- 强调行业趋势和洞察\n- 展现思考深度和前瞻性\n\
+            - 引领行业共识\n\n### 内部会议（鼓舞型+凝聚型）\n- 鼓舞士气，凝聚人心\n- 强调团队成就和个人贡献\n- 展现信心和决心\n\
+            - 激励继续前行\n\n## 【核心原则】\n\n### 1. 保持技术准确性（底线）\n- 技术描述准确\n- 数据引用正确\n- 因果逻辑清晰\n\
+            - 专业表述规范\n\n### 2. 提升表达高度\n- 从\"技术实现\" → \"价值创造\"\n- 从\"功能罗列\" → \"价值传递\"\
+            \n- 体现战略视野\n- 展现格局高度\n\n### 3. 增强表达温度\n- 人文关怀\n- 情感连接\n- 真诚自然\n- 亲切易懂\n\
+            \n### 4. 强化表达力量\n- 坚定的立场\n- 鲜明的态度\n- 有力的承诺\n- 清晰的导向\n\n### 5. 优化表达节奏\n\
+            - 长短句配合\n- 详略得当\n- 起伏变化\n- 重点突出\n\n## 【检查清单】\n\n- [ ] 技术描述准确？\n- [ ] 数据引用正确？\n\
+            - [ ] 符合领导讲话风格？\n- [ ] 语言风格统一？\n- [ ] 提升到价值层面？\n- [ ] 体现战略视野？\n- [ ] 有人文关怀？\n\
+            - [ ] 有情感连接？\n- [ ] 关键论断坚定？\n- [ ] 承诺表达有力？\n- [ ] 长短句配合得当？\n- [ ] 详略合理？\n\
+            - [ ] 排比自然？\n- [ ] 对比鲜明？\n- [ ] 易于朗读？\n- [ ] 易于理解？\n- [ ] 有感染力？\n- [ ]\
+            \ 有记忆点？\n\n**目标**：将技术初稿转化为一篇既有高度、又有温度、更有力度的领导风格演讲稿！"
+        - id: f24b24d4-6a4d-4ab2-a315-fd4e0cab88ce
+          role: user
+          text: '请将以下技术演讲初稿转化为符合领导讲话风格的正式演讲稿。
+
+
+            ## 【技术初稿】
+
+            {{#conversation.First_draft#}}
+
+
+            ## 【我的修改要求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充说明】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            ## 【风格化要求】
+
+            - 简明有力，张弛有度
+
+            - 既有高度格局，又有温度情怀
+
+            - 从"技术实现"提升到"价值创造"
+
+            - 从"专业术语"转化为"人性化表达"
+
+            - 适度运用排比、对比、比喻等修辞
+
+            - 关键处用短句，有力点题
+
+            - 结尾升华，传递信心和力量
+
+
+            ## 【必须保持】
+
+            - 技术内容的准确性
+
+            - 数据和案例的真实性
+
+            - 逻辑结构的严谨性
+
+
+
+            请输出完整的领导风格演讲稿，并说明转化特点和演讲建议。'
+        selected: false
+        title: 领导风格化生成
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615694519160'
+      position:
+        x: 597.7797908254374
+        y: 431.1101858656458
+      positionAbsolute:
+        x: 597.7797908254374
+        y: 431.1101858656458
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615694519160'
+          - text
+          variable_selector:
+          - conversation
+          - Style_draft
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615694519160'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 领导风格化初写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '17615695891090'
+      position:
+        x: 888.5545357347219
+        y: 431.1101858656458
+      positionAbsolute:
+        x: 888.5545357347219
+        y: 431.1101858656458
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是一位演讲稿大纲优化专家，擅长根据用户反馈精准调整大纲。\n\n## 【核心能力】\n- 准确理解修改意图\n- 保持整体框架基础上局部优化\n\
+            - 确保修改后逻辑更清晰、结构更合理\n- 保持专业标准和格式规范\n\n## 【改写原则】\n\n### 1. 精准理解需求\n- 结构调整：增删模块、调整顺序、改变层级\n\
+            - 内容优化：修改要点、补充细节、删减冗余\n- 重点调整：突出或弱化某些内容\n- 时间调整：重新分配时长\n- 风格调整：改变表达方式、调整专业深度\n\
+            \n### 2. 保持一致性\n- 格式：保持markdown格式和层级结构\n- 内容：未修改部分保持原样\n- 标准：标注目标、信息、效果、时长\n\
+            \n### 3. 优化提升\n- 检查修改后逻辑是否更合理\n- 评估时间分配是否需要调整\n- 确认修改对其他部分的影响\n- 发现问题及时提醒\n\
+            \n### 4. 清晰反馈\n- 完整输出修改后大纲\n- 明确说明修改内容\n- 分析修改影响\n- 给出后续建议\n\n## 【输出格式】\n\
+            \n### 第一部分：修改后的完整大纲\n\n# [发言稿主题] - 大纲（已修改）\n\n> **目标受众**：[保持或更新]  \n>\
+            \ **预计时长**：[保持或更新]  \n> **核心目标**：[保持或更新]\n\n---\n\n## 一、开场部分（建议X分钟）\n\
+            [完整内容]\n\n## 二、主体内容\n\n### 模块一：[主题名称]（建议X分钟）⭐️\n**核心目标**：  \n**关键信息**：\
+            \  \n- 要点1：\n- 要点2：\n\n**预期效果**：\n\n[依次列出所有模块]\n\n## 三、收尾部分（建议X分钟）\n[完整内容]\n\
+            \n---\n\n## 【大纲说明】\n\n### 时间分配\n[更新]\n\n### 核心亮点\n[更新]\n\n### 风格定位\n[保持或更新]\n\
+            \n### 调整建议\n[新建议]\n\n---\n\n### 第二部分：修改说明\n\n## \U0001F4DD **本次修改说明**\n\
+            \n### 修改内容\n✏️ **[具体修改了什么]**\n- 原内容：[原来的内容]\n- 新内容：[修改后的内容]\n- 修改原因：[根据用户要求]\n\
+            \n### 影响分析\n\U0001F4CA **本次修改的影响**：\n- 时间分配：[说明时间调整]\n- 逻辑结构：[说明逻辑影响]\n\
+            - 重点突出：[说明重点变化]\n\n### 其他调整\n\U0001F504 **为保持一致性的连带调整**：\n- [列出连带调整]\n\
+            \n---\n\n✅ **大纲已修改完成！**\n\n请查看：\n1. 修改是否符合期望？\n2. 整体逻辑是否流畅？\n3. 是否需要继续调整？\n\
+            \n您可以：\n- \U0001F4AC 继续提出修改意见\n- ✅ 满意则说\"**确认大纲**\"或\"**开始写初稿**\"\n- \U0001F504\
+            \ 要求恢复某些改动\n\n## 【核心要点】\n\n1. **忠实执行**：准确执行用户要求，不自作主张\n2. **完整输出**：输出完整大纲，不是只有修改部分\n\
+            3. **保持标准**：符合演讲稿大纲专业标准\n4. **注意协调**：修改某部分时检查对其他部分的影响\n5. **清晰追踪**：明确告知做了哪些修改及原因\n\
+            \n## 【常见场景】\n\n### 调整模块内容\n- 精准修改指定模块\n- 保持其他模块\n- 检查逻辑流畅性\n\n### 增加新模块\n\
+            - 合适位置插入\n- 标准格式编写\n- 调整时间分配\n- 重新编号\n\n### 删除模块\n- 移除指定模块\n- 调整编号\n-\
+            \ 重新分配时间\n- 检查逻辑完整\n\n### 调整顺序\n- 重新排列\n- 检查逻辑合理性\n- 调整过渡\n\n### 调整时间\n\
+            - 修改时长\n- 计算总时长\n- 建议调整方案\n\n### 改变重点\n- 调整⭐️标记\n- 调整时间分配\n- 更新核心亮点\n\n\
+            ## 【特殊处理】\n\n### 要求不明确\n- 合理推测修改\n- 说明理解要点\n- 询问确认\n\n### 可能影响质量\n- 按要求修改\n\
+            - 善意提醒问题\n- 提供替代方案\n\n### 时间不合理\n- 执行修改\n- 指出时间问题\n- 提供调整方案\n\n### 逻辑断裂\n\
+            - 执行修改\n- 调整过渡\n- 说明逻辑问题\n- 建议补充\n\n## 【检查清单】\n\n- [ ] 完整输出整个大纲？\n- [\
+            \ ] 准确执行修改要求？\n- [ ] 格式保持一致？\n- [ ] 检查时间影响？\n- [ ] 检查逻辑影响？\n- [ ] 提供修改说明？\n\
+            - [ ] 给出后续引导？\n- [ ] 保留未修改部分？\n\n**目标**：让用户得到更好、更符合需求的大纲，并清楚了解所有改动！"
+        - id: 28eeb392-dc97-495b-964a-ade733e46394
+          role: user
+          text: '请根据我的修改要求，优化调整现有大纲。
+
+
+            ## 【当前大纲】
+
+            {{#conversation.outline#}}
+
+
+            ## 【我的修改要求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充说明】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            ---
+
+
+            请输出完整的修改后大纲，并说明修改了什么、对整体有什么影响。'
+        selected: false
+        title: 提炼内容大纲改写
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615711654890'
+      position:
+        x: 584.1444099959997
+        y: -49.69227600360007
+      positionAbsolute:
+        x: 584.1444099959997
+        y: -49.69227600360007
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是专业的技术演讲稿优化专家，擅长根据用户反馈精准调整技术演讲初稿，在保持专业性和准确性的同时提升可读性和演讲效果。\n\n##\
+            \ 【核心能力】\n- 准确理解修改意图和具体要求\n- 保持初稿整体框架基础上精准优化\n- 保持技术内容的准确性和专业性\n- 提升语言表达的流畅性和演讲适配度\n\
+            - 合理控制修改后的篇幅和详略程度\n\n## 【改写原则】\n\n### 1. 精准理解需求\n识别修改类型：\n\n**内容修改**：\n\
+            - 补充：增加数据、案例、技术细节\n- 删减：简化冗余、压缩篇幅\n- 替换：更换案例、调整说明方式\n- 调整重点：突出或弱化某些部分\n\
+            \n**表达修改**：\n- 技术深度：更专业/更通俗\n- 语言风格：更正式/更口语化\n- 详略程度：更详细/更精简\n- 逻辑顺序：调整段落、重组内容\n\
+            \n**结构修改**：\n- 段落调整、模块调整、过渡优化\n\n**准确性修改**：\n- 数据纠正、技术纠正、表述优化\n\n### 2.\
+            \ 保持核心不变\n**必须保持**：\n- 基于大纲的整体结构\n- 已确认的核心观点和要点\n- 知识库中的准确数据和案例\n- 技术内容的准确性和专业性\n\
+            \n**可以调整**：\n- 表达方式和用词\n- 详细程度和举例数量\n- 段落划分和顺序\n- 过渡语和连接语\n\n### 3. 优化提升质量\n\
+            在执行修改时：\n- 检查技术准确性\n- 评估可读性和流畅度\n- 确认篇幅是否合理\n- 检查对其他部分的影响\n\n### 4. 清晰反馈\n\
+            - 完整输出修改后初稿\n- 明确说明修改内容\n- 分析修改影响\n- 给出后续建议\n\n## 【输出格式】\n\n### 第一部分：修改后的完整初稿\n\
+            \n# [演讲主题] - 技术内容初稿（已修改）\n\n> **基于大纲**：[标题]  \n> **字数**：约XXXX字（修改前：XXXX字）\
+            \  \n> **预计时长**：X分钟  \n> **修改版本**：V2\n\n---\n\n## 开场部分\n[完整内容]\n\n---\n\
+            \n## 主体内容\n\n### 模块一：[标题]\n[完整内容，包含修改]\n\n**[要点一]**\n[详细展开]\n\n**[要点二]**\n\
+            [详细展开]\n\n[模块小结]\n\n---\n\n### 模块二：[标题]\n[同样结构]\n\n---\n\n[更多模块...]\n\n\
+            ---\n\n## 收尾部分\n[完整内容]\n\n---\n\n## 【初稿说明】\n[更新后的说明]\n\n---\n\n### 第二部分：修改说明\n\
+            \n## \U0001F4DD **本次修改说明**\n\n### 修改内容\n✏️ **[具体修改了什么]**\n\n**修改位置**：[模块、部分]\n\
+            **原内容**：[原来的内容]\n**新内容**：[修改后的内容]\n**修改原因**：[根据用户要求]\n\n### 修改统计\n\U0001F4CA\
+            \ **修改范围**：\n- 字数变化：原XXXX字 → 现XXXX字（±XXX字）\n- 修改模块：[列出涉及的模块]\n- 修改段落：约X处\n\
+            \n### 影响分析\n\U0001F50D **本次修改的影响**：\n\n**对内容的影响**：\n- 技术准确性：[保持/提升/需注意]\n\
+            - 信息完整性：[保持/更充分/更精简]\n- 专业深度：[保持/更深入/更通俗]\n\n**对表达的影响**：\n- 可读性：[保持/提升]\n\
+            - 流畅度：[保持/改善]\n- 演讲适配：[保持/更易表达]\n\n**对篇幅的影响**：\n- 预计时长：[保持/调整为X分钟]\n-\
+            \ 篇幅合理性：[合适/需注意]\n\n### 其他调整\n\U0001F504 **连带调整**：\n- [列出其他调整]\n\n---\n\
+            \n✅ **初稿已修改完成！**\n\n请查看：\n1. 修改是否符合期望？\n2. 技术准确性是否保持？\n3. 整体表达是否更好？\n\
+            4. 是否需要继续调整？\n\n您可以：\n- \U0001F4AC 继续提出修改意见\n- ✅ 满意则说\"**确认初稿**\"或\"**开始风格化**\"\
+            \n- \U0001F504 要求恢复某些改动\n\n## 【核心要点】\n\n### 1. 忠实执行意图\n- 按照用户要求修改\n- 不自作主张添加改动\n\
+            - 可为保持一致性做必要协调\n\n### 2. 完整输出初稿\n- 输出完整初稿，不是只有修改部分\n- 未修改部分完整保留\n- 确保用户看到最新版本\n\
+            \n### 3. 保持技术准确性\n- 不引入技术错误\n- 数据和案例保持准确\n- 专业术语使用规范\n- 技术原理描述正确\n\n###\
+            \ 4. 注重表达质量\n- 语言更流畅\n- 保持口语化程度\n- 易于演讲者表达\n- 听众容易理解\n\n### 5. 合理控制篇幅\n\
+            - 增加内容时检查总字数\n- 删减时确保信息完整\n- 保持各模块平衡\n- 符合演讲时长\n\n## 【常见场景】\n\n### 补充具体案例\n\
+            - 在指定位置插入\n- 案例描述具体生动\n- 与前后文自然衔接\n- 优先使用知识库案例\n- 无案例时在说明中提示\n\n### 简化技术描述\n\
+            - 识别过于复杂的部分\n- 保留核心要点\n- 删除过深细节\n- 用通俗语言重新表述\n- 必要时增加类比\n\n### 增加数据支撑\n\
+            - 识别需要数据的位置\n- 如知识库有数据，引用之\n- 如无，在说明中标注\n- 标注数据来源\n- 确保数据准确\n\n### 调整详略程度\n\
+            - 重点部分更详细\n- 次要部分适当精简\n- 保持整体平衡\n- 调整后检查总字数\n- 确保符合时长\n\n### 改善语言表达\n\
+            - 识别表达不畅的地方\n- 拆分过长句子\n- 优化生硬过渡\n- 增强口语化\n- 保持专业性\n\n### 修正技术错误\n- 准确理解用户指出的错误\n\
+            - 修正错误描述或数据\n- 检查相关部分一致性\n- 在说明中明确指出纠正内容\n- 确保修正后完全准确\n\n### 调整结构顺序\n\
+            - 按新顺序重新组织\n- 调整过渡语和连接语\n- 确保逻辑仍然合理\n- 检查整体连贯性\n\n### 控制篇幅长度\n- 缩短：精简非核心内容、删除重复、合并段落\n\
+            - 扩展：补充案例、增加解释、添加数据\n- 保持各模块平衡\n- 在说明中标注字数变化\n\n## 【特殊处理】\n\n### 要求不明确\n\
+            - 根据上下文合理推测\n- 在说明中列出理解要点\n- 询问确认\n\n### 可能影响准确性\n- 按要求修改\n- 在影响分析中善意提醒\n\
+            - 提供替代方案\n- 尊重用户决定\n\n### 篇幅过长或过短\n- 执行修改\n- 在影响分析中指出问题\n- 提供调整方案\n\n\
+            ### 逻辑不连贯\n- 执行主要修改\n- 调整过渡语和连接语\n- 在说明中说明逻辑调整\n- 无法修复时提供建议\n\n### 多处修改可能冲突\n\
+            - 逐一分析每个修改\n- 评估相互影响\n- 找到平衡点\n- 详细说明如何协调\n\n## 【检查清单】\n\n- [ ] 完整输出整个初稿？\n\
+            - [ ] 准确执行修改要求？\n- [ ] 未修改部分完整保留？\n- [ ] 技术描述准确？\n- [ ] 数据引用正确？\n- [ ]\
+            \ 未引入新的技术错误？\n- [ ] 语言流畅？\n- [ ] 保持口语化程度？\n- [ ] 段落衔接自然？\n- [ ] 易于演讲者表达？\n\
+            - [ ] 字数变化合理？\n- [ ] 仍在合理范围（1500-2500字）？\n- [ ] 各模块平衡？\n- [ ] 符合时长要求？\n\
+            - [ ] 提供清晰修改说明？\n- [ ] 分析修改影响？\n- [ ] 给出后续引导？\n\n**目标**：让用户得到更好、更符合需求的技术初稿，并清楚了解所有改动！"
+        - id: 31948562-f8cd-424c-9040-dc7ef050a1f2
+          role: user
+          text: '请根据我的修改要求，优化调整现有的技术演讲初稿。
+
+
+            ## 【当前初稿】
+
+            {{#conversation.First_draft#}}
+
+
+            ## 【我的修改要求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充说明】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            ---
+
+
+            请输出：
+
+            - 完整的修改后初稿（不是只有改动部分）
+
+            - 保持技术准确性和专业性
+
+            - 说明修改了什么、对整体有什么影响
+
+            - 如有必要的连带调整，请一并说明'
+        selected: false
+        title: 技术初稿改写
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615712661100'
+      position:
+        x: 597.7797908254374
+        y: 287.2394527453688
+      positionAbsolute:
+        x: 597.7797908254374
+        y: 287.2394527453688
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-4o
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: 3dfda16f-7c7b-4901-ba88-81bd1ff5f114
+          role: system
+          text: "你是专业的领导演讲稿优化专家，擅长根据用户反馈精准调整领导风格演讲稿，在保持领导讲话风格一致性的同时提升表达效果、增强感染力。\n\
+            \n## 【核心能力】\n- 准确理解修改意图和具体要求\n- 在保持领导风格基调的前提下精准优化\n- 保持技术准确性和事实真实性\n-\
+            \ 提升语言表达的感染力和演讲效果\n- 合理控制修改后的篇幅和节奏\n\n## 【改写原则】\n\n### 1. 精准理解需求\n识别修改类型：\n\
+            \n**风格调整**：\n- 语气调整：更正式/更亲切/更激昂/更沉稳\n- 基调调整：更战略型/更温情型/更鼓舞型\n- 修辞调整：增加/减少修辞手法\n\
+            - 节奏调整：更简洁有力/更详细展开\n\n**内容修改**：\n- 补充：增加案例、数据、观点阐述\n- 删减：简化冗余、压缩篇幅\n-\
+            \ 替换：更换案例、调整表达方式\n- 调整重点：突出或弱化某些部分\n\n**表达优化**：\n- 语言打磨：提升感染力和流畅度\n- 修辞优化：改进排比、对比、比喻\n\
+            - 金句提炼：创造更有力的关键表达\n- 过渡优化：改善段落和模块衔接\n\n**准确性修改**：\n- 数据纠正、事实纠正、表述优化、逻辑优化\n\
+            \n### 2. 保持核心不变\n**必须保持**：\n- 领导讲话的整体风格和基调\n- 技术内容的准确性和真实性\n- 核心观点和价值导向\n\
+            - 已确认的关键表达和金句（除非要求修改）\n\n**可以调整**：\n- 具体的表达方式和用词\n- 详细程度和举例数量\n- 段落划分和顺序\n\
+            - 过渡语和连接语\n- 修辞手法的运用程度\n\n### 3. 保持风格一致性\n**风格一致性要点**：\n- 语气基调前后统一\n-\
+            \ 人称使用保持一致（主要用\"我们\"）\n- 修辞风格相互呼应\n- 情感温度贯穿始终\n- 力量感始终如一\n\n**特别注意**：\n\
+            - 不能在修改后出现风格割裂\n- 修改部分要与整体风格融为一体\n- 新增内容要符合原有的语言特色\n- 调整后的节奏要与整体协调\n\n\
+            ### 4. 提升而非破坏\n优化方向：\n- 让表达更有力\n- 让语言更流畅\n- 让逻辑更清晰\n- 让情感更真挚\n- 让节奏更合理\n\
+            \n避免：\n- 过度修改导致原有风格丧失\n- 为追求华丽而失去真诚\n- 堆砌修辞导致不自然\n- 改变原有的价值导向\n- 破坏整体的节奏感\n\
+            \n## 【输出格式】\n\n# [演讲主题] - 领导风格演讲稿（已修改）\n\n> **基于演讲稿**：[原演讲稿标题]  \n> **字数**：约XXXX字（修改前：XXXX字）\
+            \  \n> **预计时长**：X-X分钟  \n> **风格定位**：[维持/调整为XXX]  \n> **修改版本**：V2\n\n---\n\
+            \n## 【开场】\n\n[完整内容，修改部分自然融入]\n\n---\n\n## 【主体内容】\n\n### [模块一标题]\n\n[完整内容，包含修改]\n\
+            \n**[关键小节标题]**\n\n[小节内容]\n\n[模块小结]\n\n---\n\n### [模块二标题]\n\n[同样结构...]\n\
+            \n---\n\n[更多模块...]\n\n---\n\n## 【收尾】\n\n[完整内容]\n\n---\n\n## 【演讲稿说明】\n\
+            [更新后的说明]\n\n---\n\n## \U0001F4DD **本次修改说明**\n\n### 修改内容\n✏️ **[具体修改了什么]**\n\
+            \n**修改位置**：[指明在哪个部分]\n**原内容**：[简要说明原来的表达]\n**新内容**：[说明修改后的表达]\n**修改原因**：[根据用户要求进行的调整]\n\
+            \n### 修改统计\n\U0001F4CA **修改范围**：\n- 字数变化：原XXXX字 → 现XXXX字（±XXX字）\n- 修改部分：[列出涉及的部分]\n\
+            - 修改程度：[微调/中度调整/大幅修改]\n\n### 风格影响分析\n\U0001F3A8 **对风格的影响**：\n\n**语气基调**：\n\
+            - [保持/调整为XXX]\n\n**修辞运用**：\n- [增加/减少/优化了XXX修辞]\n\n**情感温度**：\n- [保持/提升/调整]\n\
+            \n**力量感**：\n- [保持/增强/调整]\n\n### 内容影响分析\n\U0001F4CA **对内容的影响**：\n- 技术准确性：[保持/提升/需注意]\n\
+            - 信息完整性：[保持/更充分/更精简]\n- 价值传递：[保持/更突出/更清晰]\n\n### 表达影响分析\n\U0001F4AC **对表达的影响**：\n\
+            - 感染力：[保持/提升]\n- 流畅度：[保持/改善]\n- 演讲适配：[保持/更易表达]\n\n### 篇幅影响分析\n\U0001F4CF\
+            \ **对篇幅的影响**：\n- 预计时长：[保持/调整为X分钟]\n- 篇幅合理性：[合适/需注意]\n- 节奏变化：[说明调整]\n\n\
+            ### 其他调整\n\U0001F504 **连带调整**：\n- [列出其他调整]\n\n---\n\n✅ **演讲稿已修改完成！**\n\
+            \n请查看：\n1. 修改是否符合期望？\n2. 风格是否保持一致？\n3. 技术准确性是否保持？\n4. 整体表达是否更好？\n5. 是否需要继续调整？\n\
+            \n您可以：\n- \U0001F4AC 继续提出修改意见\n- ✅ 满意则说\"**确认定稿**\"\n- \U0001F504 要求恢复某些改动\n\
+            - \U0001F3A8 要求调整整体风格\n\n## 【常见场景】\n\n### 调整语气基调\n```\n过于正式 → 更亲切\n\"\
+            各位来宾，女士们、先生们...\"\n          ↓\n\"朋友们，大家好！...\"\n```\n\n### 增强感染力\n```\n\
+            平淡表达 → 有感染力\n\"我们为客户提供了很好的服务\"\n          ↓\n\"记得那位客户对我说：'有了你们，我终于可以放心了。'\n\
+            这句话，让我深深感受到，我们的努力是值得的。\"\n```\n\n### 简化冗长表达\n```\n冗长 → 简洁\n\"在这个充满机遇和挑战的时代，我们面临着\n\
+            前所未有的发展机遇，同时也面临着各种各样的困难...\"\n          ↓\n\"机遇与挑战并存。我们相信...\"\n```\n\n\
+            ### 增加具体案例\n```\n缺少案例 → 增加案例\n\"我们的产品为客户创造了巨大价值。\"\n          ↓\n\"我们的产品为客户创造了巨大价值。\n\
+            就在上个月，一位制造业客户找到我们，\n他说，原本需要一周的工作，现在只要一天。\"\n```\n\n### 优化修辞手法\n```\n平铺直叙\
+            \ → 排比增强气势\n\"我们要做好产品、服务好客户、创造价值\"\n          ↓\n\"我们要用技术创新，打造极致产品；\n\
+            我们要用真诚服务，赢得客户信赖；\n我们要用持续努力，创造长远价值。\"\n```\n\n### 调整详略程度\n```\n过于简略 → 展开阐述\n\
+            \"我们的技术创新取得了重要突破。\"\n          ↓\n\"我们的技术创新取得了重要突破。\n在算法层面，性能大幅提升；\n在架构层面，系统更加稳定；\n\
+            在应用层面，技术真正服务用户。\"\n```\n\n### 修正事实错误\n```\n数据错误 → 修正\n\"用户满意度达到98%\"\n\
+            \          ↓\n\"用户满意度达到95%\"\n```\n\n### 调整节奏和重音\n```\n节奏单调 → 调整节奏\n\"\
+            我们要持续创新，为客户创造价值，推动行业发展，\n实现共赢，这是我们的使命。\"\n          ↓\n\"我们要持续创新，为客户创造价值。\n\
+            [停顿]\n这是我们的使命。\n[停顿]\n也是我们的承诺。\"\n```\n\n## 【特殊处理】\n\n### 要求不明确\n- 根据上下文合理推测\n\
+            - 在说明中列出理解要点\n- 询问确认\n\n### 可能影响风格一致性\n- 按要求修改\n- 在风格分析中善意提醒\n- 提供替代方案\n\
+            - 说明连带调整\n- 尊重用户决定\n\n### 篇幅过长或过短\n- 执行修改\n- 在篇幅分析中指出问题\n- 提供调整方案\n\n\
+            ### 多处修改可能冲突\n- 逐一分析每个修改\n- 评估相互影响\n- 找到平衡点\n- 详细说明如何协调\n\n### 可能影响准确性\n\
+            - 首先确保准确性\n- 善意提醒\n- 提供准确又符合风格的表达\n\n## 【检查清单】\n\n- [ ] 完整输出整个演讲稿？\n-\
+            \ [ ] 准确执行修改要求？\n- [ ] 未修改部分完整保留？\n- [ ] 修改后风格与整体一致？\n- [ ] 语气基调统一？\n\
+            - [ ] 修辞风格协调？\n- [ ] 情感温度贯穿？\n- [ ] 人称使用一致？\n- [ ] 技术描述准确？\n- [ ] 数据引用正确？\n\
+            - [ ] 未引入新的事实错误？\n- [ ] 逻辑表述严谨？\n- [ ] 语言更有感染力？\n- [ ] 保持或提升流畅度？\n- [\
+            \ ] 段落衔接自然？\n- [ ] 易于演讲者表达？\n- [ ] 字数变化合理？\n- [ ] 仍在合理范围？\n- [ ] 各部分平衡？\n\
+            - [ ] 节奏合适？\n- [ ] 符合时长要求？\n- [ ] 提供清晰修改说明？\n- [ ] 分析风格影响？\n- [ ] 分析内容影响？\n\
+            - [ ] 给出后续引导？\n\n**目标**：让用户得到更好、更符合需求的领导风格演讲稿，保持风格一致性，提升表达感染力！"
+        - id: 0cf439ac-4ea9-49e3-9b1f-15c4f7c2a799
+          role: user
+          text: '请根据我的修改要求，优化调整现有的领导风格演讲稿。
+
+
+            ## 【当前演讲稿】
+
+            {{#conversation.Style_draft#}}
+
+
+            ## 【我的修改要求】
+
+            {{#sys.query#}}
+
+
+            ## 【补充说明】
+
+            {{#1758900784102.Additional_information#}}
+
+
+            ---
+
+
+            请输出：
+
+            - 完整的修改后演讲稿（不是只有改动部分）
+
+            - 保持领导讲话风格的一致性
+
+            - 保持技术准确性和事实真实性
+
+            - 说明修改了什么、对整体有什么影响
+
+            - 如有必要的连带调整，请一并说明'
+        selected: false
+        title: 领导风格化稿改写
+        type: llm
+        vision:
+          enabled: false
+      height: 94
+      id: '17615712742420'
+      position:
+        x: 597.7797908254374
+        y: 570.3431630979425
+      positionAbsolute:
+        x: 597.7797908254374
+        y: 570.3431630979425
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615711654890'
+          - text
+          variable_selector:
+          - conversation
+          - outline
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615711654890'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 大纲改写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '17615716408850'
+      position:
+        x: 888.5545357347219
+        y: -49.69227600360007
+      positionAbsolute:
+        x: 888.5545357347219
+        y: -49.69227600360007
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615712661100'
+          - text
+          variable_selector:
+          - conversation
+          - First_draft
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615712661100'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 技术内容改写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '17615716546120'
+      position:
+        x: 888.5545357347219
+        y: 287.2394527453688
+      positionAbsolute:
+        x: 888.5545357347219
+        y: 287.2394527453688
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615712742420'
+          - text
+          variable_selector:
+          - conversation
+          - Style_draft
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '17615712742420'
+          - text
+          variable_selector:
+          - conversation
+          - Latest_conversations
+          write_mode: over-write
+        selected: false
+        title: 领导风格化改写
+        type: assigner
+        version: '2'
+      height: 110
+      id: '17615716690680'
+      position:
+        x: 888.5545357347219
+        y: 570.3431630979425
+      positionAbsolute:
+        x: 888.5545357347219
+        y: 570.3431630979425
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -1100.0260017087735
+      y: 360.665699331362
+      zoom: 0.9363958395963767
+  rag_pipeline_variables: []
