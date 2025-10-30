@@ -1,9 +1,10 @@
 import sqlite3 from 'sqlite3';
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import { Logger } from '../utils/logger';
 
 dotenv.config();
 
@@ -28,7 +29,7 @@ interface DatabaseConfig {
 // 获取数据库配置
 export function getDatabaseConfig(): DatabaseConfig {
   const dbType = (process.env.DB_TYPE || 'sqlite') as DatabaseType;
-  
+
   const config: DatabaseConfig = {
     type: dbType
   };
@@ -69,46 +70,50 @@ class SQLiteManager {
 
       this.db = new sqlite3.Database(this.dbPath, (err) => {
         if (err) {
-          console.error('❌ SQLite连接失败:', err);
+          Logger.error('SQLite连接失败', { error: err.message, path: this.dbPath });
           reject(err);
         } else {
-          console.log('✅ SQLite数据库连接成功');
+          Logger.info('SQLite数据库连接成功', { path: this.dbPath });
           resolve();
         }
       });
     });
   }
 
-  async query(sql: string, params: any[] = []): Promise<any> {
+  async query(sql: string, params: unknown[] = []): Promise<unknown> {
     if (!this.db) {
       throw new Error('数据库未连接');
     }
 
-    console.log('SQLiteManager.query - SQL:', sql);
-    console.log('SQLiteManager.query - Params:', params);
+    Logger.database('Executing query', { sql, params });
 
     return new Promise((resolve, reject) => {
       if (sql.trim().toLowerCase().startsWith('select')) {
         this.db!.all(sql, params, (err, rows) => {
           if (err) {
-            console.error('SQLiteManager.query - Error:', err);
+            Logger.error('SQLite query error', { sql, error: err.message });
             reject(err);
           } else {
-            console.log('SQLiteManager.query - Rows returned:', rows.length);
-            console.log('SQLiteManager.query - First few rows:', rows.slice(0, 3));
+            Logger.debug('SQLite query result', {
+              rowCount: rows.length,
+              firstRows: rows.slice(0, 3),
+            });
             resolve(rows);
           }
         });
       } else {
         this.db!.run(sql, params, function(err) {
           if (err) {
-            console.error('SQLiteManager.query - Error:', err);
+            Logger.error('SQLite execution error', { sql, error: err.message });
             reject(err);
           } else {
-            console.log('SQLiteManager.query - Changes:', this.changes, 'LastID:', this.lastID);
-            resolve({ 
-              lastID: this.lastID, 
-              changes: this.changes 
+            Logger.debug('SQLite execution result', {
+              changes: this.changes,
+              lastID: this.lastID,
+            });
+            resolve({
+              lastID: this.lastID,
+              changes: this.changes
             });
           }
         });
@@ -120,7 +125,7 @@ class SQLiteManager {
     if (this.db) {
       return new Promise((resolve) => {
         this.db!.close(() => {
-          console.log('SQLite数据库连接已关闭');
+          Logger.info('SQLite数据库连接已关闭');
           resolve();
         });
       });
@@ -132,31 +137,44 @@ class SQLiteManager {
 class PostgreSQLManager {
   private pool: Pool | null = null;
 
-  constructor(config: any) {
+  constructor(config: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+  }) {
     this.pool = new Pool(config);
   }
 
   async connect(): Promise<void> {
     try {
       const client = await this.pool!.connect();
-      console.log('✅ PostgreSQL数据库连接成功');
+      Logger.info('PostgreSQL数据库连接成功');
       client.release();
     } catch (error) {
-      console.error('❌ PostgreSQL连接失败:', error);
+      Logger.error('PostgreSQL连接失败', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
 
-  async query(sql: string, params: any[] = []): Promise<any> {
+  async query(sql: string, params: unknown[] = []): Promise<unknown> {
     if (!this.pool) {
       throw new Error('数据库未连接');
     }
 
     try {
+      Logger.database('Executing PostgreSQL query', { sql, params });
       const result = await this.pool.query(sql, params);
+      Logger.debug('PostgreSQL query result', { rowCount: result.rowCount });
       return result.rows;
     } catch (error) {
-      console.error('PostgreSQL查询错误:', error);
+      Logger.error('PostgreSQL查询错误', {
+        sql,
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -164,8 +182,12 @@ class PostgreSQLManager {
   async close(): Promise<void> {
     if (this.pool) {
       await this.pool.end();
-      console.log('PostgreSQL数据库连接已关闭');
+      Logger.info('PostgreSQL数据库连接已关闭');
     }
+  }
+
+  getPool(): Pool | null {
+    return this.pool;
   }
 }
 
@@ -196,7 +218,7 @@ export class DatabaseManager {
     }
   }
 
-  async query(sql: string, params: any[] = []): Promise<any> {
+  async query(sql: string, params: unknown[] = []): Promise<unknown> {
     if (this.config.type === 'sqlite' && this.sqliteManager) {
       return await this.sqliteManager.query(sql, params);
     } else if (this.config.type === 'postgresql' && this.postgresManager) {
@@ -217,26 +239,58 @@ export class DatabaseManager {
     return this.config.type;
   }
 
-  // 事务支持（简化版本）
+  // 事务支持
   async transaction(): Promise<{
-    query: (sql: string, params?: any[]) => Promise<any>;
+    query: (sql: string, params?: unknown[]) => Promise<unknown>;
     commit: () => Promise<void>;
     rollback: () => Promise<void>;
   }> {
-    // 简化的事务实现，实际项目中需要更完善的事务管理
-    return {
-      query: async (sql: string, params: any[] = []) => {
-        return await this.query(sql, params);
-      },
-      commit: async () => {
-        // 在实际实现中，这里应该提交事务
-        return Promise.resolve();
-      },
-      rollback: async () => {
-        // 在实际实现中，这里应该回滚事务
-        return Promise.resolve();
+    if (this.config.type === 'sqlite') {
+      await this.query('BEGIN TRANSACTION');
+      Logger.debug('Transaction started');
+
+      return {
+        query: async (sql: string, params: unknown[] = []) => {
+          return await this.query(sql, params);
+        },
+        commit: async () => {
+          await this.query('COMMIT');
+          Logger.debug('Transaction committed');
+        },
+        rollback: async () => {
+          await this.query('ROLLBACK');
+          Logger.debug('Transaction rolled back');
+        }
+      };
+    } else if (this.config.type === 'postgresql' && this.postgresManager) {
+      const pool = this.postgresManager.getPool();
+      if (!pool) {
+        throw new Error('PostgreSQL pool not initialized');
       }
-    };
+
+      const client = await pool.connect();
+      await client.query('BEGIN');
+      Logger.debug('PostgreSQL transaction started');
+
+      return {
+        query: async (sql: string, params: unknown[] = []) => {
+          const result = await client.query(sql, params);
+          return result.rows;
+        },
+        commit: async () => {
+          await client.query('COMMIT');
+          client.release();
+          Logger.debug('PostgreSQL transaction committed');
+        },
+        rollback: async () => {
+          await client.query('ROLLBACK');
+          client.release();
+          Logger.debug('PostgreSQL transaction rolled back');
+        }
+      };
+    }
+
+    throw new Error('数据库管理器未初始化');
   }
 }
 
@@ -247,15 +301,17 @@ export const db = new DatabaseManager();
 export async function testConnection(): Promise<boolean> {
   try {
     await db.connect();
-    console.log('✅ SQLite数据库连接成功');
+    Logger.info('数据库连接测试成功', { type: db.getType() });
     return true;
   } catch (error) {
-    console.error('数据库连接测试失败:', error);
+    Logger.error('数据库连接测试失败', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }
 
 // 执行查询的便捷函数
-export async function query(sql: string, params?: any[]): Promise<any> {
+export async function query(sql: string, params?: unknown[]): Promise<unknown> {
   return await db.query(sql, params || []);
 }

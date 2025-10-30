@@ -1,73 +1,12 @@
-import axios from 'axios';
-
-// Dify应用类型枚举
-export enum DifyAppType {
-  AI_SEARCH = 'ai-search',
-  TECH_PACKAGE = 'tech-package',
-  TECH_STRATEGY = 'tech-strategy', 
-  TECH_ARTICLE = 'tech-article',
-  CORE_DRAFT = 'core-draft',
-  TECH_PUBLISH = 'tech-publish'
-}
-
-// 定义工作流响应数据接口
-export interface DifyWorkflowResponse {
-  workflow_run_id: string;
-  task_id: string;
-  data: {
-    id: string;
-    workflow_id: string;
-    status: string;
-    outputs: {
-      text?: string;
-      [key: string]: any;
-    };
-    error: string | null;
-    elapsed_time: number;
-    total_tokens: number;
-    total_steps: number;
-    created_at: number;
-    finished_at: number;
-  };
-}
-
-// 定义聊天消息响应数据接口
-export interface DifyChatResponse {
-  event: string;
-  task_id: string;
-  id: string;
-  message_id: string;
-  conversation_id: string;
-  mode: string;
-  answer: string;
-  metadata: {
-    usage: {
-      prompt_tokens: number;
-      prompt_unit_price: string;
-      prompt_price_unit: string;
-      prompt_price: string;
-      completion_tokens: number;
-      completion_unit_price: string;
-      completion_price_unit: string;
-      completion_price: string;
-      total_tokens: number;
-      total_price: string;
-      currency: string;
-      latency: number;
-    };
-    retriever_resources?: Array<{
-      position: number;
-      dataset_id: string;
-      dataset_name: string;
-      document_id: string;
-      document_name: string;
-      segment_id: string;
-      score: number;
-      content: string;
-    }>;
-  };
-  created_at: number;
-}
+import axios, { AxiosError } from 'axios';
+import { Logger } from '../utils/logger';
+import {
+  DifyAppType,
+  DifyWorkflowResponse,
+  DifyChatResponse,
+  DifyInputs,
+  DifyCallOptions
+} from '../types/dify';
 
 class DifyClient {
   private baseUrl: string;
@@ -80,7 +19,7 @@ class DifyClient {
 
   // 获取对应应用的API密钥
   private getApiKey(appType: DifyAppType): string {
-    const apiKeys: { [key in DifyAppType]: string } = {
+    const apiKeys: Record<DifyAppType, string> = {
       [DifyAppType.AI_SEARCH]: process.env.AI_SEARCH_API_KEY || '',
       [DifyAppType.TECH_PACKAGE]: process.env.TECH_PACKAGE_API_KEY || '',
       [DifyAppType.TECH_STRATEGY]: process.env.TECH_STRATEGY_API_KEY || '',
@@ -91,17 +30,35 @@ class DifyClient {
 
     const apiKey = apiKeys[appType];
     if (!apiKey) {
-      throw new Error(`API key not found for app type: ${appType}`);
+      const error = `API key not found for app type: ${appType}`;
+      Logger.error(error);
+      throw new Error(error);
     }
     return apiKey;
   }
 
   // 调用工作流API (用于AI搜索)
-  async runWorkflow(appType: DifyAppType, inputs: any, responseMode: string = 'blocking', user: string = 'todify2-user'): Promise<DifyWorkflowResponse> {
+  async runWorkflow(
+    appType: DifyAppType,
+    inputs: DifyInputs,
+    options: DifyCallOptions = {}
+  ): Promise<DifyWorkflowResponse> {
+    const {
+      responseMode = 'blocking',
+      user = 'todify2-user',
+      timeout = 60000
+    } = options;
+
     try {
       const apiKey = this.getApiKey(appType);
-      
-      const response = await axios.post(
+
+      Logger.api('Dify', 'runWorkflow', {
+        appType,
+        url: this.workflowBaseUrl,
+        inputs: Object.keys(inputs),
+      });
+
+      const response = await axios.post<DifyWorkflowResponse>(
         `${this.workflowBaseUrl}/workflows/run`,
         {
           inputs,
@@ -113,30 +70,52 @@ class DifyClient {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 60000 // 60秒超时，增加到60秒以适应Dify工作流处理时间
+          timeout
         }
       );
 
+      Logger.api('Dify', 'runWorkflow success', {
+        appType,
+        workflowRunId: response.data.workflow_run_id,
+      });
+
       return response.data;
     } catch (error) {
-      console.error(`Dify workflow API error for ${appType}:`, error);
+      this.handleDifyError(error, 'runWorkflow', appType);
       throw error;
     }
   }
 
   // 调用Dify应用API (用于其他应用)
-  async callApp(appType: DifyAppType, inputs: any, responseMode: string = 'blocking', user: string = 'todify2-user'): Promise<any> {
+  async callApp(
+    appType: DifyAppType,
+    inputs: DifyInputs,
+    options: DifyCallOptions = {}
+  ): Promise<DifyChatResponse> {
+    const {
+      responseMode = 'blocking',
+      user = 'todify2-user',
+      conversationId = '',
+      timeout = 30000
+    } = options;
+
     try {
       const apiKey = this.getApiKey(appType);
-      
-      const response = await axios.post(
+
+      Logger.api('Dify', 'callApp', {
+        appType,
+        url: this.baseUrl,
+        inputs: Object.keys(inputs),
+      });
+
+      const response = await axios.post<DifyChatResponse>(
         `${this.baseUrl}/chat-messages`,
         {
           inputs,
           query: inputs.query || '',
           response_mode: responseMode,
           user,
-          conversation_id: '',
+          conversation_id: conversationId,
           files: []
         },
         {
@@ -144,29 +123,42 @@ class DifyClient {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 30000 // 30秒超时
+          timeout
         }
       );
 
+      Logger.api('Dify', 'callApp success', {
+        appType,
+        messageId: response.data.message_id,
+      });
+
       return response.data;
     } catch (error) {
-      console.error(`Dify API error for ${appType}:`, error);
+      this.handleDifyError(error, 'callApp', appType);
       throw error;
     }
   }
 
   // AI搜索应用 (使用聊天消息API)
-  async aiSearch(query: string, inputs: any = {}, responseMode: string = 'blocking'): Promise<DifyChatResponse> {
+  async aiSearch(
+    query: string,
+    inputs: DifyInputs = {},
+    options: DifyCallOptions = {}
+  ): Promise<DifyChatResponse> {
+    const { responseMode = 'blocking', conversationId = '' } = options;
+
     try {
       const apiKey = this.getApiKey(DifyAppType.AI_SEARCH);
-      
-      const response = await axios.post(
+
+      Logger.api('Dify', 'aiSearch', { query: query.substring(0, 100) });
+
+      const response = await axios.post<DifyChatResponse>(
         `${this.baseUrl}/chat-messages`,
         {
           inputs,
           query,
           response_mode: responseMode,
-          conversation_id: '',
+          conversation_id: conversationId,
           user: 'todify2-user',
           files: []
         },
@@ -175,21 +167,27 @@ class DifyClient {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 30000 // 30秒超时
+          timeout: 30000
         }
       );
 
+      Logger.api('Dify', 'aiSearch success', {
+        messageId: response.data.message_id,
+      });
+
       return response.data;
     } catch (error) {
-      console.error('Dify AI Search API error:', error);
-      // 如果API不可用，返回模拟数据
-      console.warn('Dify API不可用，返回模拟数据');
+      Logger.warn('Dify AI Search API error, returning mock data', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return this.getMockAiSearchResponse(query, inputs);
     }
   }
 
   // 模拟AI搜索响应
-  private getMockAiSearchResponse(query: string, inputs: any): DifyChatResponse {
+  private getMockAiSearchResponse(query: string, inputs: DifyInputs): DifyChatResponse {
+    Logger.debug('Generating mock AI search response', { query });
+
     return {
       event: 'message',
       task_id: 'mock-task-' + Date.now(),
@@ -230,7 +228,6 @@ class DifyClient {
     };
   }
 
-  // 技术包装应用 (使用工作流API)
   // 将聊天响应转换为工作流响应格式
   private convertChatToWorkflowResponse(chatResponse: DifyChatResponse): DifyWorkflowResponse {
     return {
@@ -254,26 +251,25 @@ class DifyClient {
     };
   }
 
-  async techPackage(inputs: any): Promise<DifyWorkflowResponse> {
+  // 技术包装应用 (使用聊天API)
+  async techPackage(inputs: DifyInputs): Promise<DifyWorkflowResponse> {
     try {
-      // 技术包装使用聊天API而不是工作流API
       const chatResponse = await this.callApp(DifyAppType.TECH_PACKAGE, {
         ...inputs,
         query: "请对以上技术信息进行包装分析"
       });
-      
-      // 将聊天响应转换为工作流响应格式
+
       return this.convertChatToWorkflowResponse(chatResponse);
     } catch (error) {
-      // 如果API不可用，返回模拟数据
-      console.warn('Dify API不可用，返回模拟数据:', error);
+      Logger.warn('Dify techPackage API error, returning mock data', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return this.getMockTechPackageResponse(inputs);
     }
   }
 
   // 模拟技术包装响应
-  private getMockTechPackageResponse(inputs: any): DifyWorkflowResponse {
-    // 模拟Dify工作流的结构化输出
+  private getMockTechPackageResponse(inputs: DifyInputs): DifyWorkflowResponse {
     const mockAnswer = `# 技术包装分析报告
 
 ## 输入信息分析
@@ -305,8 +301,6 @@ ${inputs.Additional_information || '未提供具体信息'}
         outputs: {
           answer: mockAnswer,
           text: mockAnswer,
-          reasoning_content: '基于输入的技术信息进行深度分析和结构化整理',
-          summary: '技术包装完成，已生成结构化分析报告'
         },
         error: null,
         elapsed_time: 2.3,
@@ -318,55 +312,55 @@ ${inputs.Additional_information || '未提供具体信息'}
     };
   }
 
-  // 技术策略应用 (使用工作流API)
-  async techStrategy(inputs: any): Promise<DifyWorkflowResponse> {
+  // 技术策略应用
+  async techStrategy(inputs: DifyInputs): Promise<DifyWorkflowResponse> {
     return this.runWorkflow(DifyAppType.TECH_STRATEGY, inputs);
   }
 
-  // 技术通稿应用 (使用工作流API)
-  async techArticle(inputs: any): Promise<DifyWorkflowResponse> {
+  // 技术通稿应用
+  async techArticle(inputs: DifyInputs): Promise<DifyWorkflowResponse> {
     return this.runWorkflow(DifyAppType.TECH_ARTICLE, inputs);
   }
 
+  // 核心稿件生成
+  async coreDraft(inputs: DifyInputs): Promise<DifyWorkflowResponse> {
+    return this.runWorkflow(DifyAppType.CORE_DRAFT, inputs);
+  }
+
   // 技术发布生成 (使用chatflow模式)
-  async techPublish(inputs: any): Promise<DifyWorkflowResponse> {
+  async techPublish(inputs: DifyInputs | string): Promise<DifyWorkflowResponse> {
     try {
       const apiKey = this.getApiKey(DifyAppType.TECH_PUBLISH);
-      
-      // 检查API key是否存在
+
       if (!apiKey) {
         throw new Error('TECH_PUBLISH_API_KEY is not configured in environment variables');
       }
-      
-      console.log('Tech Publish API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
-      console.log('Tech Publish Base URL:', this.baseUrl);
-      
+
+      Logger.api('Dify', 'techPublish', { apiKey: `${apiKey.substring(0, 10)}...` });
+
       // 处理chatflow模式的参数映射
-      // 支持多种输入格式：Additional_information, coreDraft, 或直接传入的字符串
       let additionalInfo = '';
-      if (inputs.Additional_information) {
+      if (typeof inputs === 'string') {
+        additionalInfo = inputs;
+      } else if (inputs.Additional_information) {
         additionalInfo = inputs.Additional_information;
       } else if (inputs.coreDraft) {
-        additionalInfo = typeof inputs.coreDraft === 'string' 
-          ? inputs.coreDraft 
-          : JSON.stringify(inputs.coreDraft);
-      } else if (typeof inputs === 'string') {
-        additionalInfo = inputs;
+        additionalInfo = String(inputs.coreDraft);
       } else {
         additionalInfo = JSON.stringify(inputs);
       }
-      
-      // 处理query参数，支持sys.query或query字段
-      const queryText = inputs['sys.query'] || inputs.query || '请根据提供的补充信息生成技术发布会稿';
-      
-      const chatflowInputs = {
+
+      const queryText = typeof inputs === 'object' && (inputs['sys.query'] || inputs.query)
+        ? String(inputs['sys.query'] || inputs.query)
+        : '请根据提供的补充信息生成技术发布会稿';
+
+      const chatflowInputs: DifyInputs = {
         Additional_information: additionalInfo
       };
-      
-      console.log('Tech Publish Inputs:', chatflowInputs);
-      console.log('Tech Publish Query:', queryText);
-      
-      const response = await axios.post(
+
+      Logger.debug('Tech Publish inputs', { chatflowInputs, query: queryText });
+
+      const response = await axios.post<DifyChatResponse>(
         `${this.baseUrl}/chat-messages`,
         {
           inputs: chatflowInputs,
@@ -381,28 +375,38 @@ ${inputs.Additional_information || '未提供具体信息'}
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 60000 // 60秒超时
+          timeout: 60000
         }
       );
 
-      console.log('Tech Publish Response:', response.status, response.statusText);
-      
-      // 将chatflow响应转换为workflow响应格式以保持兼容性
+      Logger.api('Dify', 'techPublish success', { status: response.status });
+
       return this.convertChatToWorkflowResponse(response.data);
     } catch (error) {
-      console.error(`Dify chatflow API error for tech-publish:`, error);
-      if (axios.isAxiosError(error)) {
-        console.error('Response data:', error.response?.data);
-        console.error('Response status:', error.response?.status);
-        console.error('Response headers:', error.response?.headers);
-      }
+      this.handleDifyError(error, 'techPublish', DifyAppType.TECH_PUBLISH);
       throw error;
     }
   }
 
-  // 核心稿件生成
-  async coreDraft(inputs: any): Promise<DifyWorkflowResponse> {
-    return this.runWorkflow(DifyAppType.CORE_DRAFT, inputs);
+  // 统一的错误处理
+  private handleDifyError(error: unknown, operation: string, appType: DifyAppType): void {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      Logger.error(`Dify API error - ${operation}`, {
+        appType,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        message: axiosError.message,
+      });
+    } else if (error instanceof Error) {
+      Logger.exception(error, `Dify ${operation} - ${appType}`);
+    } else {
+      Logger.error(`Unknown Dify error - ${operation}`, {
+        appType,
+        error: String(error),
+      });
+    }
   }
 }
 
