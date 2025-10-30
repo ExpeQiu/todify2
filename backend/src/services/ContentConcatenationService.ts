@@ -1,8 +1,51 @@
 import { TechPointModel } from '../models/TechPoint';
 import { DatabaseManager } from '../config/database';
+import { Logger } from '../utils/logger';
 
 // 内容类型枚举，与前端保持一致
 export type ContentType = 'knowledge_point' | 'tech_packaging' | 'tech_promotion' | 'tech_press';
+
+// 知识点数据接口
+interface TechPointInfo {
+  id: number;
+  name?: string;
+  description?: string;
+  technical_details?: string | Record<string, unknown>;
+  benefits?: string | Record<string, unknown>;
+  applications?: string | Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+// 关联内容接口
+interface AssociatedContent {
+  packagingMaterials?: Array<{
+    title?: string;
+    content?: string;
+    keywords?: string;
+    [key: string]: unknown;
+  }>;
+  promotionStrategies?: Array<{
+    title?: string;
+    content?: string;
+    target_audience?: string;
+    weight?: string | number;
+    [key: string]: unknown;
+  }>;
+  pressReleases?: Array<{
+    title?: string;
+    content?: string;
+    publish_date?: string;
+    weight?: string | number;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}
+
+// 缓存值接口
+interface CacheValue {
+  data: unknown;
+  timestamp: number;
+}
 
 // 选择项接口，与前端保持一致
 export interface SelectionItem {
@@ -40,7 +83,7 @@ export interface ConcatenatedContent {
  */
 export class ContentConcatenationService {
   private techPointModel: TechPointModel;
-  private cache: Map<string, any> = new Map(); // 简单的内存缓存
+  private cache: Map<string, CacheValue> = new Map(); // 简单的内存缓存
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5分钟缓存过期时间
 
   constructor(db: DatabaseManager) {
@@ -59,7 +102,7 @@ export class ContentConcatenationService {
 
     // 获取统计信息
     const stats = this.getContentStats(selectedItems);
-    console.log('开始处理内容拼接:', stats);
+    Logger.info('开始处理内容拼接', stats);
 
     const groupedItems = this.groupByKnowledgePoint(selectedItems);
     let contextString = '';
@@ -75,17 +118,17 @@ export class ContentConcatenationService {
     // 处理每个知识点组
     for (const [knowledgePointId, items] of groupedItems) {
       try {
-        console.log(`处理知识点 ${knowledgePointId}, 包含 ${items.length} 个内容类型`);
-        
+        Logger.debug(`处理知识点 ${knowledgePointId}`, { itemCount: items.length });
+
         // 获取知识点的关联内容
-        const associatedContent = await this.techPointModel.getAssociatedContent(parseInt(knowledgePointId, 10));
-        
+        const associatedContent = await this.techPointModel.getAssociatedContent(parseInt(knowledgePointId, 10)) as AssociatedContent | null;
+
         // 获取知识点的基本信息
-        const techPointInfo = await this.techPointModel.findById(parseInt(knowledgePointId, 10));
-        
+        const techPointInfo = await this.techPointModel.findById(parseInt(knowledgePointId, 10)) as TechPointInfo | null;
+
         if (!associatedContent && !techPointInfo) {
           const errorMsg = `知识点 ${knowledgePointId} 未找到任何内容`;
-          console.warn(errorMsg);
+          Logger.warn(errorMsg);
           processingErrors.push(errorMsg);
           continue;
         }
@@ -109,12 +152,12 @@ export class ContentConcatenationService {
               contentTypeCounts[item.contentType]++;
             } else {
               const warningMsg = `知识点 ${knowledgePointId} 的 ${item.contentType} 类型内容为空`;
-              console.warn(warningMsg);
+              Logger.warn(warningMsg);
               processingErrors.push(warningMsg);
             }
           } catch (contentError) {
             const errorMsg = `处理知识点 ${knowledgePointId} 的 ${item.contentType} 内容时出错: ${contentError instanceof Error ? contentError.message : '未知错误'}`;
-            console.error(errorMsg);
+            Logger.error(errorMsg);
             processingErrors.push(errorMsg);
           }
         }
@@ -122,7 +165,7 @@ export class ContentConcatenationService {
         contextString += '\n' + '='.repeat(50) + '\n';
       } catch (error) {
         const errorMsg = `处理知识点 ${knowledgePointId} 时出错: ${error instanceof Error ? error.message : '未知错误'}`;
-        console.error(errorMsg);
+        Logger.error(errorMsg);
         processingErrors.push(errorMsg);
         // 继续处理其他知识点，不中断整个流程
       }
@@ -139,7 +182,7 @@ export class ContentConcatenationService {
       }
     };
 
-    console.log('内容拼接完成:', {
+    Logger.info('内容拼接完成', {
       contextLength: result.contextString.length,
       processedKnowledgePoints: knowledgePointIds.length,
       totalErrors: processingErrors.length
@@ -151,9 +194,11 @@ export class ContentConcatenationService {
   /**
    * 批量获取知识点数据以提高性能
    */
-  private async batchGetKnowledgePointData(knowledgePointIds: string[]): Promise<Map<string, { associatedContent: any; techPointInfo: any }>> {
-    const result = new Map<string, { associatedContent: any; techPointInfo: any }>();
-    
+  private async batchGetKnowledgePointData(
+    knowledgePointIds: string[]
+  ): Promise<Map<string, { associatedContent: AssociatedContent | null; techPointInfo: TechPointInfo | null }>> {
+    const result = new Map<string, { associatedContent: AssociatedContent | null; techPointInfo: TechPointInfo | null }>();
+
     // 并行获取所有知识点的数据
     const promises = knowledgePointIds.map(async (id) => {
       try {
@@ -162,19 +207,25 @@ export class ContentConcatenationService {
           this.techPointModel.getAssociatedContent(numericId),
           this.techPointModel.findById(numericId)
         ]);
-        return { id, associatedContent, techPointInfo };
+        return {
+          id,
+          associatedContent: associatedContent as AssociatedContent | null,
+          techPointInfo: techPointInfo as TechPointInfo | null
+        };
       } catch (error) {
-        console.error(`批量获取知识点 ${id} 数据失败:`, error);
+        Logger.error(`批量获取知识点 ${id} 数据失败`, {
+          error: error instanceof Error ? error.message : '未知错误'
+        });
         return { id, associatedContent: null, techPointInfo: null };
       }
     });
-    
+
     const results = await Promise.all(promises);
-    
+
     results.forEach(({ id, associatedContent, techPointInfo }) => {
       result.set(id, { associatedContent, techPointInfo });
     });
-    
+
     return result;
   }
 
@@ -196,7 +247,11 @@ export class ContentConcatenationService {
   /**
    * 根据内容类型从关联内容中提取对应内容
    */
-  private extractContentByType(associatedContent: any, techPointInfo: any, contentType: ContentType): string | null {
+  private extractContentByType(
+    associatedContent: AssociatedContent | null,
+    techPointInfo: TechPointInfo | null,
+    contentType: ContentType
+  ): string | null {
     switch (contentType) {
       case 'knowledge_point':
         // 知识点本身的详细信息
@@ -245,21 +300,21 @@ export class ContentConcatenationService {
       case 'tech_packaging':
         // 技术包装材料
         return associatedContent?.packagingMaterials && associatedContent.packagingMaterials.length > 0 ?
-          associatedContent.packagingMaterials.map((item: any) => 
+          associatedContent.packagingMaterials.map((item) =>
             `标题：${item.title || 'N/A'}\n内容：${item.content || 'N/A'}\n关键词：${item.keywords || 'N/A'}`
           ).join('\n---\n') : null;
-      
+
       case 'tech_promotion':
         // 技术推广策略
         return associatedContent?.promotionStrategies && associatedContent.promotionStrategies.length > 0 ?
-          associatedContent.promotionStrategies.map((item: any) => 
+          associatedContent.promotionStrategies.map((item) =>
             `策略标题：${item.title || 'N/A'}\n策略内容：${item.content || 'N/A'}\n目标受众：${item.target_audience || 'N/A'}\n权重：${item.weight || 'N/A'}`
           ).join('\n---\n') : null;
-      
+
       case 'tech_press':
         // 技术通稿
         return associatedContent?.pressReleases && associatedContent.pressReleases.length > 0 ?
-          associatedContent.pressReleases.map((item: any) => 
+          associatedContent.pressReleases.map((item) =>
             `通稿标题：${item.title || 'N/A'}\n通稿内容：${item.content || 'N/A'}\n发布时间：${item.publish_date || 'N/A'}\n权重：${item.weight || 'N/A'}`
           ).join('\n---\n') : null;
       

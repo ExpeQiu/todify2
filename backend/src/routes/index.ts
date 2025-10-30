@@ -8,18 +8,23 @@ import workflowRouter from './workflow';
 import knowledgePointsRouter from './knowledgePointRoutes';
 import chatRouter from './chat';
 import workflowStatsRouter from './workflowStats';
+import { Logger } from '../utils/logger';
 
 const router = Router();
 
 // 添加路由级别的日志记录
 router.use((req, res, next) => {
-  console.log(`=== API Route Handler ===`);
-  console.log(`${req.method} ${req.originalUrl}`);
-  console.log('Base URL:', req.baseUrl);
-  console.log('Path:', req.path);
-  console.log('Params:', req.params);
-  console.log('Query:', req.query);
-  console.log('Body:', req.body);
+  Logger.http(`API请求`, {
+    method: req.method,
+    url: req.originalUrl,
+    baseUrl: req.baseUrl,
+    path: req.path
+  });
+  Logger.debug('API请求详情', {
+    params: req.params,
+    query: req.query,
+    body: req.body
+  });
   next();
 });
 
@@ -36,23 +41,24 @@ router.use('/workflow-stats', workflowStatsRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {
-  console.log('=== Health check endpoint called ===');
-  console.log('Request headers:', req.headers);
-  console.log('Request method:', req.method);
-  console.log('Request URL:', req.url);
-  
+  Logger.http('健康检查端点', {
+    method: req.method,
+    url: req.url,
+    userAgent: req.headers['user-agent']
+  });
+
   try {
-    console.log('Preparing response...');
+    Logger.debug('准备健康检查响应');
     const response = {
       success: true,
       message: 'API is running',
       timestamp: new Date().toISOString(),
       version: '1.0.0'
     };
-    console.log('Sending response:', response);
+    Logger.info('健康检查成功', { version: response.version });
     res.json(response);
   } catch (error) {
-    console.error('Error in health check:', error);
+    Logger.exception(error as Error, '健康检查');
     res.status(500).json({
       success: false,
       message: 'Health check failed',
@@ -63,7 +69,7 @@ router.get('/health', (req, res) => {
 
 // 简单测试端点
 router.get('/test', (req, res) => {
-  console.log('=== Test endpoint called ===');
+  Logger.http('测试端点被调用');
   res.json({
     success: true,
     message: 'Test endpoint working',

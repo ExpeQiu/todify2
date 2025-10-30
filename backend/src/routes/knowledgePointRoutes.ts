@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { KnowledgePointService } from '../services/knowledgePointService';
 import { CreateKnowledgePointDTO, UpdateKnowledgePointDTO } from '../types/database';
+import { Logger } from '../utils/logger';
 
 const router = Router();
 const knowledgePointService = new KnowledgePointService();
@@ -26,7 +27,7 @@ router.post('/', async (req: Request, res: Response) => {
       message: '知识点创建成功'
     });
   } catch (error) {
-    console.error('创建知识点失败:', error);
+    Logger.exception(error as Error, '创建知识点');
     res.status(500).json({
       success: false,
       message: '创建知识点失败',
@@ -71,7 +72,7 @@ router.get('/tech-point/:techPointId', async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('获取知识点列表失败:', error);
+    Logger.exception(error as Error, '获取知识点列表');
     res.status(500).json({
       success: false,
       message: '获取知识点列表失败',
@@ -84,7 +85,7 @@ router.get('/tech-point/:techPointId', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    
+
     if (isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -93,20 +94,20 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     const knowledgePoint = await knowledgePointService.getKnowledgePointById(id);
-    
+
     if (!knowledgePoint) {
       return res.status(404).json({
         success: false,
         message: '知识点不存在'
       });
     }
-    
+
     res.json({
       success: true,
       data: knowledgePoint
     });
   } catch (error) {
-    console.error('获取知识点详情失败:', error);
+    Logger.exception(error as Error, '获取知识点详情');
     res.status(500).json({
       success: false,
       message: '获取知识点详情失败',
@@ -120,7 +121,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const data: UpdateKnowledgePointDTO = req.body;
-    
+
     if (isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -129,21 +130,21 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     const knowledgePoint = await knowledgePointService.updateKnowledgePoint(id, data);
-    
+
     if (!knowledgePoint) {
       return res.status(404).json({
         success: false,
         message: '知识点不存在'
       });
     }
-    
+
     res.json({
       success: true,
       data: knowledgePoint,
       message: '知识点更新成功'
     });
   } catch (error) {
-    console.error('更新知识点失败:', error);
+    Logger.exception(error as Error, '更新知识点');
     res.status(500).json({
       success: false,
       message: '更新知识点失败',
@@ -156,7 +157,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    
+
     if (isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -165,20 +166,20 @@ router.delete('/:id', async (req: Request, res: Response) => {
     }
 
     const success = await knowledgePointService.deleteKnowledgePoint(id);
-    
+
     if (!success) {
       return res.status(404).json({
         success: false,
         message: '知识点不存在或删除失败'
       });
     }
-    
+
     res.json({
       success: true,
       message: '知识点删除成功'
     });
   } catch (error) {
-    console.error('删除知识点失败:', error);
+    Logger.exception(error as Error, '删除知识点');
     res.status(500).json({
       success: false,
       message: '删除知识点失败',

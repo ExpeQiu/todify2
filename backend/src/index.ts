@@ -6,6 +6,7 @@ import workflowRoutes from './routes/workflow';
 import apiRoutes from './routes';
 import difyProxyRoutes from './routes/dify-proxy';
 import { testConnection } from './config/database';
+import { Logger } from './utils/logger';
 
 dotenv.config();
 
@@ -26,9 +27,15 @@ app.use(express.static(distDir, {
 
 // 添加请求日志中间件
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
-  console.log('Request body:', req.body);
-  console.log('Request headers:', req.headers);
+  Logger.request({
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+  });
+  Logger.debug('Request details', {
+    body: req.body,
+    headers: req.headers,
+  });
   next();
 });
 
@@ -54,14 +61,14 @@ app.get(/^(\/(?!api).*)$/, (_req, res) => {
 });
 
 // 全局错误处理中间件
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error('=== Global Error Handler ===');
-  console.error('Error:', err);
-  console.error('Stack:', err.stack);
-  console.error('Request URL:', req.url);
-  console.error('Request Method:', req.method);
-  console.error('Request Body:', req.body);
-  
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  Logger.exception(err, `${req.method} ${req.url}`);
+  Logger.error('Request details', {
+    url: req.url,
+    method: req.method,
+    body: req.body,
+  });
+
   res.status(500).json({
     success: false,
     message: 'Internal server error',
@@ -72,16 +79,16 @@ app.use((err: any, req: any, res: any, next: any) => {
 // 启动服务器前测试数据库连接
 async function startServer() {
   try {
-    console.log('正在测试数据库连接...');
+    Logger.info('正在测试数据库连接...');
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('数据库连接失败');
     }
-    console.log('Database connection successful');
-    
+    Logger.info('Database connection successful');
+
     const server = app.listen(port, "0.0.0.0", () => {
-      console.log(`Backend server is running on http://0.0.0.0:${port}`);
-      console.log('Server is ready to accept connections');
+      Logger.info(`Backend server is running on http://0.0.0.0:${port}`);
+      Logger.info('Server is ready to accept connections');
     });
 
     // 保持进程运行
@@ -90,24 +97,24 @@ async function startServer() {
 
     // 优雅关闭处理
     process.on('SIGTERM', () => {
-      console.log('SIGTERM received, shutting down gracefully');
+      Logger.info('SIGTERM received, shutting down gracefully');
       server.close(() => {
-        console.log('Process terminated');
+        Logger.info('Process terminated');
         process.exit(0);
       });
     });
 
     process.on('SIGINT', () => {
-      console.log('SIGINT received, shutting down gracefully');
+      Logger.info('SIGINT received, shutting down gracefully');
       server.close(() => {
-        console.log('Process terminated');
+        Logger.info('Process terminated');
         process.exit(0);
       });
     });
 
     return server;
   } catch (error) {
-    console.error('Failed to start server:', error);
+    Logger.exception(error as Error, 'Server startup failed');
     process.exit(1);
   }
 }
