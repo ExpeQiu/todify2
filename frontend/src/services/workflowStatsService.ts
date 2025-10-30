@@ -265,13 +265,13 @@ export class WorkflowStatsService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = '/api';
+    this.baseURL = '/api/v1';
   }
 
   // ==============================================
   // 工作流节点使用统计相关方法
   // ==============================================
-
+  
   /**
    * 记录工作流节点使用统计
    */

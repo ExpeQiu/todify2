@@ -464,7 +464,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
     <div className="min-h-screen bg-gray-50" data-oid="bjc6pve">
       {/* 顶部导航栏 */}
       <div className="bg-white border-b border-gray-200" data-oid="o5eee.m">
-        <div className="max-w-7xl mx-auto px-6 py-4" data-oid="2nqmjy0">
+        <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4" data-oid="2nqmjy0">
           <div className="flex items-center justify-between" data-oid="mqlklep">
             <div className="flex items-center gap-4" data-oid="f2e8kib">
               <button
@@ -508,22 +508,21 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6" data-oid="i8f74zy">
+      <div className="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" data-oid="i8f74zy">
         {/* 主要内容区域 - 单栏布局，AI对话框占满整个页面 */}
         <div
           className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
           data-oid="xtye2j_"
         >
           <div
-            className="w-full"
-            style={{ height: "calc(100vh - 200px)" }}
+            className="w-full min-h-[calc(100vh-180px)] flex flex-col"
             data-oid=".ce84mh"
           >
             {/* AI对话区域 - 占满整个页面 */}
-            <div className="p-8 h-full" data-oid="08quqzc">
-              <div className="h-full flex flex-col" data-oid="gfded2o">
+            <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 min-h-0" data-oid="08quqzc">
+              <div className="flex-1 flex flex-col min-h-0" data-oid="gfded2o">
                 {/* 补充信息输入框 (对接工作流 Additional_information) */}
-                <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl" data-oid="enhanced-info-section">
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-purple-50 border border-purple-200 rounded-xl" data-oid="enhanced-info-section">
                   <div className="flex items-center gap-2 mb-3" data-oid="enhanced-info-header">
                     <Sparkles className="w-5 h-5 text-purple-600" data-oid="enhanced-info-icon" />
                     <span className="text-sm font-medium text-purple-700" data-oid="enhanced-info-title">
@@ -545,7 +544,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
 
                 {/* AI助手头像和标识 */}
                 <div
-                  className="flex items-center gap-3 mb-6"
+                  className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 flex-shrink-0"
                   data-oid="qaq0omf"
                 >
                   <div
@@ -564,8 +563,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
 
                 {/* 对话区域 */}
                 <div
-                  className="flex-1 bg-gray-50 rounded-xl p-4 mb-6 overflow-y-auto"
-                  style={{ minHeight: "400px", maxHeight: "calc(100vh - 400px)" }}
+                  className="flex-1 bg-gray-50 rounded-xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 overflow-y-auto min-h-0"
                   data-oid=".to9y1w"
                 >
                   <div className="space-y-4" data-oid="ywydvus">
@@ -580,7 +578,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                             <Mic className="w-4 h-4 text-blue-600" data-oid="21aytgl" />
                         </div>
                         <div
-                          className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-4 max-w-2xl shadow-sm"
+                          className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-4 max-w-full sm:max-w-2xl lg:max-w-3xl shadow-sm"
                           data-oid="dp9.b63"
                         >
                             <p className="text-sm text-gray-800 leading-relaxed" data-oid="ph23fsc">
@@ -598,8 +596,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                           // 用户消息
                           <div className="flex justify-end" data-oid="user-message">
                           <div
-                            className="bg-blue-500 text-white rounded-2xl rounded-br-md px-6 py-4 max-w-xl"
-                            style={{ width: 'fit-content' }}
+                            className="bg-blue-500 text-white rounded-2xl rounded-br-md px-4 sm:px-6 py-4 max-w-full sm:max-w-xl lg:max-w-2xl"
+                            style={{ width: 'fit-content', maxWidth: '85%' }}
                               data-oid="user-message-content"
                           >
                               <p className="text-sm leading-relaxed" data-oid="user-message-text">
@@ -618,8 +616,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                                 <Mic className="w-4 h-4 text-blue-600" data-oid="ai-icon" />
                             </div>
                             <div
-                              className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-6 py-4 shadow-sm"
-                              style={{ width: 'fit-content', maxWidth: '80%' }}
+                              className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 sm:px-6 py-4 shadow-sm"
+                              style={{ width: 'fit-content', maxWidth: '85%' }}
                                 data-oid="ai-message-content"
                               >
                                 <div className="text-sm text-gray-800 leading-relaxed" data-oid="ai-message-text">
@@ -664,7 +662,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                     {/* 快捷功能按钮 - 仅显示在最后一条AI消息 */}
                     {chatHistory.length > 0 && chatHistory[chatHistory.length - 1].type === "ai" && !internalLoading && (
                       <div className="flex justify-start" data-oid="action-buttons">
-                        <div className="flex items-center gap-3 ml-11">
+                        <div className="flex items-center gap-2 sm:gap-3 ml-0 sm:ml-11 flex-wrap">
                           <button
                             onClick={handleLike}
                             className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
@@ -718,7 +716,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                 </div>
 
                 {/* 输入区域 (对接工作流 sys.query) */}
-                <div className="space-y-4" data-oid="yp004h_">
+                <div className="space-y-3 sm:space-y-4 flex-shrink-0" data-oid="yp004h_">
                   <textarea
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -726,15 +724,15 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                     placeholder="请输入发布会主题和需要包含的内容..."
                     disabled={isLoading}
                     rows={3}
-                    className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm"
+                    className="w-full p-3 sm:p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm"
                     data-oid="a_qm5ec"
                   />
 
-                  <div className="flex gap-3" data-oid="1.5qzw1">
+                  <div className="flex gap-2 sm:gap-3" data-oid="1.5qzw1">
                     <button
                       onClick={handleAiSearch}
                       disabled={internalLoading || !query.trim()}
-                      className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                      className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-sm sm:text-base"
                       data-oid="zv2wugw"
                     >
                       {internalLoading ? (
@@ -755,7 +753,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   </div>
 
                   {/* 工作使用提醒文字 */}
-                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg" data-oid="work-reminder-section">
+                  <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg" data-oid="work-reminder-section">
                     <div className="flex items-start gap-2" data-oid="work-reminder-content">
                       <div className="w-4 h-4 bg-orange-400 rounded-full flex-shrink-0 mt-0.5" data-oid="work-reminder-dot"></div>
                       <div className="text-xs text-orange-700 leading-relaxed" data-oid="work-reminder-text">
