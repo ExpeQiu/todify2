@@ -8,6 +8,7 @@ import workflowRouter from './workflow';
 import knowledgePointsRouter from './knowledgePointRoutes';
 import chatRouter from './chat';
 import workflowStatsRouter from './workflowStats';
+import difyProxyRouter from './dify-proxy';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/workflow', workflowRouter);
 router.use('/knowledge-points', knowledgePointsRouter);
 router.use('/chat', chatRouter);
 router.use('/workflow-stats', workflowStatsRouter);
+router.use('/dify', difyProxyRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

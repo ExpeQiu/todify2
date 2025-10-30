@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Mic, Plus, ArrowLeft, Bot, User, Zap, FileText, Megaphone, Newspaper, Presentation, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, History } from "lucide-react";
+import { Send, Mic, Plus, ArrowLeft, Bot, User, Zap, FileText, Megaphone, Newspaper, Presentation, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, History, MessageSquare } from "lucide-react";
 import { workflowAPI } from "../services/api";
 import { configService } from "../services/configService";
 
@@ -26,6 +26,7 @@ const AIChatPage: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string>("智能助手");
+  const [conversationId, setConversationId] = useState<string | null>(null); // 支持多轮对话
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +63,14 @@ const AIChatPage: React.FC = () => {
     },
   ];
 
+  // 开始新对话的函数
+  const startNewConversation = () => {
+    setMessages([]);
+    setConversationId(null);
+    setInputMessage("");
+    console.log('🆕 开始新对话，重置conversationId');
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -91,57 +100,20 @@ const AIChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 获取AI问答的Dify配置 - 使用能正常工作的配置
-      const aiQAConfig = await configService.getDifyConfig("default-ai-search");
+      // 获取智能工作流AI问答的Dify配置
+      const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
       
-      if (!aiQAConfig) {
-        console.error("AI问答配置未找到，尝试初始化默认配置");
-        // 尝试初始化默认配置
-        await configService.getDifyConfigs(); // 这会自动创建默认配置
-        const retryConfig = await configService.getDifyConfig("default-ai-search");
-        
-        if (!retryConfig) {
-          throw new Error("无法初始化AI问答配置");
-        }
-        
-        // 使用重试的配置
-        const result = await workflowAPI.aiSearch(
-          inputMessage.trim(),
-          {},
-          retryConfig
-        );
-        
-        let responseContent = "抱歉，我无法处理您的请求。";
-        
-        if (result.success && result.data) {
-          // 处理不同的返回格式
-          if (result.data.result) {
-            responseContent = result.data.result;
-          } else if (result.data.answer) {
-            responseContent = result.data.answer;
-          } else {
-            responseContent = "抱歉，未能获取到有效回答。";
-          }
-        } else if (result.error) {
-          responseContent = `处理请求时出现问题：${result.error}`;
-        }
-
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: responseContent,
-          sender: "ai",
-          timestamp: new Date(),
-        };
-        
-        setMessages((prev) => [...prev, aiMessage]);
-        return;
-      }
-
-      // 调用AI问答API
+      // 调用AI问答API，传递conversationId支持多轮对话
       const result = await workflowAPI.aiSearch(
         inputMessage.trim(),
-        {},
-        aiQAConfig
+        { 
+          context: messages.map(msg => ({ 
+            role: msg.sender === 'user' ? 'user' : 'assistant', 
+            content: msg.content 
+          }))
+        },
+        (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined,
+        conversationId || undefined
       );
 
       let responseContent = "抱歉，我无法处理您的请求。";
@@ -154,6 +126,15 @@ const AIChatPage: React.FC = () => {
           responseContent = result.data.answer;
         } else {
           responseContent = "抱歉，未能获取到有效回答。";
+        }
+
+        // 更新conversationId以支持多轮对话
+        if (result.data.conversation_id && result.data.conversation_id !== conversationId) {
+          setConversationId(result.data.conversation_id);
+          console.log('🔄 AIChatPage更新conversation_id:', result.data.conversation_id);
+        } else if (result.data.conversationId && result.data.conversationId !== conversationId) {
+          setConversationId(result.data.conversationId);
+          console.log('🔄 AIChatPage更新conversationId:', result.data.conversationId);
         }
       } else if (result.error) {
         responseContent = `处理请求时出现问题：${result.error}`;
@@ -235,11 +216,11 @@ const AIChatPage: React.FC = () => {
         throw new Error("AI问答配置未找到");
       }
 
-      // 重新调用AI问答API
+      // 重新调用AI问答API - 只有启用时才传递配置
       const result = await workflowAPI.aiSearch(
         messageToRegenerate.content,
         {},
-        aiQAConfig
+        (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined
       );
 
       let responseContent = "抱歉，我无法处理您的请求。";
@@ -355,15 +336,22 @@ const AIChatPage: React.FC = () => {
                   <div className="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
                   发布会稿
                 </span>
+                {conversationId && (
+                  <span className="flex items-center text-green-600">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    多轮对话中
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => window.location.reload()}
+                onClick={startNewConversation}
                 className="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md border-2 border-blue-500"
                 style={{ minWidth: '120px', zIndex: 1000 }}
               >
-                <span>提一个新问题</span>
+                <Plus className="w-4 h-4" />
+                <span>新对话</span>
               </button>
               <button
                 onClick={() => (window.location.href = "/history")}

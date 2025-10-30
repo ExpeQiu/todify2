@@ -61,6 +61,10 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
     [],
   );
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 多轮对话支持
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
+  
   const tabs = ["信息检索", "技术包装", "技术策略", "技术通稿", "技术发布稿"];
 
   // 模拟知识点数据
@@ -144,10 +148,16 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
         // 调用后端技术通稿API
         const result = await workflowAPI.coreDraft(
           { query: query.trim() }, // promotionStrategy 参数
-          { content: query.trim() }, // techPackage 参数
+          undefined, // difyConfig 参数
+          conversationId // conversationId 参数
         );
 
         if (result.success && result.data) {
+          // 更新conversationId以支持多轮对话
+          if (result.data.conversationId) {
+            setConversationId(result.data.conversationId);
+          }
+          
           // 设置AI响应内容
           setAiResponse(result.data.answer || "抱歉，未能生成技术通稿内容。");
 

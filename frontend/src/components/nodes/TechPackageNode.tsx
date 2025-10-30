@@ -90,6 +90,10 @@ console.log("代码块测试");
     [],
   );
   const [isSaving, setIsSaving] = useState(false);
+  
+  // 多轮对话支持
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
+  
   const tabs = ["信息检索", "技术包装", "技术策略", "技术通稿", "技术发布稿"];
 
   // 模拟知识点数据
@@ -184,9 +188,14 @@ console.log("代码块测试");
         selectedKnowledgePoints: selectedItems.filter(
           (item) => item.contentType === "knowledge_point",
         ),
-      });
+      }, undefined, undefined, conversationId);
 
       if (response.success) {
+        // 更新conversationId以支持多轮对话
+        if (response.data?.conversationId) {
+          setConversationId(response.data.conversationId);
+        }
+        
         // 处理Dify工作流的响应格式
         const responseData = response.data;
         let content = "";

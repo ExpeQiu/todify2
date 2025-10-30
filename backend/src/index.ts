@@ -26,9 +26,26 @@ app.use(express.static(distDir, {
 
 // 添加请求日志中间件
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url} - ${new Date().toISOString()}`);
-  console.log('Request body:', req.body);
-  console.log('Request headers:', req.headers);
+  const timestamp = new Date().toISOString();
+  console.log(`\n=== 收到请求 ===`);
+  console.log(`时间: ${timestamp}`);
+  console.log(`方法: ${req.method}`);
+  console.log(`URL: ${req.url}`);
+  console.log(`完整路径: ${req.originalUrl}`);
+  console.log(`IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`User-Agent: ${req.get('User-Agent')}`);
+  
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('请求体:', JSON.stringify(req.body, null, 2));
+  }
+  
+  if (req.get('Authorization')) {
+    console.log(`Authorization: ${req.get('Authorization')?.substring(0, 20)}...`);
+  }
+  
+  console.log(`Content-Type: ${req.get('Content-Type')}`);
+  console.log(`=== 请求结束 ===\n`);
+  
   next();
 });
 

@@ -72,7 +72,7 @@ AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwor
 
 
 ### API
-
+http://47.113.225.93:9999/v1
 
 
 

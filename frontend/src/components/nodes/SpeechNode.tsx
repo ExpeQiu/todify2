@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -36,6 +36,16 @@ interface SpeechNodeProps extends BaseNodeProps {
   isLoading?: boolean;
 }
 
+// 对话历史接口
+interface ChatMessage {
+  id: string;
+  type: "user" | "ai";
+  content: string;
+  timestamp: number;
+  liked?: boolean;
+  disliked?: boolean;
+}
+
 const SpeechNode: React.FC<SpeechNodeProps> = ({
   onExecute,
   initialData,
@@ -57,6 +67,12 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   // 对话框显示控制状态
   const [showConversation, setShowConversation] = useState(false);
   const [submittedQuery, setSubmittedQuery] = useState("");
+  
+  // 对话历史状态
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  
+  // 多轮对话支持
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
@@ -69,6 +85,14 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   );
   const [isSaving, setIsSaving] = useState(false);
   const tabs = ["信息检索", "技术包装", "技术策略", "技术通稿", "技术发布稿"];
+  
+  // 用于自动滚动到最新消息的ref
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 自动滚动到最新消息
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory]);
 
   // 模拟知识点数据
   const knowledgePoints: KnowledgePoint[] = [
@@ -143,10 +167,20 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   // const techCategories = [...new Set(knowledgePoints.map(kp => kp.techCategory))];
 
   const handleAiSearch = async () => {
+    if (internalLoading) return;
     if (query.trim()) {
       // 设置提交的查询内容并显示对话框
       setSubmittedQuery(query.trim());
       setShowConversation(true);
+      
+      // 添加用户消息到历史
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "user",
+        content: query.trim(),
+        timestamp: Date.now(),
+      };
+      setChatHistory((prev) => [...prev, userMessage]);
       
       setInternalLoading(true);
       setAiResponse("AI正在生成发布会稿内容...");
@@ -159,7 +193,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
         };
 
         // 调用本地后端API（不传递difyConfig参数，使用本地后端）
-        const result = await workflowAPI.speech(workflowInputs);
+        console.log("🔄 SpeechNode calling API with conversationId:", conversationId || 'NEW');
+        const result = await workflowAPI.speech(workflowInputs, undefined, conversationId);
 
         console.log("=== SpeechNode API Response Debug ===");
         console.log("Full result:", JSON.stringify(result, null, 2));
@@ -204,6 +239,25 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
           console.log("responseText length:", responseText.length);
           
           setAiResponse(responseText);
+
+          // 更新conversationId以支持多轮对话
+          // 从 result.data 中提取 conversation_id（这是 DifyWorkflowResponse 的顶级字段）
+          const newConversationId = result.data.conversation_id || result.data.conversationId;
+          if (newConversationId) {
+            setConversationId(newConversationId);
+            console.log('🔄 SpeechNode updated conversationId:', newConversationId);
+          } else {
+            console.warn('⚠️ SpeechNode: No conversation_id in response');
+          }
+
+          // 添加AI响应到历史
+          const aiMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: "ai",
+            content: responseText,
+            timestamp: Date.now() + 1,
+          };
+          setChatHistory((prev) => [...prev, aiMessage]);
 
           // 通知父组件执行完成
           onExecute({
@@ -251,6 +305,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      if (internalLoading) return;
       handleAiSearch();
     }
   };
@@ -274,9 +329,11 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   };
 
   const handleExport = () => {
-    if (userContent) {
+    // 导出最后一条AI消息的内容
+    const content = getLastAiMessageContent();
+    if (content) {
       // 创建一个Blob对象包含用户内容，使用markdown格式
-      const blob = new Blob([userContent], {
+      const blob = new Blob([content], {
         type: "text/markdown;charset=utf-8",
       });
 
@@ -296,15 +353,24 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
     }
   };
 
+  // 获取最后一条AI消息的内容
+  const getLastAiMessageContent = () => {
+    if (chatHistory.length === 0) return '';
+    const lastMessage = chatHistory[chatHistory.length - 1];
+    return lastMessage.type === 'ai' ? lastMessage.content : '';
+  };
+
   // 快捷功能按钮处理函数
   const handleCopy = async () => {
-    if (aiResponse) {
+    const content = getLastAiMessageContent();
+    if (content) {
       try {
-        await navigator.clipboard.writeText(aiResponse);
-        // 可以添加一个临时的成功提示
+        await navigator.clipboard.writeText(content);
         console.log("内容已复制到剪贴板");
+        alert("内容已复制到剪贴板！");
       } catch (err) {
         console.error("复制失败:", err);
+        alert("复制失败，请重试");
       }
     }
   };
@@ -319,17 +385,78 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
     if (liked) setLiked(false); // 如果之前喜欢，取消喜欢状态
   };
 
-  const handleShare = () => {
-    // 传递功能 - 可以将内容传递到用户编辑区
-    if (aiResponse) {
-      setUserContent(aiResponse);
-    }
-  };
+  const handleRegenerate = async () => {
+    // 重新生成功能 - 不添加新的用户消息，只重新生成AI回复
+    const lastUserMessage = [...chatHistory].reverse().find(msg => msg.type === 'user');
+    if (lastUserMessage && !internalLoading) {
+      setInternalLoading(true);
+      
+      // 准备工作流输入参数
+      const workflowInputs = {
+        Additional_information: additionalInfo.trim() || "",
+        'sys.query': lastUserMessage.content
+      };
 
-  const handleRegenerate = () => {
-    // 重新生成功能 - 重新触发发布会稿生成
-    if (query) {
-      handleAiSearch();
+      try {
+        console.log("🔄 SpeechNode Regenerate with conversationId:", conversationId || 'NEW');
+        const result = await workflowAPI.speech(workflowInputs, undefined, conversationId);
+
+        if (result.success && result.data) {
+          let responseText = '';
+          
+          if (typeof result.data === 'string') {
+            try {
+              const parsedData = JSON.parse(result.data);
+              responseText = parsedData.text || parsedData.answer || parsedData.output || result.data;
+            } catch (e) {
+              responseText = result.data;
+            }
+          } else if (result.data.data?.outputs?.text) {
+            responseText = result.data.data.outputs.text;
+          } else if (result.data.data?.outputs?.answer) {
+            responseText = result.data.data.outputs.answer;
+          } else if (result.data.outputs?.text) {
+            responseText = result.data.outputs.text;
+          } else if (result.data.outputs?.answer) {
+            responseText = result.data.outputs.answer;
+          } else if (result.data.text) {
+            responseText = result.data.text;
+          } else {
+            responseText = result.data.answer || result.data.output || JSON.stringify(result.data, null, 2);
+          }
+          
+          setAiResponse(responseText);
+          
+          // 更新对话历史 - 替换最后一条AI消息
+          const aiMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: "ai",
+            content: responseText,
+            timestamp: Date.now() + 1,
+          };
+          setChatHistory((prev) => {
+            const newHistory = [...prev];
+            // 移除最后一条AI消息（如果存在）
+            if (newHistory.length > 0 && newHistory[newHistory.length - 1].type === 'ai') {
+              newHistory.pop();
+            }
+            // 添加新的AI消息
+            newHistory.push(aiMessage);
+            return newHistory;
+          });
+          
+          const newConversationId = result.data.conversation_id || result.data.conversationId;
+          if (newConversationId) {
+            setConversationId(newConversationId);
+          }
+        } else {
+          console.error("重新生成失败:", result.error);
+        }
+      } catch (error) {
+        console.error("重新生成错误:", error);
+      } finally {
+        setInternalLoading(false);
+      }
     }
   };
 
@@ -368,9 +495,14 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
               <span className="text-sm text-gray-500" data-oid="w_b7bqm">
                 中文
               </span>
-              <span className="text-sm text-gray-500" data-oid="buaqi::">
+              <button 
+                onClick={handleCopy}
+                disabled={chatHistory.length === 0 || chatHistory[chatHistory.length - 1].type !== 'ai'}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="将内容复制到剪贴板"
+              >
                 分享
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -437,162 +569,151 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
                   data-oid=".to9y1w"
                 >
                   <div className="space-y-4" data-oid="ywydvus">
-                    {/* 默认欢迎消息 */}
+                    {/* 默认欢迎消息 - 只在没有对话历史时显示 */}
+                    {chatHistory.length === 0 && (
                     <div className="flex justify-start" data-oid="9crov8h">
-                      <div
-                        className="flex items-start gap-3"
-                        data-oid="8fdkwe."
-                      >
+                        <div className="flex items-start gap-3" data-oid="8fdkwe.">
                         <div
                           className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
                           data-oid="98hb-n5"
                         >
-                          <Mic
-                            className="w-4 h-4 text-blue-600"
-                            data-oid="21aytgl"
-                          />
+                            <Mic className="w-4 h-4 text-blue-600" data-oid="21aytgl" />
                         </div>
                         <div
                           className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-4 py-4 max-w-2xl shadow-sm"
                           data-oid="dp9.b63"
                         >
-                          <p
-                            className="text-sm text-gray-800 leading-relaxed"
-                            data-oid="ph23fsc"
-                          >
+                            <p className="text-sm text-gray-800 leading-relaxed" data-oid="ph23fsc">
                             您好！我是发布会稿助手，专门为您撰写专业的发布会演讲稿。请输入您的发布会主题和内容，我会为您生成精彩的演讲稿。
                           </p>
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    {/* 用户问题和AI回答 */}
-                    {showConversation && submittedQuery && (
-                      <>
-                        {/* 用户问题 */}
-                        <div className="flex justify-end" data-oid="1l::3k4">
+                    {/* 对话历史 */}
+                    {chatHistory.map((message) => (
+                      <div key={message.id}>
+                        {message.type === "user" ? (
+                          // 用户消息
+                          <div className="flex justify-end" data-oid="user-message">
                           <div
                             className="bg-blue-500 text-white rounded-2xl rounded-br-md px-6 py-4 max-w-xl"
                             style={{ width: 'fit-content' }}
-                            data-oid="qkkl81x"
+                              data-oid="user-message-content"
                           >
-                            <p className="text-sm leading-relaxed" data-oid="spbw3n:">
-                              {submittedQuery}
+                              <p className="text-sm leading-relaxed" data-oid="user-message-text">
+                                {message.content}
                             </p>
                           </div>
                         </div>
-
-                        {/* AI回答 */}
-                        <div className="flex justify-start" data-oid="u1ib23y">
-                          <div
-                            className="flex items-start gap-3"
-                            data-oid="jrz7stm"
-                          >
+                        ) : (
+                          // AI消息
+                          <div className="flex justify-start" data-oid="ai-message">
+                            <div className="flex items-start gap-3" data-oid="ai-message-wrapper">
                             <div
                               className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
-                              data-oid="evi-fya"
+                                data-oid="ai-avatar"
                             >
-                              <Mic
-                                className="w-4 h-4 text-blue-600"
-                                data-oid="s7yfce_"
-                              />
+                                <Mic className="w-4 h-4 text-blue-600" data-oid="ai-icon" />
                             </div>
                             <div
                               className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-6 py-4 shadow-sm"
                               style={{ width: 'fit-content', maxWidth: '80%' }}
-                              data-oid="z1u3vkj"
-                            >
-                              {/* 工作流结果输出显示 */}
-                              <div
-                                className="text-sm text-gray-800 leading-relaxed"
-                                data-oid="64izm28"
+                                data-oid="ai-message-content"
                               >
-                                {aiResponse ? (
+                                <div className="text-sm text-gray-800 leading-relaxed" data-oid="ai-message-text">
                                   <div className="markdown-content">
                                     <ReactMarkdown
                                       remarkPlugins={[remarkGfm]}
                                       rehypePlugins={[rehypeHighlight]}
                                     >
-                                      {aiResponse}
+                                      {message.content}
                                     </ReactMarkdown>
                                   </div>
-                                ) : (
-                                  "正在生成发布会稿..."
-                                )}
-                              </div>
-
-                              {/* 快捷功能按钮 */}
-                              {aiResponse && (
-                                <div
-                                  className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100"
-                                  data-oid="9pe2wkw"
-                                >
-                                  <button
-                                    onClick={handleLike}
-                                    className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                                      liked
-                                        ? "text-green-600 bg-green-50"
-                                        : "text-gray-600 hover:text-green-600 hover:bg-green-50"
-                                    }`}
-                                    title="点赞"
-                                    data-oid="ixqhqhj"
-                                  >
-                                    <ThumbsUp
-                                      className="w-3 h-3"
-                                      data-oid="ixqhqhj"
-                                    />
-                                    <span data-oid="135.0cc">赞</span>
-                                  </button>
-
-                                  <button
-                                    onClick={handleDislike}
-                                    className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                                      disliked
-                                        ? "text-red-600 bg-red-50"
-                                        : "text-gray-600 hover:text-red-600 hover:bg-red-50"
-                                    }`}
-                                    title="不满意"
-                                    data-oid="ixqhqhj"
-                                  >
-                                    <ThumbsDown
-                                      className="w-3 h-3"
-                                      data-oid="ixqhqhj"
-                                    />
-                                    <span data-oid="135.0cc">踩</span>
-                                  </button>
-
-                                  <button
-                                    onClick={handleCopy}
-                                    className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    title="复制"
-                                    data-oid="vcbtz7r"
-                                  >
-                                    <Copy
-                                      className="w-3 h-3"
-                                      data-oid="8q5qwqc"
-                                    />
-                                    <span data-oid="1:8fhar">复制</span>
-                                  </button>
-
-                                  <button
-                                    onClick={handleRegenerate}
-                                    className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    title="重新生成"
-                                    data-oid="vcbtz7r"
-                                  >
-                                    <RotateCcw
-                                      className="w-3 h-3"
-                                      data-oid="8q5qwqc"
-                                    />
-                                    <span data-oid="1:8fhar">重新生成</span>
-                                  </button>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* 加载中的提示 */}
+                    {internalLoading && (
+                      <div className="flex justify-start" data-oid="loading-message">
+                        <div className="flex items-start gap-3" data-oid="loading-wrapper">
+                          <div
+                            className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            data-oid="loading-avatar"
+                          >
+                            <Mic className="w-4 h-4 text-blue-600" data-oid="loading-icon" />
+                          </div>
+                          <div
+                            className="bg-white border border-gray-200 rounded-2xl rounded-tl-md px-6 py-4 shadow-sm"
+                            data-oid="loading-content"
+                          >
+                            <p className="text-sm text-gray-500" data-oid="loading-text">
+                              正在生成发布会稿...
+                            </p>
+                          </div>
                         </div>
-                      </>
+                      </div>
                     )}
+
+                    {/* 快捷功能按钮 - 仅显示在最后一条AI消息 */}
+                    {chatHistory.length > 0 && chatHistory[chatHistory.length - 1].type === "ai" && !internalLoading && (
+                      <div className="flex justify-start" data-oid="action-buttons">
+                        <div className="flex items-center gap-3 ml-11">
+                          <button
+                            onClick={handleLike}
+                            className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              liked
+                                ? "text-green-600 bg-green-50"
+                                : "text-gray-600 hover:text-green-600 hover:bg-green-50"
+                            }`}
+                            title="点赞"
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                            <span>赞</span>
+                          </button>
+
+                          <button
+                            onClick={handleDislike}
+                            className={`flex items-center gap-1 px-3 py-2 text-xs rounded-lg transition-colors ${
+                              disliked
+                                ? "text-red-600 bg-red-50"
+                                : "text-gray-600 hover:text-red-600 hover:bg-red-50"
+                            }`}
+                            title="不满意"
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                            <span>踩</span>
+                          </button>
+
+                          <button
+                            onClick={handleCopy}
+                            className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="复制"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>复制</span>
+                          </button>
+
+                          <button
+                            onClick={handleRegenerate}
+                            className="flex items-center gap-1 px-3 py-2 text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="重新生成"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>重新生成</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 滚动锚点 */}
+                    <div ref={messagesEndRef} />
                   </div>
                 </div>
 

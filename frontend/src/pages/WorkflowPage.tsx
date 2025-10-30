@@ -167,7 +167,20 @@ const WorkflowPage: React.FC = () => {
         const workflowConfigsData = await configService.getWorkflowConfigs();
         
         console.log('Dify配置加载完成:', difyConfigsData.length, '个配置');
+        console.log('详细Dify配置:', difyConfigsData.map(config => ({
+          id: config.id,
+          name: config.name,
+          enabled: config.enabled,
+          apiUrl: config.apiUrl,
+          apiKey: config.apiKey ? `${config.apiKey.substring(0, 10)}...` : 'null'
+        })));
+        
         console.log('工作流配置加载完成:', workflowConfigsData.length, '个配置');
+        console.log('详细工作流配置:', workflowConfigsData.map(config => ({
+          stepKey: config.stepKey,
+          difyConfigId: config.difyConfigId,
+          enabled: config.enabled
+        })));
         
         setDifyConfigs(difyConfigsData);
         setWorkflowConfigs(workflowConfigsData);
@@ -179,7 +192,13 @@ const WorkflowPage: React.FC = () => {
           const difyConfig = difyConfigsData.find(config => config.id === smartSearchConfig.difyConfigId);
           console.log('智能搜索配置验证:', {
             workflowConfig: smartSearchConfig,
-            difyConfig: difyConfig
+            difyConfig: difyConfig ? {
+              id: difyConfig.id,
+              name: difyConfig.name,
+              enabled: difyConfig.enabled,
+              apiUrl: difyConfig.apiUrl,
+              apiKey: difyConfig.apiKey ? `${difyConfig.apiKey.substring(0, 10)}...` : 'null'
+            } : null
           });
         } else {
           console.warn('未找到智能搜索工作流配置');
@@ -210,9 +229,16 @@ const WorkflowPage: React.FC = () => {
     const difyConfig = difyConfigs.find(config => config.id === workflowConfig.difyConfigId);
     if (!difyConfig) {
       console.warn(`未找到Dify配置: difyConfigId=${workflowConfig.difyConfigId}`);
+      return null;
     }
     
-    return difyConfig || null;
+    // 检查配置是否启用，如果禁用则返回null
+    if (!difyConfig.enabled) {
+      console.log(`Dify配置已禁用，使用本地API: stepKey=${stepKey}, configName=${difyConfig.name}`);
+      return null;
+    }
+    
+    return difyConfig;
   };
 
   const calculateProgress = () => {
@@ -948,12 +974,15 @@ const WorkflowPage: React.FC = () => {
           
           // 如果仍然没有配置，使用默认的AI搜索配置
           if (!smartSearchDifyConfig) {
-            smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
-            console.log("使用默认AI搜索配置:", smartSearchDifyConfig?.name);
-          }
-          
-          if (!smartSearchDifyConfig) {
-            throw new Error("无法获取任何可用的智能搜索配置，请检查配置服务");
+            const defaultConfig = await configService.getDifyConfig("default-ai-search");
+            // 只有当配置存在且启用时才使用
+            if (defaultConfig && defaultConfig.enabled) {
+              smartSearchDifyConfig = defaultConfig;
+              console.log("使用默认AI搜索配置:", smartSearchDifyConfig?.name);
+            } else {
+              console.log("默认AI搜索配置被禁用或不存在，将使用本地API");
+              smartSearchDifyConfig = null;
+            }
           }
         } catch (initError) {
           console.error("初始化配置失败:", initError);
@@ -971,11 +1000,16 @@ const WorkflowPage: React.FC = () => {
         }
       }
       
-      // 调用智能搜索API
+      // 调用智能搜索API - 确保传递conversation_id以支持多轮对话
       const result = await workflowAPI.aiSearch(
         inputMessage,
-        { context: chatMessages.map(msg => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content })) },
-        smartSearchDifyConfig || undefined,
+        { 
+          context: chatMessages.map(msg => ({ 
+            role: msg.type === 'user' ? 'user' : 'assistant', 
+            content: msg.content 
+          })),
+        },
+        (smartSearchDifyConfig && smartSearchDifyConfig.enabled) ? smartSearchDifyConfig : undefined,
         conversationId || undefined
       );
 
@@ -991,10 +1025,13 @@ const WorkflowPage: React.FC = () => {
           responseContent = "抱歉，未能获取到有效回答。";
         }
         
-        // 更新conversationId（如果返回了新的）
+        // 更新conversationId（如果返回了新的）- 支持多轮对话
         if (result.data.conversationId && result.data.conversationId !== conversationId) {
           setConversationId(result.data.conversationId);
-          console.log('更新conversationId:', result.data.conversationId);
+          console.log('🔄 更新conversationId以支持多轮对话:', result.data.conversationId);
+        } else if (result.data.conversation_id && result.data.conversation_id !== conversationId) {
+          setConversationId(result.data.conversation_id);
+          console.log('🔄 更新conversation_id以支持多轮对话:', result.data.conversation_id);
         }
       } else if (result.error) {
         responseContent = `抱歉，处理您的请求时出现了问题：${result.error}`;
@@ -1135,7 +1172,14 @@ const WorkflowPage: React.FC = () => {
         smartSearchDifyConfig = getCurrentStepDifyConfig('smartSearch');
         
         if (!smartSearchDifyConfig) {
-          smartSearchDifyConfig = await configService.getDifyConfig("default-ai-search");
+          const defaultConfig = await configService.getDifyConfig("default-ai-search");
+          // 只有当配置存在且启用时才使用
+          if (defaultConfig && defaultConfig.enabled) {
+            smartSearchDifyConfig = defaultConfig;
+          } else {
+            console.log("默认AI搜索配置被禁用或不存在，将使用本地API");
+            smartSearchDifyConfig = null;
+          }
         }
       }
 
@@ -1143,7 +1187,7 @@ const WorkflowPage: React.FC = () => {
       const result = await workflowAPI.aiSearch(
         messageToRegenerate.content,
         { context: chatMessages.map(msg => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content })) },
-        smartSearchDifyConfig || undefined
+        (smartSearchDifyConfig && smartSearchDifyConfig.enabled) ? smartSearchDifyConfig : undefined
       );
 
       let responseContent = "抱歉，我无法处理您的请求。";

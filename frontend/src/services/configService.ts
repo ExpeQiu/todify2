@@ -76,13 +76,13 @@ class ConfigService {
     { stepId: 5, stepName: "发布会演讲稿", stepKey: "speechGeneration" },
   ];
 
-  // 默认的Dify API配置
+  // 默认的Dify API配置 - 统一代理到本地后端服务
   private readonly DEFAULT_DIFY_CONFIGS: DifyAPIConfig[] = [
     {
       id: "default-ai-search",
       name: "AI问答模型",
       description: "用于处理用户问答的Dify API配置",
-      apiUrl: "http://47.113.225.93:9999/v1/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-t1X4eu8B4eucyO6IfrTbw1t2",
       enabled: true,
       createdAt: new Date(),
@@ -92,7 +92,7 @@ class ConfigService {
       id: "default-tech-package",
       name: "技术包装模型",
       description: "用于技术内容包装的Dify API配置",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-YDVb91faDHwTqIei4WWSNaTM",
       enabled: true,
       createdAt: new Date(),
@@ -102,7 +102,7 @@ class ConfigService {
       id: "default-tech-strategy",
       name: "技术策略模型",
       description: "用于生成技术策略的Dify API配置",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-awRZf7tKfvC73DEVANAGGNr8",
       enabled: true,
       createdAt: new Date(),
@@ -112,7 +112,7 @@ class ConfigService {
       id: "default-core-draft",
       name: "通稿生成模型",
       description: "用于生成技术通稿的Dify API配置",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-3TK9U2F3WwFP7vOoq0Ut84KA",
       enabled: true,
       createdAt: new Date(),
@@ -122,7 +122,7 @@ class ConfigService {
       id: "default-speech-generation",
       name: "演讲稿生成模型",
       description: "用于生成发布会演讲稿的Dify API配置",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-WcV5IDjuNKbOKIBDPWdb7HF4",
       enabled: true,
       createdAt: new Date(),
@@ -130,14 +130,14 @@ class ConfigService {
     },
   ];
 
-  // 智能工作流节点默认配置
+  // 智能工作流节点默认配置 - 统一代理到本地后端服务
   private readonly DEFAULT_SMART_WORKFLOW_CONFIGS: SmartWorkflowNodeConfig[] = [
     {
       id: "smart-workflow-ai-qa",
       name: "AI问答",
-      description: "智能工作流中的AI问答节点",
+      description: "智能工作流中的AI问答节点，直接对接Dify API支持多轮对话",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-t1X4eu8B4eucyO6IfrTbw1t2",
       enabled: true,
       createdAt: new Date(),
@@ -148,9 +148,9 @@ class ConfigService {
       name: "技术包装",
       description: "智能工作流中的技术包装节点",
       connectionType: "workflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-YDVb91faDHwTqIei4WWSNaTM",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -159,9 +159,9 @@ class ConfigService {
       name: "技术策略",
       description: "智能工作流中的技术策略节点",
       connectionType: "workflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-awRZf7tKfvC73DEVANAGGNr8",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -170,9 +170,9 @@ class ConfigService {
       name: "技术通稿",
       description: "智能工作流中的技术通稿节点",
       connectionType: "workflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-3TK9U2F3WwFP7vOoq0Ut84KA",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -181,24 +181,24 @@ class ConfigService {
       name: "发布会稿",
       description: "智能工作流中的发布会稿节点",
       connectionType: "workflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/workflows/run",
+      apiUrl: "http://localhost:3003/api/dify/workflows/run",
       apiKey: "app-WcV5IDjuNKbOKIBDPWdb7HF4",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   ];
 
-  // 独立页面默认配置
+  // 独立页面默认配置 - 统一代理到本地后端服务
   private readonly DEFAULT_INDEPENDENT_PAGE_CONFIGS: IndependentPageConfig[] = [
     {
       id: "independent-ai-qa",
       name: "AI问答",
       description: "独立页面中的AI问答功能",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-HC8dx24idIWm1uva66VmHXsm",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -207,9 +207,9 @@ class ConfigService {
       name: "技术包装",
       description: "独立页面中的技术包装功能",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-GgD3uUNDWOFu7DlBgSVkIrIt",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -218,9 +218,9 @@ class ConfigService {
       name: "技术策略",
       description: "独立页面中的技术策略功能",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-DesVds4LQch6k7Unu7KpBCS4",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -229,9 +229,9 @@ class ConfigService {
       name: "技术通稿",
       description: "独立页面中的技术通稿功能",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-c7HLp8OGiTgnpvg5cIYqQCYZ",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -240,9 +240,9 @@ class ConfigService {
       name: "技术发布",
       description: "独立页面中的技术发布功能",
       connectionType: "chatflow",
-      apiUrl: "http://47.113.225.93:8088/api/dify/chat-messages",
+      apiUrl: "/api/dify/chat-messages",
       apiKey: "app-iAiKRQ7h8zCwkz2TBkezgtGs",
-      enabled: true,
+      enabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -259,14 +259,24 @@ class ConfigService {
       if (stored) {
         configs = JSON.parse(stored);
         
-        // 强制清理包含9999端口或8088/api/dify的旧配置
+        // 强制清理包含云端地址的旧配置，确保使用本地代理
         const hasInvalidUrl = configs.some((config: any) => 
+          config.apiUrl?.includes('47.113.225.93') || 
           config.apiUrl?.includes(':9999') || 
-          config.apiUrl?.includes('8088/api/dify') ||
-          config.apiUrl === 'http://47.113.225.93:8088/api/dify'
+          config.apiUrl?.includes('8088/api/dify')
         );
         if (hasInvalidUrl) {
-          console.log('⚠️ 检测到旧的无效配置，强制更新为正确配置');
+          console.log('⚠️ 检测到旧的云端配置，强制更新为本地代理配置');
+          await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
+          return this.DEFAULT_DIFY_CONFIGS;
+        }
+        
+        // 检查是否有禁用的默认配置，如果有则强制启用
+        const hasDisabledDefaults = configs.some((config: any) => 
+          config.id?.startsWith('default-') && !config.enabled
+        );
+        if (hasDisabledDefaults) {
+          console.log('⚠️ 检测到禁用的默认配置，强制启用Dify API');
           await this.saveDifyConfigs(this.DEFAULT_DIFY_CONFIGS);
           return this.DEFAULT_DIFY_CONFIGS;
         }
@@ -334,7 +344,9 @@ class ConfigService {
    */
   async getDifyConfig(id: string): Promise<DifyAPIConfig | null> {
     const configs = await this.getDifyConfigs();
-    return configs.find(config => config.id === id) || null;
+    const config = configs.find(config => config.id === id);
+    // 如果配置被禁用，返回null，这样API调用就会使用本地后端
+    return (config && config.enabled) ? config : null;
   }
 
   /**

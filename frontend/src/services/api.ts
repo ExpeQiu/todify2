@@ -27,70 +27,103 @@ export interface DifyAPIConfig {
   updatedAt?: Date;
 }
 
+// 生成并持久化一个稳定的 Dify 用户 ID，用于保持会话连续性
+function getStableDifyUserId(): string {
+  try {
+    const storageKey = 'dify_user_id';
+    let userId = localStorage.getItem(storageKey);
+    if (!userId) {
+      // 使用更稳定的随机 ID（不含个人信息）
+      const hasCrypto = typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function';
+      const randomId = hasCrypto
+        ? (crypto as any).randomUUID()
+        : Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+      userId = 'web-user-' + randomId;
+      localStorage.setItem(storageKey, userId);
+    }
+    return userId;
+  } catch {
+    // 兜底：若 localStorage/crypto 不可用，退化为固定前缀 + 时间戳
+    return 'web-user-fallback-' + Date.now();
+  }
+}
+
 // 通用Dify API调用函数
-const callDifyAPI = async (
+export const callDifyAPI = async (
   config: DifyAPIConfig,
   query: string,
   inputs: any = {},
   conversationId?: string
 ): Promise<WorkflowResponse> => {
+  console.log('=== Dify API 调用开始 ===');
+  console.log('配置信息:', {
+    id: config.id,
+    name: config.name,
+    enabled: config.enabled,
+    apiUrl: config.apiUrl,
+    apiKey: config.apiKey ? `${config.apiKey.substring(0, 10)}...` : 'null'
+  });
+  console.log('请求参数:', {
+    query: query.substring(0, 100) + (query.length > 100 ? '...' : ''),
+    inputs,
+    conversationId
+  });
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 120秒超时
     
-    // 所有远程URL都转换为本地代理路径
-    // 让后端代理到Dify 9999端口
-    let apiUrl = config.apiUrl;
-    if (config.apiUrl.includes('47.113.225.93') || config.apiUrl.includes('localhost')) {
-      // 通过8088端口的Nginx代理到后端
-      if (config.apiUrl.includes('/chat-messages')) {
-        apiUrl = 'http://47.113.225.93:8088/api/dify/chat-messages';
-      } else if (config.apiUrl.includes('/workflows/run')) {
-        apiUrl = 'http://47.113.225.93:8088/api/dify/workflows/run';
-      }
-      console.log('🔄 URL转换:', config.apiUrl, '->', apiUrl);
-    }
+    // 使用代理路径而不是直接调用外部API
+    const apiUrl = '/api/dify/chat-messages';
     
     console.log('🔍 Dify API调用:', {
       originalUrl: config.apiUrl,
-      finalUrl: apiUrl,
+      proxyUrl: apiUrl,
       appType: config.id,
       conversationId
     });
     
-    console.log('📤 请求体:', {
-      appType: config.id,
-      inputs,
+    const requestBody = {
+      appType: config.id, // 添加appType用于后端代理识别
+      inputs: inputs && Object.keys(inputs).length > 0 ? inputs : {}, // 确保inputs格式正确
       query,
       response_mode: 'blocking',
       conversation_id: conversationId || '',
-      user: 'user-' + Date.now(),
+      // 使用稳定的 user，避免因 user 变化导致 Dify 找不到 conversation_id
+      user: getStableDifyUserId(),
+    };
+    
+    console.log('📤 请求体:', requestBody);
+    console.log('请求URL:', apiUrl);
+    console.log('请求头:', {
+      'Content-Type': 'application/json'
     });
     
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        appType: config.id, // 添加appType用于后端代理识别
-        inputs: inputs && Object.keys(inputs).length > 0 ? inputs : {}, // 确保inputs格式正确
-        query,
-        response_mode: 'blocking',
-        conversation_id: conversationId || '',
-        user: 'user-' + Date.now(),
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
+    console.log('响应状态:', response.status, response.statusText);
+    console.log('响应头:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
+      console.error('HTTP错误:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('错误响应内容:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('响应数据:', data);
+    console.log('=== Dify API 调用成功 ===');
+    
     return {
       success: true,
       data: {
@@ -101,7 +134,8 @@ const callDifyAPI = async (
       }
     };
   } catch (error) {
-    console.error('Dify API call error:', error);
+    console.error('=== Dify API 调用失败 ===');
+    console.error('错误详情:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Dify API调用失败'
@@ -114,6 +148,7 @@ const callDifyWorkflowAPI = async (
   config: DifyAPIConfig,
   inputs: any = {},
   user?: string,
+  conversationId?: string,
   retryCount: number = 3
 ): Promise<WorkflowResponse> => {
   let lastError: Error | null = null;
@@ -148,7 +183,9 @@ const callDifyWorkflowAPI = async (
           appType: config.id, // 添加appType用于后端代理识别
           inputs,
           response_mode: 'blocking',
-          user: user || 'user-' + Date.now(),
+          conversation_id: conversationId || '',
+          // 使用稳定的 user，避免因 user 变化导致 Dify 找不到 conversation_id
+          user: user || getStableDifyUserId(),
         }),
         signal: controller.signal,
       });
@@ -182,6 +219,9 @@ const callDifyWorkflowAPI = async (
         success: true,
         data: { 
           result: data.data?.outputs?.answer || data.data?.outputs?.text || data.data?.outputs?.text3 || '', 
+          conversationId: data.conversation_id,
+          messageId: data.message_id,
+          metadata: data.metadata,
           ...data 
         },
       };
@@ -247,15 +287,20 @@ export const workflowAPI = {
   },
 
   // 智能搜索 - 支持自定义Dify配置
-  smartSearch: async (query: string, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  smartSearch: async (query: string, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify API
     if (difyConfig) {
-      return await callDifyAPI(difyConfig, query);
+      return await callDifyAPI(difyConfig, query, {}, conversationId);
     }
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/smart-search', { query });
+      const requestData: any = { query };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/smart-search', requestData);
       return response.data;
     } catch (error) {
       console.error('Smart search API error:', error);
@@ -288,7 +333,7 @@ export const workflowAPI = {
       // 使用API Key作为workflow ID（去掉app-前缀）
       // 注意：Dify Workflow API不需要在URL中指定workflow ID，API Key已包含应用信息
       
-      return await callDifyWorkflowAPI(difyConfig, inputs);
+      return await callDifyWorkflowAPI(difyConfig, inputs, undefined, conversationId);
     }
     
     // 否则使用原有的后端API
@@ -351,7 +396,7 @@ export const workflowAPI = {
       // 使用API Key作为workflow ID（去掉app-前缀）
       // 注意：Dify Workflow API不需要在URL中指定workflow ID，API Key已包含应用信息
       
-      return await callDifyWorkflowAPI(difyConfig, inputs);
+      return await callDifyWorkflowAPI(difyConfig, inputs, undefined, conversationId);
     }
     
     // 否则使用原有的后端API
@@ -375,18 +420,23 @@ export const workflowAPI = {
   },
 
   // 推广策略 - 支持自定义Dify配置
-  promotionStrategy: async (techStrategy: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  promotionStrategy: async (techStrategy: any, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify API
     if (difyConfig) {
       const query = typeof techStrategy === 'string' ? techStrategy : JSON.stringify(techStrategy);
-      return await callDifyAPI(difyConfig, query, { techStrategy });
+      return await callDifyAPI(difyConfig, query, { techStrategy }, conversationId);
     }
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/promotion-strategy', { 
+      const requestData: any = { 
         inputs: { techStrategy }
-      });
+      };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/promotion-strategy', requestData);
       return response.data;
     } catch (error) {
       console.error('Promotion strategy API error:', error);
@@ -419,7 +469,7 @@ export const workflowAPI = {
       // 使用API Key作为workflow ID（去掉app-前缀）
       // 注意：Dify Workflow API不需要在URL中指定workflow ID，API Key已包含应用信息
       
-      return await callDifyWorkflowAPI(difyConfig, inputs);
+      return await callDifyWorkflowAPI(difyConfig, inputs, undefined, conversationId);
     }
     
     // 否则使用原有的后端API
@@ -464,7 +514,7 @@ export const workflowAPI = {
       // 使用API Key作为workflow ID（去掉app-前缀）
       // 注意：Dify Workflow API不需要在URL中指定workflow ID，API Key已包含应用信息
       
-      return await callDifyWorkflowAPI(difyConfig, inputs);
+      return await callDifyWorkflowAPI(difyConfig, inputs, undefined, conversationId);
     }
     
     // 否则使用原有的后端API
@@ -488,17 +538,22 @@ export const workflowAPI = {
   },
 
   // 演讲稿 - 支持自定义Dify配置
-  speech: async (inputs: any, difyConfig?: DifyAPIConfig): Promise<WorkflowResponse> => {
+  speech: async (inputs: any, difyConfig?: DifyAPIConfig, conversationId?: string): Promise<WorkflowResponse> => {
     // 如果提供了自定义Dify配置，使用Dify工作流API
     if (difyConfig) {
-      return await callDifyWorkflowAPI(difyConfig, inputs);
+      return await callDifyWorkflowAPI(difyConfig, inputs, undefined, conversationId);
     }
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/speech-generation', { 
+      const requestData: any = { 
         inputs: inputs
-      });
+      };
+      if (conversationId) {
+        requestData.conversation_id = conversationId;
+      }
+      
+      const response = await api.post('/workflow/speech-generation', requestData);
       return response.data;
     } catch (error) {
       console.error('Speech API error:', error);

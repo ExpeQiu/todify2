@@ -91,15 +91,24 @@ router.post('/chat-messages', async (req, res) => {
     const difyApiUrl = 'http://47.113.225.93:9999/v1/chat-messages';
     console.log('请求Dify API URL:', difyApiUrl);
     
+    // 构建请求体，只在有有效conversation_id时才包含它
+    const requestPayload: any = {
+      query: cleanedBody.query,
+      inputs: cleanedBody.inputs || {},
+      user: requestBody.user || `user-${Date.now()}`, 
+      response_mode: 'blocking'
+    };
+    
+    // 只在有有效conversation_id时才添加它
+    if (cleanedBody.conversation_id && cleanedBody.conversation_id.trim() !== '') {
+      requestPayload.conversation_id = cleanedBody.conversation_id;
+    }
+    
+    console.log('最终发送给Dify的请求体:', requestPayload);
+    
     const difyResponse = await axios.post(
       difyApiUrl,
-      { 
-        query: cleanedBody.query,
-        inputs: cleanedBody.inputs || {},
-        conversation_id: cleanedBody.conversation_id || '',
-        user: requestBody.user || `user-${Date.now()}`, 
-        response_mode: 'blocking' 
-      },
+      requestPayload,
       {
         headers: {
           'Authorization': `Bearer ${apiKey}`,

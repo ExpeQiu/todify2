@@ -8,11 +8,21 @@ export default defineConfig({
     port: 3001,
     strictPort: true,
     proxy: {
-      '/api': {
+      '/api/v1': {
         target: 'http://127.0.0.1:3003',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
+      '/api/dify': {
+        target: 'http://127.0.0.1:3003',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/workflow-stats': {
+        target: 'http://127.0.0.1:3003',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/workflow-stats/, '/api/v1/workflow-stats'),
       },
     },
   },

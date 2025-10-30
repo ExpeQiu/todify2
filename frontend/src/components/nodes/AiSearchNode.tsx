@@ -15,9 +15,11 @@ import {
   Save,
   X,
   Check,
+  Plus,
 } from "lucide-react";
 import { BaseNodeProps } from "../../types/nodeComponent";
 import { workflowAPI } from "../../services/api";
+import { configService } from "../../services/configService";
 import KnowledgePointSelector, {
   KnowledgePoint,
   SelectionItem,
@@ -42,6 +44,9 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
   const [internalLoading, setInternalLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  
+  // 多轮对话状态管理
+  const [conversationId, setConversationId] = useState<string>("");
 
   // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
@@ -133,18 +138,36 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
       setAiResponse("AI正在分析您的问题...");
 
       try {
-        // 调用后端AI搜索API
-        const result = await workflowAPI.aiSearch(query.trim());
+        // 获取AI问答的Dify配置
+        const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
+        
+        // 调用AI搜索API，传递conversationId支持多轮对话
+        const result = await workflowAPI.aiSearch(
+          query.trim(), 
+          {}, 
+          (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
+          conversationId || undefined
+        );
 
         if (result.success && result.data) {
           // 设置AI响应内容
-          setAiResponse(result.data.answer || "抱歉，未能获取到有效回答。");
+          setAiResponse(result.data.answer || result.data.result || "抱歉，未能获取到有效回答。");
+
+          // 保存API返回的conversationId以支持多轮对话
+          if (result.data.conversation_id && result.data.conversation_id !== conversationId) {
+            setConversationId(result.data.conversation_id);
+            console.log('🔄 AiSearchNode更新conversation_id:', result.data.conversation_id);
+          } else if (result.data.conversationId && result.data.conversationId !== conversationId) {
+            setConversationId(result.data.conversationId);
+            console.log('🔄 AiSearchNode更新conversationId:', result.data.conversationId);
+          }
 
           // 通知父组件执行完成
           onExecute({
             query: query.trim(),
-            response: result.data.answer,
+            response: result.data.answer || result.data.result,
             metadata: result.data.metadata,
+            conversationId: result.data.conversation_id || result.data.conversationId,
           });
         } else {
           setAiResponse(result.error || "AI搜索失败，请稍后重试。");
@@ -252,6 +275,12 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
     if (query) {
       handleAiSearch();
     }
+  };
+
+  // 清空对话功能
+  const handleClearConversation = () => {
+    setConversationId("");
+    setAiResponse("您好！我是AI智能助手，很高兴为您服务。请输入您的技术问题，我会为您提供专业的解答和建议。");
   };
 
   return (
@@ -682,6 +711,16 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
                           <span data-oid="euds_qw">发送问题</span>
                         </>
                       )}
+                    </button>
+                    
+                    <button
+                      onClick={handleClearConversation}
+                      disabled={internalLoading}
+                      className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                      title="开始新对话"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>新问题</span>
                     </button>
                   </div>
                 </div>

@@ -42,6 +42,7 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
   const [internalLoading, setInternalLoading] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null); // 支持多轮对话
 
   // 知识点选择相关状态
   const [selectedItems, setSelectedItems] = useState<SelectionItem[]>([]);
@@ -133,10 +134,19 @@ const PromotionStrategyNode: React.FC<PromotionStrategyNodeProps> = ({
       setAiResponse("AI正在生成技术策略内容...");
 
       try {
-        // 调用后端技术策略API
-        const result = await workflowAPI.promotionStrategy(query.trim());
+        // 调用后端技术策略API，传递conversationId支持多轮对话
+        const result = await workflowAPI.promotionStrategy(query.trim(), undefined, conversationId || undefined);
 
         if (result.success && result.data) {
+          // 更新conversationId以支持多轮对话
+          if (result.data.conversation_id && result.data.conversation_id !== conversationId) {
+            setConversationId(result.data.conversation_id);
+            console.log('🔄 PromotionStrategyNode更新conversation_id:', result.data.conversation_id);
+          } else if (result.data.conversationId && result.data.conversationId !== conversationId) {
+            setConversationId(result.data.conversationId);
+            console.log('🔄 PromotionStrategyNode更新conversationId:', result.data.conversationId);
+          }
+
           // 设置AI响应内容
           setAiResponse(result.data.answer || "抱歉，未能生成技术策略内容。");
 

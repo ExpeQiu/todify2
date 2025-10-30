@@ -59,6 +59,9 @@ const TechNewsletterNode: React.FC<TechNewsletterNodeProps> = ({
   const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>(
     [],
   );
+  
+  // 多轮对话支持
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   // 处理AI搜索
   const handleAiSearch = async () => {
@@ -82,10 +85,16 @@ const TechNewsletterNode: React.FC<TechNewsletterNodeProps> = ({
           selectedKnowledgePoints: selectedItems,
           source: "TechNewsletterNode",
         },
-        null,
+        undefined, // difyConfig 参数
+        conversationId // conversationId 参数
       );
 
       if (response.success && response.data) {
+        // 更新conversationId以支持多轮对话
+        if (response.data.conversationId) {
+          setConversationId(response.data.conversationId);
+        }
+        
         setAiResponse(response.data.content || response.data.answer || "");
 
         // 添加AI响应到历史

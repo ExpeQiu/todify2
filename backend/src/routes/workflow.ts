@@ -83,8 +83,8 @@ router.post('/ai-search', async (req, res) => {
       return res.status(400).json(formatValidationErrorResponse(validation.errors));
     }
 
-    const { query, inputs = {} } = req.body;
-    console.log('开始调用AI搜索API, query:', query, 'inputs:', inputs);
+    const { query, inputs = {}, conversationId = '' } = req.body;
+    console.log('开始调用AI搜索API, query:', query, 'inputs:', inputs, 'conversationId:', conversationId);
 
     // 处理知识点内容拼接
     let processedInputs = { ...inputs };
@@ -122,7 +122,7 @@ router.post('/ai-search', async (req, res) => {
     }
 
     // 调用AI搜索API (使用聊天消息API)
-    const result: DifyChatResponse = await DifyClient.aiSearch(query, processedInputs);
+    const result: DifyChatResponse = await DifyClient.aiSearch(query, processedInputs, conversationId);
     console.log('AI搜索API调用成功:', result);
     
     // 保存Dify返回消息到数据库
@@ -367,14 +367,22 @@ router.post('/speech-generation', async (req, res) => {
     const { inputs, conversation_id } = req.body;
     
     // 根据专项-发布会稿.yml配置，支持多种参数映射方式
-    const speechInputs = {
-      Additional_information: inputs.Additional_information || inputs.coreDraft || inputs,
+    const speechInputs: any = {
       'sys.query': inputs['sys.query'] || inputs.query || '请根据提供的补充信息生成技术发布会稿'
     };
     
-    console.log('Speech Generation Inputs:', speechInputs);
+    // Additional_information 是非必填字段，只有有值时才添加
+    if (inputs.Additional_information && inputs.Additional_information.trim() !== '') {
+      speechInputs.Additional_information = inputs.Additional_information;
+    } else if (inputs.coreDraft && inputs.coreDraft.trim() !== '') {
+      speechInputs.Additional_information = inputs.coreDraft;
+    }
     
-    const result = await DifyClient.techPublish(speechInputs);
+    console.log('Speech Generation Inputs:', speechInputs);
+    console.log('Speech Generation Conversation ID:', conversation_id || 'NEW');
+    
+    // 传递 conversation_id 给 techPublish 支持多轮对话
+    const result = await DifyClient.techPublish(speechInputs, conversation_id);
     
     // 保存Dify工作流返回消息到数据库
     try {

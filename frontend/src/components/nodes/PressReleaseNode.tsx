@@ -60,6 +60,9 @@ const PressReleaseNode: React.FC<PressReleaseNodeProps> = ({
   const [modalSelectedItems, setModalSelectedItems] = useState<SelectionItem[]>(
     [],
   );
+  
+  // 多轮对话支持
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
 
   // 处理AI搜索
   const handleAiSearch = async () => {
@@ -81,10 +84,15 @@ const PressReleaseNode: React.FC<PressReleaseNodeProps> = ({
         query,
         selectedKnowledgePoints: selectedItems,
         source: "PressReleaseNode",
-      });
+      }, undefined, conversationId);
 
       if (response.success && response.data) {
         setAiResponse(response.data.content || response.data.answer || "");
+
+        // 更新conversationId以支持多轮对话
+        if (response.data?.conversationId) {
+          setConversationId(response.data.conversationId);
+        }
 
         // 添加AI响应到历史
         const aiMessage: ChatMessage = {

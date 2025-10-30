@@ -14,6 +14,7 @@ export enum DifyAppType {
 export interface DifyWorkflowResponse {
   workflow_run_id: string;
   task_id: string;
+  conversation_id?: string; // 添加 conversation_id 字段用于多轮对话
   data: {
     id: string;
     workflow_id: string;
@@ -156,7 +157,7 @@ class DifyClient {
   }
 
   // AI搜索应用 (使用聊天消息API)
-  async aiSearch(query: string, inputs: any = {}, responseMode: string = 'blocking'): Promise<DifyChatResponse> {
+  async aiSearch(query: string, inputs: any = {}, conversationId: string = '', responseMode: string = 'blocking'): Promise<DifyChatResponse> {
     try {
       const apiKey = this.getApiKey(DifyAppType.AI_SEARCH);
       
@@ -166,7 +167,7 @@ class DifyClient {
           inputs,
           query,
           response_mode: responseMode,
-          conversation_id: '',
+          conversation_id: conversationId,
           user: 'todify2-user',
           files: []
         },
@@ -233,23 +234,29 @@ class DifyClient {
   // 技术包装应用 (使用工作流API)
   // 将聊天响应转换为工作流响应格式
   private convertChatToWorkflowResponse(chatResponse: DifyChatResponse): DifyWorkflowResponse {
+    // 验证必需字段
+    if (!chatResponse.id || !chatResponse.task_id) {
+      throw new Error(`Invalid chat response: missing required fields. Response: ${JSON.stringify(chatResponse, null, 2)}`);
+    }
+    
     return {
       workflow_run_id: `chat-${chatResponse.id}`,
       task_id: chatResponse.task_id,
+      conversation_id: chatResponse.conversation_id, // 传递 conversation_id 用于多轮对话
       data: {
         id: chatResponse.id,
         workflow_id: 'tech-package-chat',
         status: 'succeeded',
         outputs: {
-          text: chatResponse.answer,
-          answer: chatResponse.answer
+          text: chatResponse.answer || '',
+          answer: chatResponse.answer || ''
         },
         error: null,
-        elapsed_time: chatResponse.metadata.usage.latency,
-        total_tokens: chatResponse.metadata.usage.total_tokens,
+        elapsed_time: chatResponse.metadata?.usage?.latency || 0,
+        total_tokens: chatResponse.metadata?.usage?.total_tokens || 0,
         total_steps: 1,
-        created_at: chatResponse.created_at,
-        finished_at: chatResponse.created_at
+        created_at: chatResponse.created_at || Math.floor(Date.now() / 1000),
+        finished_at: chatResponse.created_at || Math.floor(Date.now() / 1000)
       }
     };
   }
@@ -329,7 +336,7 @@ ${inputs.Additional_information || '未提供具体信息'}
   }
 
   // 技术发布生成 (使用chatflow模式)
-  async techPublish(inputs: any): Promise<DifyWorkflowResponse> {
+  async techPublish(inputs: any, conversationId?: string): Promise<DifyWorkflowResponse> {
     try {
       const apiKey = this.getApiKey(DifyAppType.TECH_PUBLISH);
       
@@ -340,31 +347,46 @@ ${inputs.Additional_information || '未提供具体信息'}
       
       console.log('Tech Publish API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT SET');
       console.log('Tech Publish Base URL:', this.baseUrl);
+      console.log('Tech Publish Conversation ID:', conversationId || 'NEW');
       
       // 处理chatflow模式的参数映射
       // 支持多种输入格式：Additional_information, coreDraft, 或直接传入的字符串
-      let additionalInfo = '';
+      let additionalInfo: string | undefined = undefined;
       if (inputs.Additional_information) {
-        additionalInfo = inputs.Additional_information;
+        // 只有非空字符串才设置
+        const infoValue = typeof inputs.Additional_information === 'string' 
+          ? inputs.Additional_information.trim() 
+          : inputs.Additional_information;
+        if (infoValue && infoValue !== '') {
+          additionalInfo = typeof infoValue === 'string' ? infoValue : JSON.stringify(infoValue);
+        }
       } else if (inputs.coreDraft) {
-        additionalInfo = typeof inputs.coreDraft === 'string' 
-          ? inputs.coreDraft 
-          : JSON.stringify(inputs.coreDraft);
-      } else if (typeof inputs === 'string') {
-        additionalInfo = inputs;
-      } else {
-        additionalInfo = JSON.stringify(inputs);
+        const draftValue = typeof inputs.coreDraft === 'string' 
+          ? inputs.coreDraft.trim()
+          : inputs.coreDraft;
+        if (draftValue && draftValue !== '') {
+          additionalInfo = typeof draftValue === 'string' ? draftValue : JSON.stringify(draftValue);
+        }
       }
       
       // 处理query参数，支持sys.query或query字段
       const queryText = inputs['sys.query'] || inputs.query || '请根据提供的补充信息生成技术发布会稿';
       
-      const chatflowInputs = {
-        Additional_information: additionalInfo
-      };
+      // 只有additionalInfo有值时才添加到inputs
+      const chatflowInputs: any = {};
+      if (additionalInfo) {
+        chatflowInputs.Additional_information = additionalInfo;
+      }
       
       console.log('Tech Publish Inputs:', chatflowInputs);
       console.log('Tech Publish Query:', queryText);
+      console.log('Tech Publish Request Payload:', JSON.stringify({
+        inputs: chatflowInputs,
+        query: queryText,
+        response_mode: 'blocking',
+        user: 'todify2-user',
+        conversation_id: conversationId || ''
+      }, null, 2));
       
       const response = await axios.post(
         `${this.baseUrl}/chat-messages`,
@@ -373,7 +395,7 @@ ${inputs.Additional_information || '未提供具体信息'}
           query: queryText,
           response_mode: 'blocking',
           user: 'todify2-user',
-          conversation_id: '',
+          conversation_id: conversationId || '', // 传递 conversation_id 支持多轮对话
           files: []
         },
         {
@@ -386,15 +408,26 @@ ${inputs.Additional_information || '未提供具体信息'}
       );
 
       console.log('Tech Publish Response:', response.status, response.statusText);
+      console.log('Tech Publish Response Data:', JSON.stringify(response.data, null, 2));
       
       // 将chatflow响应转换为workflow响应格式以保持兼容性
-      return this.convertChatToWorkflowResponse(response.data);
+      try {
+        const convertedResponse = this.convertChatToWorkflowResponse(response.data);
+        console.log('Tech Publish Converted Response conversation_id:', convertedResponse.conversation_id);
+        return convertedResponse;
+      } catch (conversionError) {
+        console.error('Tech Publish Conversion Error:', conversionError);
+        console.error('Response data that failed conversion:', JSON.stringify(response.data, null, 2));
+        throw new Error(`Failed to convert chatflow response: ${conversionError instanceof Error ? conversionError.message : String(conversionError)}`);
+      }
     } catch (error) {
       console.error(`Dify chatflow API error for tech-publish:`, error);
       if (axios.isAxiosError(error)) {
-        console.error('Response data:', error.response?.data);
-        console.error('Response status:', error.response?.status);
-        console.error('Response headers:', error.response?.headers);
+        console.error('Error Response data:', JSON.stringify(error.response?.data, null, 2));
+        console.error('Error Response status:', error.response?.status);
+        console.error('Error Response headers:', error.response?.headers);
+        console.error('Error Request URL:', error.config?.url);
+        console.error('Error Request data:', error.config?.data);
       }
       throw error;
     }
