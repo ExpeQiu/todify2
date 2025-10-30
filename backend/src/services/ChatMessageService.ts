@@ -104,8 +104,8 @@ export class ChatMessageService {
    */
   static async getConversationById(conversationId: string): Promise<ConversationRecord | null> {
     const sql = 'SELECT * FROM conversations WHERE conversation_id = ?';
-    const rows = await query(sql, [conversationId]);
-    return rows.length > 0 ? rows[0] as ConversationRecord : null;
+    const rows = await query(sql, [conversationId]) as ConversationRecord[];
+    return rows.length > 0 ? rows[0] : null;
   }
 
   /**
@@ -151,8 +151,8 @@ export class ChatMessageService {
    */
   static async getChatMessageById(messageId: string): Promise<ChatMessageRecord | null> {
     const sql = 'SELECT * FROM chat_messages WHERE message_id = ?';
-    const rows = await query(sql, [messageId]);
-    return rows.length > 0 ? rows[0] as ChatMessageRecord : null;
+    const rows = await query(sql, [messageId]) as ChatMessageRecord[];
+    return rows.length > 0 ? rows[0] : null;
   }
 
   /**
@@ -191,8 +191,8 @@ export class ChatMessageService {
    */
   static async getWorkflowExecutionById(workflowRunId: string): Promise<WorkflowExecutionRecord | null> {
     const sql = 'SELECT * FROM workflow_executions WHERE workflow_run_id = ?';
-    const rows = await query(sql, [workflowRunId]);
-    return rows.length > 0 ? rows[0] as WorkflowExecutionRecord : null;
+    const rows = await query(sql, [workflowRunId]) as WorkflowExecutionRecord[];
+    return rows.length > 0 ? rows[0] : null;
   }
 
   /**
@@ -202,7 +202,7 @@ export class ChatMessageService {
     response: DifyChatResponse,
     userQuery: string,
     appType: string,
-    inputs?: any
+    inputs?: Record<string, unknown>
   ): Promise<{ conversation: ConversationRecord; userMessage: ChatMessageRecord; assistantMessage: ChatMessageRecord }> {
     // 1. 创建或更新对话会话
     const conversation = await this.upsertConversation({
@@ -256,7 +256,7 @@ export class ChatMessageService {
     response: DifyWorkflowResponse,
     userQuery: string,
     appType: string,
-    inputs?: any,
+    inputs?: Record<string, unknown>,
     existingConversationId?: string
   ): Promise<{ conversation: ConversationRecord; workflowExecution: WorkflowExecutionRecord }> {
     // 使用传入的conversation_id或生成新的对话ID
@@ -310,7 +310,7 @@ export class ChatMessageService {
    */
   static async getUserConversations(userId?: string, appType?: string, limit: number = 20, offset: number = 0): Promise<ConversationRecord[]> {
     let sql = 'SELECT * FROM conversations WHERE 1=1';
-    const params: any[] = [];
+    const params: unknown[] = [];
 
     if (userId) {
       sql += ' AND user_id = ?';
@@ -332,7 +332,11 @@ export class ChatMessageService {
   /**
    * 记录知识点使用情况
    */
-  static async logKnowledgeUsage(messageId: string, knowledgePointIds: number[], contextSummary?: any): Promise<void> {
+  static async logKnowledgeUsage(
+    messageId: string,
+    knowledgePointIds: number[],
+    contextSummary?: Record<string, unknown>
+  ): Promise<void> {
     const sql = `
       INSERT INTO knowledge_usage_logs (message_id, knowledge_point_ids, context_summary, context_length)
       VALUES (?, ?, ?, ?)

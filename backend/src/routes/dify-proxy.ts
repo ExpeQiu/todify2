@@ -1,6 +1,7 @@
 import express from 'express';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import dotenv from 'dotenv';
+import { Logger } from '../utils/logger';
 
 dotenv.config();
 
@@ -59,28 +60,30 @@ const getApiKey = (appType: string): string => {
 // Dify聊天消息代理
 router.post('/chat-messages', async (req, res) => {
   try {
-    console.log('=== Dify Chat Messages Proxy ===');
-    console.log('Request body:', req.body);
-    
+    Logger.http('Dify Chat Messages Proxy', { appType: req.body.appType });
+    Logger.debug('Dify代理请求体', { body: req.body });
+
     const { appType, apiKey: clientApiKey, ...requestBody } = req.body;
     const apiKey = getApiKey(appType) || clientApiKey;
 
     if (!apiKey) {
-      console.error('API key is missing for appType:', appType);
+      Logger.error('API key缺失', { appType });
       return res.status(400).json({ error: 'API key is required' });
     }
 
-    console.log('Using API key for appType:', appType);
-    console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
-    
+    Logger.debug('使用API key', {
+      appType,
+      keyPreview: apiKey.substring(0, 10) + '...'
+    });
+
     // 直接使用Dify后端地址（9999端口）
     const difyBaseUrl = 'http://47.113.225.93:9999/v1';
-    console.log('Dify base URL:', difyBaseUrl);
+    Logger.debug('Dify base URL', { url: difyBaseUrl });
 
     // 清理requestBody，确保只发送Dify需要的字段
     const { appType: _, ...cleanedBody } = requestBody;
-    
-    console.log('发送给Dify的请求体:', {
+
+    Logger.debug('发送给Dify的请求体', {
       query: cleanedBody.query,
       inputs: cleanedBody.inputs,
       conversation_id: cleanedBody.conversation_id,
@@ -89,16 +92,16 @@ router.post('/chat-messages', async (req, res) => {
 
     // 正确的Dify API端点
     const difyApiUrl = 'http://47.113.225.93:9999/v1/chat-messages';
-    console.log('请求Dify API URL:', difyApiUrl);
-    
+    Logger.debug('请求Dify API', { url: difyApiUrl });
+
     const difyResponse = await axios.post(
       difyApiUrl,
-      { 
+      {
         query: cleanedBody.query,
         inputs: cleanedBody.inputs || {},
         conversation_id: cleanedBody.conversation_id || '',
-        user: requestBody.user || `user-${Date.now()}`, 
-        response_mode: 'blocking' 
+        user: requestBody.user || `user-${Date.now()}`,
+        response_mode: 'blocking'
       },
       {
         headers: {
@@ -108,14 +111,18 @@ router.post('/chat-messages', async (req, res) => {
         timeout: 60000,
       }
     );
-    
-    console.log('Dify response received:', difyResponse.status);
+
+    Logger.info('Dify Chat响应成功', { status: difyResponse.status });
     res.json(difyResponse.data);
-  } catch (error: any) {
-    console.error('Dify API proxy error:', error.message);
-    console.error('Error details:', error.response?.data);
-    res.status(error.response?.status || 500).json({
-      error: error.response?.data || error.message
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    Logger.error('Dify API代理错误', {
+      message: axiosError.message,
+      status: axiosError.response?.status,
+      data: axiosError.response?.data
+    });
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || axiosError.message
     });
   }
 });
@@ -123,28 +130,28 @@ router.post('/chat-messages', async (req, res) => {
 // Dify工作流代理
 router.post('/workflows/run', async (req, res) => {
   try {
-    console.log('=== Dify Workflow Proxy ===');
-    console.log('Request body:', req.body);
-    
+    Logger.http('Dify Workflow Proxy', { appType: req.body.appType });
+    Logger.debug('Dify工作流请求体', { body: req.body });
+
     const { appType, apiKey: clientApiKey, ...requestBody } = req.body;
     const apiKey = getApiKey(appType) || clientApiKey;
 
     if (!apiKey) {
-      console.error('API key is missing for appType:', appType);
+      Logger.error('API key缺失', { appType });
       return res.status(400).json({ error: 'API key is required' });
     }
 
-    console.log('Using API key for appType:', appType);
+    Logger.debug('使用API key', { appType });
     // 直接使用正确的Dify工作流API端点
     const difyWorkflowUrl = 'http://47.113.225.93:9999/v1/workflows/run';
-    console.log('Dify workflow URL:', difyWorkflowUrl);
+    Logger.debug('Dify workflow URL', { url: difyWorkflowUrl });
 
     const difyResponse = await axios.post(
       difyWorkflowUrl,
-      { 
-        ...requestBody, 
-        user: requestBody.user || `user-${Date.now()}`, 
-        response_mode: 'blocking' 
+      {
+        ...requestBody,
+        user: requestBody.user || `user-${Date.now()}`,
+        response_mode: 'blocking'
       },
       {
         headers: {
@@ -154,14 +161,18 @@ router.post('/workflows/run', async (req, res) => {
         timeout: 60000,
       }
     );
-    
-    console.log('Dify workflow response received:', difyResponse.status);
+
+    Logger.info('Dify Workflow响应成功', { status: difyResponse.status });
     res.json(difyResponse.data);
-  } catch (error: any) {
-    console.error('Dify workflow proxy error:', error.message);
-    console.error('Error details:', error.response?.data);
-    res.status(error.response?.status || 500).json({
-      error: error.response?.data || error.message
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    Logger.error('Dify工作流代理错误', {
+      message: axiosError.message,
+      status: axiosError.response?.status,
+      data: axiosError.response?.data
+    });
+    res.status(axiosError.response?.status || 500).json({
+      error: axiosError.response?.data || axiosError.message
     });
   }
 });
