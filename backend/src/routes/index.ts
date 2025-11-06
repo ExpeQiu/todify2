@@ -9,6 +9,12 @@ import knowledgePointsRouter from './knowledgePointRoutes';
 import chatRouter from './chat';
 import workflowStatsRouter from './workflowStats';
 import difyProxyRouter from './dify-proxy';
+import aiRoleRouter from './aiRole';
+import agentWorkflowRouter from './agentWorkflow';
+import workflowExecutionRouter from './workflowExecution';
+import workflowTemplateRouter from './workflowTemplate';
+import publicPageConfigRouter from './publicPageConfig';
+import aiSearchRouter from './aiSearch';
 
 const router = Router();
 
@@ -35,6 +41,12 @@ router.use('/knowledge-points', knowledgePointsRouter);
 router.use('/chat', chatRouter);
 router.use('/workflow-stats', workflowStatsRouter);
 router.use('/dify', difyProxyRouter);
+router.use('/ai-roles', aiRoleRouter);
+router.use('/agent-workflows', agentWorkflowRouter);
+router.use('/executions', workflowExecutionRouter);
+router.use('/workflow-templates', workflowTemplateRouter);
+router.use('/public-page-configs', publicPageConfigRouter);
+router.use('/ai-search', aiSearchRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

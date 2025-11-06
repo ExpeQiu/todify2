@@ -24,6 +24,13 @@ export const NODE_CONFIGS = {
     color: '#F59E0B',
     category: 'content'
   },
+  promotion_strategy: {
+    title: '技术策略',
+    description: '技术策略生成',
+    icon: 'Target',
+    color: '#8B5CF6',
+    category: 'content'
+  },
   core_draft: {
     title: '核心稿件',
     description: '核心稿件撰写',
@@ -65,6 +72,12 @@ export const nodeConfigs: Record<string, NodeConfig> = {
     defaultValues: {
       template: 'default'
     }
+  },
+
+  promotion_strategy: {
+    canStartIndependently: true,
+    requiredInputs: [],
+    optionalInputs: ['techPackageData']
   },
 
   core_draft: {
@@ -109,6 +122,17 @@ export const workflowNodes: WorkflowNode[] = [
     icon: Package,
     path: '/node/tech-package',
     dependencies: ['ai_qa'],
+    nextSteps: ['promotion_strategy', 'core_draft', 'speech']
+  },
+
+  {
+    id: 'promotion_strategy',
+    name: '技术策略',
+    type: 'promotion_strategy',
+    description: '生成技术策略内容',
+    icon: Target,
+    path: '/node/promotion-strategy',
+    dependencies: ['tech_package'],
     nextSteps: ['core_draft', 'speech']
   },
 
@@ -119,7 +143,7 @@ export const workflowNodes: WorkflowNode[] = [
     description: '生成核心文档稿件',
     icon: FileText,
     path: '/node/core-draft',
-    dependencies: ['tech_package'],
+    dependencies: ['tech_package', 'promotion_strategy'],
     nextSteps: ['speech']
   },
   {

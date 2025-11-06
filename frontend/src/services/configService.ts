@@ -63,8 +63,7 @@ class ConfigService {
   private readonly STORAGE_KEYS = {
     DIFY_CONFIGS: 'difyConfigs',
     WORKFLOW_CONFIGS: 'workflowConfigs',
-    SMART_WORKFLOW_CONFIGS: 'smartWorkflowConfigs',
-    INDEPENDENT_PAGE_CONFIGS: 'independentPageConfigs',
+    // 已废弃：SMART_WORKFLOW_CONFIGS 和 INDEPENDENT_PAGE_CONFIGS 已迁移到AI角色系统
   };
 
   // 默认的工作流步骤配置
@@ -75,6 +74,11 @@ class ConfigService {
     { stepId: 4, stepName: "技术通稿", stepKey: "coreDraft" },
     { stepId: 5, stepName: "发布会演讲稿", stepKey: "speechGeneration" },
   ];
+
+  // 已废弃：智能工作流和独立页面配置
+  // private readonly DEFAULT_SMART_WORKFLOW_CONFIGS: SmartWorkflowNodeConfig[] = ...
+  // private readonly DEFAULT_INDEPENDENT_PAGE_CONFIGS: IndependentPageConfig[] = ...
+  // 这些配置已迁移到AI角色管理系统
 
   // 默认的Dify API配置 - 统一代理到本地后端服务
   private readonly DEFAULT_DIFY_CONFIGS: DifyAPIConfig[] = [
@@ -130,123 +134,8 @@ class ConfigService {
     },
   ];
 
-  // 智能工作流节点默认配置 - 统一代理到本地后端服务
-  private readonly DEFAULT_SMART_WORKFLOW_CONFIGS: SmartWorkflowNodeConfig[] = [
-    {
-      id: "smart-workflow-ai-qa",
-      name: "AI问答",
-      description: "智能工作流中的AI问答节点，直接对接Dify API支持多轮对话",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-t1X4eu8B4eucyO6IfrTbw1t2",
-      enabled: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "smart-workflow-tech-package",
-      name: "技术包装",
-      description: "智能工作流中的技术包装节点",
-      connectionType: "workflow",
-      apiUrl: "http://localhost:3003/api/dify/workflows/run",
-      apiKey: "app-YDVb91faDHwTqIei4WWSNaTM",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "smart-workflow-tech-strategy",
-      name: "技术策略",
-      description: "智能工作流中的技术策略节点",
-      connectionType: "workflow",
-      apiUrl: "http://localhost:3003/api/dify/workflows/run",
-      apiKey: "app-awRZf7tKfvC73DEVANAGGNr8",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "smart-workflow-tech-article",
-      name: "技术通稿",
-      description: "智能工作流中的技术通稿节点",
-      connectionType: "workflow",
-      apiUrl: "http://localhost:3003/api/dify/workflows/run",
-      apiKey: "app-3TK9U2F3WwFP7vOoq0Ut84KA",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "smart-workflow-speech",
-      name: "发布会稿",
-      description: "智能工作流中的发布会稿节点",
-      connectionType: "workflow",
-      apiUrl: "http://localhost:3003/api/dify/workflows/run",
-      apiKey: "app-WcV5IDjuNKbOKIBDPWdb7HF4",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-
-  // 独立页面默认配置 - 统一代理到本地后端服务
-  private readonly DEFAULT_INDEPENDENT_PAGE_CONFIGS: IndependentPageConfig[] = [
-    {
-      id: "independent-ai-qa",
-      name: "AI问答",
-      description: "独立页面中的AI问答功能",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-HC8dx24idIWm1uva66VmHXsm",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "independent-tech-package",
-      name: "技术包装",
-      description: "独立页面中的技术包装功能",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-GgD3uUNDWOFu7DlBgSVkIrIt",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "independent-tech-strategy",
-      name: "技术策略",
-      description: "独立页面中的技术策略功能",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-DesVds4LQch6k7Unu7KpBCS4",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "independent-tech-article",
-      name: "技术通稿",
-      description: "独立页面中的技术通稿功能",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-c7HLp8OGiTgnpvg5cIYqQCYZ",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "independent-tech-publish",
-      name: "技术发布",
-      description: "独立页面中的技术发布功能",
-      connectionType: "chatflow",
-      apiUrl: "/api/dify/chat-messages",
-      apiKey: "app-iAiKRQ7h8zCwkz2TBkezgtGs",
-      enabled: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
+  // 已废弃：以下默认配置常量已删除，配置已迁移到AI角色管理系统
+  // DEFAULT_SMART_WORKFLOW_CONFIGS 和 DEFAULT_INDEPENDENT_PAGE_CONFIGS 已移除
 
   /**
    * 获取所有Dify API配置
@@ -665,8 +554,8 @@ class ConfigService {
     try {
       localStorage.removeItem(this.STORAGE_KEYS.DIFY_CONFIGS);
       localStorage.removeItem(this.STORAGE_KEYS.WORKFLOW_CONFIGS);
-      localStorage.removeItem(this.STORAGE_KEYS.SMART_WORKFLOW_CONFIGS);
-      localStorage.removeItem(this.STORAGE_KEYS.INDEPENDENT_PAGE_CONFIGS);
+      localStorage.removeItem('smartWorkflowConfigs');
+      localStorage.removeItem('independentPageConfigs');
       return { success: true, message: '所有配置已清除' };
     } catch (error) {
       console.error('清除配置失败:', error);
@@ -675,188 +564,113 @@ class ConfigService {
   }
 
   // ========== 智能工作流配置管理 ==========
+  // 已废弃：这些配置已迁移到AI角色管理系统
+  // 以下方法保留以便向后兼容，但返回空数组或执行空操作
 
   /**
-   * 获取智能工作流节点配置
+   * 获取智能工作流节点配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'smart-workflow'
    */
   async getSmartWorkflowConfigs(): Promise<SmartWorkflowNodeConfig[]> {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEYS.SMART_WORKFLOW_CONFIGS);
-      if (stored) {
-        const configs = JSON.parse(stored);
-        return configs.map((config: any) => ({
-          ...config,
-          createdAt: config.createdAt ? new Date(config.createdAt) : new Date(),
-          updatedAt: config.updatedAt ? new Date(config.updatedAt) : new Date(),
-        }));
-      }
-      
-      // 如果没有存储的配置，返回默认配置
-      await this.saveSmartWorkflowConfigs(this.DEFAULT_SMART_WORKFLOW_CONFIGS);
-      return this.DEFAULT_SMART_WORKFLOW_CONFIGS;
-    } catch (error) {
-      console.error('获取智能工作流配置失败:', error);
-      return this.DEFAULT_SMART_WORKFLOW_CONFIGS;
-    }
+    console.warn('getSmartWorkflowConfigs 已废弃，请使用AI角色管理系统');
+    return [];
   }
 
   /**
-   * 保存智能工作流节点配置
+   * 保存智能工作流节点配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统
    */
-  async saveSmartWorkflowConfigs(configs: SmartWorkflowNodeConfig[]): Promise<ConfigResponse> {
-    try {
-      const configsWithTimestamp = configs.map(config => ({
-        ...config,
-        updatedAt: new Date(),
-        createdAt: config.createdAt || new Date(),
-      }));
-      
-      localStorage.setItem(this.STORAGE_KEYS.SMART_WORKFLOW_CONFIGS, JSON.stringify(configsWithTimestamp));
-      return { success: true, message: '智能工作流配置保存成功' };
-    } catch (error) {
-      console.error('保存智能工作流配置失败:', error);
-      return { success: false, message: '保存智能工作流配置失败' };
-    }
+  async saveSmartWorkflowConfigs(_configs: SmartWorkflowNodeConfig[]): Promise<ConfigResponse> {
+    console.warn('saveSmartWorkflowConfigs 已废弃，请使用AI角色管理系统');
+    return { success: true, message: '配置已迁移到AI角色管理系统' };
   }
 
   /**
-   * 更新智能工作流节点配置
+   * 更新智能工作流节点配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统
    */
-  async updateSmartWorkflowConfig(id: string, updates: Partial<SmartWorkflowNodeConfig>): Promise<ConfigResponse> {
-    try {
-      const configs = await this.getSmartWorkflowConfigs();
-      const index = configs.findIndex(config => config.id === id);
-      
-      if (index === -1) {
-        return { success: false, message: '智能工作流配置不存在' };
-      }
-      
-      configs[index] = {
-        ...configs[index],
-        ...updates,
-        id, // 确保ID不被修改
-        updatedAt: new Date(),
-      };
-      
-      return await this.saveSmartWorkflowConfigs(configs);
-    } catch (error) {
-      console.error('更新智能工作流配置失败:', error);
-      return { success: false, message: '更新智能工作流配置失败' };
-    }
+  async updateSmartWorkflowConfig(_id: string, _updates: Partial<SmartWorkflowNodeConfig>): Promise<ConfigResponse> {
+    console.warn('updateSmartWorkflowConfig 已废弃，请使用AI角色管理系统');
+    return { success: false, message: '配置已迁移到AI角色管理系统' };
   }
 
   // ========== 独立页面配置管理 ==========
+  // 已废弃：这些配置已迁移到AI角色管理系统
 
   /**
-   * 获取独立页面配置
+   * 获取独立页面配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'independent-page'
    */
   async getIndependentPageConfigs(): Promise<IndependentPageConfig[]> {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEYS.INDEPENDENT_PAGE_CONFIGS);
-      if (stored) {
-        const configs = JSON.parse(stored);
-        return configs.map((config: any) => ({
-          ...config,
-          createdAt: config.createdAt ? new Date(config.createdAt) : new Date(),
-          updatedAt: config.updatedAt ? new Date(config.updatedAt) : new Date(),
-        }));
-      }
-      
-      // 如果没有存储的配置，返回默认配置
-      await this.saveIndependentPageConfigs(this.DEFAULT_INDEPENDENT_PAGE_CONFIGS);
-      return this.DEFAULT_INDEPENDENT_PAGE_CONFIGS;
-    } catch (error) {
-      console.error('获取独立页面配置失败:', error);
-      return this.DEFAULT_INDEPENDENT_PAGE_CONFIGS;
-    }
+    console.warn('getIndependentPageConfigs 已废弃，请使用AI角色管理系统');
+    return [];
   }
 
   /**
-   * 保存独立页面配置
+   * 保存独立页面配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统
    */
-  async saveIndependentPageConfigs(configs: IndependentPageConfig[]): Promise<ConfigResponse> {
-    try {
-      const configsWithTimestamp = configs.map(config => ({
-        ...config,
-        updatedAt: new Date(),
-        createdAt: config.createdAt || new Date(),
-      }));
-      
-      localStorage.setItem(this.STORAGE_KEYS.INDEPENDENT_PAGE_CONFIGS, JSON.stringify(configsWithTimestamp));
-      return { success: true, message: '独立页面配置保存成功' };
-    } catch (error) {
-      console.error('保存独立页面配置失败:', error);
-      return { success: false, message: '保存独立页面配置失败' };
-    }
+  async saveIndependentPageConfigs(_configs: IndependentPageConfig[]): Promise<ConfigResponse> {
+    console.warn('saveIndependentPageConfigs 已废弃，请使用AI角色管理系统');
+    return { success: true, message: '配置已迁移到AI角色管理系统' };
   }
 
   /**
-   * 更新独立页面配置
+   * 更新独立页面配置（已废弃）
+   * @deprecated 已迁移到AI角色管理系统
    */
-  async updateIndependentPageConfig(id: string, updates: Partial<IndependentPageConfig>): Promise<ConfigResponse> {
-    try {
-      const configs = await this.getIndependentPageConfigs();
-      const index = configs.findIndex(config => config.id === id);
-      
-      if (index === -1) {
-        return { success: false, message: '独立页面配置不存在' };
-      }
-      
-      configs[index] = {
-        ...configs[index],
-        ...updates,
-        id, // 确保ID不被修改
-        updatedAt: new Date(),
-      };
-      
-      return await this.saveIndependentPageConfigs(configs);
-    } catch (error) {
-      console.error('更新独立页面配置失败:', error);
-      return { success: false, message: '更新独立页面配置失败' };
-    }
+  async updateIndependentPageConfig(_id: string, _updates: Partial<IndependentPageConfig>): Promise<ConfigResponse> {
+    console.warn('updateIndependentPageConfig 已废弃，请使用AI角色管理系统');
+    return { success: false, message: '配置已迁移到AI角色管理系统' };
   }
 
   // ========== 统一配置管理 ==========
 
   /**
-   * 导出所有配置（包括新的双配置系统）
+   * 导出所有配置（已更新：智能工作流和独立页面配置已迁移到AI角色系统）
    */
   async exportAllConfigs(): Promise<{
     difyConfigs: DifyAPIConfig[],
     workflowConfigs: WorkflowStepConfig[],
-    smartWorkflowConfigs: SmartWorkflowNodeConfig[],
-    independentPageConfigs: IndependentPageConfig[]
+    smartWorkflowConfigs: SmartWorkflowNodeConfig[], // 已废弃，返回空数组
+    independentPageConfigs: IndependentPageConfig[] // 已废弃，返回空数组
   }> {
-    const [difyConfigs, workflowConfigs, smartWorkflowConfigs, independentPageConfigs] = await Promise.all([
+    const [difyConfigs, workflowConfigs] = await Promise.all([
       this.getDifyConfigs(),
       this.getWorkflowConfigs(),
-      this.getSmartWorkflowConfigs(),
-      this.getIndependentPageConfigs()
     ]);
 
+    // 智能工作流和独立页面配置已迁移，返回空数组
     return {
       difyConfigs,
       workflowConfigs,
-      smartWorkflowConfigs,
-      independentPageConfigs
+      smartWorkflowConfigs: [],
+      independentPageConfigs: []
     };
   }
 
   /**
-   * 导入所有配置（包括新的双配置系统）
+   * 导入所有配置（已更新：智能工作流和独立页面配置需迁移到AI角色系统）
    */
   async importAllConfigs(data: {
     difyConfigs?: DifyAPIConfig[],
     workflowConfigs?: WorkflowStepConfig[],
-    smartWorkflowConfigs?: SmartWorkflowNodeConfig[],
-    independentPageConfigs?: IndependentPageConfig[]
+    smartWorkflowConfigs?: SmartWorkflowNodeConfig[], // 已废弃，会被忽略
+    independentPageConfigs?: IndependentPageConfig[] // 已废弃，会被忽略
   }): Promise<ConfigResponse> {
     try {
+      // 如果包含已废弃的配置，提示用户
+      if (data.smartWorkflowConfigs && data.smartWorkflowConfigs.length > 0) {
+        console.warn('smartWorkflowConfigs 已废弃，请使用AI角色管理系统迁移');
+      }
+      if (data.independentPageConfigs && data.independentPageConfigs.length > 0) {
+        console.warn('independentPageConfigs 已废弃，请使用AI角色管理系统迁移');
+      }
+
       const results = await Promise.all([
         data.difyConfigs ? this.saveDifyConfigs(data.difyConfigs) : Promise.resolve({ success: true }),
         data.workflowConfigs ? this.saveWorkflowConfigs(data.workflowConfigs) : Promise.resolve({ success: true }),
-        data.smartWorkflowConfigs ? this.saveSmartWorkflowConfigs(data.smartWorkflowConfigs) : Promise.resolve({ success: true }),
-        data.independentPageConfigs ? this.saveIndependentPageConfigs(data.independentPageConfigs) : Promise.resolve({ success: true })
+        // 已废弃的配置不再保存
       ]);
 
       const failedResults = results.filter(result => !result.success);
@@ -864,7 +678,7 @@ class ConfigService {
         return { success: false, message: '部分配置导入失败' };
       }
 
-      return { success: true, message: '所有配置导入成功' };
+      return { success: true, message: '配置导入成功（注意：智能工作流和独立页面配置需通过AI角色管理系统迁移）' };
     } catch (error) {
       console.error('导入配置失败:', error);
       return { success: false, message: '导入配置失败' };

@@ -34,6 +34,10 @@ export interface WorkflowNodeUsage {
   previous_node_id?: string;
   next_node_id?: string;
   
+  // AI角色和工作流追踪
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
+  
   // 时间戳
   first_used_at?: string;
   last_used_at?: string;
@@ -63,6 +67,10 @@ export interface AIQAFeedback {
   query_text?: string;
   response_text?: string;
   context_data?: string;
+  
+  // AI角色和工作流追踪
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
   
   created_at?: string;
 }
@@ -129,6 +137,10 @@ export interface NodeContentProcessing {
   user_satisfaction_score?: number;
   user_behavior_data?: string;
   
+  // AI角色和工作流追踪
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
+  
   created_at?: string;
 }
 
@@ -194,6 +206,8 @@ export interface CreateWorkflowNodeUsageDTO {
   is_standalone_mode?: boolean;
   previous_node_id?: string;
   next_node_id?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 export interface CreateAIQAFeedbackDTO {
@@ -210,6 +224,8 @@ export interface CreateAIQAFeedbackDTO {
   query_text?: string;
   response_text?: string;
   context_data?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 export interface CreateWorkflowSessionStatsDTO {
@@ -244,6 +260,8 @@ export interface CreateNodeContentProcessingDTO {
   edit_duration?: number;
   user_satisfaction_score?: number;
   user_behavior_data?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 /**
@@ -293,6 +311,8 @@ export class WorkflowStatsModel {
           regenerations_count = regenerations_count + ?,
           adoptions_count = adoptions_count + ?,
           edits_count = edits_count + ?,
+          ai_role_id = COALESCE(?, ai_role_id),
+          workflow_execution_id = COALESCE(?, workflow_execution_id),
           last_used_at = CURRENT_TIMESTAMP,
           updated_at = CURRENT_TIMESTAMP
         WHERE node_id = ? AND session_id = ?
@@ -312,6 +332,8 @@ export class WorkflowStatsModel {
         data.regenerations_count || 0,
         data.adoptions_count || 0,
         data.edits_count || 0,
+        data.ai_role_id,
+        data.workflow_execution_id,
         data.node_id,
         data.session_id
       ];
@@ -326,8 +348,9 @@ export class WorkflowStatsModel {
           total_characters, avg_characters, content_quality_score,
           likes_count, dislikes_count, regenerations_count, adoptions_count, edits_count,
           is_workflow_mode, is_standalone_mode, previous_node_id, next_node_id,
+          ai_role_id, workflow_execution_id,
           last_used_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `;
 
       const insertParams = [
@@ -338,7 +361,8 @@ export class WorkflowStatsModel {
         data.likes_count || 0, data.dislikes_count || 0, data.regenerations_count || 0,
         data.adoptions_count || 0, data.edits_count || 0,
         data.is_workflow_mode || false, data.is_standalone_mode || false,
-        data.previous_node_id, data.next_node_id
+        data.previous_node_id, data.next_node_id,
+        data.ai_role_id, data.workflow_execution_id
       ];
 
       await this.db.query(insertSql, insertParams);
@@ -385,14 +409,16 @@ export class WorkflowStatsModel {
       INSERT INTO ai_qa_feedback (
         message_id, node_id, session_id, user_id, feedback_type,
         feedback_value, feedback_comment, response_time, content_length,
-        content_quality_score, query_text, response_text, context_data
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        content_quality_score, query_text, response_text, context_data,
+        ai_role_id, workflow_execution_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const params = [
       data.message_id, data.node_id, data.session_id, data.user_id, data.feedback_type,
       data.feedback_value || 0, data.feedback_comment, data.response_time, data.content_length,
-      data.content_quality_score, data.query_text, data.response_text, data.context_data
+      data.content_quality_score, data.query_text, data.response_text, data.context_data,
+      data.ai_role_id, data.workflow_execution_id
     ];
 
     await this.db.query(sql, params);
@@ -503,14 +529,16 @@ export class WorkflowStatsModel {
       INSERT INTO node_content_processing (
         node_id, session_id, message_id, processing_type, processing_time,
         original_content_length, final_content_length, edit_ratio, edit_count,
-        edit_types, edit_duration, user_satisfaction_score, user_behavior_data
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        edit_types, edit_duration, user_satisfaction_score, user_behavior_data,
+        ai_role_id, workflow_execution_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const params = [
       data.node_id, data.session_id, data.message_id, data.processing_type, data.processing_time,
       data.original_content_length, data.final_content_length, data.edit_ratio || 0, data.edit_count || 0,
-      data.edit_types, data.edit_duration || 0, data.user_satisfaction_score, data.user_behavior_data
+      data.edit_types, data.edit_duration || 0, data.user_satisfaction_score, data.user_behavior_data,
+      data.ai_role_id, data.workflow_execution_id
     ];
 
     await this.db.query(sql, params);

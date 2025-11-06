@@ -25,6 +25,7 @@ import KnowledgePointSelector, {
   SelectionItem,
   ContentType,
 } from "../common/KnowledgePointSelector";
+import { workflowStatsService } from "../../services/workflowStatsService";
 import "./NodeComponent.css";
 
 interface AiSearchNodeProps extends BaseNodeProps {
@@ -36,6 +37,8 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false,
+  aiRole,
+  mode,
 }) => {
   const [query, setQuery] = useState(initialData?.query || "");
   const [activeTab, setActiveTab] = useState("信息检索");
@@ -138,16 +141,60 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
       setAiResponse("AI正在分析您的问题...");
 
       try {
-        // 获取AI问答的Dify配置
-        const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
+        let result;
         
-        // 调用AI搜索API，传递conversationId支持多轮对话
-        const result = await workflowAPI.aiSearch(
-          query.trim(), 
-          {}, 
-          (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
-          conversationId || undefined
-        );
+        // 如果提供了aiRole，优先使用AI角色服务
+        if (aiRole) {
+          console.log('使用AI角色服务:', aiRole.name);
+          const { aiRoleService } = await import('../../services/aiRoleService');
+          
+          // 根据connectionType选择调用方式
+          if (aiRole.difyConfig.connectionType === 'chatflow') {
+            const response = await aiRoleService.chatWithRole(
+              aiRole.id,
+              query.trim(),
+              {},
+              conversationId || undefined
+            );
+            
+            if (response.success && response.data) {
+              // 构建统一的响应格式
+              result = {
+                success: true,
+                data: {
+                  answer: response.data.answer || response.data.result,
+                  conversation_id: response.data.conversation_id,
+                  conversationId: response.data.conversation_id,
+                  metadata: response.data.metadata,
+                }
+              };
+            } else {
+              result = {
+                success: false,
+                error: response.error || 'AI角色调用失败'
+              };
+            }
+          } else {
+            // workflow模式暂不支持，回退到默认方式
+            console.warn('workflow模式暂不支持，使用默认方式');
+            const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
+            result = await workflowAPI.aiSearch(
+              query.trim(), 
+              {}, 
+              (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
+              conversationId || undefined
+            );
+          }
+        } else {
+          // 回退到原有逻辑
+          const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
+          result = await workflowAPI.aiSearch(
+            query.trim(), 
+            {}, 
+            (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
+            conversationId || undefined
+          );
+        }
 
         if (result.success && result.data) {
           // 设置AI响应内容
@@ -204,6 +251,26 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
     setIsSaving(true);
     try {
       console.log("保存知识点:", modalSelectedItems);
+      
+      // 记录采纳统计（如果提供了AI角色）
+      if (aiRole && aiResponse) {
+        try {
+          const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          await workflowStatsService.recordAIQAFeedback({
+            message_id: messageId,
+            node_id: 'ai_search',
+            session_id: `session_${Date.now()}`,
+            feedback_type: 'adopt',
+            feedback_value: 5,
+            content_length: aiResponse.length,
+            ai_role_id: aiRole.id  // 关联AI角色ID
+          });
+          console.log('✅ 记录采纳统计成功');
+        } catch (error) {
+          console.error('记录采纳统计失败:', error);
+        }
+      }
+      
       // 这里可以添加实际的保存逻辑
       await new Promise((resolve) => setTimeout(resolve, 1000)); // 模拟保存延迟
       alert(`已保存 ${modalSelectedItems.length} 个知识点`);

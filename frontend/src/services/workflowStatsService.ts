@@ -93,6 +93,8 @@ export interface AIQAFeedback {
   query_text?: string;
   response_text?: string;
   context_data?: string;
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
   created_at: string;
 }
 
@@ -135,6 +137,8 @@ export interface WorkflowNodeUsage {
   is_standalone_mode: boolean;
   previous_node_id?: string;
   next_node_id?: string;
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
   first_used_at?: string;
   last_used_at?: string;
   created_at?: string;
@@ -179,6 +183,8 @@ export interface NodeContentProcessing {
   edit_duration: number;
   user_satisfaction_score?: number;
   user_behavior_data?: string;
+  ai_role_id?: string;  // 关联的AI角色ID
+  workflow_execution_id?: string;  // 关联的工作流执行ID
   created_at?: string;
 }
 
@@ -206,6 +212,8 @@ export interface CreateWorkflowNodeUsageDTO {
   is_standalone_mode?: boolean;
   previous_node_id?: string;
   next_node_id?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 export interface CreateAIQAFeedbackDTO {
@@ -222,6 +230,8 @@ export interface CreateAIQAFeedbackDTO {
   query_text?: string;
   response_text?: string;
   context_data?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 export interface CreateWorkflowSessionStatsDTO {
@@ -256,6 +266,8 @@ export interface CreateNodeContentProcessingDTO {
   edit_duration?: number;
   user_satisfaction_score?: number;
   user_behavior_data?: string;
+  ai_role_id?: string;  // AI角色ID
+  workflow_execution_id?: string;  // 工作流执行ID
 }
 
 /**

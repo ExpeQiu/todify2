@@ -51,6 +51,8 @@ const TechPackageNode: React.FC<TechPackageNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false,
+  aiRole,
+  mode,
 }) => {
   const [query, setQuery] = useState(initialData?.query || "");
   const [activeTab, setActiveTab] = useState("技术包装");
@@ -183,12 +185,54 @@ console.log("代码块测试");
     setChatHistory((prev) => [...prev, userMessage]);
 
     try {
-      const response = await workflowAPI.techPackage({
-        query: query,
-        selectedKnowledgePoints: selectedItems.filter(
-          (item) => item.contentType === "knowledge_point",
-        ),
-      }, undefined, undefined, conversationId);
+      let response;
+      
+      // 如果提供了aiRole，优先使用AI角色服务
+      if (aiRole && aiRole.difyConfig.connectionType === 'chatflow') {
+        console.log('使用AI角色服务:', aiRole.name);
+        const { aiRoleService } = await import('../../services/aiRoleService');
+        
+        // 构建查询字符串（包含知识点信息）
+        const knowledgePointsText = selectedItems
+          .filter((item) => item.contentType === "knowledge_point")
+          .map((item) => item.name)
+          .join('、');
+        
+        const fullQuery = knowledgePointsText 
+          ? `${query.trim()}\n\n相关知识点：${knowledgePointsText}`
+          : query.trim();
+        
+        const roleResponse = await aiRoleService.chatWithRole(
+          aiRole.id,
+          fullQuery,
+          {},
+          conversationId
+        );
+        
+        if (roleResponse.success && roleResponse.data) {
+          // 构建统一的响应格式
+          response = {
+            success: true,
+            data: {
+              answer: roleResponse.data.answer || roleResponse.data.result,
+              conversationId: roleResponse.data.conversation_id,
+            }
+          };
+        } else {
+          response = {
+            success: false,
+            error: roleResponse.error || 'AI角色调用失败'
+          };
+        }
+      } else {
+        // 回退到原有逻辑
+        response = await workflowAPI.techPackage({
+          query: query,
+          selectedKnowledgePoints: selectedItems.filter(
+            (item) => item.contentType === "knowledge_point",
+          ),
+        }, undefined, undefined, conversationId);
+      }
 
       if (response.success) {
         // 更新conversationId以支持多轮对话

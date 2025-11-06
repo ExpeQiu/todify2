@@ -50,6 +50,8 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false,
+  aiRole,
+  mode,
 }) => {
   const [query, setQuery] = useState(initialData?.query || "");
   const [activeTab, setActiveTab] = useState("技术发布稿");
@@ -186,15 +188,53 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
       setAiResponse("AI正在生成发布会稿内容...");
 
       try {
-        // 准备工作流输入参数，对接 Additional_information 和 sys.query
-        const workflowInputs = {
-          Additional_information: additionalInfo.trim() || "", // 对接补充信息输入框
-          'sys.query': query.trim() // 对接主要查询输入框
-        };
+        let result;
+        
+        // 如果提供了aiRole，优先使用AI角色服务
+        if (aiRole && aiRole.difyConfig.connectionType === 'chatflow') {
+          console.log('使用AI角色服务:', aiRole.name);
+          const { aiRoleService } = await import('../../services/aiRoleService');
+          
+          // 合并query和additionalInfo
+          const fullQuery = additionalInfo.trim()
+            ? `${query.trim()}\n\n补充信息：${additionalInfo.trim()}`
+            : query.trim();
+          
+          const roleResponse = await aiRoleService.chatWithRole(
+            aiRole.id,
+            fullQuery,
+            {},
+            conversationId
+          );
+          
+          if (roleResponse.success && roleResponse.data) {
+            // 构建统一的响应格式
+            result = {
+              success: true,
+              data: {
+                answer: roleResponse.data.answer || roleResponse.data.result,
+                conversation_id: roleResponse.data.conversation_id,
+                conversationId: roleResponse.data.conversation_id,
+              }
+            };
+          } else {
+            result = {
+              success: false,
+              error: roleResponse.error || 'AI角色调用失败'
+            };
+          }
+        } else {
+          // 回退到原有逻辑
+          // 准备工作流输入参数，对接 Additional_information 和 sys.query
+          const workflowInputs = {
+            Additional_information: additionalInfo.trim() || "", // 对接补充信息输入框
+            'sys.query': query.trim() // 对接主要查询输入框
+          };
 
-        // 调用本地后端API（不传递difyConfig参数，使用本地后端）
-        console.log("🔄 SpeechNode calling API with conversationId:", conversationId || 'NEW');
-        const result = await workflowAPI.speech(workflowInputs, undefined, conversationId);
+          // 调用本地后端API（不传递difyConfig参数，使用本地后端）
+          console.log("🔄 SpeechNode calling API with conversationId:", conversationId || 'NEW');
+          result = await workflowAPI.speech(workflowInputs, undefined, conversationId);
+        }
 
         console.log("=== SpeechNode API Response Debug ===");
         console.log("Full result:", JSON.stringify(result, null, 2));
@@ -205,7 +245,11 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
           // 提取text字段内容进行显示
           let responseText = '';
           
-          if (typeof result.data === 'string') {
+          // 检查是否使用了AI角色服务（简化格式）
+          if (aiRole && aiRole.difyConfig.connectionType === 'chatflow' && result.data.answer) {
+            // AI角色服务返回的简化格式
+            responseText = result.data.answer;
+          } else if (typeof result.data === 'string') {
             try {
               // 尝试解析JSON字符串
               const parsedData = JSON.parse(result.data);

@@ -32,6 +32,7 @@ export interface WorkflowContext {
   currentNode?: string;
   completedNodes: string[];
   availableNextSteps: string[];
+  nodeOutputs?: Record<string, any>;  // 新增：节点输出数据（用于上下文传递）
 }
 
 export interface NextStepRecommendation {

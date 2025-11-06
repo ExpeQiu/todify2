@@ -40,6 +40,8 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
   onExecute,
   initialData,
   isLoading = false,
+  aiRole,
+  mode,
 }) => {
   const [query, setQuery] = useState(initialData?.query || "");
   const [activeTab, setActiveTab] = useState("技术通稿");
@@ -145,12 +147,42 @@ const CoreDraftNode: React.FC<CoreDraftNodeProps> = ({
       setAiResponse("AI正在生成技术通稿内容...");
 
       try {
-        // 调用后端技术通稿API
-        const result = await workflowAPI.coreDraft(
-          { query: query.trim() }, // promotionStrategy 参数
-          undefined, // difyConfig 参数
-          conversationId // conversationId 参数
-        );
+        let result;
+        
+        // 如果提供了aiRole，优先使用AI角色服务
+        if (aiRole && aiRole.difyConfig.connectionType === 'chatflow') {
+          console.log('使用AI角色服务:', aiRole.name);
+          const { aiRoleService } = await import('../../services/aiRoleService');
+          
+          const roleResponse = await aiRoleService.chatWithRole(
+            aiRole.id,
+            query.trim(),
+            {},
+            conversationId
+          );
+          
+          if (roleResponse.success && roleResponse.data) {
+            result = {
+              success: true,
+              data: {
+                answer: roleResponse.data.answer || roleResponse.data.result,
+                conversationId: roleResponse.data.conversation_id,
+              }
+            };
+          } else {
+            result = {
+              success: false,
+              error: roleResponse.error || 'AI角色调用失败'
+            };
+          }
+        } else {
+          // 回退到原有逻辑
+          result = await workflowAPI.coreDraft(
+            { query: query.trim() }, // promotionStrategy 参数
+            undefined, // difyConfig 参数
+            conversationId // conversationId 参数
+          );
+        }
 
         if (result.success && result.data) {
           // 更新conversationId以支持多轮对话

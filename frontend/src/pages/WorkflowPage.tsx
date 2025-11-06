@@ -35,6 +35,11 @@ import TopNavigation from "../components/TopNavigation";
 import configService, { DifyAPIConfig, WorkflowStepConfig } from "../services/configService";
 import "./WorkflowPage.css";
 import { useNavigate } from "react-router-dom";
+import { agentWorkflowService } from "../services/agentWorkflowService";
+import { aiRoleService } from "../services/aiRoleService";
+import { AgentWorkflow, InputSourceConfig } from "../types/agentWorkflow";
+import { AIRoleConfig } from "../types/aiRole";
+import { WorkflowEngine } from "../services/workflowEngine";
 
 interface StepData {
   smartSearch?: any;
@@ -115,6 +120,11 @@ const WorkflowPage: React.FC = () => {
   // 会话ID状态 - 用于跨步骤保持对话连续性
   const [conversationId, setConversationId] = useState<string>('');
 
+  // Agent工作流相关状态
+  const [smartWorkflow, setSmartWorkflow] = useState<AgentWorkflow | null>(null);
+  const [workflowAgents, setWorkflowAgents] = useState<AIRoleConfig[]>([]);
+  const [useAgentWorkflow, setUseAgentWorkflow] = useState(false);
+
   const [steps, setSteps] = useState([
     {
       id: 0,
@@ -157,6 +167,81 @@ const WorkflowPage: React.FC = () => {
       status: "pending",
     },
   ]);
+
+  // 加载Agent工作流配置
+  useEffect(() => {
+    const loadAgentWorkflow = async () => {
+      try {
+        // 尝试加载"智能工作流"
+        const workflows = await agentWorkflowService.getAllWorkflows();
+        const smartWorkflow = workflows.find(w => w.name === '智能工作流');
+        
+        if (smartWorkflow) {
+          setSmartWorkflow(smartWorkflow);
+          setUseAgentWorkflow(true);
+          
+          // 加载所有Agent以便查找配置
+          const allAgents = await aiRoleService.getAIRoles();
+          setWorkflowAgents(allAgents);
+          
+          // 根据工作流节点生成steps
+          const workflowSteps = smartWorkflow.nodes
+            .sort((a, b) => {
+              // 按照边的连接顺序排序
+              const edges = smartWorkflow.edges;
+              const getOrder = (nodeId: string): number => {
+                const incoming = edges.filter(e => e.target === nodeId);
+                if (incoming.length === 0) return 0;
+                const maxOrder = Math.max(...incoming.map(e => getOrder(e.source)));
+                return maxOrder + 1;
+              };
+              return getOrder(a.id) - getOrder(b.id);
+            })
+            .map((node, index) => {
+              const agent = allAgents.find(a => a.id === node.agentId);
+              const stepKey = node.data.label || node.data.agentName || `step_${index}`;
+              
+              // 映射到原有的stepKey格式
+              let mappedKey = stepKey;
+              if (stepKey.includes('AI问答') || stepKey.includes('ai-qa')) {
+                mappedKey = 'smartSearch';
+              } else if (stepKey.includes('技术包装') || stepKey.includes('tech-package')) {
+                mappedKey = 'techPackage';
+              } else if (stepKey.includes('技术策略') || stepKey.includes('tech-strategy')) {
+                mappedKey = 'techStrategy';
+              } else if (stepKey.includes('技术通稿') || stepKey.includes('tech-article') || stepKey.includes('core-draft')) {
+                mappedKey = 'coreDraft';
+              } else if (stepKey.includes('演讲稿') || stepKey.includes('speech')) {
+                mappedKey = 'speechGeneration';
+              }
+              
+              return {
+                id: index,
+                title: node.data.label || node.data.agentName || `步骤${index + 1}`,
+                description: index === 0 ? '进行中' : '未开始',
+                icon: [MessageCircle, Package, Target, FileText, Mic][index] || FileText,
+                key: mappedKey,
+                status: index === 0 ? 'active' : 'pending',
+                agentId: node.agentId,
+                agent: agent,
+              };
+            });
+          
+          setSteps(workflowSteps as any);
+          console.log('从Agent工作流加载步骤配置:', workflowSteps);
+        } else {
+          // 如果没有找到智能工作流，使用原有配置
+          setUseAgentWorkflow(false);
+          console.log('未找到智能工作流，使用原有配置');
+        }
+      } catch (error) {
+        console.error('加载Agent工作流失败:', error);
+        setUseAgentWorkflow(false);
+      }
+    };
+    
+    loadAgentWorkflow();
+  }, []);
 
   // 加载配置
   useEffect(() => {
@@ -215,6 +300,30 @@ const WorkflowPage: React.FC = () => {
 
   // 获取当前步骤的Dify API配置
   const getCurrentStepDifyConfig = (stepKey: string): DifyAPIConfig | null => {
+    // 优先使用Agent工作流配置
+    if (useAgentWorkflow && smartWorkflow) {
+      const step = steps.find(s => s.key === stepKey);
+      if (step && (step as any).agent) {
+        const agent = (step as any).agent as AIRoleConfig;
+        if (agent.enabled && agent.difyConfig) {
+          // 将AIRoleConfig转换为DifyAPIConfig格式
+          return {
+            id: agent.id,
+            name: agent.name,
+            description: agent.description,
+            apiUrl: agent.difyConfig.apiUrl,
+            apiKey: agent.difyConfig.apiKey,
+            connectionType: agent.difyConfig.connectionType,
+            enabled: agent.enabled,
+            createdAt: agent.createdAt,
+            updatedAt: agent.updatedAt,
+          } as DifyAPIConfig;
+        }
+      }
+      return null;
+    }
+    
+    // 回退到原有配置系统
     if (!configsLoaded || !workflowConfigs.length || !difyConfigs.length) {
       console.warn(`配置未完全加载: configsLoaded=${configsLoaded}, workflowConfigs.length=${workflowConfigs.length}, difyConfigs.length=${difyConfigs.length}`);
       return null;
@@ -258,6 +367,136 @@ const WorkflowPage: React.FC = () => {
     
     const totalProgress = (completedSteps + activeStepProgress) / steps.length;
     return Math.round(totalProgress * 100);
+  };
+
+  /**
+   * 根据节点的inputSources配置，从stepData中解析输入数据
+   * 这是一个辅助函数，用于在WorkflowPage中模拟WorkflowEngine的输入解析逻辑
+   */
+  const resolveStepInput = (step: any, currentStepData: StepData): any => {
+    if (!smartWorkflow || !step.agentId) {
+      console.log('❌ 无法解析输入：缺少智能工作流配置或步骤agentId');
+      return null;
+    }
+
+    // 查找当前步骤对应的节点
+    const currentNode = smartWorkflow.nodes.find(n => n.agentId === step.agentId);
+    if (!currentNode) {
+      console.log(`❌ 无法找到节点: agentId=${step.agentId}`);
+      return null;
+    }
+    
+    if (!currentNode.data.inputSources || Object.keys(currentNode.data.inputSources).length === 0) {
+      console.log(`ℹ️ 节点 ${currentNode.data.label} 没有配置inputSources，将使用传统方式解析输入`);
+      return null;
+    }
+
+    console.log(`🔍 开始解析节点 ${currentNode.data.label} 的输入源配置...`);
+
+    // 解析所有输入源
+    const resolvedInput: Record<string, any> = {};
+    
+    Object.entries(currentNode.data.inputSources).forEach(([paramName, sourceConfig]) => {
+      const config = sourceConfig as InputSourceConfig;
+      
+      if (config.type === 'static') {
+        // 静态值直接使用
+        resolvedInput[paramName] = config.value;
+        console.log(`  ✅ ${paramName}: 静态值 = ${JSON.stringify(config.value).substring(0, 100)}`);
+      } else if (config.type === 'node_output' && config.nodeId) {
+        // 引用上游节点输出
+        // 需要找到上游节点对应的步骤，然后从stepData中获取数据
+        const upstreamNode = smartWorkflow.nodes.find(n => n.id === config.nodeId);
+        if (upstreamNode) {
+          const upstreamAgentId = upstreamNode.agentId;
+          // 找到上游节点对应的stepKey
+          const upstreamStep = steps.find(s => s.agentId === upstreamAgentId);
+          if (upstreamStep) {
+            const upstreamData = currentStepData[upstreamStep.key];
+            
+            if (upstreamData) {
+              // 如果指定了输出字段，提取该字段
+              if (config.outputField) {
+                resolvedInput[paramName] = upstreamData[config.outputField];
+                console.log(`  ✅ ${paramName}: 来自节点 ${upstreamNode.data.label}.${config.outputField}`);
+              } else {
+                resolvedInput[paramName] = upstreamData;
+                console.log(`  ✅ ${paramName}: 来自节点 ${upstreamNode.data.label} (完整输出)`);
+              }
+            } else {
+              console.log(`  ⚠️ ${paramName}: 上游节点 ${upstreamNode.data.label} 的数据未找到`);
+            }
+          } else {
+            console.log(`  ⚠️ ${paramName}: 无法找到上游步骤 (agentId=${upstreamAgentId})`);
+          }
+        } else {
+          console.log(`  ⚠️ ${paramName}: 无法找到上游节点 (nodeId=${config.nodeId})`);
+        }
+      }
+    });
+
+    if (Object.keys(resolvedInput).length > 0) {
+      console.log(`✅ 成功解析 ${Object.keys(resolvedInput).length} 个输入参数`);
+      return resolvedInput;
+    } else {
+      console.log('ℹ️ 未成功解析任何输入参数，将使用传统方式');
+      return null;
+    }
+  };
+
+  /**
+   * 为当前步骤准备输入数据（结合智能解析和传统方式）
+   * 这个函数尝试使用resolveStepInput智能解析，如果失败则回退到传统方式
+   */
+  const prepareStepInput = (currentIndex: number, nextStepIndex: number, currentStepData: StepData): any => {
+    const nextStep = steps[nextStepIndex];
+    if (!nextStep) return null;
+
+    // 尝试智能解析
+    const resolvedInput = resolveStepInput(nextStep, currentStepData);
+    if (resolvedInput) {
+      console.log('✅ 使用智能解析的输入数据');
+      return resolvedInput;
+    }
+
+    // 回退到传统解析方式
+    console.log('⚠️ 智能解析失败，使用传统方式解析输入');
+    const currentStepKey = steps[currentIndex]?.key;
+    const nextStepKey = nextStep.key;
+    
+    // 特殊情况：从AI问答到技术包装，需要从chatMessages获取数据
+    if (currentStepKey === 'smartSearch' && nextStepKey === 'techPackage') {
+      const adoptedMessage = chatMessages.find(msg => msg.type === 'assistant' && msg.adopted);
+      const latestValidAiMessage = chatMessages
+        .filter(msg => msg.type === 'assistant')
+        .reverse()
+        .find(msg => {
+          const content = msg.content || '';
+          return !content.includes('我是智能助手') && 
+                 !content.includes('请输入您的问题') && 
+                 !content.includes('你好!我是智能助手') &&
+                 content.trim().length > 20;
+        });
+      
+      if (adoptedMessage?.content?.trim()) {
+        return adoptedMessage.content;
+      } else if (latestValidAiMessage?.content?.trim()) {
+        return latestValidAiMessage.content;
+      }
+    }
+    
+    // 其他情况：使用editorContent或stepData中的内容
+    if (editorContent.trim()) {
+      return editorContent;
+    }
+    
+    // 尝试从stepData获取
+    const stepContentKey = `${currentStepKey}Content`;
+    if (currentStepData[stepContentKey]) {
+      return currentStepData[stepContentKey];
+    }
+    
+    return null;
   };
 
   // 处理下一步点击事件

@@ -8,12 +8,20 @@ import TechPointManagement from "./pages/TechPointManagement";
 import CarSeriesManagement from "./pages/CarSeriesManagement";
 import CarSeriesDetailPage from "./components/carSeries/CarSeriesDetailPage";
 import CarSeriesEditPage from "./pages/CarSeriesEditPage";
-import AiSearchTestPage from "./pages/AiSearchTestPage";
 import AIChatPage from "./pages/AIChatPage";
 import WorkflowStatsPage from "./pages/WorkflowStatsPage";
 import EnhancedWorkflowStatsPage from "./pages/EnhancedWorkflowStatsPage";
 import SearchHistoryPage from "./pages/SearchHistoryPage";
 import SearchHistoryDetailPage from "./pages/SearchHistoryDetailPage";
+import AIRoleManagementPage from "./pages/AIRoleManagementPage";
+import MultiChatContainer from "./components/MultiChatContainer";
+import AgentWorkflowPage from "./pages/AgentWorkflowPage";
+import PublicPageConfigManagementPage from "./pages/PublicPageConfigManagementPage";
+import PublicChatPage from "./pages/PublicChatPage";
+import AIUnifiedManagementPage from "./pages/AIUnifiedManagementPage";
+import AddressPage from "./pages/AddressPage";
+import TemplateManagementPage from "./pages/TemplateManagementPage";
+import AISearchPage from "./pages/AISearchPage";
 import "./App.css";
 
 function App() {
@@ -76,12 +84,6 @@ function App() {
           />
 
           <Route
-            path="/ai-search-test"
-            element={<AiSearchTestPage data-oid="modwgxg" />}
-            data-oid="9oz01ie"
-          />
-
-          <Route
             path="/ai-chat"
             element={<AIChatPage data-oid="aichat001" />}
             data-oid="aichat002"
@@ -107,6 +109,52 @@ function App() {
           <Route
             path="/history/:id"
             element={<SearchHistoryDetailPage />}
+          />
+
+          <Route
+            path="/ai-roles"
+            element={<AIRoleManagementPage />}
+          />
+
+          <Route
+            path="/ai-chat-multi"
+            element={<MultiChatContainer />}
+          />
+
+          <Route
+            path="/agent-workflow"
+            element={<AgentWorkflowPage />}
+          />
+
+          <Route
+            path="/public-page-configs"
+            element={<PublicPageConfigManagementPage />}
+          />
+
+          <Route
+            path="/template-management"
+            element={<TemplateManagementPage />}
+          />
+
+          <Route
+            path="/ai-management"
+            element={<AIUnifiedManagementPage />}
+          />
+
+          <Route
+            path="/public-chat/:token"
+            element={<PublicChatPage />}
+          />
+
+          <Route
+            path="/ai-search"
+            element={<AISearchPage />}
+          />
+
+          {/* 根据地址配置的动态路由（需要放在具体路由之后） */}
+          <Route
+            path="/:address"
+            element={<AddressPage />}
           />
         </Routes>
       </div>
