@@ -10,6 +10,18 @@ import { fieldMappingEngine } from '../utils/fieldMapping';
 
 const router = Router();
 
+const resolveWorkflowId = async (): Promise<string | null> => {
+  const workflowId = process.env.AI_SEARCH_WORKFLOW_ID || null;
+
+  if (workflowId) {
+    return workflowId;
+  }
+
+  const workflows = await agentWorkflowService.getAllWorkflows();
+  const defaultWorkflow = workflows.find((w) => w.name === '智能工作流');
+  return defaultWorkflow?.id || workflows[0]?.id || null;
+};
+
 // 配置multer用于文件上传
 const upload = multer({
   dest: 'uploads/ai-search/',
@@ -447,6 +459,189 @@ router.post(
     }
   }
 );
+
+/**
+ * 手动触发子Agent
+ * POST /api/v1/ai-search/conversations/:id/agents
+ */
+router.post('/conversations/:id/agents', ensureTablesInitialized, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { featureType, messageId, content, sources } = req.body as {
+      featureType?: string;
+      messageId?: string;
+      content?: string;
+      sources?: any[];
+    };
+
+    if (!featureType) {
+      return res.status(400).json(
+        formatApiResponse(false, null, 'featureType 参数不能为空')
+      );
+    }
+
+    const conversation = await aiSearchService.getConversation(id);
+    if (!conversation) {
+      return res.status(404).json(
+        formatApiResponse(false, null, '对话不存在')
+      );
+    }
+
+    const finalWorkflowId = await resolveWorkflowId();
+    if (!finalWorkflowId) {
+      return res.status(500).json(
+        formatApiResponse(false, null, '未找到可用的工作流配置')
+      );
+    }
+
+    let targetSources = Array.isArray(sources) ? sources : conversation.sources || [];
+
+    const baseMappingConfig = await fieldMappingService.getFieldMappingConfig(finalWorkflowId);
+
+    if (!baseMappingConfig) {
+      return res.status(400).json(
+        formatApiResponse(false, null, '尚未配置字段映射，请先完成字段映射配置')
+      );
+    }
+
+    const featureConfig = baseMappingConfig.featureObjects?.find(
+      (f) => f.featureType === featureType
+    );
+
+    if (!featureConfig) {
+      return res.status(400).json(
+        formatApiResponse(false, null, `未找到功能对象映射配置: ${featureType}`)
+      );
+    }
+
+    const targetWorkflowId = featureConfig.workflowId || finalWorkflowId;
+    const targetMappingConfig = targetWorkflowId === finalWorkflowId
+      ? baseMappingConfig
+      : await fieldMappingService.getFieldMappingConfig(targetWorkflowId);
+
+    const effectiveInputMappings = featureConfig.inputMappings?.length
+      ? featureConfig.inputMappings
+      : targetMappingConfig?.inputMappings || [];
+
+    const effectiveOutputMappings = featureConfig.outputMappings?.length
+      ? featureConfig.outputMappings
+      : targetMappingConfig?.outputMappings || [];
+
+    let baseContent: string | undefined = content;
+
+    if (!baseContent && messageId) {
+      const messageRecord = await aiSearchService.getMessageById(messageId);
+      baseContent = messageRecord?.content;
+    }
+
+    const sortedMessages = [...(conversation.messages || [])];
+    const lastAssistantMessage = [...sortedMessages].reverse().find((m) => m.role === 'assistant');
+    const lastUserMessage = [...sortedMessages].reverse().find((m) => m.role === 'user');
+
+    if (!baseContent && lastAssistantMessage) {
+      baseContent = lastAssistantMessage.content;
+    }
+
+    if (!baseContent && lastUserMessage) {
+      baseContent = lastUserMessage.content;
+    }
+
+    const fallbackContent = `触发子Agent：${featureType}`;
+    const conversationQuery = baseContent || fallbackContent;
+
+    const conversationHistory = sortedMessages.map((item) => ({
+      id: item.id,
+      role: item.role,
+      content: item.content,
+      sources: item.sources,
+      outputs: item.outputs,
+      createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
+    }));
+
+    const conversationData = {
+      query: conversationQuery,
+      sources: targetSources,
+      files: [],
+      history: conversationHistory,
+      lastAssistantMessage,
+      lastUserMessage,
+      conversationId: conversation.id,
+      featureType,
+    };
+
+    const workflowInput = fieldMappingEngine.mapInputFields(
+      conversationData,
+      effectiveInputMappings
+    );
+
+    const workflowResult = await agentWorkflowService.executeWorkflow(
+      targetWorkflowId,
+      { input: workflowInput }
+    );
+
+    const workflowOutput = (workflowResult as any).data || workflowResult;
+
+    const extractedOutput = effectiveOutputMappings.length > 0
+      ? fieldMappingEngine.extractOutputFields(workflowOutput, effectiveOutputMappings)
+      : {};
+
+    const aiContent = extractedOutput.content
+      || workflowResult.message
+      || `子Agent ${featureType} 已执行`;
+
+    const messageOutputs = {
+      ...extractedOutput,
+      metadata: {
+        ...(extractedOutput.metadata || {}),
+        featureType,
+        workflowId: targetWorkflowId,
+        sourceMessageId: messageId || null,
+        executionId: (workflowResult as any).executionId || null,
+        triggeredAt: new Date().toISOString(),
+        workflowInput,
+        baseContent: conversationQuery,
+      },
+    };
+
+    const aiMessage = await aiSearchService.sendMessage(
+      id,
+      'assistant',
+      aiContent,
+      targetSources,
+      [],
+      messageOutputs
+    );
+
+    const formattedMessage = {
+      id: aiMessage.id,
+      role: aiMessage.role,
+      content: aiMessage.content,
+      sources: aiMessage.sources ? JSON.parse(aiMessage.sources) : [],
+      outputs: aiMessage.outputs ? JSON.parse(aiMessage.outputs) : {},
+      createdAt: new Date(aiMessage.created_at),
+    };
+
+    res.json(
+      formatApiResponse(
+        true,
+        {
+          message: formattedMessage,
+        },
+        '子Agent执行完成'
+      )
+    );
+  } catch (error) {
+    console.error('子Agent执行失败:', error);
+    res.status(500).json(
+      formatApiResponse(
+        false,
+        null,
+        '子Agent执行失败',
+        error instanceof Error ? error.message : '未知错误'
+      )
+    );
+  }
+});
 
 /**
  * 删除对话

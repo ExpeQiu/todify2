@@ -8,6 +8,17 @@ interface MessageItemProps {
   onSave?: (content: string) => void;
 }
 
+const FEATURE_LABEL_MAP: Record<string, string> = {
+  "five-view-analysis": "五看分析",
+  "three-fix-analysis": "三定分析",
+  "tech-matrix": "技术矩阵",
+  "propagation-strategy": "传播策略",
+  "exhibition-video": "展具与视频",
+  translation: "翻译",
+  "ppt-outline": "PPT大纲",
+  script: "脚本",
+};
+
 const MessageItem: React.FC<MessageItemProps> = ({
   message,
   onCopy,
@@ -37,7 +48,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
     }
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (value: Date | string) => {
+    const date = value instanceof Date ? value : new Date(value);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -55,6 +67,9 @@ const MessageItem: React.FC<MessageItemProps> = ({
   };
 
   const isUser = message.role === "user";
+  const featureType = message.outputs?.metadata?.featureType;
+  const featureLabel = featureType ? FEATURE_LABEL_MAP[featureType] || featureType : null;
+  const triggeredAt = message.outputs?.metadata?.triggeredAt;
 
   return (
     <div className={`flex gap-4 mb-6 ${isUser ? "flex-row-reverse" : ""}`}>
@@ -85,6 +100,19 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
             {message.content}
           </p>
+
+          {!isUser && featureLabel && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-blue-600">
+              <span className="px-2 py-1 bg-blue-50 border border-blue-200 rounded-full">
+                子Agent：{featureLabel}
+              </span>
+              {triggeredAt && (
+                <span className="text-[10px] text-gray-500">
+                  {`触发于 ${formatTime(triggeredAt)}`}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* 显示输出文件 */}
           {!isUser && message.outputs?.files && message.outputs.files.length > 0 && (

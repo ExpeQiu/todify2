@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Settings } from "lucide-react";
 import TopNavigation from "../components/TopNavigation";
 import SourceSidebar, { Source } from "../components/ai-search/SourceSidebar";
@@ -8,6 +8,17 @@ import ConversationList from "../components/ai-search/ConversationList";
 import FieldMappingConfig from "../components/ai-search/FieldMappingConfig";
 import { Conversation, OutputContent, WorkflowConfig, FieldMappingConfig as FieldMappingConfigType } from "../types/aiSearch";
 import { aiSearchService } from "../services/aiSearchService";
+
+const FEATURE_LABEL_MAP: Record<string, string> = {
+  "five-view-analysis": "五看分析",
+  "three-fix-analysis": "三定分析",
+  "tech-matrix": "技术矩阵",
+  "propagation-strategy": "传播策略",
+  "exhibition-video": "展具与视频",
+  translation: "翻译",
+  "ppt-outline": "PPT大纲",
+  script: "脚本",
+};
 
 const AISearchPage: React.FC = () => {
   const [sources, setSources] = useState<Source[]>([]);
@@ -19,6 +30,25 @@ const AISearchPage: React.FC = () => {
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
   const [fieldMappingConfig, setFieldMappingConfig] = useState<FieldMappingConfigType | null>(null);
   const [showFieldMappingConfig, setShowFieldMappingConfig] = useState(false);
+  const [triggeringFeatureId, setTriggeringFeatureId] = useState<string | null>(null);
+  const [triggeringStatus, setTriggeringStatus] = useState<string | null>(null);
+  const triggerStatusTimerRef = useRef<number | null>(null);
+
+  const updateTriggerStatus = (message: string | null, duration = 0) => {
+    if (triggerStatusTimerRef.current) {
+      window.clearTimeout(triggerStatusTimerRef.current);
+      triggerStatusTimerRef.current = null;
+    }
+
+    setTriggeringStatus(message);
+
+    if (message && duration > 0) {
+      triggerStatusTimerRef.current = window.setTimeout(() => {
+        setTriggeringStatus(null);
+        triggerStatusTimerRef.current = null;
+      }, duration);
+    }
+  };
 
   // 加载对话历史和输出内容
   useEffect(() => {
@@ -128,78 +158,72 @@ const AISearchPage: React.FC = () => {
     console.log("保存到笔记:", content);
   };
 
-  const handleGenerateOutput = async (
-    type: 'ppt' | 'script' | 'mindmap',
-    messageId: string,
-    content: string
-  ) => {
+  const handleTriggerFeature = async (featureType: string) => {
     if (!currentConversation) {
       alert("请先创建对话");
       return;
     }
 
+    if (triggeringFeatureId && triggeringFeatureId !== featureType) {
+      return;
+    }
+
+    const label = FEATURE_LABEL_MAP[featureType] || featureType;
+    setTriggeringFeatureId(featureType);
+    updateTriggerStatus(`正在执行 ${label}…`);
+
     try {
-      await aiSearchService.generateOutput(
-        type,
-        currentConversation.id,
-        messageId,
-        content
-      );
-      await loadOutputs();
-      
-      // 重新加载当前对话以更新消息的输出
-      const updated = await aiSearchService.getConversation(currentConversation.id);
-      if (updated) {
-        setCurrentConversation(updated);
+      const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
+      const effectiveSources = selectedSources.length > 0 ? selectedSources : (currentConversation.sources || []);
+
+      const lastAssistantMessage = [...(currentConversation.messages || [])]
+        .slice()
+        .reverse()
+        .find((m) => m.role === "assistant");
+
+      const payload: { featureType: string; messageId?: string; content?: string; sources: Source[] } = {
+        featureType,
+        sources: effectiveSources,
+      };
+
+      if (lastAssistantMessage) {
+        payload.messageId = lastAssistantMessage.id;
+        payload.content = lastAssistantMessage.content;
       }
+
+      const response = await aiSearchService.triggerFeatureAgent(currentConversation.id, payload);
+
+      if (response?.message) {
+        setCurrentConversation((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          const existingMessages = prev.messages ? [...prev.messages] : [];
+
+          return {
+            ...prev,
+            messages: [...existingMessages, response.message],
+            updatedAt: response.message.createdAt,
+          };
+        });
+      } else {
+        const updatedConversation = await aiSearchService.getConversation(currentConversation.id);
+        if (updatedConversation) {
+          setCurrentConversation(updatedConversation);
+        }
+      }
+
+      await loadConversations();
+      await loadOutputs();
+
+      updateTriggerStatus(`已完成 ${label}`, 2000);
     } catch (error) {
-      console.error("生成输出内容失败:", error);
-      alert("生成输出内容失败，请稍后重试");
-    }
-  };
-
-  const handleCreatePPT = () => {
-    if (!currentConversation || currentConversation.messages.length === 0) {
-      alert("请先进行对话");
-      return;
-    }
-    
-    const lastAiMessage = [...currentConversation.messages]
-      .reverse()
-      .find((m) => m.role === "assistant");
-    
-    if (lastAiMessage) {
-      handleGenerateOutput("ppt", lastAiMessage.id, lastAiMessage.content);
-    }
-  };
-
-  const handleCreateScript = () => {
-    if (!currentConversation || currentConversation.messages.length === 0) {
-      alert("请先进行对话");
-      return;
-    }
-    
-    const lastAiMessage = [...currentConversation.messages]
-      .reverse()
-      .find((m) => m.role === "assistant");
-    
-    if (lastAiMessage) {
-      handleGenerateOutput("script", lastAiMessage.id, lastAiMessage.content);
-    }
-  };
-
-  const handleCreateMindMap = () => {
-    if (!currentConversation || currentConversation.messages.length === 0) {
-      alert("请先进行对话");
-      return;
-    }
-    
-    const lastAiMessage = [...currentConversation.messages]
-      .reverse()
-      .find((m) => m.role === "assistant");
-    
-    if (lastAiMessage) {
-      handleGenerateOutput("mindmap", lastAiMessage.id, lastAiMessage.content);
+      console.error("触发子Agent失败:", error);
+      alert("触发子Agent失败，请稍后重试");
+      updateTriggerStatus(`执行 ${label} 失败`, 3000);
+    } finally {
+      setTriggeringFeatureId(null);
     }
   };
 
@@ -209,6 +233,14 @@ const AISearchPage: React.FC = () => {
       handleCreateConversation();
     }
   }, [sources, selectedSourceIds]);
+
+  useEffect(() => {
+    return () => {
+      if (triggerStatusTimerRef.current) {
+        window.clearTimeout(triggerStatusTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleFieldMappingConfigSave = (config: FieldMappingConfigType) => {
     setFieldMappingConfig(config);
@@ -247,16 +279,15 @@ const AISearchPage: React.FC = () => {
           sources={sources.filter((s) => selectedSourceIds.includes(s.id))}
           onMessageSent={handleMessageSent}
           onSaveToNotes={handleSaveToNotes}
-          onGenerateOutput={handleGenerateOutput}
         />
 
         {/* 右侧栏 - Studio */}
         <StudioSidebar
-          onCreatePPT={handleCreatePPT}
-          onCreateScript={handleCreateScript}
-          onCreateMindMap={handleCreateMindMap}
           outputs={outputs}
           onShowConversationList={() => setShowConversationList(true)}
+          onTriggerFeature={handleTriggerFeature}
+          executingFeatureId={triggeringFeatureId}
+          statusMessage={triggeringStatus || undefined}
         />
       </div>
 

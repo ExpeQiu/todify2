@@ -1,30 +1,22 @@
-import React, { useState } from "react";
-import { Plus, MoreVertical, Play, AudioWaveform, Video, Network, FileText, FileQuestion, BookOpen, History } from "lucide-react";
+import React from "react";
+import { Plus, MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, History } from "lucide-react";
 import StudioTools from "./StudioTools";
 import { OutputContent } from "../../types/aiSearch";
 
-interface RelatedContent {
-  id: string;
-  type: "audio" | "mindmap";
-  title: string;
-  sourceCount: number;
-  daysAgo: number;
-}
-
 interface StudioSidebarProps {
-  onCreatePPT?: () => void;
-  onCreateScript?: () => void;
-  onCreateMindMap?: () => void;
   outputs?: OutputContent[];
   onShowConversationList?: () => void;
+  onTriggerFeature: (featureType: string) => void;
+  executingFeatureId?: string | null;
+  statusMessage?: string;
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
-  onCreatePPT,
-  onCreateScript,
-  onCreateMindMap,
   outputs = [],
   onShowConversationList,
+  onTriggerFeature,
+  executingFeatureId,
+  statusMessage,
 }) => {
   const formatDaysAgo = (date: Date) => {
     const now = new Date();
@@ -42,9 +34,9 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
       case 'ppt':
         return <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />;
       case 'script':
-        return <FileQuestion className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />;
+        return <FileText className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />;
       case 'mindmap':
-        return <Network className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />;
+        return <Grid className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />;
       default:
         return <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />;
     }
@@ -63,6 +55,49 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     }
   };
 
+  const toolItems = [
+    {
+      id: 'five-view-analysis',
+      label: '五看分析',
+      icon: Eye,
+    },
+    {
+      id: 'three-fix-analysis',
+      label: '三定分析',
+      icon: Target,
+    },
+    {
+      id: 'tech-matrix',
+      label: '技术矩阵',
+      icon: Grid,
+    },
+    {
+      id: 'propagation-strategy',
+      label: '传播策略',
+      icon: Megaphone,
+    },
+    {
+      id: 'exhibition-video',
+      label: '展具与视频',
+      icon: Video,
+    },
+    {
+      id: 'translation',
+      label: '翻译',
+      icon: Languages,
+    },
+    {
+      id: 'ppt-outline',
+      label: 'PPT大纲',
+      icon: Presentation,
+    },
+    {
+      id: 'script',
+      label: '脚本',
+      icon: FileText,
+    },
+  ];
+
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
       {/* 标题 */}
@@ -79,14 +114,17 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
             </button>
           )}
         </div>
+        {statusMessage && (
+          <p className="mt-2 text-xs text-gray-500">{statusMessage}</p>
+        )}
       </div>
 
       {/* 工具网格 */}
       <div className="p-4 border-b border-gray-200">
         <StudioTools
-          onCreatePPT={onCreatePPT}
-          onCreateScript={onCreateScript}
-          onCreateMindMap={onCreateMindMap}
+          items={toolItems}
+          onTrigger={onTriggerFeature}
+          executingId={executingFeatureId}
         />
       </div>
 

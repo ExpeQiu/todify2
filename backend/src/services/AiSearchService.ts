@@ -195,6 +195,29 @@ export class AiSearchService {
     };
   }
 
+  async getMessageById(id: string): Promise<MessageRecord | null> {
+    const rows = await db.query(
+      `SELECT * FROM ai_search_messages WHERE id = ?`,
+      [id]
+    ) as any[];
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const row = rows[0];
+
+    return {
+      id: row.id,
+      conversation_id: row.conversation_id,
+      role: row.role,
+      content: row.content,
+      sources: row.sources,
+      outputs: row.outputs,
+      created_at: row.created_at,
+    };
+  }
+
   /**
    * 发送消息
    */

@@ -13,6 +13,11 @@ export interface ConversationData {
   query: string;
   sources?: any[];
   files?: any[];
+  history?: any[];
+  lastAssistantMessage?: any;
+  lastUserMessage?: any;
+  conversationId?: string;
+  featureType?: string;
 }
 
 /**
@@ -59,6 +64,16 @@ export class FieldMappingEngine {
           value = conversationData.sources || [];
         } else if (rule.sourceField === 'files') {
           value = conversationData.files || [];
+        } else if (rule.sourceField === 'history') {
+          value = conversationData.history || [];
+        } else if (rule.sourceField === 'lastAssistantMessage') {
+          value = conversationData.lastAssistantMessage;
+        } else if (rule.sourceField === 'lastUserMessage') {
+          value = conversationData.lastUserMessage;
+        } else if (rule.sourceField === 'conversationId') {
+          value = conversationData.conversationId;
+        } else if (rule.sourceField === 'featureType') {
+          value = conversationData.featureType;
         } else {
           value = undefined;
         }
@@ -74,6 +89,11 @@ export class FieldMappingEngine {
             query: conversationData.query,
             sources: conversationData.sources || [],
             files: conversationData.files || [],
+            history: conversationData.history || [],
+            lastAssistantMessage: conversationData.lastAssistantMessage,
+            lastUserMessage: conversationData.lastUserMessage,
+            conversationId: conversationData.conversationId,
+            featureType: conversationData.featureType,
           });
 
           // 如果表达式结果为空且提供了默认值，使用默认值

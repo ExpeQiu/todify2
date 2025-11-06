@@ -9,7 +9,6 @@ interface DialogueContentProps {
   sources: Source[];
   onMessageSent?: (message: Message) => void;
   onSaveToNotes?: (content: string) => void;
-  onGenerateOutput?: (type: 'ppt' | 'script' | 'mindmap', messageId: string, content: string) => void;
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -17,7 +16,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   sources,
   onMessageSent,
   onSaveToNotes,
-  onGenerateOutput,
 }) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);

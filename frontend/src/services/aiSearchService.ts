@@ -19,6 +19,13 @@ import {
  * AI问答服务
  */
 class AiSearchService {
+  private normalizeMessage(raw: any): Message {
+    return {
+      ...raw,
+      createdAt: raw?.createdAt ? new Date(raw.createdAt) : new Date(),
+    };
+  }
+
   /**
    * 获取配置的工作流
    */
@@ -312,13 +319,36 @@ class AiSearchService {
 
       if (response.data.success && response.data.data) {
         return {
-          userMessage: response.data.data.userMessage,
-          aiMessage: response.data.data.aiMessage,
+          userMessage: this.normalizeMessage(response.data.data.userMessage),
+          aiMessage: this.normalizeMessage(response.data.data.aiMessage),
         };
       }
       throw new Error(response.data.error || '发送消息失败');
     } catch (error) {
       console.error('发送消息失败:', error);
+      throw error;
+    }
+  }
+
+  async triggerFeatureAgent(
+    conversationId: string,
+    payload: { featureType: string; messageId?: string; content?: string; sources?: Source[] }
+  ): Promise<{ message: Message } | null> {
+    try {
+      const response = await api.post(
+        `/ai-search/conversations/${conversationId}/agents`,
+        payload
+      );
+
+      if (response.data.success && response.data.data?.message) {
+        return {
+          message: this.normalizeMessage(response.data.data.message),
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('触发子Agent失败:', error);
       throw error;
     }
   }
