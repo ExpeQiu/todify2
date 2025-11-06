@@ -46,17 +46,8 @@ if (!fs.existsSync(uploadDir)) {
 // 初始化服务
 const aiSearchService = new AiSearchService();
 const fieldMappingService = new FieldMappingService();
-// 确保数据库表已创建（同步等待）
+// 延迟初始化标记，避免在数据库未连接时初始化
 let tablesInitialized = false;
-aiSearchService.initializeTables()
-  .then(() => {
-    tablesInitialized = true;
-    console.log('AI问答数据库表初始化成功');
-  })
-  .catch((err) => {
-    console.error('初始化AI问答数据库表失败:', err);
-    tablesInitialized = true; // 即使失败也标记为已尝试，避免重复初始化
-  });
 
 // 中间件：确保表已初始化
 const ensureTablesInitialized = async (req: Request, res: Response, next: any) => {
