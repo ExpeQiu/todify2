@@ -1,20 +1,47 @@
-import axios from 'axios';
-
-const API_BASE_URL = '/api/v1';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 60000, // 60秒超时，与后端保持一致
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { apiClient, type ApiErrorPayload, type ApiResponse } from "@/shared/lib/api/apiClient";
 
 export interface WorkflowResponse {
   success: boolean;
   data?: any;
   error?: string;
+  message?: string;
 }
+
+const toWorkflowResponse = <T>(response: ApiResponse<T> & { message?: string }): WorkflowResponse => {
+  if (response.success) {
+    return {
+      success: true,
+      data: response.data,
+      message: response.message,
+    };
+  }
+
+  return {
+    success: false,
+    error: response.error?.message ?? response.message ?? "请求失败",
+    data: response.data,
+  };
+};
+
+const handleApiError = (scope: string, error: unknown): WorkflowResponse => {
+  console.error(`${scope} error:`, error);
+  if ((error as ApiErrorPayload)?.message) {
+    return {
+      success: false,
+      error: (error as ApiErrorPayload).message,
+    };
+  }
+  if (error instanceof Error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+  return {
+    success: false,
+    error: "请求失败",
+  };
+};
 
 export interface DifyAPIConfig {
   id: string;
@@ -271,18 +298,14 @@ export const workflowAPI = {
     
     // 否则使用原有的后端API
     try {
-      const response = await api.post('/workflow/ai-search', { 
+      const response = await apiClient.post<{ message?: string }>("/workflow/ai-search", {
         query,
         inputs,
-        conversation_id: conversationId
+        conversationId,
       });
-      return response.data;
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('AI search API error:', error);
-      return {
-        success: false,
-        error: 'AI问答请求失败'
-      };
+      return handleApiError("AI search API", error);
     }
   },
 
@@ -300,14 +323,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/smart-search', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/smart-search", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Smart search API error:', error);
-      return {
-        success: false,
-        error: '智能搜索请求失败'
-      };
+      return handleApiError("Smart search API", error);
     }
   },
 
@@ -363,14 +382,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/tech-package', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/tech-package", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Tech package API error:', error);
-      return {
-        success: false,
-        error: '技术包装请求失败'
-      };
+      return handleApiError("Tech package API", error);
     }
   },
 
@@ -408,14 +423,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/tech-strategy', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/tech-strategy", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Tech strategy API error:', error);
-      return {
-        success: false,
-        error: '技术策略请求失败'
-      };
+      return handleApiError("Tech strategy API", error);
     }
   },
 
@@ -436,14 +447,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/promotion-strategy', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/promotion-strategy", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Promotion strategy API error:', error);
-      return {
-        success: false,
-        error: '推广策略请求失败'
-      };
+      return handleApiError("Promotion strategy API", error);
     }
   },
 
@@ -481,14 +488,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/core-draft', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/core-draft", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Core draft API error:', error);
-      return {
-        success: false,
-        error: '技术通稿请求失败'
-      };
+      return handleApiError("Core draft API", error);
     }
   },
 
@@ -526,14 +529,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/speech-generation', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/speech-generation", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Speech generation API error:', error);
-      return {
-        success: false,
-        error: '演讲稿生成请求失败'
-      };
+      return handleApiError("Speech generation API", error);
     }
   },
 
@@ -553,14 +552,10 @@ export const workflowAPI = {
         requestData.conversation_id = conversationId;
       }
       
-      const response = await api.post('/workflow/speech-generation', requestData);
-      return response.data;
+      const response = await apiClient.post("/workflow/speech-generation", requestData);
+      return toWorkflowResponse(response);
     } catch (error) {
-      console.error('Speech API error:', error);
-      return {
-        success: false,
-        error: '演讲稿请求失败'
-      };
+      return handleApiError("Speech API", error);
     }
   },
 };

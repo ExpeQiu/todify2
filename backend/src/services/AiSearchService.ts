@@ -1,6 +1,7 @@
 import { db } from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
 import { FieldMappingConfig as FieldMappingConfigType } from '../types/aiSearch';
+import { logger } from '@/shared/lib/logger';
 
 export interface ConversationRecord {
   id: string;
@@ -106,7 +107,7 @@ export class AiSearchService {
         )
       `);
     } catch (error) {
-      console.error('初始化AI问答数据库表失败:', error);
+      logger.error('初始化AI问答数据库表失败', { error });
       throw error;
     }
   }
@@ -151,7 +152,7 @@ export class AiSearchService {
         updated_at: row.updated_at,
       }));
     } catch (error) {
-      console.error('获取对话列表失败:', error);
+      logger.error('获取对话列表失败', { error });
       // 如果表不存在，返回空数组
       return [];
     }
@@ -359,7 +360,7 @@ export class AiSearchService {
         created_at: row.created_at,
       }));
     } catch (error) {
-      console.error('获取输出内容列表失败:', error);
+      logger.error('获取输出内容列表失败', { error });
       // 如果表不存在，返回空数组
       return [];
     }
@@ -402,7 +403,7 @@ export class FieldMappingService {
         );
       }
     } catch (error) {
-      console.error('保存字段映射配置失败:', error);
+      logger.error('保存字段映射配置失败', { error });
       throw error;
     }
   }
@@ -423,7 +424,7 @@ export class FieldMappingService {
 
       return JSON.parse(rows[0].config);
     } catch (error) {
-      console.error('获取字段映射配置失败:', error);
+      logger.error('获取字段映射配置失败', { error });
       return null;
     }
   }

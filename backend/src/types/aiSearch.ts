@@ -18,6 +18,13 @@ export interface OutputMappingRule {
   extractExpression: string; // 提取表达式（如 'output.text' 或 'output.files'）
 }
 
+export interface FeatureObjectMapping {
+  featureType: string;
+  workflowId?: string;
+  inputMappings?: FieldMappingRule[];
+  outputMappings?: OutputMappingRule[];
+}
+
 /**
  * 字段映射配置
  */
@@ -25,6 +32,7 @@ export interface FieldMappingConfig {
   workflowId: string; // 关联的工作流ID
   inputMappings: FieldMappingRule[]; // 输入字段映射规则
   outputMappings: OutputMappingRule[]; // 输出字段映射规则
+  featureObjects?: FeatureObjectMapping[];
 }
 
 

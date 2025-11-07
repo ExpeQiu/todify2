@@ -2,11 +2,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
-import workflowRoutes from './routes/workflow';
 import apiRoutes from './routes';
 import difyProxyRoutes from './routes/dify-proxy';
 import { testConnection } from './config/database';
 import { publicPageConfigModel, aiRoleModel } from './models';
+import { logger } from './shared/lib/logger';
 
 dotenv.config();
 
@@ -20,33 +20,23 @@ app.use(express.json());
 // 添加请求日志中间件（放在最前面，但要在路由之前）
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
-  console.log(`\n=== 收到请求 ===`);
-  console.log(`时间: ${timestamp}`);
-  console.log(`方法: ${req.method}`);
-  console.log(`URL: ${req.url}`);
-  console.log(`完整路径: ${req.originalUrl}`);
-  console.log(`IP: ${req.ip || req.connection.remoteAddress}`);
-  console.log(`User-Agent: ${req.get('User-Agent')}`);
-  
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('请求体:', JSON.stringify(req.body, null, 2));
-  }
-  
-  if (req.get('Authorization')) {
-    console.log(`Authorization: ${req.get('Authorization')?.substring(0, 20)}...`);
-  }
-  
-  console.log(`Content-Type: ${req.get('Content-Type')}`);
-  console.log(`=== 请求结束 ===\n`);
-  
+  logger.info('收到请求', {
+    timestamp,
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('User-Agent'),
+    body: req.body,
+    authorization: req.get('Authorization')?.substring(0, 20),
+    contentType: req.get('Content-Type'),
+  });
   next();
 });
 
 // API 路由必须放在静态文件服务之前
 // 路由配置（API 保持 /api/v1 前缀）
-console.log('注册 API 路由: /api/v1');
 app.use('/api/v1', apiRoutes);
-console.log('✅ API 路由注册完成');
 
 // Dify API 代理路由
 app.use('/api/dify', difyProxyRoutes);
@@ -84,7 +74,7 @@ app.get('/api/v1/public/:token', async (req, res) => {
     
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
-    console.error('获取公开配置失败:', error);
+    logger.error('获取公开配置失败', { error });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -130,7 +120,7 @@ app.get('/api/v1/public-by-address/:address', async (req, res) => {
     
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
-    console.error('获取公开配置失败:', error);
+    logger.error('获取公开配置失败', { error });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -173,7 +163,7 @@ app.get('/api/v1/public-config/:configId', async (req, res) => {
     
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
-    console.error('获取公开配置失败:', error);
+    logger.error('获取公开配置失败', { error });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -213,12 +203,13 @@ if (!isDev) {
 
 // 全局错误处理中间件
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error('=== Global Error Handler ===');
-  console.error('Error:', err);
-  console.error('Stack:', err.stack);
-  console.error('Request URL:', req.url);
-  console.error('Request Method:', req.method);
-  console.error('Request Body:', req.body);
+  logger.error('全局错误处理', {
+    error: err,
+    stack: err?.stack,
+    requestUrl: req.url,
+    method: req.method,
+    body: req.body,
+  });
   
   res.status(500).json({
     success: false,
@@ -230,20 +221,20 @@ app.use((err: any, req: any, res: any, next: any) => {
 // 启动服务器前测试数据库连接
 async function startServer() {
   try {
-    console.log('正在测试数据库连接...');
+    logger.info('正在测试数据库连接...');
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('数据库连接失败');
     }
-    console.log('Database connection successful');
+    logger.info('数据库连接成功');
     
     // 初始化AI角色数据库表
     try {
       const { aiRoleModel } = await import('./models');
       await aiRoleModel.initializeTable();
-      console.log('✅ AI角色数据库表初始化成功');
+      logger.info('AI角色数据库表初始化成功');
     } catch (error) {
-      console.warn('⚠️  AI角色数据库表初始化警告:', error instanceof Error ? error.message : error);
+      logger.warn('AI角色数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
@@ -251,9 +242,9 @@ async function startServer() {
     try {
       const { agentWorkflowModel } = await import('./models');
       await agentWorkflowModel.initializeTable();
-      console.log('✅ Agent工作流数据库表初始化成功');
+      logger.info('Agent工作流数据库表初始化成功');
     } catch (error) {
-      console.warn('⚠️  Agent工作流数据库表初始化警告:', error instanceof Error ? error.message : error);
+      logger.warn('Agent工作流数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
@@ -261,15 +252,14 @@ async function startServer() {
     try {
       const { publicPageConfigModel } = await import('./models');
       await publicPageConfigModel.initializeTable();
-      console.log('✅ 公开页面配置数据库表初始化成功');
+      logger.info('公开页面配置数据库表初始化成功');
     } catch (error) {
-      console.warn('⚠️  公开页面配置数据库表初始化警告:', error instanceof Error ? error.message : error);
+      logger.warn('公开页面配置数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
     const server = app.listen(port, "0.0.0.0", () => {
-      console.log(`Backend server is running on http://0.0.0.0:${port}`);
-      console.log('Server is ready to accept connections');
+      logger.info('Backend server 已启动', { url: `http://0.0.0.0:${port}` });
     });
 
     // 保持进程运行
@@ -278,24 +268,24 @@ async function startServer() {
 
     // 优雅关闭处理
     process.on('SIGTERM', () => {
-      console.log('SIGTERM received, shutting down gracefully');
+      logger.info('SIGTERM received, shutting down gracefully');
       server.close(() => {
-        console.log('Process terminated');
+        logger.info('Process terminated');
         process.exit(0);
       });
     });
 
     process.on('SIGINT', () => {
-      console.log('SIGINT received, shutting down gracefully');
+      logger.info('SIGINT received, shutting down gracefully');
       server.close(() => {
-        console.log('Process terminated');
+        logger.info('Process terminated');
         process.exit(0);
       });
     });
 
     return server;
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server', { error });
     process.exit(1);
   }
 }

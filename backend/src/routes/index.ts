@@ -1,10 +1,14 @@
 import { Router } from 'express';
+
+import workflowModuleRouter from '@/modules/workflow/api/workflow.routes';
+import aiSearchModuleRouter from '@/modules/ai-search/api/aiSearch.routes';
+import { logger } from '@/shared/lib/logger';
+
 import techCategoriesRouter from './techCategories';
 import techPointsRouter from './techPoints';
 import brandsRouter from './brands';
 import carModelsRouter from './carModels';
 import carSeriesRouter from './carSeries';
-import workflowRouter from './workflow';
 import knowledgePointsRouter from './knowledgePointRoutes';
 import chatRouter from './chat';
 import workflowStatsRouter from './workflowStats';
@@ -14,19 +18,20 @@ import agentWorkflowRouter from './agentWorkflow';
 import workflowExecutionRouter from './workflowExecution';
 import workflowTemplateRouter from './workflowTemplate';
 import publicPageConfigRouter from './publicPageConfig';
-import aiSearchRouter from './aiSearch';
 
 const router = Router();
 
 // 添加路由级别的日志记录
 router.use((req, res, next) => {
-  console.log(`=== API Route Handler ===`);
-  console.log(`${req.method} ${req.originalUrl}`);
-  console.log('Base URL:', req.baseUrl);
-  console.log('Path:', req.path);
-  console.log('Params:', req.params);
-  console.log('Query:', req.query);
-  console.log('Body:', req.body);
+  logger.debug('API Route Handler', {
+    method: req.method,
+    originalUrl: req.originalUrl,
+    baseUrl: req.baseUrl,
+    path: req.path,
+    params: req.params,
+    query: req.query,
+    body: req.body,
+  });
   next();
 });
 
@@ -36,7 +41,7 @@ router.use('/tech-points', techPointsRouter);
 router.use('/brands', brandsRouter);
 router.use('/car-models', carModelsRouter);
 router.use('/car-series', carSeriesRouter);
-router.use('/workflow', workflowRouter);
+router.use('/workflow', workflowModuleRouter);
 router.use('/knowledge-points', knowledgePointsRouter);
 router.use('/chat', chatRouter);
 router.use('/workflow-stats', workflowStatsRouter);
@@ -46,27 +51,25 @@ router.use('/agent-workflows', agentWorkflowRouter);
 router.use('/executions', workflowExecutionRouter);
 router.use('/workflow-templates', workflowTemplateRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
-router.use('/ai-search', aiSearchRouter);
+router.use('/ai-search', aiSearchModuleRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {
-  console.log('=== Health check endpoint called ===');
-  console.log('Request headers:', req.headers);
-  console.log('Request method:', req.method);
-  console.log('Request URL:', req.url);
-  
+  logger.debug('Health check endpoint called', {
+    headers: req.headers,
+    method: req.method,
+    url: req.url,
+  });
   try {
-    console.log('Preparing response...');
     const response = {
       success: true,
       message: 'API is running',
       timestamp: new Date().toISOString(),
       version: '1.0.0'
     };
-    console.log('Sending response:', response);
     res.json(response);
   } catch (error) {
-    console.error('Error in health check:', error);
+    logger.error('Health check error', { error });
     res.status(500).json({
       success: false,
       message: 'Health check failed',
@@ -77,7 +80,7 @@ router.get('/health', (req, res) => {
 
 // 简单测试端点
 router.get('/test', (req, res) => {
-  console.log('=== Test endpoint called ===');
+  logger.debug('Test endpoint called');
   res.json({
     success: true,
     message: 'Test endpoint working',
