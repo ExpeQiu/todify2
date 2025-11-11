@@ -108,25 +108,31 @@ const ensureTablesInitialized = async (req: Request, res: Response, next: any) =
  */
 router.get('/workflow', async (req: Request, res: Response) => {
   try {
-    // 从配置或数据库获取工作流ID
-    // 这里先尝试从环境变量或配置获取
-    const workflowId = process.env.AI_SEARCH_WORKFLOW_ID || null;
-    
-    if (workflowId) {
-      return res.json(
-        formatApiResponse(true, { workflowId }, '获取工作流配置成功')
-      );
-    }
-    
-    // 如果没有配置，返回默认工作流
     const workflows = await agentWorkflowService.getAllWorkflows();
-    const defaultWorkflow = workflows.find((w) => w.name === '智能工作流');
-    const workflowIdToReturn = defaultWorkflow?.id || workflows[0]?.id || null;
-    
+    const workflowIdFromEnv = process.env.AI_SEARCH_WORKFLOW_ID || null;
+
+    let resolvedWorkflowId: string | null = null;
+
+    if (workflowIdFromEnv) {
+      const matched = workflows.find((workflow) => workflow.id === workflowIdFromEnv);
+      if (matched) {
+        resolvedWorkflowId = matched.id;
+      } else {
+        logger.warn('AI_SEARCH_WORKFLOW_ID 指定的工作流不存在，已自动回退', {
+          workflowId: workflowIdFromEnv,
+        });
+      }
+    }
+
+    if (!resolvedWorkflowId) {
+      const defaultWorkflow = workflows.find((workflow) => workflow.name === '智能工作流');
+      resolvedWorkflowId = defaultWorkflow?.id || workflows[0]?.id || null;
+    }
+
     res.json(
       formatApiResponse(
         true,
-        { workflowId: workflowIdToReturn },
+        { workflowId: resolvedWorkflowId },
         '获取工作流配置成功'
       )
     );

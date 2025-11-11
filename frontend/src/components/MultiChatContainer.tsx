@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, Plus, Bot, Settings, X, Workflow, Save, Loader, CheckSquare, Square, Play, ExternalLink, Rocket, ChevronDown, ChevronUp, Search, Filter } from 'lucide-react';
+import { MessageSquare, Plus, Bot, Settings, X, Workflow, Save, Loader, CheckSquare, Square, Play, ExternalLink, Rocket, ChevronDown, ChevronUp, Search } from 'lucide-react';
 import ChatWindow from './ChatWindow';
 import WorkflowExecutionView from './WorkflowExecutionView';
 import TopNavigation from './TopNavigation';
 import aiRoleService from '../services/aiRoleService';
 import { AIRoleConfig } from '../types/aiRole';
 import { agentWorkflowService } from '../services/agentWorkflowService';
-import { AgentWorkflow, WorkflowExecution } from '../types/agentWorkflow';
+import { AgentWorkflow, AgentWorkflowNode, WorkflowExecution } from '../types/agentWorkflow';
 import { workflowEngine } from '../services/workflowEngine';
 
 interface OpenChatWindow {
@@ -16,8 +16,40 @@ interface OpenChatWindow {
   size: { width: number; height: number };
 }
 
-const MultiChatContainer: React.FC = () => {
-  const [allRoles, setAllRoles] = useState<AIRoleConfig[]>([]); // 所有可用的角色
+interface MultiChatContainerProps {
+  embedded?: boolean;
+  onClose?: () => void;
+  initialWorkflowId?: string;
+  workflow?: AgentWorkflow | null;
+  initialRoles?: AIRoleConfig[];
+}
+
+const normalizePublished = (wf: AgentWorkflow): AgentWorkflow => ({
+  ...wf,
+  published: wf.published === true || wf.published === 1 || wf.published === '1' || wf.published === 'true',
+});
+
+const extractAgentIdsFromNode = (node: AgentWorkflowNode): string[] => {
+  const ids = new Set<string>();
+  if (node.agentId) {
+    ids.add(String(node.agentId));
+  }
+  const dataAgentId = (node.data as any)?.agentId;
+  if (dataAgentId) {
+    ids.add(String(dataAgentId));
+  }
+  const dataAgentConfig = (node.data as any)?.agentConfig || (node.data as any)?.agent;
+  if (dataAgentConfig?.id) {
+    ids.add(String(dataAgentConfig.id));
+  }
+  if (node.agentConfig?.id) {
+    ids.add(String(node.agentConfig.id));
+  }
+  return Array.from(ids);
+};
+
+const MultiChatContainer: React.FC<MultiChatContainerProps> = ({ embedded = false, onClose, initialWorkflowId, workflow, initialRoles }) => {
+  const [allRoles, setAllRoles] = useState<AIRoleConfig[]>(initialRoles || []); // 所有可用的角色
   const [roles, setRoles] = useState<AIRoleConfig[]>([]); // 实际显示的角色
   const [openWindows, setOpenWindows] = useState<OpenChatWindow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,12 +69,54 @@ const MultiChatContainer: React.FC = () => {
   const [currentExecution, setCurrentExecution] = useState<WorkflowExecution | null>(null);
   const [executionLoading, setExecutionLoading] = useState(false);
 
+  const [initializedWorkflowWindows, setInitializedWorkflowWindows] = useState(false);
+
   useEffect(() => {
-    loadAllRoles();
-    loadConfig();
+    if (embedded) {
+      if (!initialRoles || initialRoles.length === 0) {
+        loadAllRoles();
+      }
+      if (workflow?.id) {
+        setSelectedWorkflowId(workflow.id);
+      } else if (initialWorkflowId) {
+        setSelectedWorkflowId(initialWorkflowId);
+      }
+      setDisplayMode('workflow');
+    } else {
+      loadAllRoles();
+      loadConfig();
+      if (initialWorkflowId) {
+        setSelectedWorkflowId(initialWorkflowId);
+      }
+    }
     loadWorkflows(); // 初始加载工作流列表
     setupWorkflowEngine();
   }, []);
+
+  useEffect(() => {
+    if (embedded && workflow?.id) {
+      setSelectedWorkflowId(workflow.id);
+      setDisplayMode('workflow');
+    }
+  }, [embedded, workflow]);
+
+  useEffect(() => {
+    if (embedded && initialRoles && initialRoles.length > 0) {
+      setAllRoles(initialRoles);
+    }
+  }, [embedded, initialRoles]);
+
+  useEffect(() => {
+    if (!workflow) return;
+    setWorkflows(prev => {
+      const normalizedWorkflow = normalizePublished(workflow);
+      const exists = prev.some(w => w.id === normalizedWorkflow.id);
+      if (exists) {
+        return prev.map(w => (w.id === normalizedWorkflow.id ? { ...w, ...normalizedWorkflow } : w));
+      }
+      return [normalizedWorkflow, ...prev];
+    });
+  }, [workflow]);
 
   // 设置workflow引擎的回调
   const setupWorkflowEngine = () => {
@@ -97,6 +171,13 @@ const MultiChatContainer: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (embedded && initialWorkflowId) {
+      setSelectedWorkflowId(initialWorkflowId);
+      setDisplayMode('workflow');
+    }
+  }, [embedded, initialWorkflowId]);
+
   // 当配置或所有角色变化时，更新显示的角色
   useEffect(() => {
     let filteredRoles: AIRoleConfig[] = [];
@@ -109,10 +190,11 @@ const MultiChatContainer: React.FC = () => {
       const workflow = workflows.find(w => w.id === selectedWorkflowId);
       if (workflow && workflow.nodes) {
         const workflowAgentIds = workflow.nodes
-          .map(node => node.agentId)
+          .flatMap(node => extractAgentIdsFromNode(node))
           .filter(Boolean);
+        const uniqueAgentIds = Array.from(new Set(workflowAgentIds));
         filteredRoles = allRoles.filter(r => 
-          r.enabled && workflowAgentIds.includes(r.id)
+          r.enabled && uniqueAgentIds.includes(r.id)
         );
       }
     } else if (displayMode === 'custom' && selectedRoleIds.length > 0) {
@@ -130,7 +212,18 @@ const MultiChatContainer: React.FC = () => {
     setConfigLoading(true);
     try {
       const workflowList = await agentWorkflowService.getAllWorkflows();
-      setWorkflows(workflowList);
+      setWorkflows(prev => {
+        const normalizedList = workflowList.map(normalizePublished);
+        if (workflow) {
+          const normalizedWorkflow = normalizePublished(workflow);
+          const exists = normalizedList.some(w => w.id === normalizedWorkflow.id);
+          if (exists) {
+            return normalizedList.map(w => (w.id === normalizedWorkflow.id ? { ...normalizedWorkflow } : w));
+          }
+          return [normalizedWorkflow, ...normalizedList];
+        }
+        return normalizedList;
+      });
     } catch (error) {
       console.error('加载工作流列表失败:', error);
     } finally {
@@ -204,6 +297,31 @@ const MultiChatContainer: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (!embedded) return;
+    setInitializedWorkflowWindows(false);
+    setOpenWindows([]);
+  }, [embedded, workflow]);
+
+  const createWindowConfig = (role: AIRoleConfig, index: number): OpenChatWindow => {
+    const cols = Math.max(1, Math.ceil(Math.sqrt(index + 1)));
+    const colIndex = index % cols;
+    const rowIndex = Math.floor(index / cols);
+
+    return {
+      id: `window-${role.id}-${Date.now()}-${index}`,
+      role,
+      position: {
+        x: 80 + colIndex * 60,
+        y: 80 + rowIndex * 60
+      },
+      size: {
+        width: 500,
+        height: 600
+      }
+    };
+  };
+
   const openChatWindow = (role: AIRoleConfig) => {
     // 检查是否已经打开
     const existingWindow = openWindows.find(w => w.role.id === role.id);
@@ -216,18 +334,7 @@ const MultiChatContainer: React.FC = () => {
     const colIndex = (openWindows.length) % cols;
     const rowIndex = Math.floor((openWindows.length) / cols);
 
-    const newWindow: OpenChatWindow = {
-      id: `window-${Date.now()}-${Math.random()}`,
-      role,
-      position: {
-        x: 100 + colIndex * 50,
-        y: 100 + rowIndex * 50
-      },
-      size: {
-        width: 500,
-        height: 600
-      }
-    };
+    const newWindow = createWindowConfig(role, openWindows.length);
 
     setOpenWindows(prev => [...prev, newWindow]);
   };
@@ -238,11 +345,15 @@ const MultiChatContainer: React.FC = () => {
 
   const openWindowsCount = openWindows.length;
   const selectedWorkflow = workflows.find(w => w.id === selectedWorkflowId);
+  const publishedWorkflows = workflows.filter(workflow => workflow.published);
+  const containerClassName = embedded
+    ? 'flex flex-col h-full bg-gray-100 overflow-hidden rounded-2xl shadow-2xl'
+    : 'flex flex-col h-screen bg-gray-100 overflow-hidden';
 
   // 获取角色的来源信息（来自哪个工作流的哪个节点）
   const getRoleSourceInfo = (roleId: string): { workflowName?: string; nodeLabel?: string } => {
     for (const workflow of workflows) {
-      const node = workflow.nodes?.find(n => n.agentId === roleId);
+      const node = workflow.nodes?.find(n => extractAgentIdsFromNode(n).includes(roleId));
       if (node) {
         return {
           workflowName: workflow.name,
@@ -344,10 +455,75 @@ const MultiChatContainer: React.FC = () => {
     }));
   };
 
+  const handleSelectWorkflow = (workflowId: string) => {
+    setSelectedWorkflowId(workflowId);
+    setDisplayMode('workflow');
+    setFilterType('workflow');
+    setSearchQuery('');
+    setInitializedWorkflowWindows(false);
+    setOpenWindows([]);
+  };
+
+  useEffect(() => {
+    if (!embedded || !workflow || initializedWorkflowWindows) {
+      return;
+    }
+
+    const agentIds = (workflow.nodes || [])
+      .flatMap(node => extractAgentIdsFromNode(node))
+      .filter((id): id is string => !!id && id.trim().length > 0);
+
+    const uniqueAgentIds = Array.from(new Set(agentIds));
+
+    if (uniqueAgentIds.length === 0) {
+      return;
+    }
+
+    const matchedRoles = allRoles.filter(role => uniqueAgentIds.includes(role.id));
+
+    if (matchedRoles.length === 0) {
+      return;
+    }
+
+    setOpenWindows(matchedRoles.map((role, index) => createWindowConfig(role, index)));
+    setInitializedWorkflowWindows(true);
+  }, [embedded, workflow, allRoles, initializedWorkflowWindows]);
+
   return (
-    <div className="flex flex-col h-screen bg-gray-100 overflow-hidden">
+    <div className={containerClassName}>
       {/* 顶部导航栏 */}
-      <TopNavigation currentPageTitle="多窗口AI对话" />
+      {!embedded ? (
+        <TopNavigation currentPageTitle="多窗口AI对话" />
+      ) : (
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+          <div>
+            <div className="text-base font-semibold text-gray-800">多窗口AI对话</div>
+            {selectedWorkflow && (
+              <div className="text-xs text-gray-500 mt-1">
+                当前工作流：{selectedWorkflow.name}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleOpenConfig}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 border border-blue-200 rounded-md hover:bg-blue-50 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span>配置</span>
+            </button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                title="关闭"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* 主要内容区域 */}
       <div className="flex flex-1 overflow-hidden">
@@ -659,11 +835,46 @@ const MultiChatContainer: React.FC = () => {
               {expandedRoles && (
                 <div className="flex-1 overflow-y-auto px-3 py-2 bg-gray-50 min-h-0">
                   {filteredRoles.length === 0 ? (
-                    <div className="px-4 py-8 text-center">
-                      <Bot className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <div className="px-4 py-8 text-center space-y-3">
+                      <Bot className="w-12 h-12 text-gray-300 mx-auto" />
                       <p className="text-xs text-gray-500 font-medium">
                         {searchQuery ? '未找到匹配的角色' : '暂无启用的AI角色'}
                       </p>
+                      {!searchQuery && publishedWorkflows.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <p className="text-[11px] text-gray-400">
+                            请选择一个已发布的工作流以加载对应的AI角色
+                          </p>
+                          <div className="space-y-1.5 text-left">
+                            {publishedWorkflows.map(workflowItem => {
+                              const isSelected = selectedWorkflowId === workflowItem.id;
+                              return (
+                                <button
+                                  key={workflowItem.id}
+                                  onClick={() => handleSelectWorkflow(workflowItem.id)}
+                                  className={`w-full px-3 py-2 text-xs rounded-md border transition-colors flex items-center justify-between ${
+                                    isSelected
+                                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                      : 'border-blue-200 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-400'
+                                  }`}
+                                >
+                                  <span className="font-medium truncate pr-2">
+                                    {workflowItem.name}
+                                  </span>
+                                  <span className="text-[10px] text-blue-500 whitespace-nowrap">
+                                    {workflowItem.nodes?.length || 0} 个节点
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {!searchQuery && publishedWorkflows.length === 0 && (
+                        <p className="text-[11px] text-gray-400">
+                          暂无已发布的工作流，请先发布后再尝试。
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-3">

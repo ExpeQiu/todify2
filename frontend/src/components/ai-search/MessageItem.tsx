@@ -16,7 +16,7 @@ const FEATURE_LABEL_MAP: Record<string, string> = {
   "propagation-strategy": "传播策略",
   "exhibition-video": "展具与视频",
   translation: "翻译",
-  "ppt-outline": "PPT大纲",
+  "ppt-outline": "技术讲稿",
   script: "脚本",
 };
 

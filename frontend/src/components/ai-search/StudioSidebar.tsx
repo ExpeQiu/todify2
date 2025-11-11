@@ -45,7 +45,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   const getOutputTypeLabel = (type: string) => {
     switch (type) {
       case 'ppt':
-        return 'PPT大纲';
+        return '技术讲稿';
       case 'script':
         return '脚本';
       case 'mindmap':
@@ -88,7 +88,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     },
     {
       id: 'ppt-outline',
-      label: 'PPT大纲',
+      label: '技术讲稿',
       icon: Presentation,
     },
     {

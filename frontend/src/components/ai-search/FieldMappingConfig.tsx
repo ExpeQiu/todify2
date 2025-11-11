@@ -37,7 +37,7 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
   });
 
   const [loading, setLoading] = useState(false);
-  const [selectedFeatureType, setSelectedFeatureType] = useState<FeatureObjectType | null>(null);
+  const [selectedFeatureType, setSelectedFeatureType] = useState<FeatureObjectType | null>('ai-dialog');
   const [sampleInputText, setSampleInputText] = useState<string>(() =>
     JSON.stringify(
       {
@@ -207,7 +207,7 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
     { value: 'propagation-strategy', label: '传播策略' },
     { value: 'exhibition-video', label: '展具与视频' },
     { value: 'translation', label: '翻译' },
-    { value: 'ppt-outline', label: 'PPT大纲' },
+    { value: 'ppt-outline', label: '技术讲稿' },
     { value: 'script', label: '脚本' },
   ];
 
@@ -238,18 +238,27 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
     if (selectedWorkflowId && selectedFeatureType) {
       loadWorkflowConfig(selectedWorkflowId);
     }
-  }, [selectedWorkflowId]);
+  }, [selectedWorkflowId, selectedFeatureType]);
 
   // 加载工作流列表
   const loadWorkflows = async () => {
     try {
       const workflowList = await agentWorkflowService.getAllWorkflows();
       setWorkflows(workflowList);
-      
-      // 如果没有初始工作流配置，选择第一个工作流
-      if (!workflowConfig && workflowList.length > 0) {
-        setSelectedWorkflowId(workflowList[0].id);
+
+      if (workflowList.length === 0) {
+        setSelectedWorkflowId(null);
+        return;
       }
+
+      const current = selectedWorkflowId && workflowList.find((workflow) => workflow.id === selectedWorkflowId);
+      if (current) {
+        setSelectedWorkflowId(current.id);
+        return;
+      }
+
+      const defaultWorkflow = workflowList.find((workflow) => workflow.name === '对话工作流') ?? workflowList[0];
+      setSelectedWorkflowId(defaultWorkflow.id);
     } catch (error) {
       console.error("加载工作流列表失败:", error);
     }
@@ -426,6 +435,7 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
         configToSave
       );
       if (response.data.success) {
+        setConfig(configToSave);
         onSave(configToSave);
         alert(`功能对象"${featureObjects.find(f => f.value === selectedFeatureType)?.label}"的配置已保存`);
         // 不清空选择，允许继续配置其他功能对象

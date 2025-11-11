@@ -15,6 +15,7 @@ interface DialogueContentProps {
   isLoadingMore?: boolean;
   onMessageSent?: (message: Message) => void;
   onSaveToNotes?: (content: string) => void;
+  onEnsureConversation?: () => Promise<Conversation | null>;
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -28,6 +29,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   isLoadingMore,
   onMessageSent,
   onSaveToNotes,
+  onEnsureConversation,
 }) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -60,7 +62,31 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     const draftFiles = override?.files ?? selectedFiles;
 
     if (!draftContent && draftFiles.length === 0) return;
-    if (!conversation) {
+
+    let activeConversation = conversation;
+
+    if (!activeConversation && onEnsureConversation) {
+      try {
+        setIsLoading(true);
+        setErrorMessage(null);
+        setErrorDetail(null);
+        const ensured = await onEnsureConversation();
+        if (!ensured) {
+          setIsLoading(false);
+          setErrorMessage("请先在左侧选择来源并创建对话");
+          return;
+        }
+        activeConversation = ensured;
+        setMessages(ensured.messages || []);
+      } catch (error: any) {
+        console.error("创建对话失败:", error);
+        setIsLoading(false);
+        setErrorMessage(error?.message || "创建对话失败，请稍后重试");
+        return;
+      }
+    }
+
+    if (!activeConversation) {
       setErrorMessage("请先创建对话");
       return;
     }
@@ -76,8 +102,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       };
       lastSubmissionRef.current = submission;
 
-      // 发送消息
-      const response = await aiSearchService.sendMessage(conversation.id, {
+      const response = await aiSearchService.sendMessage(activeConversation.id, {
         content: submission.content,
         sources: sources,
         files: submission.files,
@@ -85,7 +110,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         workflowId: workflowId || undefined,
       });
 
-      // 更新消息列表
       if (response.userMessage && response.aiMessage) {
         const newMessages = [
           ...messages,
@@ -93,7 +117,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           response.aiMessage,
         ];
         setMessages(newMessages);
-        
+
         if (onMessageSent) {
           onMessageSent(response.aiMessage);
         }
@@ -107,7 +131,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         setErrorDetail(response.errorDetail || null);
       }
 
-      // 清空输入和文件
       if (!override) {
         setQuery("");
       }

@@ -7,6 +7,7 @@ import ToolbarPanel from '../components/WorkflowEditor/ToolbarPanel';
 import NodeConfigPanel from '../components/WorkflowEditor/NodeConfigPanel';
 import WorkflowSettingsModal from '../components/WorkflowEditor/WorkflowSettingsModal';
 import SaveTemplateModal from '../components/WorkflowEditor/SaveTemplateModal';
+import MultiChatContainer from '../components/MultiChatContainer';
 import { AgentWorkflow, AgentWorkflowNode, AgentWorkflowEdge, InputParameter, WorkflowExecutionMode } from '../types/agentWorkflow';
 import { WorkflowNodeType } from '../types/agentWorkflow';
 import { AIRoleConfig } from '../types/aiRole';
@@ -32,6 +33,7 @@ const AgentWorkflowPage: React.FC = () => {
   const [editingWorkflowName, setEditingWorkflowName] = useState<string>('');
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [showMultiChatModal, setShowMultiChatModal] = useState(false);
 
   // 加载数据
   useEffect(() => {
@@ -857,6 +859,18 @@ const AgentWorkflowPage: React.FC = () => {
     }
   };
 
+  const handleOpenMultiChat = () => {
+    if (!currentWorkflow) {
+      alert('请先选择一个工作流');
+      return;
+    }
+    setShowMultiChatModal(true);
+  };
+
+  const handleCloseMultiChat = () => {
+    setShowMultiChatModal(false);
+  };
+
   return (
     <div className="agent-workflow-page">
       <TopNavigation />
@@ -869,6 +883,7 @@ const AgentWorkflowPage: React.FC = () => {
           onSaveTemplate={handleSaveTemplate}
           onPublish={handlePublish}
           onSettings={handleSettings}
+          onOpenMultiChat={handleOpenMultiChat}
           canSave={isDirty}
           canRun={!!currentWorkflow && currentWorkflow.nodes.length > 0}
           loading={loading}
@@ -1112,6 +1127,23 @@ const AgentWorkflowPage: React.FC = () => {
             console.log('模版保存成功');
           }}
         />
+      )}
+
+      {showMultiChatModal && (
+        <div className="multi-chat-modal-overlay" onClick={handleCloseMultiChat}>
+          <div
+            className="multi-chat-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MultiChatContainer
+              embedded
+              workflow={currentWorkflow}
+              initialWorkflowId={currentWorkflow?.id}
+              initialRoles={agents}
+              onClose={handleCloseMultiChat}
+            />
+          </div>
+        </div>
       )}
 
       <style>{`
@@ -1377,6 +1409,42 @@ const AgentWorkflowPage: React.FC = () => {
         .create-smart-workflow-btn:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .multi-chat-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(15, 23, 42, 0.55);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 11000;
+          padding: 32px;
+        }
+
+        .multi-chat-modal-content {
+          width: min(1200px, 95vw);
+          height: min(820px, 90vh);
+          background: #f1f5f9;
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow: 0 25px 50px -12px rgba(30, 41, 59, 0.6);
+          border: 1px solid rgba(148, 163, 184, 0.4);
+        }
+
+        @media (max-width: 768px) {
+          .multi-chat-modal-overlay {
+            padding: 16px;
+          }
+
+          .multi-chat-modal-content {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+          }
         }
       `}</style>
     </div>

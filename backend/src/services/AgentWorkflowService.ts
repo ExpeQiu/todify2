@@ -1,6 +1,7 @@
 import { AgentWorkflow, WorkflowExecution, WorkflowTemplate } from '../models/AgentWorkflow';
 import { agentWorkflowModel, workflowExecutionModel, workflowTemplateModel } from '../models';
 import { formatApiResponse } from '../utils/validation';
+import { logger } from '@/shared/lib/logger';
 
 /**
  * Agent工作流服务
@@ -162,13 +163,14 @@ export class AgentWorkflowService {
   async executeWorkflow(
     workflowId: string,
     options: any
-  ): Promise<{ executionId: string; message: string }> {
+  ): Promise<{ executionId: string; message: string; data?: any }> {
     // 获取工作流定义
     const workflow = await agentWorkflowModel.getById(workflowId);
     if (!workflow) {
       throw new Error('工作流不存在');
     }
 
+    const startedAt = Date.now();
     // 创建执行实例
     const execution = await workflowExecutionModel.create({
       workflow_id: workflowId,
@@ -179,10 +181,38 @@ export class AgentWorkflowService {
       start_time: new Date().toISOString(),
     });
 
-    // 返回执行ID（实际执行应该在后台异步进行）
+    const fallbackOutput = this.buildFallbackOutput(workflow, options?.input ?? {});
+
+    try {
+      await workflowExecutionModel.update(execution.id, {
+        status: 'completed',
+        end_time: new Date().toISOString(),
+        duration: Date.now() - startedAt,
+        error: null,
+        metadata: {
+          ...(fallbackOutput.metadata || {}),
+          workflowId,
+          fallback: true,
+        },
+      });
+    } catch (error) {
+      logger.warn('更新工作流执行记录失败', { executionId: execution.id, error });
+    }
+
     return {
       executionId: execution.id,
-      message: '工作流执行已开始',
+      message: fallbackOutput.message,
+      data: {
+        outputs: {
+          output: fallbackOutput.content,
+          metadata: {
+            ...(fallbackOutput.metadata || {}),
+            workflowId,
+            fallback: true,
+            generatedAt: new Date().toISOString(),
+          },
+        },
+      },
     };
   }
 
@@ -205,6 +235,54 @@ export class AgentWorkflowService {
    */
   async updateExecution(executionId: string, updates: Partial<WorkflowExecution>): Promise<WorkflowExecution> {
     return await workflowExecutionModel.update(executionId, updates);
+  }
+
+  private buildFallbackOutput(workflow: AgentWorkflow, workflowInput: Record<string, any>) {
+    const query =
+      workflowInput?.input ||
+      workflowInput?.query ||
+      workflowInput?.summary ||
+      (typeof workflowInput === 'string' ? workflowInput : '');
+
+    const contentLines: string[] = [];
+    if (query) {
+      contentLines.push(`根据您的输入：${query}`);
+    } else {
+      contentLines.push('尚未获取到具体的用户输入。');
+    }
+
+    const hasConfiguredAgent = this.workflowHasConfiguredAgent(workflow);
+    if (hasConfiguredAgent) {
+      contentLines.push('工作流已启动，但当前环境尚未接入实际的执行引擎。');
+      contentLines.push('如需获得真实结果，请在后端集成 Dify 或实现 Agent 执行逻辑。');
+    } else {
+      contentLines.push('检测到工作流中尚未配置有效的 Agent 节点。');
+      contentLines.push('请在“工作流”页面为 Agent 节点选择对应的智能体后再试。');
+    }
+
+    return {
+      message: '工作流执行完成（模拟响应）',
+      content: contentLines.join('\n'),
+      metadata: {
+        hasConfiguredAgent,
+      },
+    };
+  }
+
+  private workflowHasConfiguredAgent(workflow: AgentWorkflow): boolean {
+    try {
+      const nodes = JSON.parse(workflow.nodes);
+      return nodes.some(
+        (node: any) =>
+          node?.type === 'agent' &&
+          node?.data &&
+          node.data.agentId &&
+          String(node.data.agentId).trim().length > 0,
+      );
+    } catch (error) {
+      logger.warn('解析工作流节点失败，无法判断 Agent 配置状态', { workflowId: workflow.id, error });
+      return false;
+    }
   }
 
   /**

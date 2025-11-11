@@ -40,7 +40,7 @@ class AgentWorkflowService {
           nodes: typeof wf.nodes === 'string' ? JSON.parse(wf.nodes) : wf.nodes,
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
-          published: wf.published === 1 || wf.published === true,
+          published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
         }));
       }
       return [];
@@ -71,7 +71,7 @@ class AgentWorkflowService {
           nodes: typeof wf.nodes === 'string' ? JSON.parse(wf.nodes) : wf.nodes,
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
-          published: wf.published === 1 || wf.published === true,
+          published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
         };
       }
       return null;
@@ -101,7 +101,7 @@ class AgentWorkflowService {
           nodes: typeof wf.nodes === 'string' ? JSON.parse(wf.nodes) : wf.nodes,
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
-          published: wf.published === 1 || wf.published === true,
+          published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
         };
       }
       throw new Error(response.data.error || '创建工作流失败');
@@ -181,7 +181,7 @@ class AgentWorkflowService {
           nodes: typeof wf.nodes === 'string' ? JSON.parse(wf.nodes) : wf.nodes,
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
-          published: wf.published === 1 || wf.published === true,
+          published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
         }));
       }
       return [];

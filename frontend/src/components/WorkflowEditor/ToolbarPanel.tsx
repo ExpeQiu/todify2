@@ -10,6 +10,7 @@ interface ToolbarPanelProps {
   onSaveTemplate?: () => void;
   onPublish?: () => void;
   onSettings?: () => void;
+  onOpenMultiChat?: () => void;
   canSave?: boolean;
   canRun?: boolean;
   loading?: boolean;
@@ -26,6 +27,7 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
   onSaveTemplate,
   onPublish,
   onSettings,
+  onOpenMultiChat,
   canSave = false,
   canRun = false,
   loading = false,
@@ -209,13 +211,24 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
         >
           <Bot size={16} />
         </a>
-        <a
-          href="/ai-chat-multi"
-          className="toolbar-button"
-          title="多窗口对话"
-        >
-          <MessageSquare size={16} />
-        </a>
+        {onOpenMultiChat ? (
+          <button
+            type="button"
+            className="toolbar-button"
+            title="多窗口对话"
+            onClick={onOpenMultiChat}
+          >
+            <MessageSquare size={16} />
+          </button>
+        ) : (
+          <a
+            href="/ai-chat-multi"
+            className="toolbar-button"
+            title="多窗口对话"
+          >
+            <MessageSquare size={16} />
+          </a>
+        )}
       </div>
 
       <div className="toolbar-section">

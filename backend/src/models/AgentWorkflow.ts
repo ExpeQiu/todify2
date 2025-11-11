@@ -223,6 +223,70 @@ export class AgentWorkflowModel {
         console.warn('创建workflow_executions表时出现警告:', error.message);
       }
     }
+
+    // 补充缺失字段（向后兼容旧表结构）
+    const columnMigrations = [
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN workflow_name TEXT',
+        name: 'workflow_name',
+      },
+      {
+        sql: "ALTER TABLE workflow_executions ADD COLUMN shared_context TEXT NOT NULL DEFAULT '{}'",
+        name: 'shared_context',
+      },
+      {
+        sql: "ALTER TABLE workflow_executions ADD COLUMN node_results TEXT NOT NULL DEFAULT '[]'",
+        name: 'node_results',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN metadata TEXT',
+        name: 'metadata',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN start_time TIMESTAMP',
+        name: 'start_time',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN end_time TIMESTAMP',
+        name: 'end_time',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN duration INTEGER',
+        name: 'duration',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN error TEXT',
+        name: 'error',
+      },
+    ];
+
+    for (const migration of columnMigrations) {
+      try {
+        await this.db.query(migration.sql);
+      } catch (error: any) {
+        const message: string | undefined = error?.message;
+        if (
+          !message ||
+          (!message.includes('duplicate column') && !message.includes('already exists'))
+        ) {
+          console.warn(`添加 workflow_executions.${migration.name} 字段时出现警告:`, message || error);
+        }
+      }
+    }
+
+    // 如果元数据为空，为现有记录填充默认值，避免解析错误
+    try {
+      await this.db.query(
+        `UPDATE workflow_executions 
+         SET shared_context = COALESCE(shared_context, '{}'),
+             node_results = COALESCE(node_results, '[]'),
+             status = COALESCE(status, 'pending'),
+             created_at = COALESCE(created_at, CURRENT_TIMESTAMP),
+             updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP)`
+      );
+    } catch (error: any) {
+      console.warn('更新 workflow_executions 默认值时出现警告:', error?.message || error);
+    }
     
     // 创建工作流模板表
     const createTemplateTableSQL = `

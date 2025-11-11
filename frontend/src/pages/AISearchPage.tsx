@@ -18,7 +18,7 @@ const FEATURE_LABEL_MAP: Record<string, string> = {
   "propagation-strategy": "传播策略",
   "exhibition-video": "展具与视频",
   translation: "翻译",
-  "ppt-outline": "PPT大纲",
+  "ppt-outline": "技术讲稿",
   script: "脚本",
 };
 
@@ -173,18 +173,33 @@ const AISearchPage: React.FC = () => {
   );
 
   useEffect(() => {
-    const conversationId = currentConversation?.id;
     const selectionMap = workflowSelectionRef.current;
-    const storedForConversation = conversationId ? selectionMap[conversationId] : undefined;
-    const storedDefault = selectionMap[WORKFLOW_DEFAULT_KEY];
+    const conversationId = currentConversation?.id;
+
+    const workflowIds = new Set(availableWorkflows.map((workflow) => workflow.id));
+
+    const storedForConversation =
+      conversationId && workflowIds.has(selectionMap[conversationId] || '')
+        ? selectionMap[conversationId]
+        : undefined;
+
+    const storedDefault =
+      selectionMap[WORKFLOW_DEFAULT_KEY] && workflowIds.has(selectionMap[WORKFLOW_DEFAULT_KEY])
+        ? selectionMap[WORKFLOW_DEFAULT_KEY]
+        : undefined;
+
+    const configId =
+      workflowConfig?.id && workflowIds.has(workflowConfig.id) ? workflowConfig.id : undefined;
+
     const fallback =
-      workflowConfig?.id ||
+      storedForConversation ||
+      configId ||
       storedDefault ||
       availableWorkflows[0]?.id ||
       null;
-    const nextWorkflowId = storedForConversation || fallback || null;
-    if (nextWorkflowId && nextWorkflowId !== selectedWorkflowId) {
-      setSelectedWorkflowId(nextWorkflowId);
+
+    if (fallback && fallback !== selectedWorkflowId) {
+      setSelectedWorkflowId(fallback);
     }
   }, [currentConversation?.id, workflowConfig?.id, availableWorkflows, selectedWorkflowId]);
 
@@ -328,15 +343,10 @@ const AISearchPage: React.FC = () => {
     setSelectedSourceIds(selectedIds);
   };
 
-  const handleCreateConversation = async () => {
+  const handleCreateConversation = useCallback(async (): Promise<Conversation | null> => {
     try {
       clearGlobalError();
       const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
-      
-      if (selectedSources.length === 0) {
-        reportError("请至少选择一个来源");
-        return;
-      }
 
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString()}`,
@@ -347,11 +357,21 @@ const AISearchPage: React.FC = () => {
         persistWorkflowSelection(selectedWorkflowId, conversation.id);
       }
       await loadConversations({ activeConversationId: conversation.id });
+      return conversation;
     } catch (error) {
       console.error("创建对话失败:", error);
       reportError("创建对话失败，请稍后重试", error instanceof Error ? error.message : undefined);
+      return null;
     }
-  };
+  }, [
+    clearGlobalError,
+    sources,
+    selectedSourceIds,
+    reportError,
+    selectedWorkflowId,
+    persistWorkflowSelection,
+    loadConversations,
+  ]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
     await loadConversationDetail(conversation.id);
@@ -360,6 +380,13 @@ const AISearchPage: React.FC = () => {
     }
     setShowConversationList(false);
   };
+
+  const ensureActiveConversation = useCallback(async (): Promise<Conversation | null> => {
+    if (currentConversation) {
+      return currentConversation;
+    }
+    return await handleCreateConversation();
+  }, [currentConversation, handleCreateConversation]);
 
   const handleDeleteConversation = async (id: string) => {
     try {
@@ -482,7 +509,7 @@ const AISearchPage: React.FC = () => {
     if (!currentConversation && sources.length > 0 && selectedSourceIds.length > 0) {
       handleCreateConversation();
     }
-  }, [sources, selectedSourceIds]);
+  }, [currentConversation, sources, selectedSourceIds, handleCreateConversation]);
 
   useEffect(() => {
     return () => {
@@ -595,6 +622,7 @@ const AISearchPage: React.FC = () => {
           isLoadingMore={isLoadingMoreMessages}
           onMessageSent={handleMessageSent}
           onSaveToNotes={handleSaveToNotes}
+          onEnsureConversation={ensureActiveConversation}
         />
 
         {/* 右侧栏 - Studio */}
