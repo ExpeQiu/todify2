@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { BaseNodeProps } from "../../types/nodeComponent";
 import { workflowAPI } from "../../services/api";
-import { configService } from "../../services/configService";
 import KnowledgePointSelector, {
   KnowledgePoint,
   SelectionItem,
@@ -147,51 +146,36 @@ const AiSearchNode: React.FC<AiSearchNodeProps> = ({
         if (aiRole) {
           console.log('使用AI角色服务:', aiRole.name);
           const { aiRoleService } = await import('../../services/aiRoleService');
-          
-          // 根据connectionType选择调用方式
-          if (aiRole.difyConfig.connectionType === 'chatflow') {
-            const response = await aiRoleService.chatWithRole(
-              aiRole.id,
-              query.trim(),
-              {},
-              conversationId || undefined
-            );
-            
-            if (response.success && response.data) {
-              // 构建统一的响应格式
-              result = {
-                success: true,
-                data: {
-                  answer: response.data.answer || response.data.result,
-                  conversation_id: response.data.conversation_id,
-                  conversationId: response.data.conversation_id,
-                  metadata: response.data.metadata,
-                }
-              };
-            } else {
-              result = {
-                success: false,
-                error: response.error || 'AI角色调用失败'
-              };
-            }
+
+          const response = await aiRoleService.chatWithRole(
+            aiRole.id,
+            query.trim(),
+            {},
+            conversationId || undefined
+          );
+
+          if (response.success && response.data) {
+            result = {
+              success: true,
+              data: {
+                answer: response.data.answer || response.data.result,
+                conversation_id: response.data.conversation_id,
+                conversationId: response.data.conversation_id,
+                metadata: response.data.metadata,
+              }
+            };
           } else {
-            // workflow模式暂不支持，回退到默认方式
-            console.warn('workflow模式暂不支持，使用默认方式');
-            const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
-            result = await workflowAPI.aiSearch(
-              query.trim(), 
-              {}, 
-              (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
-              conversationId || undefined
-            );
+            result = {
+              success: false,
+              error: response.error || 'AI角色调用失败'
+            };
           }
         } else {
           // 回退到原有逻辑
-          const aiQAConfig = await configService.getDifyConfig("smart-workflow-ai-qa");
           result = await workflowAPI.aiSearch(
-            query.trim(), 
-            {}, 
-            (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined, 
+            query.trim(),
+            {},
+            undefined,
             conversationId || undefined
           );
         }

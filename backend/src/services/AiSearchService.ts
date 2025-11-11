@@ -161,7 +161,13 @@ export class AiSearchService {
   /**
    * 获取对话详情（包含消息）
    */
-  async getConversation(id: string): Promise<any | null> {
+  async getConversation(
+    id: string,
+    options?: {
+      limit?: number;
+      before?: string;
+    }
+  ): Promise<any | null> {
     const conversationRows = await db.query(
       `SELECT * FROM ai_search_conversations WHERE id = ?`,
       [id]
@@ -172,18 +178,58 @@ export class AiSearchService {
     }
 
     const conversation = conversationRows[0];
-    const messageRows = await db.query(
-      `SELECT * FROM ai_search_messages 
-       WHERE conversation_id = ? 
-       ORDER BY created_at ASC`,
-      [id]
-    ) as any[];
+
+    const limit = options?.limit && Number.isFinite(options.limit)
+      ? Math.min(Math.max(Number(options.limit), 1), 200)
+      : undefined;
+    const before = options?.before;
+
+    const params: any[] = [id];
+    let query = `
+      SELECT * FROM ai_search_messages 
+      WHERE conversation_id = ?
+    `;
+
+    if (before) {
+      query += ` AND created_at < ?`;
+      params.push(before);
+    }
+
+    query += ` ORDER BY created_at DESC`;
+
+    if (limit) {
+      query += ` LIMIT ?`;
+      params.push(limit + 1);
+    }
+
+    const messageRows = await db.query(query, params) as any[];
+
+    let hasMore = false;
+    let nextCursor: string | null = null;
+
+    if (limit && messageRows.length > limit) {
+      hasMore = true;
+      const lastRow = messageRows[messageRows.length - 1];
+      nextCursor = lastRow.created_at;
+      messageRows.pop();
+    } else if (limit && messageRows.length === limit) {
+      const oldestRow = messageRows[messageRows.length - 1];
+      const countRows = await db.query(
+        `SELECT COUNT(1) as total FROM ai_search_messages WHERE conversation_id = ? AND created_at < ?`,
+        [id, oldestRow.created_at]
+      ) as any[];
+      const remaining = countRows?.[0]?.total || 0;
+      hasMore = remaining > 0;
+      nextCursor = hasMore ? oldestRow.created_at : null;
+    }
+
+    const messagesAsc = [...messageRows].reverse();
 
     return {
       id: conversation.id,
       title: conversation.title,
       sources: JSON.parse(conversation.sources || '[]'),
-      messages: messageRows.map((row) => ({
+      messages: messagesAsc.map((row) => ({
         id: row.id,
         role: row.role,
         content: row.content,
@@ -193,6 +239,8 @@ export class AiSearchService {
       })),
       createdAt: new Date(conversation.created_at),
       updatedAt: new Date(conversation.updated_at),
+      hasMoreMessages: hasMore,
+      nextCursor,
     };
   }
 

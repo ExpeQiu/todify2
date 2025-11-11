@@ -12,6 +12,7 @@ import {
   ensureFieldMappingConfig,
   formatMessageRecord,
 } from '../utils/workflow';
+import { buildConversationContext } from '../utils/context';
 
 export class TriggerAgentUseCase {
   constructor(
@@ -29,7 +30,8 @@ export class TriggerAgentUseCase {
         });
       }
 
-      const workflowId = await resolveWorkflowId();
+      const requestedWorkflowId = dto.workflowId;
+      const workflowId = requestedWorkflowId || await resolveWorkflowId();
       if (!workflowId) {
         return failure({
           code: 'WORKFLOW_NOT_FOUND',
@@ -41,9 +43,13 @@ export class TriggerAgentUseCase {
 
       const baseMappingConfig = await ensureFieldMappingConfig(this.fieldMappingService, workflowId);
       if (!baseMappingConfig) {
+        const message =
+          requestedWorkflowId && requestedWorkflowId === workflowId
+            ? `所选工作流(${workflowId})尚未配置字段映射`
+            : '尚未配置字段映射，请先完成字段映射配置';
         return failure({
           code: 'MAPPING_NOT_FOUND',
-          message: '尚未配置字段映射，请先完成字段映射配置',
+          message,
         });
       }
 
@@ -74,7 +80,12 @@ export class TriggerAgentUseCase {
       const baseContent = await this.resolveBaseContent(conversation, dto);
       const conversationQuery = baseContent || `触发子Agent：${dto.featureType}`;
 
-      const conversationData = this.buildConversationData(conversation, conversationQuery, targetSources, dto);
+      const conversationData = this.buildConversationData(
+        conversation,
+        conversationQuery,
+        targetSources,
+        dto
+      );
 
       const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);
 
@@ -100,6 +111,12 @@ export class TriggerAgentUseCase {
           triggeredAt: new Date().toISOString(),
           workflowInput,
           baseContent: conversationQuery,
+          context: {
+            historySize: conversationData.history?.length || 0,
+            historyLimit: conversationData.historyLimit,
+            summary: conversationData.summary,
+            keyPhrases: conversationData.keyPhrases,
+          },
         },
       };
 
@@ -155,25 +172,19 @@ export class TriggerAgentUseCase {
     dto: TriggerAgentDTO
   ) {
     const sortedMessages = [...(conversation.messages || [])];
-    const conversationHistory = sortedMessages.map((item) => ({
-      id: item.id,
-      role: item.role,
-      content: item.content,
-      sources: item.sources,
-      outputs: item.outputs,
-      createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
-    }));
-
-    const lastAssistantMessage = [...sortedMessages].reverse().find((m) => m.role === 'assistant');
-    const lastUserMessage = [...sortedMessages].reverse().find((m) => m.role === 'user');
+    const context = buildConversationContext(sortedMessages, {
+      historyLimit: dto.contextWindowSize,
+    });
 
     return {
       query: conversationQuery,
       sources: targetSources,
       files: [],
-      history: conversationHistory,
-      lastAssistantMessage,
-      lastUserMessage,
+      history: context.history,
+      historyLimit: context.historyLimit,
+      historySize: context.historySize,
+      summary: context.summary,
+      keyPhrases: context.keyPhrases,
       conversationId: conversation.id,
       featureType: dto.featureType,
     };

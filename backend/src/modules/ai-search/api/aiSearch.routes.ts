@@ -254,7 +254,22 @@ router.get('/conversations', ensureTablesInitialized, async (req: Request, res: 
 router.get('/conversations/:id', ensureTablesInitialized, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const result = await getConversationDetailUseCase.execute(id);
+    const rawLimit = req.query.limit;
+    const rawBefore = req.query.before;
+
+    const limit =
+      typeof rawLimit === 'string' && rawLimit.trim() !== ''
+        ? Math.max(1, Math.min(parseInt(rawLimit, 10) || 0, 200))
+        : undefined;
+    const before =
+      typeof rawBefore === 'string' && rawBefore.trim() !== ''
+        ? rawBefore
+        : undefined;
+
+    const result = await getConversationDetailUseCase.execute(id, {
+      limit,
+      before,
+    });
 
     if (!result.success) {
       const status = result.error.code === 'CONVERSATION_NOT_FOUND' ? 404 : 500;
@@ -301,6 +316,8 @@ router.post(
       const body = {
         content: req.body.content,
         sources: Array.isArray(sourcesValue) ? sourcesValue : undefined,
+        contextWindowSize: req.body.contextWindowSize,
+        workflowId: req.body.workflowId,
       };
       const files = req.files as Express.Multer.File[];
 
@@ -310,6 +327,8 @@ router.post(
         content: dto.content,
         sources: dto.sources,
         files,
+        contextWindowSize: dto.contextWindowSize,
+        workflowId: dto.workflowId,
       });
 
       if (!result.success) {

@@ -7,9 +7,15 @@ import { ConversationDetailView, MessageView } from '../dto/GetConversationDetai
 export class GetConversationDetailUseCase {
   constructor(private readonly aiSearchService: AiSearchService) {}
 
-  async execute(id: string): Promise<Result<ConversationDetailView>> {
+  async execute(
+    id: string,
+    options?: {
+      limit?: number;
+      before?: string;
+    }
+  ): Promise<Result<ConversationDetailView>> {
     try {
-      const conversation = await this.aiSearchService.getConversation(id);
+      const conversation = await this.aiSearchService.getConversation(id, options);
 
       if (!conversation) {
         return failure({
@@ -34,6 +40,8 @@ export class GetConversationDetailUseCase {
         messages,
         createdAt: conversation.createdAt instanceof Date ? conversation.createdAt : new Date(conversation.createdAt),
         updatedAt: conversation.updatedAt instanceof Date ? conversation.updatedAt : new Date(conversation.updatedAt),
+        hasMoreMessages: Boolean(conversation.hasMoreMessages),
+        nextCursor: conversation.nextCursor || undefined,
       };
 
       return success(detail);

@@ -265,7 +265,7 @@ const MultiChatContainer: React.FC = () => {
 
     // 如果直接对接Dify API，显示说明
     if (role.difyConfig?.connectionType === 'chatflow') {
-      parts.push('直接对接Dify API支持多轮对话');
+      parts.push('通过后端统一的 Dify 网关支持多轮对话');
     }
 
     // 如果没有来源信息但有描述，使用描述

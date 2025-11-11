@@ -6,6 +6,7 @@ import {
   AiSearchResponse,
   TechAppResponse 
 } from '../types/api';
+import { createSuccessResponse, createErrorResponse, createValidationErrorResponse } from '@/shared/types/api';
 
 // 验证AI搜索请求参数
 export function validateAiSearchRequest(data: any): ValidationResult {
@@ -162,22 +163,15 @@ export function validateTechAppResponse(data: any): ValidationResult {
   };
 }
 
-// 通用响应格式化函数
+// 通用响应格式化函数（已废弃，请使用 @/shared/types/api 中的函数）
 export function formatApiResponse<T>(success: boolean, data?: T, message?: string, error?: string) {
-  return {
-    success,
-    data,
-    message,
-    error
-  };
+  if (success) {
+    return createSuccessResponse(data as T, message);
+  }
+  return createErrorResponse('API_ERROR', error || '请求失败');
 }
 
-// 格式化验证错误响应
+// 格式化验证错误响应（已废弃，请使用 @/shared/types/api 中的函数）
 export function formatValidationErrorResponse(errors: ValidationError[]) {
-  return {
-    success: false,
-    error: 'Validation failed',
-    message: '请求参数验证失败',
-    details: errors
-  };
+  return createValidationErrorResponse(errors);
 }

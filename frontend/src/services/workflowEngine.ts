@@ -356,7 +356,7 @@ export class WorkflowEngine {
    */
   private async executeAgentNode(node: AgentWorkflowNode, input: any): Promise<any> {
     // 获取Agent配置
-    const agent = await aiRoleService.getRoleById(node.agentId!);
+    const agent = await aiRoleService.getAIRole(node.agentId!);
     if (!agent) {
       throw new Error(`Agent不存在: ${node.agentId}`);
     }
@@ -1014,29 +1014,22 @@ export class WorkflowEngine {
    * 调用Agent
    */
   private async callAgent(agent: any, input: any): Promise<any> {
-    const difyConfig = agent.difyConfig;
-    
-    // 调用Dify API
-    const response = await fetch('/api/dify/chat-messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${difyConfig.apiKey}`,
-      },
-      body: JSON.stringify({
-        inputs: input,
-        response_mode: 'blocking',
-        conversation_id: '',
-        user: 'workflow-system',
-      }),
-    });
+    const query =
+      typeof input === 'string'
+        ? input
+        : typeof input?.query === 'string'
+        ? input.query
+        : JSON.stringify(input);
 
-    if (!response.ok) {
-      throw new Error(`Dify API调用失败: ${response.statusText}`);
+    const response = await aiRoleService.chatWithRole(agent.id, query, input);
+
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Agent 执行失败');
     }
 
-    const data = await response.json();
-    return data;
+    return {
+      ...response.data,
+    };
   }
 
   /**

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { X, Plus, Trash2, Save, Code, Link } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { X, Plus, Trash2, Save, Code, Sparkles, Info, Eye } from "lucide-react";
 import {
   WorkflowConfig,
   FieldMappingConfig as FieldMappingConfigType,
   FieldMappingRule,
   OutputMappingRule,
+  FeatureObjectType,
 } from "../../types/aiSearch";
 import api from "../../services/api";
 import { agentWorkflowService } from "../../services/agentWorkflowService";
@@ -37,6 +38,165 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [selectedFeatureType, setSelectedFeatureType] = useState<FeatureObjectType | null>(null);
+  const [sampleInputText, setSampleInputText] = useState<string>(() =>
+    JSON.stringify(
+      {
+        query: "请根据以下资料生成专家分析摘要",
+        sources: [
+          {
+            id: "kb_101",
+            title: "产品X-技术亮点",
+            type: "knowledge_base",
+            description: "核心指标、竞品对比等信息",
+          },
+        ],
+        files: [],
+        history: [
+          { role: "user", content: "产品X的独特价值是什么？" },
+          { role: "assistant", content: "产品X提供高性能、低功耗的指标表现。" },
+        ],
+        summary: "用户关注产品X优势，提供差异化亮点",
+        keyPhrases: ["性能领先", "节能高效"],
+      },
+      null,
+      2
+    )
+  );
+  const [sampleOutputText, setSampleOutputText] = useState<string>(() =>
+    JSON.stringify(
+      {
+        text: "产品X在性能与能耗方面具有显著优势，建议突出节能卖点。",
+        structured: {
+          title: "产品X卖点提炼",
+          bulletPoints: ["性能领先", "节能高效", "适配多场景"],
+        },
+        attachments: [],
+      },
+      null,
+      2
+    )
+  );
+
+  const parseJSON = (text: string) => {
+    if (!text?.trim()) {
+      return { data: null, error: "未提供示例数据，将使用空对象预览" };
+    }
+    try {
+      return { data: JSON.parse(text), error: null };
+    } catch (error: any) {
+      return { data: null, error: error?.message || "JSON 解析失败" };
+    }
+  };
+
+  const sampleInputParsed = useMemo(() => parseJSON(sampleInputText), [sampleInputText]);
+  const sampleInputData = sampleInputParsed.data || {};
+
+  const sampleOutputParsed = useMemo(() => parseJSON(sampleOutputText), [sampleOutputText]);
+  const sampleOutputData = sampleOutputParsed.data || {};
+
+  const expressionSnippets: Array<{ label: string; value: string }> = [
+    { label: "合并来源标题", value: "sources.map(item => item.title).join('、')" },
+    { label: "最近一条用户消息", value: "history.filter(msg => msg.role === 'user').slice(-1)[0]?.content" },
+    { label: "历史摘要回退", value: "summary || query" },
+    { label: "提取关键短语", value: "(keyPhrases || []).join(', ')" },
+  ];
+
+  const inputPreview = useMemo(() => {
+    if (!Array.isArray(config.inputMappings) || !sampleInputData) {
+      return { result: {}, errors: {} as Record<string, string> };
+    }
+
+    const result: Record<string, unknown> = {};
+    const errors: Record<string, string> = {};
+
+    config.inputMappings.forEach((mapping) => {
+      if (!mapping?.workflowInputName) {
+        return;
+      }
+
+      try {
+        let value: unknown;
+        if (mapping.sourceType === "expression") {
+          const expression = mapping.expression || "";
+          const evaluator = new Function(
+            "query",
+            "sources",
+            "files",
+            "history",
+            "summary",
+            "keyPhrases",
+            "context",
+            `return (${expression});`
+          );
+          value = evaluator(
+            sampleInputData.query,
+            sampleInputData.sources,
+            sampleInputData.files,
+            sampleInputData.history || [],
+            sampleInputData.summary,
+            sampleInputData.keyPhrases || [],
+            sampleInputData
+          );
+        } else if (mapping.sourceField) {
+          value = sampleInputData[mapping.sourceField];
+        }
+
+        if (
+          (value === undefined || value === null || value === "") &&
+          mapping.defaultValue !== undefined
+        ) {
+          value = mapping.defaultValue;
+        }
+
+        result[mapping.workflowInputName] = value;
+      } catch (error: any) {
+        errors[mapping.workflowInputName] =
+          error?.message || "表达式执行失败，请检查语法";
+      }
+    });
+
+    return { result, errors };
+  }, [config.inputMappings, sampleInputData]);
+
+  const outputPreview = useMemo(() => {
+    if (!Array.isArray(config.outputMappings) || !sampleOutputData) {
+      return { result: {}, errors: {} as Record<string, string> };
+    }
+
+    const result: Record<string, unknown> = {};
+    const errors: Record<string, string> = {};
+
+    config.outputMappings.forEach((mapping) => {
+      if (!mapping?.workflowOutputName || !mapping.extractExpression) {
+        return;
+      }
+
+      try {
+        const evaluator = new Function(
+          "output",
+          "workflowResult",
+          "context",
+          `return (${mapping.extractExpression});`
+        );
+        const value = evaluator(
+          sampleOutputData,
+          { data: sampleOutputData },
+          sampleInputData
+        );
+        result[mapping.workflowOutputName] = mapping.targetField === "content"
+          ? value
+          : {
+              targetField: mapping.targetField,
+              value,
+            };
+      } catch (error: any) {
+        errors[mapping.workflowOutputName] =
+          error?.message || "表达式执行失败，请检查语法";
+      }
+    });
+
+    return { result, errors };
+  }, [config.outputMappings, sampleOutputData, sampleInputData]);
   
   // 功能对象列表
   const featureObjects: { value: FeatureObjectType; label: string }[] = [
@@ -56,6 +216,9 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
     { value: "query", label: "用户问题 (query)" },
     { value: "sources", label: "来源列表 (sources)" },
     { value: "files", label: "文件列表 (files)" },
+    { value: "history", label: "对话历史 (history)" },
+    { value: "summary", label: "历史摘要 (summary)" },
+    { value: "keyPhrases", label: "关键短语 (keyPhrases)" },
   ];
 
   // 可用的目标字段
@@ -499,6 +662,108 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
           </div>
         ) : currentWorkflowConfig ? (
           <>
+            <div className="grid gap-6 md:grid-cols-2 mb-8">
+              <div className="space-y-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-500" />
+                      <h3 className="text-sm font-semibold text-gray-900">示例对话上下文</h3>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">
+                    用于预览输入映射。可粘贴实际的 query/sources/files/history 等数据。
+                  </p>
+                  <textarea
+                    className="w-full h-48 font-mono text-xs bg-gray-50 border border-gray-200 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={sampleInputText}
+                    onChange={(event) => setSampleInputText(event.target.value)}
+                    spellCheck={false}
+                  />
+                  {sampleInputParsed.error && (
+                    <p className="mt-2 text-xs text-red-600">
+                      JSON 解析失败：{sampleInputParsed.error}
+                    </p>
+                  )}
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-500" />
+                      <h3 className="text-sm font-semibold text-gray-900">示例工作流输出</h3>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">
+                    用于预览输出映射。可粘贴一次真实执行的工作流返回结果。
+                  </p>
+                  <textarea
+                    className="w-full h-40 font-mono text-xs bg-gray-50 border border-gray-200 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={sampleOutputText}
+                    onChange={(event) => setSampleOutputText(event.target.value)}
+                    spellCheck={false}
+                  />
+                  {sampleOutputParsed.error && (
+                    <p className="mt-2 text-xs text-red-600">
+                      JSON 解析失败：{sampleOutputParsed.error}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="w-4 h-4 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">输入映射预览</h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">
+                    基于示例上下文实时计算映射结果。表达式错误会显示在下方。
+                  </p>
+                  <pre className="text-xs font-mono whitespace-pre-wrap bg-white border border-blue-100 rounded-md p-3 max-h-48 overflow-auto">
+                    {JSON.stringify(inputPreview.result, null, 2)}
+                  </pre>
+                  {Object.keys(inputPreview.errors).length > 0 && (
+                    <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
+                      <p className="text-xs font-semibold text-red-600 mb-2">表达式错误</p>
+                      <ul className="space-y-1 text-xs text-red-600">
+                        {Object.entries(inputPreview.errors).map(([field, message]) => (
+                          <li key={field}>
+                            <span className="font-medium">{field}</span>：{message}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border border-green-200 rounded-lg p-4 bg-green-50/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="w-4 h-4 text-green-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">输出映射预览</h3>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3">
+                    基于示例工作流输出计算提取结果，帮助验证表达式是否正确。
+                  </p>
+                  <pre className="text-xs font-mono whitespace-pre-wrap bg-white border border-green-100 rounded-md p-3 max-h-48 overflow-auto">
+                    {JSON.stringify(outputPreview.result, null, 2)}
+                  </pre>
+                  {Object.keys(outputPreview.errors).length > 0 && (
+                    <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
+                      <p className="text-xs font-semibold text-red-600 mb-2">表达式错误</p>
+                      <ul className="space-y-1 text-xs text-red-600">
+                        {Object.entries(outputPreview.errors).map(([field, message]) => (
+                          <li key={field}>
+                            <span className="font-medium">{field}</span>：{message}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* 输入字段映射 */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -682,8 +947,30 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
                               />
                               <p className="text-xs text-gray-500 mt-1">
-                                可用变量: query, sources, files
+                                可用变量: query, sources, files, history, summary, keyPhrases
                               </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {expressionSnippets.map((snippet) => (
+                                  <button
+                                    key={snippet.label}
+                                    type="button"
+                                    onClick={() => {
+                                      const current = mapping.expression || "";
+                                      const suggestion = snippet.value;
+                                      const newExpression = current
+                                        ? `${current}\n${suggestion}`
+                                        : suggestion;
+                                      updateInputMapping(mappingIndex, {
+                                        expression: newExpression,
+                                      });
+                                    }}
+                                    className="flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                                  >
+                                    <Sparkles className="w-3 h-3" />
+                                    {snippet.label}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">

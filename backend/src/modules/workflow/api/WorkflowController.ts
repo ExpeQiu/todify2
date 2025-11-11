@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { logger } from '@/shared/lib/logger';
 import { validateDTO } from '@/shared/lib/validator';
+import { createSuccessResponse, createErrorResponse } from '@/shared/types/api';
 
 import { ExecuteAiSearchSchema, ExecuteAiSearchDTO } from '../application/dto/executeAiSearch.dto';
 import { ExecuteAiSearchUseCase } from '../application/useCases/ExecuteAiSearch.usecase';
@@ -44,17 +45,12 @@ export class WorkflowController {
       const result = await this.executeAiSearchUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({
-          success: false,
-          error: result.error,
-        });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({
-        success: true,
-        data: result.value,
-        message: 'AI搜索完成',
-      });
+      res.json(createSuccessResponse(result.value, 'AI搜索完成'));
     } catch (error) {
       logger.error('AI 搜索接口执行失败', { error });
       next(error);
@@ -71,10 +67,12 @@ export class WorkflowController {
       const result = await this.executeTechPackageUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '技术包装完成' });
+      res.json(createSuccessResponse(result.value, '技术包装完成'));
     } catch (error) {
       logger.error('技术包装接口执行失败', { error });
       next(error);
@@ -91,10 +89,12 @@ export class WorkflowController {
       const result = await this.executeTechStrategyUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '技术策略完成' });
+      res.json(createSuccessResponse(result.value, '技术策略完成'));
     } catch (error) {
       logger.error('技术策略接口执行失败', { error });
       next(error);
@@ -111,10 +111,12 @@ export class WorkflowController {
       const result = await this.executeTechArticleUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '技术通稿完成' });
+      res.json(createSuccessResponse(result.value, '技术通稿完成'));
     } catch (error) {
       logger.error('技术通稿接口执行失败', { error });
       next(error);
@@ -131,10 +133,12 @@ export class WorkflowController {
       const result = await this.executeCoreDraftUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '核心稿件生成完成' });
+      res.json(createSuccessResponse(result.value, '核心稿件生成完成'));
     } catch (error) {
       logger.error('核心稿件接口执行失败', { error });
       next(error);
@@ -151,10 +155,12 @@ export class WorkflowController {
       const result = await this.executeSpeechUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '发布会稿生成完成' });
+      res.json(createSuccessResponse(result.value, '发布会稿生成完成'));
     } catch (error) {
       logger.error('发布会稿接口执行失败', { error });
       next(error);
@@ -171,10 +177,12 @@ export class WorkflowController {
       const result = await this.executeTechPublishUseCase.execute(dto);
 
       if (!result.success) {
-        return res.status(500).json({ success: false, error: result.error });
+        return res.status(500).json(
+          createErrorResponse(result.error.code, result.error.message, result.error.details)
+        );
       }
 
-      res.json({ success: true, data: result.value, message: '技术发布完成' });
+      res.json(createSuccessResponse(result.value, '技术发布完成'));
     } catch (error) {
       logger.error('技术发布接口执行失败', { error });
       next(error);

@@ -191,7 +191,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
         let result;
         
         // 如果提供了aiRole，优先使用AI角色服务
-        if (aiRole && aiRole.difyConfig.connectionType === 'chatflow') {
+        if (aiRole) {
           console.log('使用AI角色服务:', aiRole.name);
           const { aiRoleService } = await import('../../services/aiRoleService');
           
@@ -246,7 +246,7 @@ const SpeechNode: React.FC<SpeechNodeProps> = ({
           let responseText = '';
           
           // 检查是否使用了AI角色服务（简化格式）
-          if (aiRole && aiRole.difyConfig.connectionType === 'chatflow' && result.data.answer) {
+          if (aiRole && result.data.answer) {
             // AI角色服务返回的简化格式
             responseText = result.data.answer;
           } else if (typeof result.data === 'string') {

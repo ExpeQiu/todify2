@@ -10,11 +10,13 @@ import {
   ensureFieldMappingConfig,
   formatMessageRecord,
 } from '../utils/workflow';
+import { buildConversationContext } from '../utils/context';
 
 export interface SendMessageResult {
   userMessage: any;
   aiMessage?: any;
   error?: string;
+  errorDetail?: string;
 }
 
 export class SendMessageUseCase {
@@ -28,6 +30,8 @@ export class SendMessageUseCase {
     content: string;
     sources?: any[];
     files?: Express.Multer.File[];
+    contextWindowSize?: number;
+    workflowId?: string;
   }): Promise<Result<SendMessageResult>> {
     try {
       const userMessageRecord = await this.aiSearchService.sendMessage(
@@ -38,8 +42,11 @@ export class SendMessageUseCase {
         params.files || []
       );
 
+      const conversationRecord = await this.aiSearchService.getConversation(params.conversationId);
+
       try {
-        const finalWorkflowId = await resolveWorkflowId();
+        const requestedWorkflowId = params.workflowId;
+        const finalWorkflowId = requestedWorkflowId || await resolveWorkflowId();
 
         if (!finalWorkflowId) {
           return success({
@@ -51,13 +58,25 @@ export class SendMessageUseCase {
         const mappingConfig = await ensureFieldMappingConfig(this.fieldMappingService, finalWorkflowId);
 
         if (!mappingConfig) {
+          const message =
+            requestedWorkflowId && requestedWorkflowId === finalWorkflowId
+              ? `所选工作流(${finalWorkflowId})尚未配置字段映射`
+              : '尚未配置字段映射，请先完成字段映射配置';
           return success({
             userMessage: formatMessageRecord(userMessageRecord),
-            error: '尚未配置字段映射，请先完成字段映射配置',
+            error: message,
+            errorDetail: '请在字段映射配置中为该工作流完成输入输出映射',
           });
         }
 
-        const conversationData = this.buildConversationData(params, params.files);
+        const conversationData = this.buildConversationData({
+          conversation: conversationRecord,
+          content: params.content,
+          sources: params.sources,
+          files: params.files,
+          contextWindowSize: params.contextWindowSize,
+          workflowId: finalWorkflowId,
+        });
         const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 
         const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {
@@ -83,11 +102,12 @@ export class SendMessageUseCase {
           userMessage: formatMessageRecord(userMessageRecord),
           aiMessage: formatMessageRecord(aiMessageRecord),
         });
-      } catch (workflowError) {
+      } catch (workflowError: any) {
         logger.error('工作流执行失败', { workflowError });
         return success({
           userMessage: formatMessageRecord(userMessageRecord),
           error: '工作流执行失败，请稍后重试',
+          errorDetail: workflowError?.message || String(workflowError),
         });
       }
     } catch (error) {
@@ -102,19 +122,42 @@ export class SendMessageUseCase {
 
   private buildConversationData(
     params: {
+      conversation: any | null;
       content: string;
       sources?: any[];
-    },
-    files?: Express.Multer.File[]
+      files?: Express.Multer.File[];
+      contextWindowSize?: number;
+      workflowId?: string;
+    }
   ) {
+    const conversationSources = params.conversation?.sources || [];
+    const effectiveSources =
+      Array.isArray(params.sources) && params.sources.length > 0
+        ? params.sources
+        : conversationSources;
+    const context = buildConversationContext(params.conversation?.messages || [], {
+      historyLimit: params.contextWindowSize,
+    });
+
     return {
       query: params.content,
-      sources: params.sources || [],
-      files: files?.map((f) => ({
-        name: f.originalname,
-        url: `/uploads/ai-search/${f.filename}`,
-        type: f.mimetype,
-      })) || [],
+      summary: context.summary,
+      keyPhrases: context.keyPhrases,
+      sources: effectiveSources,
+      files:
+        params.files?.map((f) => ({
+          name: f.originalname,
+          url: `/uploads/ai-search/${f.filename}`,
+          type: f.mimetype,
+        })) || [],
+      conversationId: params.conversation?.id,
+      history: context.history,
+      historySize: context.historySize,
+      historyLimit: context.historyLimit,
+      metadata: {
+        contextGeneratedAt: new Date().toISOString(),
+        workflowId: params.workflowId,
+      },
     };
   }
 }

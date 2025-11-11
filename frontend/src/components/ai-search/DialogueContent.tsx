@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X } from "lucide-react";
+import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2 } from "lucide-react";
 import { Message, Source, Conversation } from "../../types/aiSearch";
 import { aiSearchService } from "../../services/aiSearchService";
 import MessageItem from "./MessageItem";
@@ -7,6 +7,12 @@ import MessageItem from "./MessageItem";
 interface DialogueContentProps {
   conversation: Conversation | null;
   sources: Source[];
+  contextWindowSize: number;
+  onContextWindowSizeChange?: (value: number) => void;
+  workflowId?: string | null;
+  hasMoreMessages?: boolean;
+  onLoadMoreMessages?: () => void;
+  isLoadingMore?: boolean;
   onMessageSent?: (message: Message) => void;
   onSaveToNotes?: (content: string) => void;
 }
@@ -14,6 +20,12 @@ interface DialogueContentProps {
 const DialogueContent: React.FC<DialogueContentProps> = ({
   conversation,
   sources,
+  contextWindowSize,
+  onContextWindowSizeChange,
+  workflowId,
+  hasMoreMessages,
+  onLoadMoreMessages,
+  isLoadingMore,
   onMessageSent,
   onSaveToNotes,
 }) => {
@@ -21,8 +33,11 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastSubmissionRef = useRef<{ content: string; files: File[] } | null>(null);
 
   // 同步对话消息
   useEffect(() => {
@@ -31,6 +46,8 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     } else {
       setMessages([]);
     }
+    setErrorMessage(null);
+    setErrorDetail(null);
   }, [conversation]);
 
   // 自动滚动到底部
@@ -38,21 +55,34 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!query.trim() && selectedFiles.length === 0) return;
+  const handleSend = async (override?: { content: string; files: File[] }) => {
+    const draftContent = override?.content ?? query.trim();
+    const draftFiles = override?.files ?? selectedFiles;
+
+    if (!draftContent && draftFiles.length === 0) return;
     if (!conversation) {
-      alert("请先创建对话");
+      setErrorMessage("请先创建对话");
       return;
     }
 
     setIsLoading(true);
+    setErrorMessage(null);
+    setErrorDetail(null);
 
     try {
+      const submission = {
+        content: draftContent || "已上传文件",
+        files: draftFiles,
+      };
+      lastSubmissionRef.current = submission;
+
       // 发送消息
       const response = await aiSearchService.sendMessage(conversation.id, {
-        content: query.trim() || "已上传文件",
+        content: submission.content,
         sources: sources,
-        files: selectedFiles,
+        files: submission.files,
+        contextWindowSize,
+        workflowId: workflowId || undefined,
       });
 
       // 更新消息列表
@@ -72,15 +102,23 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         setMessages(newMessages);
       }
 
+      if (response.error) {
+        setErrorMessage(response.error);
+        setErrorDetail(response.errorDetail || null);
+      }
+
       // 清空输入和文件
-      setQuery("");
+      if (!override) {
+        setQuery("");
+      }
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("发送消息失败:", error);
-      alert("发送消息失败，请稍后重试");
+      setErrorMessage(error?.response?.data?.error || "发送消息失败，请稍后重试");
+      setErrorDetail(error?.message || null);
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +167,24 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           </div>
         ) : (
           <div>
+            {hasMoreMessages && (
+              <div className="mb-4 flex items-center justify-center">
+                <button
+                  onClick={() => onLoadMoreMessages?.()}
+                  disabled={isLoadingMore || !onLoadMoreMessages}
+                  className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 shadow-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      加载中…
+                    </>
+                  ) : (
+                    "加载更多历史"
+                  )}
+                </button>
+              </div>
+            )}
             {messages.map((message) => (
               <MessageItem
                 key={message.id}
@@ -166,6 +222,37 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
 
       {/* 输入区域 */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
+        {errorMessage && (
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <p className="font-medium text-red-700">{errorMessage}</p>
+                  {lastSubmissionRef.current && !isLoading && (
+                    <button
+                      onClick={() => {
+                        if (!conversation || !lastSubmissionRef.current) {
+                          return;
+                        }
+                        setQuery(lastSubmissionRef.current.content === "已上传文件" ? "" : lastSubmissionRef.current.content);
+                        handleSend(lastSubmissionRef.current);
+                      }}
+                      className="flex items-center gap-1 rounded border border-red-200 px-2 py-1 text-xs text-red-600 transition-colors hover:bg-red-100"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      重试
+                    </button>
+                  )}
+                </div>
+                {errorDetail && (
+                  <p className="mt-1 text-xs text-red-600/80 break-words">{errorDetail}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 已选择的文件 */}
         {selectedFiles.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
@@ -224,13 +311,28 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
               className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               disabled={isLoading}
             />
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-gray-500">
-                {sources.length}个来源
-              </span>
-              <span className="text-xs text-gray-400">
-                Enter发送，Shift+Enter换行
-              </span>
+            <div className="mt-1 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>{sources.length}个来源</span>
+                <label className="flex items-center gap-1">
+                  <span>上下文窗口:</span>
+                  <select
+                    value={contextWindowSize}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      onContextWindowSizeChange?.(value);
+                    }}
+                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    disabled={isLoading}
+                  >
+                    <option value={5}>最近5条</option>
+                    <option value={10}>最近10条</option>
+                    <option value={20}>最近20条</option>
+                    <option value={0}>全部历史</option>
+                  </select>
+                </label>
+              </div>
+              <span className="text-xs text-gray-400">Enter发送，Shift+Enter换行</span>
             </div>
           </div>
 

@@ -14,5 +14,7 @@ export interface ConversationDetailView {
   messages: MessageView[];
   createdAt: Date;
   updatedAt: Date;
+  hasMoreMessages?: boolean;
+  nextCursor?: string;
 }
 

@@ -290,6 +290,9 @@ const ConfigPage: React.FC = () => {
                 <div>
                   <h2>Dify接口配置管理</h2>
                   <p>管理所有Dify API端点的配置信息，支持独立配置每个接口的API密钥和设置</p>
+                  <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+                    前端所有调用均已通过后端 Dify 网关统一转发，此处配置主要用于记录和后台同步，如需更改实际网关配置请联系后端团队。
+                  </div>
                 </div>
                 <div className="header-actions">
                   <div className="preset-configs">

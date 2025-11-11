@@ -5,6 +5,21 @@ export const TriggerAgentSchema = z.object({
   messageId: z.string().optional(),
   content: z.string().optional(),
   sources: z.array(z.any()).optional(),
+  contextWindowSize: z
+    .number()
+    .or(z.string())
+    .optional()
+    .transform((value) => {
+      if (value === undefined) {
+        return undefined;
+      }
+      const numericValue = typeof value === 'string' ? parseInt(value, 10) : value;
+      if (Number.isNaN(numericValue)) {
+        return undefined;
+      }
+      return Math.max(-1, numericValue);
+    }),
+  workflowId: z.string().min(1).optional(),
 });
 
 export type TriggerAgentDTO = z.infer<typeof TriggerAgentSchema>;

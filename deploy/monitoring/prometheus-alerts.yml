@@ -1,0 +1,96 @@
+groups:
+  - name: todify2_alerts
+    interval: 30s
+    rules:
+      # HTTP 错误率告警
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_request_errors_total[5m])) by (route, method)
+            /
+            sum(rate(http_requests_total[5m])) by (route, method)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: todify2-backend
+        annotations:
+          summary: "HTTP 错误率过高"
+          description: "路由 {{ $labels.route }} ({{ $labels.method }}) 的错误率超过 5%，当前值: {{ $value | humanizePercentage }}"
+
+      # HTTP 响应时间告警
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: todify2-backend
+        annotations:
+          summary: "HTTP 响应时间过长"
+          description: "路由 {{ $labels.route }} ({{ $labels.method }}) 的 P95 响应时间超过 2 秒，当前值: {{ $value }}s"
+
+      # 内存使用告警
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            process_memory_usage_bytes{type="heap_used"}
+            /
+            process_memory_usage_bytes{type="heap_total"}
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: todify2-backend
+        annotations:
+          summary: "内存使用率过高"
+          description: "堆内存使用率超过 90%，当前值: {{ $value | humanizePercentage }}"
+
+      # 活跃连接数告警
+      - alert: HighActiveConnections
+        expr: http_active_connections > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: todify2-backend
+        annotations:
+          summary: "活跃连接数过高"
+          description: "当前活跃连接数: {{ $value }}，超过阈值 1000"
+
+      # 服务不可用告警
+      - alert: ServiceDown
+        expr: up{job="todify-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: todify2-backend
+        annotations:
+          summary: "服务不可用"
+          description: "Todify2 后端服务已下线超过 1 分钟"
+
+      # 请求率异常低告警
+      - alert: LowRequestRate
+        expr: |
+          sum(rate(http_requests_total[5m])) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: todify2-backend
+        annotations:
+          summary: "请求率异常低"
+          description: "过去 10 分钟内平均请求率低于 0.1 req/s，可能表示服务异常或流量异常"
+
+      # 事件循环延迟告警
+      - alert: HighEventLoopLag
+        expr: |
+          rate(nodejs_eventloop_lag_seconds[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: todify2-backend
+        annotations:
+          summary: "事件循环延迟过高"
+          description: "Node.js 事件循环延迟超过 0.5 秒，当前值: {{ $value }}s"
+

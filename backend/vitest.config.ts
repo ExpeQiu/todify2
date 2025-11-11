@@ -7,8 +7,26 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+        '**/index.ts',
+        '**/types.ts',
+        '**/config/**',
+      ],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
     },
+    include: ['**/*.test.ts', '**/*.spec.ts'],
+    testTimeout: 10000,
   },
   plugins: [tsconfigPaths()],
   resolve: {

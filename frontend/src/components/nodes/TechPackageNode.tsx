@@ -188,7 +188,7 @@ console.log("代码块测试");
       let response;
       
       // 如果提供了aiRole，优先使用AI角色服务
-      if (aiRole && aiRole.difyConfig.connectionType === 'chatflow') {
+      if (aiRole) {
         console.log('使用AI角色服务:', aiRole.name);
         const { aiRoleService } = await import('../../services/aiRoleService');
         

@@ -547,12 +547,12 @@ const AIRoleManagementPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-[15px] md:text-base leading-relaxed">
       <TopNavigation />
       
       {/* 消息提示 */}
       {message && (
-        <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+        <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-5 py-3.5 rounded-xl shadow-lg flex items-center gap-3 text-base font-medium ${
           message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
         }`}>
           {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
@@ -560,30 +560,30 @@ const AIRoleManagementPage: React.FC = () => {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto px-4 py-10">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-800">AI角色管理</h1>
-            <p className="text-gray-600 mt-1">创建和管理您的AI对话角色</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">AI角色管理</h1>
+            <p className="text-gray-700 mt-2 text-lg">创建和管理您的AI对话角色</p>
             {/* 快速导航 */}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-3 mt-4 flex-wrap text-base md:text-lg">
               <a
                 href="/agent-workflow"
-                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
               >
                 → 管理工作流
               </a>
               <span className="text-gray-300">|</span>
               <a
                 href="/ai-chat-multi"
-                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
               >
                 → 多窗口对话
               </a>
               <span className="text-gray-300">|</span>
               <a
                 href="/public-page-configs"
-                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
               >
                 → 公开页面配置
               </a>
@@ -592,14 +592,14 @@ const AIRoleManagementPage: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* 后端连接状态指示 */}
             {migrationStatus && migrationStatus.backendAvailable === false && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg text-sm">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg text-base font-medium">
                 <AlertCircle size={16} />
                 <span>后端未连接</span>
               </div>
             )}
             {migrationStatus && migrationStatus.backendAvailable === true && roles.length > 0 && (
               <>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-sm">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-base font-medium">
                   <CheckCircle size={16} />
                   <span>已连接 ({roles.length}个角色)</span>
                 </div>
@@ -607,7 +607,7 @@ const AIRoleManagementPage: React.FC = () => {
                   <button
                     onClick={handleRemoveDuplicates}
                     disabled={removingDuplicates}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     title={`发现 ${duplicateInfo.totalDuplicates} 个重复角色`}
                   >
                     {removingDuplicates ? (
@@ -629,7 +629,7 @@ const AIRoleManagementPage: React.FC = () => {
               <button
                 onClick={handleMigrate}
                 disabled={migrating || !migrationStatus.backendAvailable}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 title={!migrationStatus.backendAvailable ? '请先启动后端服务器' : ''}
               >
                 {migrating ? (
@@ -651,7 +651,7 @@ const AIRoleManagementPage: React.FC = () => {
                 setIsEditing(false);
                 setSelectedRole(null);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base"
             >
               <Plus size={20} />
               <span>新建角色</span>
@@ -669,13 +669,13 @@ const AIRoleManagementPage: React.FC = () => {
                   已创建的角色
                 </h2>
               </div>
-              <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+              <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto text-base">
                 {roles.length === 0 && (!localStorageConfigs || (localStorageConfigs.smartWorkflowConfigs.length === 0 && localStorageConfigs.independentPageConfigs.length === 0)) ? (
-                  <div className="p-6 text-center text-gray-500">
+                  <div className="p-6 text-center text-gray-500 text-base">
                     <Bot size={48} className="mx-auto mb-2 opacity-50" />
                     <p>暂无AI角色，点击上方按钮创建</p>
                     {migrationStatus && migrationStatus.backendAvailable === false && (
-                      <p className="text-xs text-yellow-600 mt-2">
+                      <p className="text-sm text-yellow-600 mt-2">
                         {migrationStatus.errorMessage || '后端服务未连接'}
                       </p>
                     )}
@@ -684,21 +684,21 @@ const AIRoleManagementPage: React.FC = () => {
                   <>
                     {/* 显示localStorage中的待迁移配置 */}
                     {localStorageConfigs && (localStorageConfigs.smartWorkflowConfigs.length > 0 || localStorageConfigs.independentPageConfigs.length > 0) && migrationStatus && !migrationStatus.backendAvailable && (
-                      <div className="p-4 bg-yellow-50 border-b-2 border-yellow-200">
+                      <div className="p-4 bg-yellow-50 border-b-2 border-yellow-200 text-base">
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle size={16} className="text-yellow-600" />
-                          <span className="text-sm font-semibold text-yellow-800">
+                          <span className="font-semibold text-yellow-800">
                             待迁移配置（localStorage）
                           </span>
                         </div>
-                        <div className="space-y-2 text-xs text-yellow-700">
+                        <div className="space-y-1 text-sm text-yellow-700 leading-relaxed">
                           {localStorageConfigs.smartWorkflowConfigs.length > 0 && (
                             <div>智能工作流配置: {localStorageConfigs.smartWorkflowConfigs.length}个</div>
                           )}
                           {localStorageConfigs.independentPageConfigs.length > 0 && (
                             <div>独立页面配置: {localStorageConfigs.independentPageConfigs.length}个</div>
                           )}
-                          <div className="text-yellow-600 mt-2">
+                          <div className="text-yellow-600 mt-3">
                             启动后端服务器后可以迁移这些配置
                           </div>
                         </div>
@@ -730,9 +730,11 @@ const AIRoleManagementPage: React.FC = () => {
                             )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-gray-800 truncate">{role.name}</h3>
+                                <h3 className="font-semibold text-gray-800 truncate text-lg">
+                                  {role.name}
+                                </h3>
                                 {role.source && (
-                                  <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${
+                                  <span className={`text-sm px-2 py-0.5 rounded flex-shrink-0 ${
                                     role.source === 'smart-workflow' 
                                       ? 'bg-blue-100 text-blue-700' 
                                       : role.source === 'independent-page'
@@ -744,12 +746,12 @@ const AIRoleManagementPage: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                              <p className="text-base text-gray-600 mt-2 line-clamp-2">
                                 {role.description}
                               </p>
                               <div className="flex items-center gap-2 mt-2 flex-wrap">
                                 <span
-                                  className={`text-xs px-2 py-0.5 rounded ${
+                                  className={`text-sm px-2 py-0.5 rounded ${
                                     role.enabled
                                       ? 'bg-green-100 text-green-800'
                                       : 'bg-gray-100 text-gray-600'
@@ -757,7 +759,7 @@ const AIRoleManagementPage: React.FC = () => {
                                 >
                                   {role.enabled ? '启用' : '禁用'}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-sm text-gray-500">
                                   {role.difyConfig.connectionType}
                                 </span>
                                 {/* 使用情况徽章 */}
@@ -765,7 +767,7 @@ const AIRoleManagementPage: React.FC = () => {
                                   const usage = roleUsages.get(role.id)!;
                                   if (usage.totalUsageCount > 0) {
                                     return (
-                                      <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 flex items-center gap-1">
+                                      <span className="text-sm px-2 py-0.5 rounded bg-purple-100 text-purple-700 flex items-center gap-1">
                                         <FileText size={12} />
                                         {usage.totalUsageCount}处使用
                                       </span>
@@ -823,16 +825,16 @@ const AIRoleManagementPage: React.FC = () => {
                 {selectedRole && !isEditing && roleUsages.has(selectedRole.id) && (() => {
                   const usage = roleUsages.get(selectedRole.id)!;
                   return (
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-5 border border-purple-200">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <FileText size={20} className="text-purple-600" />
                         使用情况
                       </h3>
                       {usage.totalUsageCount === 0 ? (
-                        <p className="text-gray-600 text-sm">此角色未在任何功能页面中使用</p>
+                        <p className="text-gray-700 text-base">此角色未在任何功能页面中使用</p>
                       ) : (
                         <div className="space-y-2">
-                          <p className="text-sm text-gray-700 mb-3">
+                          <p className="text-base text-gray-700 mb-3">
                             此角色在 <span className="font-semibold text-purple-700">{usage.totalUsageCount}</span> 个位置使用：
                           </p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -853,18 +855,18 @@ const AIRoleManagementPage: React.FC = () => {
                                       <MessageCircle size={16} className="text-purple-600 mt-0.5" />
                                     )}
                                     <div className="flex-1">
-                                      <div className="font-medium text-gray-800 text-sm">
+                                    <div className="font-semibold text-gray-800 text-base">
                                         {location.name}
                                       </div>
                                       {location.description && (
-                                        <div className="text-xs text-gray-600 mt-0.5">
+                                      <div className="text-sm text-gray-600 mt-1">
                                           {location.description}
                                         </div>
                                       )}
                                       {location.path && (
                                         <button
                                           onClick={() => navigate(location.path!)}
-                                          className="text-xs text-blue-600 hover:text-blue-800 mt-1 flex items-center gap-1"
+                                        className="text-sm text-blue-600 hover:text-blue-800 mt-2 flex items-center gap-1 font-medium"
                                         >
                                           前往页面
                                           <ExternalLink size={12} />
@@ -884,10 +886,10 @@ const AIRoleManagementPage: React.FC = () => {
 
                 {/* 基本信息 */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">基本信息</h3>
+                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">基本信息</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         角色名称
                       </label>
                       <input
@@ -895,12 +897,12 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.name || ''}
                         onChange={(e) => updateFormField('name', e.target.value)}
                         placeholder="例如：AI技术顾问"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         角色描述
                       </label>
                       <textarea
@@ -908,12 +910,12 @@ const AIRoleManagementPage: React.FC = () => {
                         onChange={(e) => updateFormField('description', e.target.value)}
                         placeholder="描述这个AI角色的用途和特点"
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         头像URL（可选）
                       </label>
                       <input
@@ -921,7 +923,7 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.avatar || ''}
                         onChange={(e) => updateFormField('avatar', e.target.value)}
                         placeholder="https://example.com/avatar.png"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -929,10 +931,13 @@ const AIRoleManagementPage: React.FC = () => {
 
                 {/* Dify配置 */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Dify配置</h3>
+                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">Dify配置</h3>
+                  <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-base text-blue-800 leading-relaxed">
+                    所有 AI 调用已通过后端的 Dify 网关统一处理，此处配置仅用于后台同步记录，请勿填写外部服务的真实凭据。
+                  </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         API地址
                       </label>
                       <input
@@ -940,12 +945,12 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.difyConfig?.apiUrl || ''}
                         onChange={(e) => updateFormField('difyConfig.apiUrl', e.target.value)}
                         placeholder="/api/dify/chat-messages"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         API密钥
                       </label>
                       <div className="relative">
@@ -954,7 +959,7 @@ const AIRoleManagementPage: React.FC = () => {
                           value={formData.difyConfig?.apiKey || ''}
                           onChange={(e) => updateFormField('difyConfig.apiKey', e.target.value)}
                           placeholder="app-xxxxxxxxxx"
-                          className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-2 pr-10 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
                           onClick={() => setShowApiKey(!showApiKey)}
@@ -966,13 +971,13 @@ const AIRoleManagementPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-medium text-gray-700 mb-2">
                         连接类型
                       </label>
                       <select
                         value={formData.difyConfig?.connectionType || 'chatflow'}
                         onChange={(e) => updateFormField('difyConfig.connectionType', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="chatflow">Chatflow（聊天流）</option>
                         <option value="workflow">Workflow（工作流）</option>
@@ -984,13 +989,13 @@ const AIRoleManagementPage: React.FC = () => {
                 {/* 输入字段配置 */}
                 {(formData.difyConfig?.connectionType === 'workflow' || formData.difyConfig?.connectionType === 'chatflow') && (
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">
+                    <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                      <h3 className="text-2xl font-semibold text-gray-800">
                         {formData.difyConfig?.connectionType === 'workflow' ? 'Dify工作流输入字段' : 'Dify聊天流输入字段'}
                       </h3>
                       <button
                         onClick={addInputField}
-                        className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-base"
                       >
                         <PlusCircle size={18} />
                         添加字段
@@ -1001,7 +1006,7 @@ const AIRoleManagementPage: React.FC = () => {
                         formData.difyConfig.inputFields.map((field, index) => (
                           <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                             <div className="flex items-center justify-between mb-3">
-                              <span className="text-sm font-medium text-gray-700">字段 #{index + 1}</span>
+                              <span className="text-base font-medium text-gray-700">字段 #{index + 1}</span>
                               <button
                                 onClick={() => removeInputField(index)}
                                 className="text-red-600 hover:text-red-700 transition-colors"
@@ -1011,7 +1016,7 @@ const AIRoleManagementPage: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
                                   变量名 *
                                 </label>
                                 <input
@@ -1019,11 +1024,11 @@ const AIRoleManagementPage: React.FC = () => {
                                   value={field.variable}
                                   onChange={(e) => updateInputField(index, { variable: e.target.value })}
                                   placeholder="例如：Additional_information"
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
                                   字段标签 *
                                 </label>
                                 <input
@@ -1031,17 +1036,17 @@ const AIRoleManagementPage: React.FC = () => {
                                   value={field.label}
                                   onChange={(e) => updateInputField(index, { label: e.target.value })}
                                   placeholder="例如：补充信息"
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
                                   字段类型 *
                                 </label>
                                 <select
                                   value={field.type}
                                   onChange={(e) => updateInputField(index, { type: e.target.value as DifyInputField['type'] })}
-                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                   <option value="text">文本 (text)</option>
                                   <option value="paragraph">段落 (paragraph)</option>
@@ -1057,14 +1062,14 @@ const AIRoleManagementPage: React.FC = () => {
                                   onChange={(e) => updateInputField(index, { required: e.target.checked })}
                                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                 />
-                                <label className="ml-2 text-xs text-gray-600">必填</label>
+                                <label className="ml-2 text-sm text-gray-600">必填</label>
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4 mt-3">
                               {['paragraph', 'text'].includes(field.type) && (
                                 <>
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                       最大长度
                                     </label>
                                     <input
@@ -1072,11 +1077,11 @@ const AIRoleManagementPage: React.FC = () => {
                                       value={field.maxLength || ''}
                                       onChange={(e) => updateInputField(index, { maxLength: parseInt(e.target.value) || undefined })}
                                       placeholder="例如：5000"
-                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                       占位符
                                     </label>
                                     <input
@@ -1084,7 +1089,7 @@ const AIRoleManagementPage: React.FC = () => {
                                       value={field.placeholder || ''}
                                       onChange={(e) => updateInputField(index, { placeholder: e.target.value })}
                                       placeholder="占位符文本"
-                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                   </div>
                                 </>
@@ -1092,7 +1097,7 @@ const AIRoleManagementPage: React.FC = () => {
                               {field.type === 'file-list' && (
                                 <>
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                       最大文件数
                                     </label>
                                     <input
@@ -1100,11 +1105,11 @@ const AIRoleManagementPage: React.FC = () => {
                                       value={field.maxFiles || ''}
                                       onChange={(e) => updateInputField(index, { maxFiles: parseInt(e.target.value) || undefined })}
                                       placeholder="例如：5"
-                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                       允许的文件类型
                                     </label>
                                     <input
@@ -1112,14 +1117,14 @@ const AIRoleManagementPage: React.FC = () => {
                                       value={field.allowedFileTypes?.join(', ') || ''}
                                       onChange={(e) => updateInputField(index, { allowedFileTypes: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                                       placeholder="例如：image, document"
-                                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                   </div>
                                 </>
                               )}
                             </div>
                             <div className="mt-3">
-                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
                                 提示信息
                               </label>
                               <input
@@ -1127,13 +1132,13 @@ const AIRoleManagementPage: React.FC = () => {
                                 value={field.hint || ''}
                                 onChange={(e) => updateInputField(index, { hint: e.target.value })}
                                 placeholder="字段的说明或提示"
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                           </div>
                         ))
                       ) : (
-                        <div className="text-center py-8 text-gray-500 text-sm">
+                        <div className="text-center py-8 text-gray-600 text-base">
                           暂无输入字段，点击上方按钮添加
                         </div>
                       )}
@@ -1142,22 +1147,22 @@ const AIRoleManagementPage: React.FC = () => {
                 )}
 
                 {/* 状态和操作 */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between pt-6 border-t border-gray-200 flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       checked={formData.enabled || false}
                       onChange={(e) => updateFormField('enabled', e.target.checked)}
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
-                    <label className="text-sm font-medium text-gray-700">启用此角色</label>
+                    <label className="text-base font-medium text-gray-700">启用此角色</label>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {selectedRole && (
                       <button
                         onClick={testConnection}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-base font-medium"
                       >
                         <TestTube size={18} />
                         测试连接
@@ -1166,7 +1171,7 @@ const AIRoleManagementPage: React.FC = () => {
                     <button
                       onClick={saveRole}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {saving ? (
                         <>
@@ -1192,7 +1197,7 @@ const AIRoleManagementPage: React.FC = () => {
                         : 'bg-red-50 text-red-800'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-base font-medium">
                       {testResults[selectedRole.id].success ? (
                         <CheckCircle size={20} />
                       ) : (

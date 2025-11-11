@@ -1,6 +1,7 @@
 import React from "react";
-import { Bot, User, Copy, Save, Check, File } from "lucide-react";
+import { Bot, User, Copy, Save, Check, File, FileText, LayoutGrid } from "lucide-react";
 import { Message } from "../../types/aiSearch";
+import StructuredContentView from "./result-renderers/StructuredContentView";
 
 interface MessageItemProps {
   message: Message;
@@ -26,6 +27,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
 }) => {
   const [copied, setCopied] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<"text" | "structured">("text");
 
   const handleCopy = async () => {
     try {
@@ -70,6 +72,78 @@ const MessageItem: React.FC<MessageItemProps> = ({
   const featureType = message.outputs?.metadata?.featureType;
   const featureLabel = featureType ? FEATURE_LABEL_MAP[featureType] || featureType : null;
   const triggeredAt = message.outputs?.metadata?.triggeredAt;
+  const structuredContent = React.useMemo(() => {
+    const outputs = message.outputs;
+    if (!outputs) return null;
+
+    if (outputs.structured) {
+      return outputs.structured;
+    }
+
+    if (outputs.metadata?.structuredResult) {
+      return outputs.metadata.structuredResult;
+    }
+
+    const rawContent = outputs.content;
+    const parseJson = (value: string) => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    };
+
+    if (rawContent && typeof rawContent === "object") {
+      return rawContent;
+    }
+
+    if (typeof rawContent === "string") {
+      const trimmed = rawContent.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      if (
+        (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+        (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      ) {
+        const parsed = parseJson(trimmed);
+        if (parsed) {
+          return parsed;
+        }
+      }
+
+      const lines = trimmed.split("\n").map((line) => line.trim()).filter(Boolean);
+      if (lines.length > 1) {
+        if (lines.every((line) => /^[-*•]/.test(line))) {
+          return lines.map((line) => line.replace(/^[-*•]\s*/, ""));
+        }
+        if (lines.every((line) => /^\d+\./.test(line))) {
+          return lines.map((line) => line.replace(/^\d+\.\s*/, ""));
+        }
+
+        const keyValuePairs = lines
+          .map((line) => line.match(/^(.*?)[：:]\s*(.*)$/))
+          .filter(Boolean) as RegExpMatchArray[];
+        if (keyValuePairs.length >= lines.length * 0.6) {
+          return keyValuePairs.reduce<Record<string, string>>((acc, match) => {
+            acc[match[1].trim()] = match[2].trim();
+            return acc;
+          }, {});
+        }
+      }
+    }
+
+    return null;
+  }, [message.outputs]);
+
+  React.useEffect(() => {
+    if (structuredContent) {
+      setViewMode("structured");
+    } else {
+      setViewMode("text");
+    }
+  }, [structuredContent, message.id]);
 
   return (
     <div className={`flex gap-4 mb-6 ${isUser ? "flex-row-reverse" : ""}`}>
@@ -97,9 +171,42 @@ const MessageItem: React.FC<MessageItemProps> = ({
           }`}
           style={{ maxWidth: "80%" }}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </p>
+          {viewMode === "structured" && structuredContent ? (
+            <div className="space-y-3">
+              <StructuredContentView data={structuredContent} title={featureLabel || "结构化结果"} />
+            </div>
+          ) : (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </p>
+          )}
+
+          {!isUser && structuredContent && (
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={() => setViewMode("text")}
+                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                  viewMode === "text"
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                }`}
+              >
+                <FileText className="w-3 h-3" />
+                文本
+              </button>
+              <button
+                onClick={() => setViewMode("structured")}
+                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${
+                  viewMode === "structured"
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                }`}
+              >
+                <LayoutGrid className="w-3 h-3" />
+                结构化
+              </button>
+            </div>
+          )}
 
           {!isUser && featureLabel && (
             <div className="mt-3 flex items-center gap-2 text-xs text-blue-600">

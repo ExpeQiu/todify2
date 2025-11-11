@@ -9,9 +9,10 @@ export interface Message {
   content: string;
   sources?: Source[];
   outputs?: {
-    content?: string;
+    content?: any;
     files?: any[];
     metadata?: any;
+    structured?: any;
     [key: string]: any;
   };
   createdAt: Date;
@@ -27,6 +28,8 @@ export interface Conversation {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+  hasMoreMessages?: boolean;
+  nextCursor?: string;
 }
 
 /**
@@ -98,6 +101,15 @@ export interface SendMessageRequest {
   content: string;
   sources?: Source[];
   files?: File[];
+  contextWindowSize?: number;
+  workflowId?: string;
+}
+
+export interface SendMessageResponse {
+  userMessage: Message;
+  aiMessage?: Message;
+  error?: string;
+  errorDetail?: string;
 }
 
 /**

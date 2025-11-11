@@ -275,11 +275,39 @@ class AiSearchService {
   /**
    * 获取对话详情
    */
-  async getConversation(id: string): Promise<Conversation | null> {
+  async getConversation(
+    id: string,
+    options?: {
+      limit?: number;
+      before?: string;
+    }
+  ): Promise<Conversation | null> {
     try {
-      const response = await api.get(`/ai-search/conversations/${id}`);
+      const params = new URLSearchParams();
+      if (options?.limit) {
+        params.set('limit', String(options.limit));
+      }
+      if (options?.before) {
+        params.set('before', options.before);
+      }
+
+      const query = params.toString();
+      const response = await api.get(
+        `/ai-search/conversations/${id}${query ? `?${query}` : ''}`
+      );
       if (response.data.success && response.data.data) {
-        return response.data.data;
+        const payload = response.data.data;
+        return {
+          ...payload,
+          messages: (payload.messages || []).map((message: any) => ({
+            ...message,
+            createdAt: message.createdAt ? new Date(message.createdAt) : new Date(),
+          })),
+          createdAt: payload.createdAt ? new Date(payload.createdAt) : new Date(),
+          updatedAt: payload.updatedAt ? new Date(payload.updatedAt) : new Date(),
+          hasMoreMessages: Boolean(payload.hasMoreMessages),
+          nextCursor: payload.nextCursor || undefined,
+        };
       }
       return null;
     } catch (error) {
@@ -294,7 +322,7 @@ class AiSearchService {
   async sendMessage(
     conversationId: string,
     request: SendMessageRequest
-  ): Promise<{ userMessage: Message; aiMessage: Message }> {
+  ): Promise<{ userMessage: Message; aiMessage?: Message; error?: string; errorDetail?: string }> {
     try {
       const formData = new FormData();
       formData.append('content', request.content);
@@ -305,6 +333,12 @@ class AiSearchService {
         request.files.forEach((file) => {
           formData.append('files', file);
         });
+      }
+      if (request.workflowId) {
+        formData.append('workflowId', request.workflowId);
+      }
+      if (typeof request.contextWindowSize === 'number') {
+        formData.append('contextWindowSize', String(request.contextWindowSize));
       }
 
       const response = await api.post(
@@ -318,10 +352,14 @@ class AiSearchService {
       );
 
       if (response.data.success && response.data.data) {
-        return {
+        const payload = response.data.data;
+        const normalized = {
           userMessage: this.normalizeMessage(response.data.data.userMessage),
-          aiMessage: this.normalizeMessage(response.data.data.aiMessage),
+          aiMessage: payload.aiMessage ? this.normalizeMessage(payload.aiMessage) : undefined,
+          error: payload.error,
+          errorDetail: payload.errorDetail,
         };
+        return normalized;
       }
       throw new Error(response.data.error || '发送消息失败');
     } catch (error) {
@@ -332,7 +370,14 @@ class AiSearchService {
 
   async triggerFeatureAgent(
     conversationId: string,
-    payload: { featureType: string; messageId?: string; content?: string; sources?: Source[] }
+    payload: {
+      featureType: string;
+      messageId?: string;
+      content?: string;
+      sources?: Source[];
+      contextWindowSize?: number;
+      workflowId?: string;
+    }
   ): Promise<{ message: Message } | null> {
     try {
       const response = await api.post(

@@ -7,15 +7,27 @@ import difyProxyRoutes from './routes/dify-proxy';
 import { testConnection } from './config/database';
 import { publicPageConfigModel, aiRoleModel } from './models';
 import { logger } from './shared/lib/logger';
+import { errorTracking } from './shared/infrastructure/monitoring/errorTracking';
+import { performanceMonitor } from './shared/infrastructure/monitoring/performanceMonitor';
+import { prometheusMetrics } from './shared/infrastructure/monitoring/prometheusMetrics';
 
 dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT) || 3003;
 
+// 初始化错误追踪
+errorTracking.init();
+
 // 中间件
 app.use(cors());
 app.use(express.json());
+
+// 性能监控中间件（放在最前面）
+app.use(performanceMonitor.middleware());
+
+// Prometheus 指标中间件（放在性能监控之后）
+app.use(prometheusMetrics.middleware());
 
 // 添加请求日志中间件（放在最前面，但要在路由之前）
 app.use((req, res, next) => {
@@ -75,6 +87,9 @@ app.get('/api/v1/public/:token', async (req, res) => {
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
     logger.error('获取公开配置失败', { error });
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
+      context: { metadata: { token: req.params.token } },
+    });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -121,6 +136,9 @@ app.get('/api/v1/public-by-address/:address', async (req, res) => {
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
     logger.error('获取公开配置失败', { error });
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
+      context: { metadata: { address: req.params.address } },
+    });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -164,6 +182,9 @@ app.get('/api/v1/public-config/:configId', async (req, res) => {
     res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
   } catch (error) {
     logger.error('获取公开配置失败', { error });
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
+      context: { metadata: { configId: req.params.configId } },
+    });
     res.status(500).json({
       success: false,
       message: '获取公开配置失败',
@@ -179,8 +200,41 @@ app.get('/api/health', (req, res) => {
     message: 'Todify2 Backend API',
     version: '1.0.0',
     status: 'running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
+});
+
+// 性能监控 API
+app.get('/api/v1/monitoring/performance', (req, res) => {
+  try {
+    const stats = performanceMonitor.getStats();
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)));
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '获取性能统计失败',
+      },
+    });
+  }
+});
+
+// Prometheus 指标端点
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    const metrics = await prometheusMetrics.getMetrics();
+    res.send(metrics);
+  } catch (error) {
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)));
+    res.status(500).send('# Error generating metrics\n');
+  }
 });
 
 // 生产环境静态文件服务：直接从 frontend/dist 提供资源
@@ -203,6 +257,16 @@ if (!isDev) {
 
 // 全局错误处理中间件
 app.use((err: any, req: any, res: any, next: any) => {
+    errorTracking.captureException(err instanceof Error ? err : new Error(String(err)), {
+      context: {
+        metadata: {
+          method: req.method,
+          path: req.path,
+          body: req.body,
+        },
+      },
+    });
+
   logger.error('全局错误处理', {
     error: err,
     stack: err?.stack,
@@ -214,7 +278,7 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).json({
     success: false,
     message: 'Internal server error',
-    error: err.message || 'Unknown error'
+    error: process.env.NODE_ENV === 'production' ? '服务器内部错误' : (err.message || 'Unknown error')
   });
 });
 
@@ -285,6 +349,9 @@ async function startServer() {
 
     return server;
   } catch (error) {
+    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
+      level: 'fatal',
+    });
     logger.error('Failed to start server', { error });
     process.exit(1);
   }
