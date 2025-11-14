@@ -16,6 +16,7 @@ interface SourceSidebarProps {
   selectedSources?: string[];
   onSourcesChange?: (sources: Source[]) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
+  pageType?: 'tech-package' | 'press-release';
 }
 
 const SourceSidebar: React.FC<SourceSidebarProps> = ({
@@ -23,6 +24,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   selectedSources = [],
   onSourcesChange,
   onSelectionChange,
+  pageType,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
@@ -180,6 +182,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <AddSourceModal
           onClose={() => setShowAddModal(false)}
           onAddExternalSource={handleAddExternalSource}
+          pageType={pageType}
         />
       )}
 

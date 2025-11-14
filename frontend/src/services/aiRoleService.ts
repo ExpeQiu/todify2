@@ -5,7 +5,7 @@ const API_BASE_URL = '/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000,
+  timeout: 120_000, // 增加到120秒（2分钟），适应AI请求的较长响应时间
   headers: {
     'Content-Type': 'application/json',
   },
@@ -171,6 +171,8 @@ class AIRoleService {
         query,
         inputs,
         conversationId,
+      }, {
+        timeout: 180_000, // AI对话请求使用3分钟超时
       });
       return response.data;
     } catch (error) {

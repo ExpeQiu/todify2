@@ -21,6 +21,21 @@ const api = axios.create({
  * 公开页面配置服务
  */
 class PublicPageConfigService {
+  private async ensureConfigActive(config: PublicPageConfig): Promise<PublicPageConfig> {
+    if (config.isActive) {
+      return config;
+    }
+    return this.toggleConfig(config.id, true);
+  }
+
+  private normalizeConfig(config: PublicPageConfig): PublicPageConfig {
+    return {
+      ...config,
+      createdAt: new Date(config.createdAt),
+      updatedAt: new Date(config.updatedAt),
+    };
+  }
+
   /**
    * 获取所有公开页面配置
    */
@@ -28,11 +43,7 @@ class PublicPageConfigService {
     try {
       const response = await api.get<ApiResponse<PublicPageConfig[]>>('/public-page-configs');
       if (response.data.success && response.data.data) {
-        return response.data.data.map(config => ({
-          ...config,
-          createdAt: new Date(config.createdAt),
-          updatedAt: new Date(config.updatedAt),
-        }));
+        return response.data.data.map((config) => this.normalizeConfig(config));
       }
       return [];
     } catch (error: any) {
@@ -52,6 +63,67 @@ class PublicPageConfigService {
   }
 
   /**
+   * 确保默认功能页面配置存在并启用
+   */
+  async ensureDefaultFeatureConfigs(): Promise<PublicPageConfig[]> {
+    const existingConfigs = await this.getAllConfigs();
+    const updatedConfigs = [...existingConfigs];
+
+    const defaultConfigs: Array<{
+      match: (config: PublicPageConfig) => boolean;
+      create: CreatePublicPageConfigRequest;
+      activate?: boolean;
+    }> = [
+      {
+        match: (config) => config.address === 'ai-search',
+        create: {
+          name: '技术包装助手',
+          description: '技术包装页面默认配置',
+          address: 'ai-search',
+          displayMode: 'all',
+          templateType: 'ai-chat',
+        },
+      },
+      {
+        match: (config) => config.templateType === 'speech',
+        create: {
+          name: '发布会写稿助手',
+          description: '发布会稿页面默认配置',
+          address: 'speech',
+          displayMode: 'all',
+          templateType: 'speech',
+        },
+      },
+    ];
+
+    for (const def of defaultConfigs) {
+      let existing = updatedConfigs.find(def.match);
+
+      if (!existing) {
+        try {
+          const created = await this.createConfig(def.create);
+          const activated = await this.ensureConfigActive(created);
+          updatedConfigs.push(activated);
+        } catch (error) {
+          console.error('创建默认配置失败:', error);
+        }
+      } else if (!existing.isActive) {
+        try {
+          const activated = await this.ensureConfigActive(existing);
+          const index = updatedConfigs.findIndex((item) => item.id === existing!.id);
+          if (index >= 0) {
+            updatedConfigs[index] = activated;
+          }
+        } catch (error) {
+          console.error('激活默认配置失败:', error);
+        }
+      }
+    }
+
+    return updatedConfigs;
+  }
+
+  /**
    * 根据ID获取配置
    */
   async getConfigById(id: string): Promise<PublicPageConfig | null> {
@@ -59,11 +131,7 @@ class PublicPageConfigService {
       const response = await api.get<ApiResponse<PublicPageConfig>>(`/public-page-configs/${id}`);
       if (response.data.success && response.data.data) {
         const config = response.data.data;
-        return {
-          ...config,
-          createdAt: new Date(config.createdAt),
-          updatedAt: new Date(config.updatedAt),
-        };
+        return this.normalizeConfig(config);
       }
       return null;
     } catch (error: any) {
@@ -80,11 +148,7 @@ class PublicPageConfigService {
       const response = await api.post<ApiResponse<PublicPageConfig>>('/public-page-configs', data);
       if (response.data.success && response.data.data) {
         const config = response.data.data;
-        return {
-          ...config,
-          createdAt: new Date(config.createdAt),
-          updatedAt: new Date(config.updatedAt),
-        };
+        return this.normalizeConfig(config);
       }
       throw new Error('创建配置失败');
     } catch (error: any) {
@@ -101,11 +165,7 @@ class PublicPageConfigService {
       const response = await api.put<ApiResponse<PublicPageConfig>>(`/public-page-configs/${id}`, data);
       if (response.data.success && response.data.data) {
         const config = response.data.data;
-        return {
-          ...config,
-          createdAt: new Date(config.createdAt),
-          updatedAt: new Date(config.updatedAt),
-        };
+        return this.normalizeConfig(config);
       }
       throw new Error('更新配置失败');
     } catch (error: any) {
@@ -183,11 +243,7 @@ class PublicPageConfigService {
       const response = await api.get<ApiResponse<PublicPageConfig>>(`/public-page-configs/by-address/${address}`);
       if (response.data.success && response.data.data) {
         const config = response.data.data;
-        return {
-          ...config,
-          createdAt: new Date(config.createdAt),
-          updatedAt: new Date(config.updatedAt),
-        };
+        return this.normalizeConfig(config);
       }
       return null;
     } catch (error: any) {

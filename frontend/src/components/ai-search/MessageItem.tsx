@@ -10,10 +10,10 @@ interface MessageItemProps {
 }
 
 const FEATURE_LABEL_MAP: Record<string, string> = {
-  "five-view-analysis": "五看分析",
-  "three-fix-analysis": "三定分析",
-  "tech-matrix": "技术矩阵",
-  "propagation-strategy": "传播策略",
+  "five-view-analysis": "技术转译",
+  "three-fix-analysis": "用户场景挖掘",
+  "tech-matrix": "发布会场景化",
+  "propagation-strategy": "领导人口语化",
   "exhibition-video": "展具与视频",
   translation: "翻译",
   "ppt-outline": "技术讲稿",

@@ -68,6 +68,8 @@ export const workflowAPI = {
         query,
         inputs,
         conversationId,
+      }, {
+        timeout: 180_000, // AI请求使用3分钟超时
       });
       return toWorkflowResponse(response);
     } catch (error) {
@@ -85,7 +87,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/smart-search", requestData);
+      const response = await apiClient.post("/workflow/smart-search", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Smart search API", error);
@@ -116,7 +120,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/tech-package", requestData);
+      const response = await apiClient.post("/workflow/tech-package", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Tech package API", error);
@@ -135,7 +141,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/tech-strategy", requestData);
+      const response = await apiClient.post("/workflow/tech-strategy", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Tech strategy API", error);
@@ -154,7 +162,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/promotion-strategy", requestData);
+      const response = await apiClient.post("/workflow/promotion-strategy", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Promotion strategy API", error);
@@ -173,7 +183,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/core-draft", requestData);
+      const response = await apiClient.post("/workflow/core-draft", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Core draft API", error);
@@ -192,7 +204,9 @@ export const workflowAPI = {
         requestData.conversationId = conversationId;
       }
 
-      const response = await apiClient.post("/workflow/speech-generation", requestData);
+      const response = await apiClient.post("/workflow/speech-generation", requestData, {
+        timeout: 180_000, // AI请求使用3分钟超时
+      });
       return toWorkflowResponse(response);
     } catch (error) {
       return handleApiError("Speech generation API", error);

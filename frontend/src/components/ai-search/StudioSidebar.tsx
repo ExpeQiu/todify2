@@ -1,5 +1,6 @@
 import React from "react";
-import { Plus, MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, History } from "lucide-react";
+import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
 import { OutputContent } from "../../types/aiSearch";
 
@@ -9,6 +10,10 @@ interface StudioSidebarProps {
   onTriggerFeature: (featureType: string) => void;
   executingFeatureId?: string | null;
   statusMessage?: string;
+  onShowFieldMappingConfig?: () => void;
+  studioTitle?: string;
+  featureLabelMap?: Record<string, string>;
+  enabledToolIds?: string[]; // 启用的工具ID列表
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -17,7 +22,12 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onTriggerFeature,
   executingFeatureId,
   statusMessage,
+  onShowFieldMappingConfig,
+  studioTitle = "更多工具箱",
+  featureLabelMap = {},
+  enabledToolIds,
 }) => {
+  const navigate = useNavigate();
   const formatDaysAgo = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -49,73 +59,82 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
       case 'script':
         return '脚本';
       case 'mindmap':
-        return '技术矩阵';
+        return '发布会场景化';
       default:
         return '其他';
     }
   };
 
-  const toolItems = [
+  // 所有可用的工具项
+  const allToolItems = [
     {
       id: 'five-view-analysis',
-      label: '五看分析',
+      label: featureLabelMap['five-view-analysis'] || '技术转译',
       icon: Eye,
     },
     {
       id: 'three-fix-analysis',
-      label: '三定分析',
+      label: featureLabelMap['three-fix-analysis'] || '用户场景挖掘',
       icon: Target,
     },
     {
       id: 'tech-matrix',
-      label: '技术矩阵',
+      label: featureLabelMap['tech-matrix'] || '发布会场景化',
       icon: Grid,
     },
     {
       id: 'propagation-strategy',
-      label: '传播策略',
+      label: featureLabelMap['propagation-strategy'] || '领导人口语化',
       icon: Megaphone,
     },
     {
       id: 'exhibition-video',
-      label: '展具与视频',
+      label: featureLabelMap['exhibition-video'] || '展具与视频',
       icon: Video,
     },
     {
       id: 'translation',
-      label: '翻译',
+      label: featureLabelMap['translation'] || '翻译',
       icon: Languages,
     },
     {
       id: 'ppt-outline',
-      label: '技术讲稿',
+      label: featureLabelMap['ppt-outline'] || '技术讲稿',
       icon: Presentation,
     },
     {
       id: 'script',
-      label: '脚本',
+      label: featureLabelMap['script'] || '脚本',
       icon: FileText,
     },
   ];
 
+  // 根据 enabledToolIds 过滤工具项
+  const toolItems = enabledToolIds
+    ? allToolItems.filter(item => enabledToolIds.includes(item.id))
+    : allToolItems;
+
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
       {/* 标题 */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">更多</h2>
-          {onShowConversationList && (
-            <button
-              onClick={onShowConversationList}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="查看对话历史"
-            >
-              <History className="w-5 h-5 text-gray-600" />
-            </button>
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
+        <div className="flex-1 flex flex-col justify-center">
+          <h2 className="text-lg font-semibold text-gray-900">{studioTitle}</h2>
+          {statusMessage ? (
+            <p className="text-xs text-gray-500 mt-1">{statusMessage}</p>
+          ) : (
+            <div className="text-xs text-transparent mt-1">占位</div>
           )}
         </div>
-        {statusMessage && (
-          <p className="mt-2 text-xs text-gray-500">{statusMessage}</p>
+        {onShowFieldMappingConfig && (
+          <button
+            onClick={() => navigate('/field-mapping-management')}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
+            title="字段映射管理"
+          >
+            <Settings className="w-4 h-4" />
+            字段映射
+          </button>
         )}
       </div>
 
@@ -158,14 +177,6 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
             </div>
           )}
         </div>
-      </div>
-
-      {/* 底部按钮 */}
-      <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium">
-          <Plus className="w-5 h-5" />
-          添加笔记
-        </button>
       </div>
     </div>
   );

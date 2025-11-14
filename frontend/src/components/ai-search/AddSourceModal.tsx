@@ -1,23 +1,27 @@
 import React, { useState } from "react";
 import { X, Upload, Link as LinkIcon, Trash2 } from "lucide-react";
 import { Source } from "./SourceSidebar";
+import { aiSearchService } from "../../services/aiSearchService";
 
 interface AddSourceModalProps {
   onClose: () => void;
   onAddExternalSource: (source: Omit<Source, "id">) => void;
+  pageType?: 'tech-package' | 'press-release';
 }
 
 const AddSourceModal: React.FC<AddSourceModalProps> = ({
   onClose,
   onAddExternalSource,
+  pageType,
 }) => {
   const [sourceType, setSourceType] = useState<"url" | "file">("url");
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (sourceType === "url") {
       if (!url.trim()) {
@@ -30,25 +34,39 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
         url: url.trim(),
         description: description.trim(),
       });
+      setUrl("");
+      setTitle("");
+      setDescription("");
+      onClose();
     } else {
       if (files.length === 0) {
         alert("请选择文件");
         return;
       }
-      // 为每个文件创建一个来源
-      files.forEach((file) => {
-        onAddExternalSource({
-          title: title.trim() || file.name,
-          type: "external",
-          description: description.trim(),
-        });
-      });
+      
+      // 上传文件到服务器
+      setIsUploading(true);
+      try {
+        const uploadedFiles = await aiSearchService.uploadFiles(files, pageType);
+        
+        // 文件已保存到数据库，不需要通过onAddExternalSource添加
+        // 页面会自动通过loadFiles加载文件列表
+        // 只需要关闭弹窗即可
+        
+        setFiles([]);
+        setTitle("");
+        setDescription("");
+        onClose();
+        
+        // 触发文件列表刷新（通过自定义事件）
+        window.dispatchEvent(new CustomEvent('filesUploaded'));
+      } catch (error) {
+        console.error('文件上传失败:', error);
+        alert('文件上传失败，请重试');
+      } finally {
+        setIsUploading(false);
+      }
     }
-    setUrl("");
-    setTitle("");
-    setDescription("");
-    setFiles([]);
-    onClose();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,9 +237,10 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              disabled={isUploading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              确认添加
+              {isUploading ? '上传中...' : '确认添加'}
             </button>
           </div>
         </form>

@@ -559,7 +559,7 @@ const WorkflowPage: React.FC = () => {
 
   return (
     <div className="workflow-page">
-      <TopNavigation />
+      <TopNavigation currentPageTitle="AI问答" />
 
       <div className={`workflow-container ${isFullscreenEditor ? "fullscreen-editor" : ""}`}>
         <StepSidebar

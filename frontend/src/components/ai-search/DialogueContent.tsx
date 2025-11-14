@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2 } from "lucide-react";
+import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, History } from "lucide-react";
 import { Message, Source, Conversation } from "../../types/aiSearch";
 import { aiSearchService } from "../../services/aiSearchService";
 import MessageItem from "./MessageItem";
@@ -16,6 +16,13 @@ interface DialogueContentProps {
   onMessageSent?: (message: Message) => void;
   onSaveToNotes?: (content: string) => void;
   onEnsureConversation?: () => Promise<Conversation | null>;
+  onCreateNewConversation?: () => Promise<void>;
+  onShowHistory?: () => void;
+  availableWorkflows?: Array<{ id: string; name: string }>;
+  selectedWorkflowId?: string | null;
+  onWorkflowChange?: (workflowId: string) => void;
+  isWorkflowLoading?: boolean;
+  dialogueTitle?: string;
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -30,6 +37,13 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   onMessageSent,
   onSaveToNotes,
   onEnsureConversation,
+  onCreateNewConversation,
+  onShowHistory,
+  availableWorkflows = [],
+  selectedWorkflowId,
+  onWorkflowChange,
+  isWorkflowLoading = false,
+  dialogueTitle = "发布会写稿助手",
 }) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -167,12 +181,77 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
       {/* 标题栏 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">对话</h2>
-          {conversation && (
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
+        <div className="flex-1 flex flex-col justify-center">
+          <h2 className="text-lg font-semibold text-gray-900">{dialogueTitle}</h2>
+          {conversation ? (
             <p className="text-xs text-gray-500 mt-1">{conversation.title}</p>
+          ) : (
+            <div className="text-xs text-transparent mt-1">占位</div>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* 当前工作流选择 */}
+          {availableWorkflows.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">当前工作流</span>
+              <div className="relative">
+                <select
+                  value={selectedWorkflowId || ""}
+                  onChange={(event) => {
+                    if (onWorkflowChange && event.target.value) {
+                      onWorkflowChange(event.target.value);
+                    }
+                  }}
+                  className="appearance-none rounded-lg border border-gray-300 bg-white px-3 py-1.5 pr-8 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={availableWorkflows.length === 0 || isWorkflowLoading}
+                >
+                  <option value="" disabled>
+                    {isWorkflowLoading ? "加载中..." : "请选择工作流"}
+                  </option>
+                  {availableWorkflows.map((workflow) => (
+                    <option key={workflow.id} value={workflow.id}>
+                      {workflow.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 12a1 1 0 01-.707-.293l-3-3a1 1 0 111.414-1.414L10 9.586l2.293-2.293a1 1 011.414 1.414l-3 3A1 1 0 0110 12z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+                {isWorkflowLoading && (
+                  <Loader2 className="absolute -right-8 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
+                )}
+              </div>
+            </div>
+          )}
+          <button
+            onClick={async () => {
+              if (onCreateNewConversation) {
+                await onCreateNewConversation();
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            提出一个新问题
+          </button>
+          <button
+            onClick={() => {
+              if (onShowHistory) {
+                onShowHistory();
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <History className="w-4 h-4" />
+            查看历史对话
+          </button>
         </div>
       </div>
 

@@ -457,23 +457,38 @@ export class FieldMappingService {
   }
 
   /**
-   * 获取字段映射配置
+   * 获取所有字段映射配置
    */
-  async getFieldMappingConfig(workflowId: string): Promise<FieldMappingConfigType | null> {
+  async getAllFieldMappingConfigs(): Promise<Array<{ workflowId: string; config: FieldMappingConfigType; createdAt: string; updatedAt: string }>> {
     try {
       const rows = await db.query(
-        `SELECT * FROM ai_search_field_mappings WHERE workflow_id = ?`,
-        [workflowId]
+        `SELECT workflow_id, config, created_at, updated_at FROM ai_search_field_mappings ORDER BY updated_at DESC`
       ) as any[];
 
-      if (rows.length === 0) {
-        return null;
-      }
-
-      return JSON.parse(rows[0].config);
+      return rows.map(row => ({
+        workflowId: row.workflow_id,
+        config: JSON.parse(row.config),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
     } catch (error) {
-      logger.error('获取字段映射配置失败', { error });
-      return null;
+      logger.error('获取所有字段映射配置失败', { error });
+      return [];
+    }
+  }
+
+  /**
+   * 删除字段映射配置
+   */
+  async deleteFieldMappingConfig(workflowId: string): Promise<void> {
+    try {
+      await db.query(
+        `DELETE FROM ai_search_field_mappings WHERE workflow_id = ?`,
+        [workflowId]
+      );
+    } catch (error) {
+      logger.error('删除字段映射配置失败', { error });
+      throw error;
     }
   }
 }

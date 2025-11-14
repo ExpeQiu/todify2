@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import SpeechNode from "../components/nodes/SpeechNode";
+import PressReleasePage from "./PressReleasePage";
+import TechPackagePage from "./TechPackagePage";
 import PageTransition from "../components/PageTransition";
 import TopNavigation from "../components/TopNavigation";
 import publicPageConfigService from "../services/publicPageConfigService";
@@ -134,48 +135,18 @@ const AddressPage: React.FC = () => {
     );
   }
 
-  // 如果配置的模板类型是 speech，使用发布会稿模版（A问答模版）
+  // 如果配置的模板类型是 speech，使用发布会稿页面
   if (publicConfig.config.templateType === 'speech') {
-    const speechRole = publicConfig.roles && publicConfig.roles.length > 0 
-      ? {
-          ...publicConfig.roles[0],
-          createdAt: new Date(publicConfig.roles[0].createdAt),
-          updatedAt: new Date(publicConfig.roles[0].updatedAt),
-        }
-      : undefined;
-
-    return (
-      <PageTransition isVisible={true}>
-        <div className="min-h-screen bg-gray-50">
-          {/* 顶部导航栏 */}
-          <TopNavigation currentPageTitle={publicConfig.config.name || "A问答模版"} />
-
-          {/* 主要内容区域 - 使用A问答模版 */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white rounded-lg shadow">
-              <SpeechNode
-                onExecute={handleNodeExecution}
-                initialData={executionResult?.data}
-                isLoading={isLoading}
-                nodeState={{
-                  nodeId: 'speech',
-                  status: isLoading ? "loading" : executionResult ? "completed" : "idle",
-                }}
-                canExecute={!isLoading}
-                context={{
-                  nodes: {},
-                  completedNodes: [],
-                  availableNextSteps: [],
-                }}
-                aiRole={speechRole}
-                mode="independent"
-              />
-            </div>
-          </div>
-        </div>
-      </PageTransition>
-    );
+    return <PressReleasePage />;
   }
+
+  // 默认使用技术包装页面（如果模板类型是 tech-package 或其他）
+  if (publicConfig.config.templateType === 'tech-package') {
+    return <TechPackagePage />;
+  }
+
+  // 如果没有指定模板类型，默认使用技术包装页面
+  return <TechPackagePage />;
 
   // 其他模板类型可以在这里扩展
   return (

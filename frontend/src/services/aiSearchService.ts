@@ -29,10 +29,11 @@ class AiSearchService {
   /**
    * 获取配置的工作流
    */
-  async getWorkflowConfig(): Promise<WorkflowConfig | null> {
+  async getWorkflowConfig(pageType?: 'tech-package' | 'press-release'): Promise<WorkflowConfig | null> {
     try {
-      // 先尝试从API获取配置的工作流ID
-      const response = await api.get('/ai-search/workflow');
+      // 先尝试从API获取配置的工作流ID，传递pageType参数
+      const params = pageType ? `?pageType=${pageType}` : '';
+      const response = await api.get(`/ai-search/workflow${params}`);
       if (response.data.success && response.data.data) {
         const workflowId = response.data.data.workflowId;
         // 获取工作流详情
@@ -43,9 +44,10 @@ class AiSearchService {
         }
       }
       
-      // 如果没有配置，尝试查找默认工作流（如"智能工作流"）
+      // 如果没有配置，尝试查找默认工作流（根据页面类型）
       const workflows = await agentWorkflowService.getAllWorkflows();
-      const defaultWorkflow = workflows.find((w) => w.name === '智能工作流');
+      const defaultWorkflowName = pageType === 'press-release' ? '发布会稿工作流' : '智能工作流';
+      const defaultWorkflow = workflows.find((w) => w.name === defaultWorkflowName);
       if (defaultWorkflow) {
         return this.convertWorkflowToConfig(defaultWorkflow);
       }
@@ -92,14 +94,67 @@ class AiSearchService {
   }
 
   /**
+   * 获取文件列表
+   */
+  async getFiles(options?: {
+    category?: string;
+    conversationId?: string;
+    pageType?: 'tech-package' | 'press-release';
+    limit?: number;
+    offset?: number;
+    excludeGarbled?: boolean; // 排除乱码文件名
+  }): Promise<FileUploadResponse[]> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.category) {
+        params.set('category', options.category);
+      }
+      if (options?.conversationId) {
+        params.set('conversationId', options.conversationId);
+      }
+      if (options?.pageType) {
+        params.set('pageType', options.pageType);
+      }
+      if (options?.limit) {
+        params.set('limit', String(options.limit));
+      }
+      if (options?.offset) {
+        params.set('offset', String(options.offset));
+      }
+      if (options?.excludeGarbled !== false) {
+        // 默认排除乱码文件名
+        params.set('excludeGarbled', 'true');
+      } else {
+        // 如果明确设置为false，则不排除
+        params.set('excludeGarbled', 'false');
+      }
+
+      const query = params.toString();
+      const response = await api.get(`/ai-search/files${query ? `?${query}` : ''}`);
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      return [];
+    } catch (error) {
+      console.error('获取文件列表失败:', error);
+      return [];
+    }
+  }
+
+  /**
    * 上传文件
    */
-  async uploadFiles(files: File[]): Promise<FileUploadResponse[]> {
+  async uploadFiles(files: File[], pageType?: 'tech-package' | 'press-release'): Promise<FileUploadResponse[]> {
     try {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append('files', file);
       });
+      
+      // 如果提供了pageType，添加到formData
+      if (pageType) {
+        formData.append('pageType', pageType);
+      }
 
       const response = await api.post('/ai-search/upload', formData, {
         headers: {
@@ -473,19 +528,36 @@ class AiSearchService {
   }
 
   /**
-   * 保存字段映射配置
+   * 获取所有字段映射配置
    */
-  async saveFieldMappingConfig(workflowId: string, config: FieldMappingConfig): Promise<void> {
+  async getAllFieldMappingConfigs(): Promise<Array<{ workflowId: string; config: FieldMappingConfig; createdAt: string; updatedAt: string }>> {
     try {
-      const response = await api.post(`/ai-search/field-mappings/${workflowId}`, config);
-      if (!response.data.success) {
-        throw new Error(response.data.error || '保存字段映射配置失败');
+      const response = await api.get('/ai-search/field-mappings');
+      if (response.data.success) {
+        return response.data.data || [];
       }
+      throw new Error(response.data.error || '获取字段映射配置列表失败');
     } catch (error) {
-      console.error('保存字段映射配置失败:', error);
+      console.error('获取字段映射配置列表失败:', error);
       throw error;
     }
   }
+
+  /**
+   * 删除字段映射配置
+   */
+  async deleteFieldMappingConfig(workflowId: string): Promise<void> {
+    try {
+      const response = await api.delete(`/ai-search/field-mappings/${workflowId}`);
+      if (!response.data.success) {
+        throw new Error(response.data.error || '删除字段映射配置失败');
+      }
+    } catch (error) {
+      console.error('删除字段映射配置失败:', error);
+      throw error;
+    }
+  }
+
 }
 
 export const aiSearchService = new AiSearchService();

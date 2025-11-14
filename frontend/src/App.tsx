@@ -21,8 +21,8 @@ import PublicChatPage from "./pages/PublicChatPage";
 import AIUnifiedManagementPage from "./pages/AIUnifiedManagementPage";
 import AddressPage from "./pages/AddressPage";
 import TemplateManagementPage from "./pages/TemplateManagementPage";
-import AISearchPage from "./pages/AISearchPage";
-import "./App.css";
+import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
+import TechPackagePage from "./pages/TechPackagePage";
 
 function App() {
   return (
@@ -148,7 +148,12 @@ function App() {
 
           <Route
             path="/ai-search"
-            element={<AISearchPage />}
+            element={<TechPackagePage />}
+          />
+
+          <Route
+            path="/field-mapping-management"
+            element={<FieldMappingManagementPage />}
           />
 
           {/* 根据地址配置的动态路由（需要放在具体路由之后） */}

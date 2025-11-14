@@ -201,10 +201,10 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
   // 功能对象列表
   const featureObjects: { value: FeatureObjectType; label: string }[] = [
     { value: 'ai-dialog', label: 'AI对话框' },
-    { value: 'five-view-analysis', label: '五看分析' },
-    { value: 'three-fix-analysis', label: '三定分析' },
-    { value: 'tech-matrix', label: '技术矩阵' },
-    { value: 'propagation-strategy', label: '传播策略' },
+    { value: 'five-view-analysis', label: '技术转译' },
+    { value: 'three-fix-analysis', label: '用户场景挖掘' },
+    { value: 'tech-matrix', label: '发布会场景化' },
+    { value: 'propagation-strategy', label: '领导人口语化' },
     { value: 'exhibition-video', label: '展具与视频' },
     { value: 'translation', label: '翻译' },
     { value: 'ppt-outline', label: '技术讲稿' },

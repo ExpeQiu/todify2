@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Settings, Loader2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import TopNavigation from "../components/TopNavigation";
 import SourceSidebar, { Source } from "../components/ai-search/SourceSidebar";
 import DialogueContent from "../components/ai-search/DialogueContent";
@@ -10,12 +11,13 @@ import { Conversation, OutputContent, WorkflowConfig, FieldMappingConfig as Fiel
 import { aiSearchService } from "../services/aiSearchService";
 import { agentWorkflowService } from "../services/agentWorkflowService";
 import { AgentWorkflow } from "../types/agentWorkflow";
+import api from "../services/api";
 
 const FEATURE_LABEL_MAP: Record<string, string> = {
-  "five-view-analysis": "五看分析",
-  "three-fix-analysis": "三定分析",
-  "tech-matrix": "技术矩阵",
-  "propagation-strategy": "传播策略",
+  "five-view-analysis": "技术转译",
+  "three-fix-analysis": "用户场景挖掘",
+  "tech-matrix": "发布会场景化",
+  "propagation-strategy": "领导人口语化",
   "exhibition-video": "展具与视频",
   translation: "翻译",
   "ppt-outline": "技术讲稿",
@@ -24,9 +26,12 @@ const FEATURE_LABEL_MAP: Record<string, string> = {
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_SELECTION_KEY = "ai-search.workflows.selection";
+const WORKFLOW_SELECTION_KEY_TECH_PACKAGE = "ai-search.workflows.selection.tech-package";
+const WORKFLOW_SELECTION_KEY_PRESS_RELEASE = "ai-search.workflows.selection.press-release";
 const WORKFLOW_DEFAULT_KEY = "__default__";
 
 const AISearchPage: React.FC = () => {
+  const location = useLocation();
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -52,12 +57,32 @@ const AISearchPage: React.FC = () => {
     [availableWorkflows, selectedWorkflowId]
   );
 
+  // 根据当前路由确定页面标题和类型
+  const pageTitle = useMemo(() => {
+    if (location.pathname === '/node/speech') {
+      return '发布会稿';
+    }
+    return '技术包装';
+  }, [location.pathname]);
+
+  // 根据当前路由确定页面类型
+  const pageType = useMemo(() => {
+    if (location.pathname === '/node/speech') {
+      return 'press-release';
+    }
+    return 'tech-package';
+  }, [location.pathname]);
+
   const loadWorkflowSelectionFromStorage = useCallback(() => {
     if (typeof window === "undefined") {
       return {};
     }
     try {
-      const raw = window.localStorage.getItem(WORKFLOW_SELECTION_KEY);
+      // 根据页面类型选择不同的localStorage键
+      const storageKey = pageType === 'press-release' 
+        ? WORKFLOW_SELECTION_KEY_PRESS_RELEASE 
+        : WORKFLOW_SELECTION_KEY_TECH_PACKAGE;
+      const raw = window.localStorage.getItem(storageKey);
       if (!raw) {
         return {};
       }
@@ -67,7 +92,7 @@ const AISearchPage: React.FC = () => {
       console.warn("解析工作流选择缓存失败:", error);
       return {};
     }
-  }, []);
+  }, [pageType]);
 
   const persistWorkflowSelection = useCallback(
     (workflowId: string, conversationId?: string | null) => {
@@ -80,13 +105,17 @@ const AISearchPage: React.FC = () => {
       workflowSelectionRef.current = map;
       if (typeof window !== "undefined") {
         try {
-          window.localStorage.setItem(WORKFLOW_SELECTION_KEY, JSON.stringify(map));
+          // 根据页面类型选择不同的localStorage键
+          const storageKey = pageType === 'press-release' 
+            ? WORKFLOW_SELECTION_KEY_PRESS_RELEASE 
+            : WORKFLOW_SELECTION_KEY_TECH_PACKAGE;
+          window.localStorage.setItem(storageKey, JSON.stringify(map));
         } catch (error) {
           console.warn("保存工作流选择缓存失败:", error);
         }
       }
     },
-    []
+    [pageType]
   );
 
   useEffect(() => {
@@ -143,8 +172,58 @@ const AISearchPage: React.FC = () => {
     loadConversations();
     loadOutputs();
     loadWorkflowConfig();
+    loadFiles(); // 加载已保存的文件列表
+    
+    // 监听文件上传事件，自动刷新文件列表
+    const handleFilesUploaded = () => {
+      loadFiles();
+    };
+    window.addEventListener('filesUploaded', handleFilesUploaded);
+    
+    return () => {
+      window.removeEventListener('filesUploaded', handleFilesUploaded);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadFiles = useCallback(async () => {
+    try {
+      // 先尝试清理乱码文件
+      try {
+        const cleanupApi = await import("../services/api");
+        await cleanupApi.default.delete('/ai-search/files/garbled/cleanup');
+      } catch (error) {
+        // 清理失败不影响文件列表加载
+        console.warn('清理乱码文件失败:', error);
+      }
+
+      const files = await aiSearchService.getFiles({ pageType });
+      // 将文件转换为Source格式
+      const fileSources: Source[] = files.map((file) => ({
+        id: `file_${file.id || file.fileId}`,
+        title: file.name,
+        type: 'external' as const,
+        url: file.url,
+        description: `文件大小: ${formatFileSize(file.size)}`,
+      }));
+      
+      // 完全替换文件来源，避免重复
+      setSources((prev) => {
+        // 保留非文件来源（知识库来源等）
+        const nonFileSources = prev.filter((s) => !s.id.startsWith('file_'));
+        // 使用数据库中的文件列表，完全替换文件来源
+        return [...nonFileSources, ...fileSources];
+      });
+    } catch (error) {
+      console.error('加载文件列表失败:', error);
+    }
+  }, [pageType]);
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
 
   const loadAvailableWorkflows = useCallback(async () => {
     try {
@@ -212,7 +291,7 @@ const AISearchPage: React.FC = () => {
   // 加载工作流配置
   const loadWorkflowConfig = async () => {
     try {
-      const config = await aiSearchService.getWorkflowConfig();
+      const config = await aiSearchService.getWorkflowConfig(pageType);
       setWorkflowConfig(config);
     } catch (error) {
       console.error("加载工作流配置失败:", error);
@@ -335,9 +414,9 @@ const AISearchPage: React.FC = () => {
     }
   }, [currentConversation, isLoadingMoreMessages, loadConversationDetail]);
 
-  const handleSourcesChange = (newSources: Source[]) => {
+  const handleSourcesChange = useCallback((newSources: Source[]) => {
     setSources(newSources);
-  };
+  }, []);
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedSourceIds(selectedIds);
@@ -349,7 +428,7 @@ const AISearchPage: React.FC = () => {
       const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
 
       const conversation = await aiSearchService.createConversation({
-        title: `对话 ${new Date().toLocaleString()}`,
+        title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
       });
 
@@ -372,6 +451,38 @@ const AISearchPage: React.FC = () => {
     persistWorkflowSelection,
     loadConversations,
   ]);
+
+  const handleCreateNewConversation = useCallback(async () => {
+    try {
+      clearGlobalError();
+      const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
+
+      const conversation = await aiSearchService.createConversation({
+        title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
+        sources: selectedSources,
+      });
+
+      if (selectedWorkflowId) {
+        persistWorkflowSelection(selectedWorkflowId, conversation.id);
+      }
+      await loadConversations({ activeConversationId: conversation.id });
+    } catch (error) {
+      console.error("创建新对话失败:", error);
+      reportError("创建新对话失败，请稍后重试", error instanceof Error ? error.message : undefined);
+    }
+  }, [
+    clearGlobalError,
+    sources,
+    selectedSourceIds,
+    reportError,
+    selectedWorkflowId,
+    persistWorkflowSelection,
+    loadConversations,
+  ]);
+
+  const handleShowHistory = useCallback(() => {
+    setShowConversationList(true);
+  }, []);
 
   const handleSelectConversation = async (conversation: Conversation) => {
     await loadConversationDetail(conversation.id);
@@ -526,49 +637,7 @@ const AISearchPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* 顶部导航栏 */}
-      <TopNavigation currentPageTitle="AI技术问答" />
-      <div className="mx-4 mt-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">当前工作流</span>
-          <div className="relative">
-            <select
-              value={selectedWorkflowId || ""}
-              onChange={(event) => handleWorkflowSelectionChange(event.target.value)}
-              className="appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-8 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={availableWorkflows.length === 0}
-            >
-              <option value="" disabled>
-                {isWorkflowLoading ? "加载中..." : "请选择工作流"}
-              </option>
-              {availableWorkflows.map((workflow) => (
-                <option key={workflow.id} value={workflow.id}>
-                  {workflow.name}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 12a1 1 0 01-.707-.293l-3-3a1 1 0 111.414-1.414L10 9.586l2.293-2.293a1 1 011.414 1.414l-3 3A1 1 0 0110 12z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
-            {isWorkflowLoading && (
-              <Loader2 className="absolute -right-8 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
-            )}
-          </div>
-        </div>
-        {activeWorkflow?.description && (
-          <span
-            className="max-w-2xl truncate text-xs text-gray-500"
-            title={activeWorkflow.description}
-          >
-            {activeWorkflow.description}
-          </span>
-        )}
-      </div>
+      <TopNavigation currentPageTitle={pageTitle} />
       {globalError && (
         <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
           <div className="flex items-start justify-between gap-3">
@@ -588,18 +657,6 @@ const AISearchPage: React.FC = () => {
         </div>
       )}
       
-      {/* 字段映射配置按钮 */}
-      <div className="absolute top-20 right-4 z-10">
-        <button
-          onClick={() => setShowFieldMappingConfig(true)}
-          className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
-          title="配置字段映射"
-        >
-          <Settings className="w-4 h-4" />
-          字段映射
-        </button>
-      </div>
-
       {/* 主要内容区域 - 三栏布局 */}
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧栏 - 来源选择 */}
@@ -608,6 +665,7 @@ const AISearchPage: React.FC = () => {
           selectedSources={selectedSourceIds}
           onSourcesChange={handleSourcesChange}
           onSelectionChange={handleSelectionChange}
+          pageType={pageType}
         />
 
         {/* 中间栏 - 对话内容 */}
@@ -623,6 +681,12 @@ const AISearchPage: React.FC = () => {
           onMessageSent={handleMessageSent}
           onSaveToNotes={handleSaveToNotes}
           onEnsureConversation={ensureActiveConversation}
+          onCreateNewConversation={handleCreateNewConversation}
+          onShowHistory={handleShowHistory}
+          availableWorkflows={availableWorkflows}
+          selectedWorkflowId={selectedWorkflowId}
+          onWorkflowChange={handleWorkflowSelectionChange}
+          isWorkflowLoading={isWorkflowLoading}
         />
 
         {/* 右侧栏 - Studio */}
@@ -632,6 +696,7 @@ const AISearchPage: React.FC = () => {
           onTriggerFeature={handleTriggerFeature}
           executingFeatureId={triggeringFeatureId}
           statusMessage={triggeringStatus || undefined}
+          onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
         />
       </div>
 

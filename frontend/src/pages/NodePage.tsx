@@ -4,9 +4,10 @@ import { ArrowLeft, RefreshCw } from "lucide-react";
 
 import TechPackageNode from "../components/nodes/TechPackageNode";
 import CoreDraftNode from "../components/nodes/CoreDraftNode";
-import SpeechNode from "../components/nodes/SpeechNode";
 import AiSearchNode from "../components/nodes/AiSearchNode";
 import PromotionStrategyNode from "../components/nodes/PromotionStrategyNode";
+import TechPackagePage from "./TechPackagePage";
+import PressReleasePage from "./PressReleasePage";
 import { getNodeById } from "../config/workflowNodes";
 import LoadingAnimation, {
   LoadingButton,
@@ -27,7 +28,6 @@ import { PublicPageConfigPreview } from "../types/publicPageConfig";
 const nodeComponents = {
   tech_package: TechPackageNode,
   core_draft: CoreDraftNode,
-  speech: SpeechNode,
   ai_search: AiSearchNode,
   ai_qa: AiSearchNode, // ai_qa 也映射到 AiSearchNode
   promotion_strategy: PromotionStrategyNode, // 推广策略节点
@@ -156,47 +156,14 @@ const NodePage: React.FC = () => {
     setExecutionResult(null);
   };
 
-  // 如果找到了公开配置且模板类型是 speech，使用A问答模版
+  // 如果节点类型是 speech，使用发布会稿页面
+  if (nodeType === 'speech') {
+    return <PressReleasePage />;
+  }
+
+  // 如果找到了公开配置且模板类型是 speech，使用发布会稿页面
   if (publicConfig && publicConfig.config.templateType === 'speech') {
-    const speechRole = publicConfig.roles && publicConfig.roles.length > 0 
-      ? {
-          ...publicConfig.roles[0],
-          createdAt: new Date(publicConfig.roles[0].createdAt),
-          updatedAt: new Date(publicConfig.roles[0].updatedAt),
-        }
-      : undefined;
-
-    return (
-      <PageTransition isVisible={true}>
-        <div className="min-h-screen bg-gray-50">
-          {/* 顶部导航栏 */}
-          <TopNavigation currentPageTitle={publicConfig.config.name || "发布会稿助手"} />
-
-          {/* 主要内容区域 - 使用A问答模版 */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white rounded-lg shadow">
-              <SpeechNode
-                onExecute={handleNodeExecution}
-                initialData={executionResult?.data}
-                isLoading={isLoading}
-                nodeState={{
-                  nodeId: node?.id || 'speech',
-                  status: isLoading ? "loading" : executionResult ? "completed" : "idle",
-                }}
-                canExecute={!isLoading}
-                context={{
-                  nodes: {},
-                  completedNodes: [],
-                  availableNextSteps: [],
-                }}
-                aiRole={speechRole}
-                mode="independent"
-              />
-            </div>
-          </div>
-        </div>
-      </PageTransition>
-    );
+    return <PressReleasePage />;
   }
 
   if (!node) {

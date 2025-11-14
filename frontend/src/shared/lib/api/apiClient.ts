@@ -8,7 +8,7 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-      timeout: 30_000,
+      timeout: 120_000, // 增加到120秒（2分钟），适应AI请求的较长响应时间
       headers: {
         'Content-Type': 'application/json',
       },
@@ -28,6 +28,16 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
+        // 处理超时错误
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          const apiError: ApiErrorPayload = {
+            code: 'TIMEOUT_ERROR',
+            message: '请求超时，请稍后重试。AI处理可能需要较长时间，请耐心等待。',
+            details: error.response?.data?.error?.details || error.response?.data,
+          };
+          return Promise.reject(apiError);
+        }
+
         const apiError: ApiErrorPayload = {
           code: error.response?.data?.error?.code || 'API_ERROR',
           message: error.response?.data?.error?.message || error.message || '请求失败',

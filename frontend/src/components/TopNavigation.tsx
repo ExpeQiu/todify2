@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   MessageCircle,
-  Package,
   Target,
   FileText,
   Mic,
@@ -16,6 +15,15 @@ import { PublicPageConfig } from "../types/publicPageConfig";
 
 interface TopNavigationProps {
   currentPageTitle?: string;
+}
+
+interface NavigationItem {
+  label: string;
+  icon: any;
+  path: string;
+  disabled: boolean;
+  isBack?: boolean;
+  hideWhenDisabled?: boolean;
 }
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
@@ -47,7 +55,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
   const loadActiveConfigs = async () => {
     try {
       console.log('[TopNavigation] 开始加载配置...');
-      const configs = await publicPageConfigService.getAllConfigs();
+      const configs = await publicPageConfigService.ensureDefaultFeatureConfigs();
       console.log('[TopNavigation] 获取到配置列表:', configs);
       // 过滤出已启用的配置，并推断模板类型
       const enabled = configs
@@ -142,25 +150,20 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
 
   // 动态生成导航项，根据配置状态决定是否启用
   // 使用 useMemo 确保在 activeConfigs 变化时重新计算
-  const navigationItems = React.useMemo(() => [
+  const navigationItems: NavigationItem[] = React.useMemo(() => [
     {
-      label: "返回首页",
+      label: "AI问答",
       icon: ArrowLeft,
       path: "/",
       isBack: true,
       disabled: false,
     },
     {
-      label: "AI问答",
+      label: "技术包装",
       icon: MessageCircle,
       path: "/ai-search",
       disabled: !isFeatureEnabled('/ai-search'),
-    },
-    {
-      label: "技术包装",
-      icon: Package,
-      path: "/node/tech-package",
-      disabled: true,
+      hideWhenDisabled: true,
     },
     {
       label: "技术策略",
@@ -179,6 +182,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
       icon: Mic,
       path: "/node/speech",
       disabled: !isFeatureEnabled('/node/speech'),
+      hideWhenDisabled: true,
     },
     {
       label: "配置管理",
@@ -228,7 +232,9 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
         <div className="flex items-center h-14" data-oid="5t6ul1a">
           {/* 导航项目 */}
           <div className="flex items-center space-x-6" data-oid="0mo2mzh">
-            {navigationItems.map((item) => {
+            {navigationItems
+              .filter((item) => !(item as any).hideWhenDisabled || !item.disabled)
+              .map((item) => {
               const Icon = item.icon;
               const isCurrent = isCurrentPath(item.path);
               const isBackButton = item.isBack;
@@ -244,13 +250,11 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
                       ${
                         isDisabled && !isBackButton
                           ? "text-gray-400 cursor-not-allowed opacity-50"
-                          : isBackButton
-                            ? "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                            : isCurrent
-                              ? "text-blue-600 bg-blue-50 border border-blue-200"
-                              : !isDisabled
-                                ? "text-blue-600 hover:text-blue-900 hover:bg-blue-50 border border-blue-200"
-                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                          : isCurrent
+                            ? "text-blue-600 bg-blue-50 border border-blue-200"
+                            : !isDisabled
+                              ? "text-blue-600 hover:text-blue-900 hover:bg-blue-50 border border-blue-200"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                       }
                     `}
                     data-oid="ihzb7gy"

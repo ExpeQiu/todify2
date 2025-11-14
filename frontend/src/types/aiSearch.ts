@@ -80,10 +80,13 @@ export interface WorkflowOutputParameter {
  */
 export interface FileUploadResponse {
   id: string;
+  fileId?: string; // 后端返回的文件ID
   name: string;
   url: string;
   type: string;
   size: number;
+  category?: string; // 文件分类
+  createdAt?: string; // 创建时间
 }
 
 /**

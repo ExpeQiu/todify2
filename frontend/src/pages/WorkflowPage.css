@@ -148,8 +148,8 @@
 .message-actions {
   display: flex;
   align-items: center;
-  gap: 12px; /* 进一步增加按钮间距，避免重叠 */
-  flex-wrap: wrap; /* 允许换行，防止在小屏幕上重叠 */
+  gap: 8px; /* 按钮间距 */
+  flex-wrap: nowrap; /* 防止换行导致重叠 */
   margin-top: 8px; /* 增加与消息内容的间距 */
   padding: 4px 0; /* 增加上下内边距 */
   /* 移除 opacity 和 transition，让按钮始终显示 */
@@ -161,6 +161,8 @@
   justify-content: center;
   width: 36px; /* 进一步增加按钮宽度 */
   height: 36px; /* 进一步增加按钮高度 */
+  min-width: 36px; /* 确保最小宽度，防止压缩 */
+  min-height: 36px; /* 确保最小高度，防止压缩 */
   border: 1px solid transparent; /* 添加边框，提高可见性 */
   background: rgba(255, 255, 255, 0.9); /* 添加半透明背景 */
   border-radius: 8px; /* 增加圆角 */
@@ -170,6 +172,7 @@
   flex-shrink: 0; /* 防止按钮被压缩 */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 添加阴影，提高可见性 */
   position: relative; /* 为工具提示定位 */
+  z-index: 1; /* 确保按钮在正确的层级 */
 }
 
 .action-btn:hover {
@@ -1131,12 +1134,19 @@
   }
   
   .message-actions {
-    gap: 8px; /* 在平板尺寸下减少间距 */
+    gap: 6px; /* 在平板尺寸下保持合理间距 */
   }
   
   .action-btn {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  .action-btn svg {
+    width: 16px !important;
+    height: 16px !important;
   }
   
   .chat-input-area {
@@ -1360,15 +1370,24 @@
   }
   
   .message-actions {
-    gap: 4px; /* 在超小屏幕下最小间距 */
+    gap: 6px; /* 在超小屏幕下保持最小间距，避免重叠 */
     margin-top: 4px;
-    flex-wrap: wrap; /* 确保按钮可以换行 */
+    flex-wrap: nowrap; /* 防止换行导致重叠 */
+    overflow-x: auto; /* 如果空间不足，允许横向滚动 */
+    -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
   }
   
   .action-btn {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
     font-size: 12px; /* 减小图标尺寸 */
+  }
+  
+  .action-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
   
   .chat-input-area {
