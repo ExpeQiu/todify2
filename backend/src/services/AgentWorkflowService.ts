@@ -176,6 +176,7 @@ export class AgentWorkflowService {
     const startedAt = Date.now();
     // 创建执行实例
     const execution = await workflowExecutionModel.create({
+      execution_type: 'agent_workflow',
       workflow_id: workflowId,
       workflow_name: workflow.name,
       status: 'running',
@@ -197,12 +198,6 @@ export class AgentWorkflowService {
           status: 'completed',
           end_time: new Date().toISOString(),
           duration: Date.now() - startedAt,
-          error: null,
-          metadata: {
-            ...(fallbackOutput.metadata || {}),
-            workflowId,
-            fallback: true,
-          },
         });
         return {
           executionId: execution.id,
@@ -318,13 +313,8 @@ export class AgentWorkflowService {
         status: 'completed',
         end_time: new Date().toISOString(),
         duration: Date.now() - startedAt,
-        node_results: nodeResults,
-        shared_context: sharedContext,
-        error: null,
-        metadata: {
-          workflowId,
-          executionOrder: executionOrder.map(level => level.map((n: any) => n.id)),
-        },
+        node_results: JSON.stringify(nodeResults),
+        shared_context: JSON.stringify(sharedContext),
       });
 
       return {
@@ -351,7 +341,7 @@ export class AgentWorkflowService {
         status: 'failed',
         end_time: new Date().toISOString(),
         duration: Date.now() - startedAt,
-        error: error instanceof Error ? error.message : String(error),
+        error_message: error instanceof Error ? error.message : String(error),
       });
 
       throw error;
@@ -600,7 +590,7 @@ export class AgentWorkflowService {
         
         if (outputParam.sourceField) {
           const fieldPath = outputParam.sourceField.split('.');
-          outputValue = fieldPath.reduce((obj, key) => obj?.[key], outputValue);
+          outputValue = fieldPath.reduce((obj: any, key: string) => obj?.[key], outputValue);
         }
       } else {
         outputValue = sharedContext;

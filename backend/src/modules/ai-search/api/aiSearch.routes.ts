@@ -610,7 +610,7 @@ router.post(
         content: dto.content,
         sources: dto.sources,
         files,
-        contextWindowSize: dto.contextWindowSize,
+        contextWindowSize: typeof dto.contextWindowSize === 'number' ? dto.contextWindowSize : (dto.contextWindowSize ? parseInt(String(dto.contextWindowSize), 10) : undefined),
         workflowId: dto.workflowId,
         fileList: dto.fileList,
         knowledgeBaseNames: dto.knowledgeBaseNames,
@@ -657,7 +657,12 @@ router.post('/conversations/:id/agents', ensureTablesInitialized, async (req: Re
     const { id } = req.params;
     const rawBody = req.body;
     const dto = validateDTO(TriggerAgentSchema, rawBody);
-    const result = await triggerAgentUseCase.execute(id, dto);
+    // 确保 contextWindowSize 是 number 类型
+    const processedDto = {
+      ...dto,
+      contextWindowSize: typeof dto.contextWindowSize === 'number' ? dto.contextWindowSize : (dto.contextWindowSize ? parseInt(String(dto.contextWindowSize), 10) : undefined),
+    };
+    const result = await triggerAgentUseCase.execute(id, processedDto);
 
     if (!result.success) {
       if (result.error.code === 'CONVERSATION_NOT_FOUND') {

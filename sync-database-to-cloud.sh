@@ -34,6 +34,7 @@ SERVER_USER="root"
 SERVER_PASSWORD="Qb89100820"
 DEPLOY_PATH="/root/todify2-deploy"
 BACKEND_PATH="${DEPLOY_PATH}/backend"
+SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 # 检查sshpass工具
 check_sshpass() {
@@ -69,7 +70,7 @@ check_local_database() {
 backup_cloud_database() {
     log_info "备份云端数据库..."
     
-    sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVER_USER@$SERVER_IP << ENDSSH
+    sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
         cd ${BACKEND_PATH}
         
         # 创建备份目录
@@ -106,10 +107,34 @@ sync_env_config() {
     fi
     
     # 上传.env文件
-    sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    sshpass -p "$SERVER_PASSWORD" scp $SSH_OPTIONS \
         "$local_env" $SERVER_USER@$SERVER_IP:${BACKEND_PATH}/.env
     
     log_success ".env配置文件已同步"
+}
+
+# 同步上传的文件目录
+sync_uploads() {
+    log_info "同步上传文件目录..."
+    
+    local local_uploads="./backend/uploads"
+    
+    if [ ! -d "$local_uploads" ]; then
+        log_warning "本地uploads目录不存在，跳过同步"
+        return
+    fi
+    
+    # 创建远程目录
+    sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
+        mkdir -p ${BACKEND_PATH}/uploads
+ENDSSH
+    
+    # 同步文件（使用rsync或scp）
+    log_info "上传文件到云端..."
+    sshpass -p "$SERVER_PASSWORD" scp -r $SSH_OPTIONS \
+        "$local_uploads"/* $SERVER_USER@$SERVER_IP:${BACKEND_PATH}/uploads/ 2>/dev/null || true
+    
+    log_success "上传文件目录已同步"
 }
 
 # 同步数据库文件
@@ -120,11 +145,11 @@ sync_database_file() {
     local db_name=$(basename "$local_db")
     
     # 上传数据库文件
-    sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    sshpass -p "$SERVER_PASSWORD" scp $SSH_OPTIONS \
         "$local_db" $SERVER_USER@$SERVER_IP:${BACKEND_PATH}/data/
     
     # 设置正确的权限
-    sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVER_USER@$SERVER_IP << ENDSSH
+    sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
         chmod 644 ${BACKEND_PATH}/data/${db_name}
         echo "✅ 数据库文件权限已设置"
 ENDSSH
@@ -145,13 +170,42 @@ sync_all_databases() {
     if [ -f "./backend/data/database.db" ]; then
         sync_database_file "./backend/data/database.db"
     fi
+    
+    # 同步根目录的database.db（如果存在且不同）
+    if [ -f "./backend/database.db" ] && [ -s "./backend/database.db" ]; then
+        log_info "发现根目录的database.db，同步..."
+        sync_database_file "./backend/database.db"
+    fi
+}
+
+# 重启服务
+restart_services() {
+    log_info "重启服务..."
+    
+    sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
+        echo "🔄 重启后端服务..."
+        pm2 restart todify2-backend
+        
+        echo "⏳ 等待服务启动..."
+        sleep 3
+        
+        echo "📊 服务状态:"
+        pm2 status todify2-backend
+        
+        echo ""
+        echo "🔍 检查服务健康状态..."
+        sleep 2
+        curl -s http://localhost:3003/api/health | head -3 || echo "⚠️  服务可能还在启动中"
+ENDSSH
+    
+    log_success "服务重启完成"
 }
 
 # 验证同步结果
 verify_sync() {
     log_info "验证同步结果..."
     
-    sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $SERVER_USER@$SERVER_IP << ENDSSH
+    sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
         echo "=== 云端数据库文件 ==="
         ls -lh ${BACKEND_PATH}/data/*.db 2>/dev/null || echo "未找到数据库文件"
         
@@ -201,19 +255,33 @@ main() {
     backup_cloud_database
     sync_env_config
     sync_all_databases
+    sync_uploads
     verify_sync
     
     echo ""
+    log_warning "是否重启服务以应用更改？(y/n)"
+    read -p "" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        restart_services
+    else
+        log_info "跳过服务重启"
+    fi
+    
+    echo ""
     echo "=========================================="
-    log_success "数据库同步完成！"
+    log_success "配置和数据同步完成！"
     echo "=========================================="
     echo ""
-    echo "📋 下一步操作："
-    echo "  1. 如需重启服务，请执行："
-    echo "     sshpass -p '${SERVER_PASSWORD}' ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} 'cd ${DEPLOY_PATH} && ./start-production.sh'"
+    echo "📋 服务管理命令："
+    echo "  查看服务状态:"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 status'"
     echo ""
-    echo "  2. 查看服务状态："
-    echo "     sshpass -p '${SERVER_PASSWORD}' ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} 'pm2 status'"
+    echo "  重启服务:"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 restart todify2-backend'"
+    echo ""
+    echo "  查看日志:"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 logs todify2-backend'"
     echo ""
 }
 
