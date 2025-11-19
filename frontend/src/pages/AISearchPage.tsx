@@ -5,6 +5,7 @@ import TopNavigation from "../components/TopNavigation";
 import SourceSidebar, { Source } from "../components/ai-search/SourceSidebar";
 import DialogueContent from "../components/ai-search/DialogueContent";
 import StudioSidebar from "../components/ai-search/StudioSidebar";
+import { getPageConfig } from "../configs/pageConfigs";
 import ConversationList from "../components/ai-search/ConversationList";
 import FieldMappingConfig from "../components/ai-search/FieldMappingConfig";
 import { Conversation, OutputContent, WorkflowConfig, FieldMappingConfig as FieldMappingConfigType } from "../types/aiSearch";
@@ -50,6 +51,7 @@ const AISearchPage: React.FC = () => {
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalErrorDetail, setGlobalErrorDetail] = useState<string | null>(null);
+  const [enabledToolIds, setEnabledToolIds] = useState<string[] | undefined>(undefined);
   const triggerStatusTimerRef = useRef<number | null>(null);
   const workflowSelectionRef = useRef<Record<string, string>>({});
   const activeWorkflow = useMemo(
@@ -241,6 +243,33 @@ const AISearchPage: React.FC = () => {
   useEffect(() => {
     loadAvailableWorkflows();
   }, [loadAvailableWorkflows]);
+
+  useEffect(() => {
+    const loadEnabledToolsForPage = async () => {
+      try {
+        const mappings = await aiSearchService.getAllFieldMappingConfigs();
+        // 统一使用 press-release（不再支持 speech）
+        const pageKey = pageType;
+        const setIds = new Set<string>();
+        for (const item of mappings) {
+          const fos = Array.isArray(item.config?.featureObjects) ? item.config.featureObjects : [];
+          for (const f of fos) {
+            if ((f as any).pageType === pageKey && f.featureType) {
+              setIds.add(f.featureType);
+            }
+          }
+        }
+        if (setIds.size > 0) {
+          setEnabledToolIds(Array.from(setIds));
+        } else {
+          setEnabledToolIds(getPageConfig(pageType as any).enabledToolIds);
+        }
+      } catch {
+        setEnabledToolIds(getPageConfig(pageType as any).enabledToolIds);
+      }
+    };
+    loadEnabledToolsForPage();
+  }, [pageType]);
 
   const handleWorkflowSelectionChange = useCallback(
     (workflowId: string) => {
@@ -697,6 +726,7 @@ const AISearchPage: React.FC = () => {
           executingFeatureId={triggeringFeatureId}
           statusMessage={triggeringStatus || undefined}
           onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
+          enabledToolIds={enabledToolIds}
         />
       </div>
 

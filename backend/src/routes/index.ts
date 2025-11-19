@@ -18,6 +18,7 @@ import agentWorkflowRouter from './agentWorkflow';
 import workflowExecutionRouter from './workflowExecution';
 import workflowTemplateRouter from './workflowTemplate';
 import publicPageConfigRouter from './publicPageConfig';
+import pageToolConfigRouter from './pageToolConfig';
 
 const router = Router();
 
@@ -51,6 +52,7 @@ router.use('/agent-workflows', agentWorkflowRouter);
 router.use('/executions', workflowExecutionRouter);
 router.use('/workflow-templates', workflowTemplateRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
+router.use('/page-tool-configs', pageToolConfigRouter);
 router.use('/ai-search', aiSearchModuleRouter);
 
 // 健康检查

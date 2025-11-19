@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, ChevronDown, ChevronRight, Code, Plus, Trash2 } from 'lucide-react';
 import { AgentWorkflowNode, AgentWorkflow, ConditionNodeData, AssignNodeData, MergeNodeData, TransformNodeData, InputNodeData, OutputNodeData, MemoryNodeData, ComparisonOperator, MergeStrategy, TransformRuleType, InputParameter, OutputParameter } from '../../types/agentWorkflow';
 import { AIRoleConfig } from '../../types/aiRole';
@@ -26,6 +26,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
     ...node,
   });
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // 当节点变化时，重置表单数据
@@ -38,11 +39,48 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
     }
   }, [node]);
 
+  const isValid = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (!node) return true;
+    if (node.type === 'agent') {
+      if (!formData.agentId || String(formData.agentId).trim() === '') e.agentId = '请选择Agent';
+    }
+    if (node.type === 'input') {
+      const data = formData.data as any;
+      const inputs = (data?.inputs || []) as InputParameter[];
+      const names = new Set<string>();
+      inputs.forEach((p, i) => {
+        const name = (p.name || '').trim();
+        if (!name) e[`input_name_${i}`] = '参数名不能为空';
+        if (name) {
+          if (names.has(name)) e[`input_name_${i}`] = '参数名重复';
+          names.add(name);
+        }
+      });
+    }
+    if (node.type === 'output') {
+      const data = formData.data as any;
+      const outputs = (data?.outputs || []) as OutputParameter[];
+      const names = new Set<string>();
+      outputs.forEach((p, i) => {
+        const name = (p.name || '').trim();
+        if (!name) e[`output_name_${i}`] = '输出名不能为空';
+        if (name) {
+          if (names.has(name)) e[`output_name_${i}`] = '输出名重复';
+          names.add(name);
+        }
+      });
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }, [formData, node]);
+
   const handleSave = () => {
     if (!node) {
       console.error('无法保存：节点不存在');
       return;
     }
+    if (!isValid) return;
     
     try {
       // 首先，确保保留节点的所有核心字段
@@ -265,6 +303,9 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
               </option>
             ))}
           </select>
+          {errors.agentId && (
+            <div className="form-hint" style={{ color: '#dc2626' }}>{errors.agentId}</div>
+          )}
         </div>
 
         {data?.agentName && (
@@ -887,6 +928,9 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                       <span>必需参数</span>
                     </label>
                   </div>
+                  {errors[`input_name_${index}`] && (
+                    <div className="form-hint" style={{ color: '#dc2626' }}>{errors[`input_name_${index}`]}</div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1078,6 +1122,9 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                       rows={2}
                     />
                   </div>
+                  {errors[`output_name_${index}`] && (
+                    <div className="form-hint" style={{ color: '#dc2626' }}>{errors[`output_name_${index}`]}</div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1289,6 +1336,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
       <div className="config-panel-footer">
         <button 
           className="config-panel-button" 
+          disabled={!isValid}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();

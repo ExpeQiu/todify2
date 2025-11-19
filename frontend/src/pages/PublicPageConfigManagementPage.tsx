@@ -3,18 +3,12 @@ import { Plus, Edit2, Trash2, Copy, ExternalLink, Check, X, Loader, Upload, Powe
 import TopNavigation from '../components/TopNavigation';
 import publicPageConfigService from '../services/publicPageConfigService';
 import { PublicPageConfig } from '../types/publicPageConfig';
-import { agentWorkflowService } from '../services/agentWorkflowService';
-import { AgentWorkflow } from '../types/agentWorkflow';
-import { aiRoleService } from '../services/aiRoleService';
-import { AIRoleConfig } from '../types/aiRole';
 
 const PublicPageConfigManagementPage: React.FC = () => {
   const [configs, setConfigs] = useState<PublicPageConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingConfig, setEditingConfig] = useState<PublicPageConfig | null>(null);
-  const [workflows, setWorkflows] = useState<AgentWorkflow[]>([]);
-  const [roles, setRoles] = useState<AIRoleConfig[]>([]);
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -362,30 +356,264 @@ const PublicPageConfigManagementPage: React.FC = () => {
     </div>
   </div>
 </div>
-<div class="bg-white border-t border-gray-200 p-4"></div>`
+<div class="bg-white border-t border-gray-200 p-4"></div>`,
+    'ai-chat-source': `<div class="flex h-screen bg-gray-50">
+  <!-- 左侧来源栏 -->
+  <div class="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
+    <!-- 标题和操作按钮 -->
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">来源</h2>
+      <div class="flex gap-2">
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          添加文件
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          知识库选择
+        </button>
+      </div>
+    </div>
+    <!-- 选择所有来源 -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+        <span class="text-sm text-gray-700">选择所有来源</span>
+      </label>
+    </div>
+    <!-- 来源列表 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 text-center text-gray-500 text-sm">
+        暂无来源，点击"添加文件"或"知识库选择"添加来源
+      </div>
+    </div>
+  </div>
+  <!-- 中间AI对话栏 -->
+  <div class="flex-1 flex flex-col">
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-800">AI问答</h1>
+          <div class="flex items-center mt-1 space-x-4 text-sm text-gray-500">
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              技术包装
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术策略
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术通稿
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              发布会稿
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>新对话</span>
+          </button>
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>搜索历史记录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="flex flex-col items-center justify-center h-full">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-medium text-gray-800 mb-2">您在忙什么？</h2>
+          <p class="text-gray-500 text-sm max-w-md">
+            我是您的AI助手，可以帮助您处理技术包装、推广策略、技术通稿等各种工作流程。
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border-t border-gray-200 p-4"></div>
+  </div>
+</div>`,
+    'ai-chat-source-tools': `<div class="flex h-screen bg-gray-50">
+  <!-- 左侧来源栏 -->
+  <div class="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
+    <!-- 标题和操作按钮 -->
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">来源</h2>
+      <div class="flex gap-2">
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          添加文件
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          知识库选择
+        </button>
+      </div>
+    </div>
+    <!-- 选择所有来源 -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+        <span class="text-sm text-gray-700">选择所有来源</span>
+      </label>
+    </div>
+    <!-- 来源列表 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 text-center text-gray-500 text-sm">
+        暂无来源，点击"添加文件"或"知识库选择"添加来源
+      </div>
+    </div>
+  </div>
+  <!-- 中间AI对话栏 -->
+  <div class="flex-1 flex flex-col">
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-800">AI问答</h1>
+          <div class="flex items-center mt-1 space-x-4 text-sm text-gray-500">
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              技术包装
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术策略
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术通稿
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              发布会稿
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>新对话</span>
+          </button>
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>搜索历史记录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="flex flex-col items-center justify-center h-full">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-medium text-gray-800 mb-2">您在忙什么？</h2>
+          <p class="text-gray-500 text-sm max-w-md">
+            我是您的AI助手，可以帮助您处理技术包装、推广策略、技术通稿等各种工作流程。
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border-t border-gray-200 p-4"></div>
+  </div>
+  <!-- 右侧工具箱栏 -->
+  <div class="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
+    <!-- 标题 -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
+      <div class="flex-1 flex flex-col justify-center">
+        <h2 class="text-lg font-semibold text-gray-900">更多工具箱</h2>
+        <div class="text-xs text-transparent mt-1">占位</div>
+      </div>
+    </div>
+    <!-- 工具网格 -->
+    <div class="p-4 border-b border-gray-200">
+      <div class="grid grid-cols-2 gap-3">
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">技术转译</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">用户场景挖掘</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">发布会场景化</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">领导人口语化</span>
+        </button>
+      </div>
+    </div>
+    <!-- 相关内容 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">相关内容</h3>
+        <div class="text-center py-8 text-gray-400 text-sm">
+          暂无相关内容
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`
   };
 
   // 表单状态
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    address: '', // 地址配置
-    displayMode: 'role' as 'workflow' | 'role', // Agent分类：role=AI角色, workflow=Agent工作流
-    workflowId: '',
-    roleIds: [] as string[],
-    templateType: null as 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null,
+    templateType: null as 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null,
     customHtml: '',
   });
 
   useEffect(() => {
     loadConfigs();
-    loadWorkflows();
-    loadRoles();
   }, []);
 
   const loadConfigs = async () => {
     setLoading(true);
     try {
+      // 首先确保默认页面配置正确，传递TEMPLATES对象以获取模板HTML
+      await publicPageConfigService.ensureDefaultPageConfigs(TEMPLATES);
+      // 然后加载所有配置
       const data = await publicPageConfigService.getAllConfigs();
       setConfigs(data);
     } catch (error) {
@@ -395,33 +623,12 @@ const PublicPageConfigManagementPage: React.FC = () => {
     }
   };
 
-  const loadWorkflows = async () => {
-    try {
-      const data = await agentWorkflowService.getAllWorkflows();
-      setWorkflows(data);
-    } catch (error) {
-      console.error('加载工作流失败:', error);
-    }
-  };
-
-  const loadRoles = async () => {
-    try {
-      const data = await aiRoleService.getAIRoles();
-      setRoles(data.filter(r => r.enabled));
-    } catch (error) {
-      console.error('加载角色失败:', error);
-    }
-  };
 
   const handleCreate = () => {
     setEditingConfig(null);
     setFormData({
       name: '',
       description: '',
-      address: '',
-      displayMode: 'role',
-      workflowId: '',
-      roleIds: [],
       templateType: null,
       customHtml: '',
     });
@@ -430,15 +637,9 @@ const PublicPageConfigManagementPage: React.FC = () => {
 
   const handleEdit = (config: PublicPageConfig) => {
     setEditingConfig(config);
-    // 将旧的displayMode映射到新的：all/custom -> role, workflow -> workflow
-    const mappedDisplayMode = config.displayMode === 'workflow' ? 'workflow' : 'role';
     setFormData({
       name: config.name,
       description: config.description || '',
-      address: config.address || '',
-      displayMode: mappedDisplayMode,
-      workflowId: config.workflowId || '',
-      roleIds: config.roleIds || [],
       templateType: config.templateType || null,
       customHtml: config.customHtml || '',
     });
@@ -446,7 +647,7 @@ const PublicPageConfigManagementPage: React.FC = () => {
   };
 
   // 处理模板选择
-  const handleTemplateSelect = (templateType: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null) => {
+  const handleTemplateSelect = (templateType: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null) => {
     if (templateType && templateType !== 'custom' && TEMPLATES[templateType]) {
       setFormData({
         ...formData,
@@ -469,10 +670,11 @@ const PublicPageConfigManagementPage: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      // 后端现在支持 role 模式，直接传递即可
       const saveData = {
-        ...formData,
-        displayMode: formData.displayMode as 'workflow' | 'custom' | 'role' | 'all',
+        name: formData.name,
+        description: formData.description,
+        templateType: formData.templateType,
+        customHtml: formData.customHtml,
       };
       
       if (editingConfig) {
@@ -593,14 +795,6 @@ const PublicPageConfigManagementPage: React.FC = () => {
     }
   };
 
-  const toggleRoleSelection = (roleId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      roleIds: prev.roleIds.includes(roleId)
-        ? prev.roleIds.filter(id => id !== roleId)
-        : [...prev.roleIds, roleId],
-    }));
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -705,6 +899,8 @@ const PublicPageConfigManagementPage: React.FC = () => {
                             {config.templateType === 'ai-chat' && 'AI问答模版（带附加信息）'}
                             {config.templateType === 'ai-chat-edit' && 'AI对话编辑'}
                             {config.templateType === 'ai-chat-knowledge' && 'AI对话带知识点'}
+                            {config.templateType === 'ai-chat-source' && 'AI问答+来源'}
+                            {config.templateType === 'ai-chat-source-tools' && 'AI问答+来源+更多工具箱'}
                             {config.templateType === 'custom' && '自定义模版'}
                           </span>
                         ) : (
@@ -740,7 +936,7 @@ const PublicPageConfigManagementPage: React.FC = () => {
                           <a
                             href={`/${config.address}`}
                             className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                              config.templateType === 'speech' || config.templateType === 'ai-chat' || config.templateType === 'ai-chat-edit' || config.templateType === 'ai-chat-knowledge'
+                              config.templateType === 'speech' || config.templateType === 'ai-chat' || config.templateType === 'ai-chat-edit' || config.templateType === 'ai-chat-knowledge' || config.templateType === 'ai-chat-source' || config.templateType === 'ai-chat-source-tools'
                                 ? 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300'
                                 : 'bg-gray-100 text-gray-600 cursor-not-allowed'
                             }`}
@@ -753,6 +949,10 @@ const PublicPageConfigManagementPage: React.FC = () => {
                                 ? '点击进入AI对话编辑页面'
                                 : config.templateType === 'ai-chat-knowledge'
                                 ? '点击进入AI对话带知识点页面'
+                                : config.templateType === 'ai-chat-source'
+                                ? '点击进入AI问答+来源页面'
+                                : config.templateType === 'ai-chat-source-tools'
+                                ? '点击进入AI问答+来源+更多工具箱页面'
                                 : '无对应页面'
                             }
                           >
@@ -909,6 +1109,28 @@ const PublicPageConfigManagementPage: React.FC = () => {
                       >
                         AI问答模版（带附加信息）
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTemplateSelect('ai-chat-source')}
+                        className={`px-4 py-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                          formData.templateType === 'ai-chat-source'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        AI问答+来源
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTemplateSelect('ai-chat-source-tools')}
+                        className={`px-4 py-3 border-2 rounded-lg text-sm font-medium transition-all ${
+                          formData.templateType === 'ai-chat-source-tools'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        AI问答+来源+更多工具箱
+                      </button>
                     </div>
                     {formData.templateType && formData.templateType !== 'custom' && (
                       <p className="mt-2 text-xs text-gray-500">
@@ -917,6 +1139,8 @@ const PublicPageConfigManagementPage: React.FC = () => {
                           formData.templateType === 'ai-chat' ? 'AI问答模版（带附加信息）' :
                           formData.templateType === 'ai-chat-edit' ? 'AI对话编辑' :
                           formData.templateType === 'ai-chat-knowledge' ? 'AI对话带知识点' :
+                          formData.templateType === 'ai-chat-source' ? 'AI问答+来源' :
+                          formData.templateType === 'ai-chat-source-tools' ? 'AI问答+来源+更多工具箱' :
                           ''
                         }
                       </p>
@@ -936,108 +1160,6 @@ const PublicPageConfigManagementPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Agent分类 *
-                    </label>
-                    <select
-                      value={formData.displayMode}
-                      onChange={(e) => {
-                        const newMode = e.target.value as 'workflow' | 'role';
-                        setFormData({ 
-                          ...formData, 
-                          displayMode: newMode,
-                          // 切换分类时清空相关字段
-                          workflowId: newMode === 'workflow' ? formData.workflowId : '',
-                          roleIds: newMode === 'role' ? formData.roleIds : []
-                        });
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="role">AI角色</option>
-                      <option value="workflow">Agent工作流</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      地址配置
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => {
-                        // 只允许输入英文、数字和连字符
-                        const value = e.target.value.replace(/[^a-z0-9-]/gi, '').toLowerCase();
-                        setFormData({ ...formData, address: value });
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
-                      placeholder="ai-chat"
-                    />
-                    {formData.address && (
-                      <p className="mt-2 text-xs text-gray-500">
-                        访问地址：<span className="font-mono text-blue-600">http://localhost:3000/{formData.address}</span>
-                      </p>
-                    )}
-                    <p className="mt-1 text-xs text-gray-400">
-                      请输入英文名称，如：ai-chat、speech等
-                    </p>
-                  </div>
-
-                  {formData.displayMode === 'workflow' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        选择Agent工作流 <span className="text-xs text-gray-500">(仅显示已发布的工作流)</span>
-                      </label>
-                      <select
-                        value={formData.workflowId}
-                        onChange={(e) => setFormData({ ...formData, workflowId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">请选择Agent工作流</option>
-                        {workflows.filter(w => w.published).map(w => (
-                          <option key={w.id} value={w.id}>
-                            {w.name}
-                            {w.published && <span className="text-green-600"> ✓ 已发布</span>}
-                          </option>
-                        ))}
-                      </select>
-                      {workflows.filter(w => w.published).length === 0 && (
-                        <p className="text-sm text-orange-600 mt-2">
-                          暂无已发布的工作流。请在工作流页面发布工作流后再进行绑定。
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {formData.displayMode === 'role' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        选择AI角色 *
-                      </label>
-                      <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
-                        {roles.length === 0 ? (
-                          <p className="text-sm text-gray-500 text-center py-4">暂无可用角色</p>
-                        ) : (
-                          roles.map(role => (
-                            <label
-                              key={role.id}
-                              className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={formData.roleIds.includes(role.id)}
-                                onChange={() => toggleRoleSelection(role.id)}
-                                className="rounded border-gray-300"
-                              />
-                              <span className="text-sm">{role.name}</span>
-                            </label>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 

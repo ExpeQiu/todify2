@@ -34,10 +34,12 @@ const pickHistoryWindow = (messages: ConversationMessage[], limit?: number) => {
     limit = DEFAULT_HISTORY_LIMIT;
   }
 
+  // 当 limit <= 0 时，返回所有历史消息（全部历史）
   if (limit <= 0) {
-    return messages.slice(-MAX_HISTORY_LIMIT);
+    return messages;
   }
 
+  // 限制在最大历史限制内
   return messages.slice(-Math.min(limit, MAX_HISTORY_LIMIT));
 };
 
@@ -125,7 +127,8 @@ export const buildConversationContext = (
       hasOutputs: Boolean(msg.outputs && Object.keys(msg.outputs).length > 0),
     })),
     historySize: effectiveHistory.length,
-    historyLimit: historyLimit <= 0 ? 0 : Math.min(historyLimit, MAX_HISTORY_LIMIT),
+    // 当 historyLimit <= 0 时，表示全部历史，返回实际消息数量；否则返回限制值
+    historyLimit: historyLimit <= 0 ? effectiveHistory.length : Math.min(historyLimit, MAX_HISTORY_LIMIT),
   };
 };
 

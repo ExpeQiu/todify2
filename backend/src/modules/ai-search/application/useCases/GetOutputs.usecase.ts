@@ -5,9 +5,9 @@ import { Result, failure, success } from '@/shared/lib/result';
 export class GetOutputsUseCase {
   constructor(private readonly aiSearchService: AiSearchService) {}
 
-  async execute(conversationId?: string): Promise<Result<any[]>> {
+  async execute(conversationId?: string, pageType?: string): Promise<Result<any[]>> {
     try {
-      const outputs = await this.aiSearchService.getOutputs(conversationId);
+      const outputs = await this.aiSearchService.getOutputs(conversationId, pageType);
 
       const formatted = outputs.map((output) => ({
         id: output.id,

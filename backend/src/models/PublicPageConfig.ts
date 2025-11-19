@@ -35,7 +35,7 @@ export interface PublicPageConfigDTO {
   roleIds?: string[];
   accessToken: string;
   isActive: boolean;
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -49,11 +49,12 @@ export interface CreatePublicPageConfigDTO {
   name: string;
   description?: string;
   address?: string; // 地址配置
-  displayMode: 'all' | 'workflow' | 'custom' | 'role';
+  displayMode?: 'all' | 'workflow' | 'custom' | 'role'; // 可选，默认为'role'
   workflowId?: string;
   roleIds?: string[];
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
+  isActive?: boolean; // 可选，用于创建时直接设置状态
 }
 
 /**
@@ -67,7 +68,7 @@ export interface UpdatePublicPageConfigDTO {
   workflowId?: string;
   roleIds?: string[];
   isActive?: boolean;
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
 }
 
@@ -226,12 +227,16 @@ export class PublicPageConfigModel {
 
     const id = data.id || `public-config-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const accessToken = this.generateAccessToken();
+    // 如果没有提供displayMode，使用默认值'role'
+    const displayMode = data.displayMode || 'role';
+    // 如果没有提供isActive，默认为1（启用）
+    const isActive = data.isActive !== undefined ? (data.isActive ? 1 : 0) : 1;
 
     const sql = `
       INSERT INTO public_page_configs (
         id, name, description, address, display_mode, workflow_id, role_ids, access_token, is_active,
         template_type, custom_html, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
     const params = [
@@ -239,10 +244,11 @@ export class PublicPageConfigModel {
       data.name,
       data.description || null,
       data.address || null,
-      data.displayMode,
+      displayMode,
       data.workflowId || null,
       data.roleIds ? JSON.stringify(data.roleIds) : null,
       accessToken,
+      isActive,
       data.templateType || null,
       data.customHtml || null,
     ];

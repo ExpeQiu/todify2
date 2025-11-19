@@ -14,6 +14,7 @@ import { aiSearchService } from "../../services/aiSearchService";
 import { agentWorkflowService } from "../../services/agentWorkflowService";
 import { AgentWorkflow } from "../../types/agentWorkflow";
 import { PageConfig } from "../../configs/pageConfigs";
+import { pageToolConfigService } from "../../services/pageToolConfigService";
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
@@ -41,6 +42,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalErrorDetail, setGlobalErrorDetail] = useState<string | null>(null);
+  const [enabledToolIds, setEnabledToolIds] = useState<string[] | undefined>(config.enabledToolIds);
+  const [dynamicLabelMap, setDynamicLabelMap] = useState<Record<string, string>>({});
   const triggerStatusTimerRef = useRef<number | null>(null);
   const workflowSelectionRef = useRef<Record<string, string>>({});
   const activeWorkflow = useMemo(
@@ -202,6 +205,90 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     loadAvailableWorkflows();
   }, [loadAvailableWorkflows]);
 
+  useEffect(() => {
+    const loadEnabledToolsForPage = async () => {
+      try {
+        console.log('[BaseAISearchPage] 加载工具配置，pageType:', config.pageType);
+        
+        // 1. 优先从数据库加载页面工具配置
+        const dbConfig = await pageToolConfigService.getByPageType(config.pageType);
+        if (dbConfig && dbConfig.enabledToolIds && dbConfig.enabledToolIds.length > 0) {
+          console.log('[BaseAISearchPage] 从数据库配置加载工具:', dbConfig.enabledToolIds);
+          setEnabledToolIds(dbConfig.enabledToolIds);
+          setDynamicLabelMap(dbConfig.featureLabelMap || {});
+          return;
+        }
+
+        // 2. 如果没有数据库配置，尝试从字段映射配置中加载
+        const mappings = await aiSearchService.getAllFieldMappingConfigs();
+        // 向后兼容：支持读取旧数据中的 'speech'，但新数据统一使用 'press-release'
+        const pageKeys = config.pageType === 'press-release' 
+          ? ['press-release', 'speech'] 
+          : [config.pageType];
+        console.log('[BaseAISearchPage] 从字段映射配置加载工具，pageKeys:', pageKeys, 'mappings数量:', mappings.length);
+        
+        const setIds = new Set<string>();
+        const labels: Record<string, string> = {};
+        
+        // 从所有字段映射配置中筛选匹配当前 pageType 的工具项
+        // 这样可以聚合所有工作流中配置的该页面的工具
+        for (const item of mappings) {
+          const fos = Array.isArray(item.config?.featureObjects) ? item.config.featureObjects : [];
+          for (const f of fos) {
+            // 排除 ai-dialog，检查是否匹配当前页面的 pageType
+            if (f.featureType && f.featureType !== 'ai-dialog') {
+              const featurePageType = (f as any).pageType;
+              // 如果 featureObject 有 pageType，必须匹配当前页面；如果没有 pageType，则不显示（避免显示不相关的工具）
+              if (featurePageType && pageKeys.includes(featurePageType)) {
+                setIds.add(f.featureType);
+                // 如果多个工作流配置了同一个工具，优先使用有 label 的配置
+                if ((f as any).label && !labels[f.featureType]) {
+                  labels[f.featureType] = (f as any).label as string;
+                }
+              }
+            }
+          }
+        }
+        
+        // 如果当前工作流有配置，优先使用当前工作流的标签
+        if (selectedWorkflowId) {
+          const currentMapping = mappings.find(m => m.workflowId === selectedWorkflowId);
+          if (currentMapping) {
+            const fos = Array.isArray(currentMapping.config?.featureObjects) ? currentMapping.config.featureObjects : [];
+            for (const f of fos) {
+              if (f.featureType && f.featureType !== 'ai-dialog') {
+                const featurePageType = (f as any).pageType;
+                if (featurePageType && pageKeys.includes(featurePageType)) {
+                  if ((f as any).label) {
+                    labels[f.featureType] = (f as any).label as string;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        console.log('[BaseAISearchPage] 从字段映射配置找到的工具数量:', setIds.size, '工具列表:', Array.from(setIds));
+        
+        if (setIds.size > 0) {
+          setEnabledToolIds(Array.from(setIds));
+          setDynamicLabelMap(labels);
+        } else {
+          // 3. 如果都没有，回退到使用配置中的默认工具列表
+          console.log('[BaseAISearchPage] 未找到字段映射配置，使用默认配置:', config.enabledToolIds);
+          setEnabledToolIds(config.enabledToolIds || []);
+          setDynamicLabelMap({});
+        }
+      } catch (error) {
+        console.error('[BaseAISearchPage] 加载工具配置失败:', error);
+        // 出错时也回退到使用配置中的默认工具列表
+        setEnabledToolIds(config.enabledToolIds || []);
+        setDynamicLabelMap({});
+      }
+    };
+    loadEnabledToolsForPage();
+  }, [config.pageType, config.enabledToolIds, selectedWorkflowId]);
+
   const handleWorkflowSelectionChange = useCallback(
     (workflowId: string) => {
       if (!workflowId) return;
@@ -210,6 +297,79 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     },
     [currentConversation?.id, persistWorkflowSelection]
   );
+
+  // 从字段映射配置中获取该 pageType 的默认工作流
+  const [defaultWorkflowFromMapping, setDefaultWorkflowFromMapping] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDefaultWorkflowFromMapping = async () => {
+      try {
+        const mappings = await aiSearchService.getAllFieldMappingConfigs();
+        // 查找该 pageType 对应的第一个工作流（作为默认工作流）
+        // 支持向后兼容：press-release 也匹配 speech
+        const pageKeys = config.pageType === 'press-release' 
+          ? ['press-release', 'speech'] 
+          : [config.pageType];
+        
+        for (const mapping of mappings) {
+          const featureObjects = Array.isArray(mapping.config?.featureObjects) 
+            ? mapping.config.featureObjects 
+            : [];
+          
+          // 查找第一个匹配当前 pageType 的 featureObject，使用其 workflowId 作为默认工作流
+          const matchedFeature = featureObjects.find((f: any) => 
+            f.pageType && pageKeys.includes(f.pageType)
+          );
+          
+          if (matchedFeature) {
+            const workflowId = matchedFeature.workflowId || mapping.workflowId;
+            // 验证工作流是否在可用列表中
+            if (availableWorkflows.some(w => w.id === workflowId)) {
+              setDefaultWorkflowFromMapping(workflowId);
+              console.log(`[BaseAISearchPage] 从字段映射配置找到 ${config.pageType} 的默认工作流:`, workflowId);
+              return;
+            }
+          }
+        }
+        
+        // 如果没有找到匹配的，尝试使用该工作流配置中的第一个工作流
+        // 查找所有为该 pageType 配置的工作流，使用第一个
+        const allWorkflowsForPage = new Set<string>();
+        for (const mapping of mappings) {
+          const featureObjects = Array.isArray(mapping.config?.featureObjects) 
+            ? mapping.config.featureObjects 
+            : [];
+          
+          const hasMatchingPageType = featureObjects.some((f: any) => 
+            f.pageType && pageKeys.includes(f.pageType)
+          );
+          
+          if (hasMatchingPageType) {
+            allWorkflowsForPage.add(mapping.workflowId);
+          }
+        }
+        
+        // 使用第一个匹配的工作流
+        if (allWorkflowsForPage.size > 0) {
+          const firstWorkflowId = Array.from(allWorkflowsForPage)[0];
+          if (availableWorkflows.some(w => w.id === firstWorkflowId)) {
+            setDefaultWorkflowFromMapping(firstWorkflowId);
+            console.log(`[BaseAISearchPage] 从字段映射配置找到 ${config.pageType} 的默认工作流（使用工作流配置）:`, firstWorkflowId);
+            return;
+          }
+        }
+        
+        setDefaultWorkflowFromMapping(null);
+      } catch (error) {
+        console.error('[BaseAISearchPage] 加载字段映射配置失败:', error);
+        setDefaultWorkflowFromMapping(null);
+      }
+    };
+
+    if (availableWorkflows.length > 0) {
+      loadDefaultWorkflowFromMapping();
+    }
+  }, [config.pageType, availableWorkflows]);
 
   useEffect(() => {
     const selectionMap = workflowSelectionRef.current;
@@ -230,8 +390,10 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     const configId =
       workflowConfig?.id && workflowIds.has(workflowConfig.id) ? workflowConfig.id : undefined;
 
+    // 优先级：对话特定 > 字段映射默认 > 配置ID > 存储的默认 > 第一个可用
     const fallback =
       storedForConversation ||
+      (defaultWorkflowFromMapping && workflowIds.has(defaultWorkflowFromMapping) ? defaultWorkflowFromMapping : undefined) ||
       configId ||
       storedDefault ||
       availableWorkflows[0]?.id ||
@@ -240,7 +402,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     if (fallback && fallback !== selectedWorkflowId) {
       setSelectedWorkflowId(fallback);
     }
-  }, [currentConversation?.id, workflowConfig?.id, availableWorkflows, selectedWorkflowId]);
+  }, [currentConversation?.id, workflowConfig?.id, availableWorkflows, selectedWorkflowId, defaultWorkflowFromMapping]);
 
   useEffect(() => {
     if (selectedWorkflowId) {
@@ -314,7 +476,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
   const loadConversations = useCallback(async (options?: { refreshActive?: boolean; activeConversationId?: string }) => {
     try {
-      const data = await aiSearchService.getConversations();
+      const data = await aiSearchService.getConversations(config.pageType);
       setConversations(data);
 
       if (data.length === 0) {
@@ -346,7 +508,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
   const loadOutputs = async () => {
     try {
-      const data = await aiSearchService.getOutputs();
+      const data = await aiSearchService.getOutputs(undefined, config.pageType);
       setOutputs(data);
     } catch (error) {
       console.error("加载输出内容失败:", error);
@@ -389,6 +551,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
+        pageType: config.pageType,
       });
 
       if (selectedWorkflowId) {
@@ -419,6 +582,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
+        pageType: config.pageType,
       });
 
       if (selectedWorkflowId) {
@@ -515,10 +679,13 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         .reverse()
         .find((m) => m.role === "assistant");
 
+      // 构建触发工具的payload，包含contextWindowSize参数
+      // contextWindowSize: 5/10/20 表示最近N条消息，0 表示全部历史
+      // 此参数会被传递给后端，用于构建对话上下文
       const payload: { featureType: string; messageId?: string; content?: string; sources: Source[]; contextWindowSize?: number; workflowId?: string } = {
         featureType,
         sources: effectiveSources,
-        contextWindowSize,
+        contextWindowSize, // 从DialogueContent的上下文窗口选择器获取
         workflowId: selectedWorkflowId || undefined,
       };
 
@@ -650,8 +817,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           statusMessage={triggeringStatus || undefined}
           onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
           studioTitle={config.studioTitle}
-          featureLabelMap={config.featureLabelMap}
-          enabledToolIds={config.enabledToolIds}
+          featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
+          enabledToolIds={enabledToolIds}
+          pageType={config.pageType}
         />
       </div>
 

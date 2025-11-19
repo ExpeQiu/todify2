@@ -19,6 +19,9 @@ const FeatureObjectMappingSchema = z.object({
   workflowId: z.string().optional(),
   inputMappings: z.array(FieldMappingRuleSchema).optional(),
   outputMappings: z.array(OutputMappingRuleSchema).optional(),
+  pageType: z.enum(['tech-package', 'tech-strategy', 'tech-article', 'press-release']).optional(),
+  label: z.string().optional(),
+  agentId: z.string().optional(),
 });
 
 export const SaveFieldMappingSchema = z.object({

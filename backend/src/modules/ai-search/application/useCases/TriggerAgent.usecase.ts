@@ -165,6 +165,15 @@ export class TriggerAgentUseCase {
     return baseContent;
   }
 
+  /**
+   * 构建对话数据，包含根据contextWindowSize截取的上下文历史
+   * 此方法适用于所有工具（五看、三定、技术矩阵、传播、展具与视频、翻译等）
+   * @param conversation 对话对象
+   * @param conversationQuery 对话查询内容
+   * @param targetSources 目标来源
+   * @param dto 触发Agent的DTO，包含contextWindowSize参数
+   * @returns 包含历史上下文的对话数据
+   */
   private buildConversationData(
     conversation: any,
     conversationQuery: string,
@@ -172,21 +181,29 @@ export class TriggerAgentUseCase {
     dto: TriggerAgentDTO
   ) {
     const sortedMessages = [...(conversation.messages || [])];
+    // 根据contextWindowSize构建上下文（最近N条消息或全部历史）
+    // contextWindowSize: 5/10/20 表示最近N条消息，0 表示全部历史
     const context = buildConversationContext(sortedMessages, {
       historyLimit: dto.contextWindowSize,
     });
+
+    // 获取最后一条助手消息和用户消息，用于字段映射
+    const lastAssistantMessage = [...sortedMessages].reverse().find((m) => m.role === 'assistant');
+    const lastUserMessage = [...sortedMessages].reverse().find((m) => m.role === 'user');
 
     return {
       query: conversationQuery,
       sources: targetSources,
       files: [],
-      history: context.history,
+      history: context.history, // 根据contextWindowSize截取的历史消息
       historyLimit: context.historyLimit,
       historySize: context.historySize,
       summary: context.summary,
       keyPhrases: context.keyPhrases,
       conversationId: conversation.id,
       featureType: dto.featureType,
+      lastAssistantMessage: lastAssistantMessage || undefined,
+      lastUserMessage: lastUserMessage || undefined,
     };
   }
 }

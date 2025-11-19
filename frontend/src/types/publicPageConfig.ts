@@ -10,7 +10,7 @@ export interface PublicPageConfig {
   roleIds?: string[];
   accessToken: string;
   isActive: boolean;
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -20,11 +20,12 @@ export interface CreatePublicPageConfigRequest {
   name: string;
   description?: string;
   address?: string; // 地址配置
-  displayMode: 'all' | 'workflow' | 'custom' | 'role';
+  displayMode?: 'all' | 'workflow' | 'custom' | 'role'; // 可选，默认为'role'
   workflowId?: string;
   roleIds?: string[];
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
+  isActive?: boolean; // 可选，用于创建时直接设置状态
 }
 
 export interface UpdatePublicPageConfigRequest {
@@ -35,7 +36,7 @@ export interface UpdatePublicPageConfigRequest {
   workflowId?: string;
   roleIds?: string[];
   isActive?: boolean;
-  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom' | null;
+  templateType?: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom' | null;
   customHtml?: string;
 }
 

@@ -7,9 +7,9 @@ import { ConversationSummaryView } from '../dto/GetConversations.dto';
 export class GetConversationsUseCase {
   constructor(private readonly aiSearchService: AiSearchService) {}
 
-  async execute(): Promise<Result<ConversationSummaryView[]>> {
+  async execute(pageType?: string): Promise<Result<ConversationSummaryView[]>> {
     try {
-      const conversations = await this.aiSearchService.getConversations();
+      const conversations = await this.aiSearchService.getConversations(pageType);
 
       const formatted = conversations.map((conv) => ({
         id: conv.id,

@@ -32,6 +32,8 @@ export class SendMessageUseCase {
     files?: Express.Multer.File[];
     contextWindowSize?: number;
     workflowId?: string;
+    fileList?: string;
+    knowledgeBaseNames?: string;
   }): Promise<Result<SendMessageResult>> {
     try {
       const userMessageRecord = await this.aiSearchService.sendMessage(
@@ -76,6 +78,8 @@ export class SendMessageUseCase {
           files: params.files,
           contextWindowSize: params.contextWindowSize,
           workflowId: finalWorkflowId,
+          fileList: params.fileList,
+          knowledgeBaseNames: params.knowledgeBaseNames,
         });
         const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 
@@ -128,6 +132,8 @@ export class SendMessageUseCase {
       files?: Express.Multer.File[];
       contextWindowSize?: number;
       workflowId?: string;
+      fileList?: string;
+      knowledgeBaseNames?: string;
     }
   ) {
     const conversationSources = params.conversation?.sources || [];
@@ -138,6 +144,14 @@ export class SendMessageUseCase {
     const context = buildConversationContext(params.conversation?.messages || [], {
       historyLimit: params.contextWindowSize,
     });
+
+    // 解析文件列表和知识库名称（从逗号分隔的字符串转换为数组）
+    const fileListArray = params.fileList
+      ? params.fileList.split(',').map((name) => name.trim()).filter((name) => name.length > 0)
+      : [];
+    const knowledgeBaseNamesArray = params.knowledgeBaseNames
+      ? params.knowledgeBaseNames.split(',').map((name) => name.trim()).filter((name) => name.length > 0)
+      : [];
 
     return {
       query: params.content,
@@ -150,6 +164,8 @@ export class SendMessageUseCase {
           url: `/uploads/ai-search/${f.filename}`,
           type: f.mimetype,
         })) || [],
+      fileList: fileListArray, // 文件列表数组
+      knowledgeBaseNames: knowledgeBaseNamesArray, // 知识库名称数组
       conversationId: params.conversation?.id,
       history: context.history,
       historySize: context.historySize,

@@ -6,7 +6,7 @@ import { aiSearchService } from "../../services/aiSearchService";
 interface AddSourceModalProps {
   onClose: () => void;
   onAddExternalSource: (source: Omit<Source, "id">) => void;
-  pageType?: 'tech-package' | 'press-release';
+  pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
 }
 
 const AddSourceModal: React.FC<AddSourceModalProps> = ({

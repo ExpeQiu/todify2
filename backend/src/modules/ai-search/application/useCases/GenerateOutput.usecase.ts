@@ -14,7 +14,8 @@ export class GenerateOutputUseCase {
         dto.conversationId,
         dto.messageId,
         dto.content,
-        dto.title
+        dto.title,
+        dto.pageType
       );
 
       return success({

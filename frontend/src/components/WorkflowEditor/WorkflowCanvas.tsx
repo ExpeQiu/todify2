@@ -355,6 +355,9 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           type: 'bezier',
           animated: false,
         }}
+        snapToGrid
+        snapGrid={[20, 20]}
+        selectionOnDrag
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
         <Controls />

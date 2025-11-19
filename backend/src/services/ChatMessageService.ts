@@ -159,14 +159,20 @@ export class ChatMessageService {
    * 保存工作流执行记录
    */
   static async saveWorkflowExecution(execution: WorkflowExecutionRecord): Promise<WorkflowExecutionRecord> {
+    // 生成唯一ID（如果没有提供）
+    const executionId = `exec_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
     const sql = `
       INSERT INTO workflow_executions (
-        workflow_run_id, task_id, message_id, workflow_id, app_type, status, error_message,
-        inputs, outputs, elapsed_time, total_tokens, total_steps, started_at, finished_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, execution_type, workflow_run_id, task_id, message_id, workflow_id, app_type, 
+        status, error_message, inputs, outputs, 
+        elapsed_time, total_tokens, total_steps, 
+        started_at, finished_at, created_at, updated_at
+      ) VALUES (?, 'dify_workflow', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
     
     await query(sql, [
+      executionId,
       execution.workflow_run_id,
       execution.task_id,
       execution.message_id,

@@ -11,7 +11,7 @@ import TopNavigation from '../components/TopNavigation';
 interface Template {
   id: string;
   name: string;
-  type: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom';
+  type: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom';
   description?: string;
   html: string;
   createdAt: Date;
@@ -31,7 +31,7 @@ const TemplateManagementPage: React.FC = () => {
   // 表单状态
   const [formData, setFormData] = useState({
     name: '',
-    type: 'custom' as 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'custom',
+    type: 'custom' as 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools' | 'custom',
     description: '',
     html: '',
   });
@@ -407,6 +407,255 @@ const TemplateManagementPage: React.FC = () => {
   </div>
 </div>`,
     },
+    'ai-chat-source': {
+      id: 'preset-ai-chat-source',
+      name: 'AI问答+来源',
+      type: 'ai-chat-source' as const,
+      description: '左侧来源选择 + 中间AI对话的页面模板',
+      html: `<div class="flex h-screen bg-gray-50">
+  <!-- 左侧来源栏 -->
+  <div class="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
+    <!-- 标题和操作按钮 -->
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">来源</h2>
+      <div class="flex gap-2">
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          添加文件
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          知识库选择
+        </button>
+      </div>
+    </div>
+    <!-- 选择所有来源 -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+        <span class="text-sm text-gray-700">选择所有来源</span>
+      </label>
+    </div>
+    <!-- 来源列表 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 text-center text-gray-500 text-sm">
+        暂无来源，点击"添加文件"或"知识库选择"添加来源
+      </div>
+    </div>
+  </div>
+  <!-- 中间AI对话栏 -->
+  <div class="flex-1 flex flex-col">
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-800">AI问答</h1>
+          <div class="flex items-center mt-1 space-x-4 text-sm text-gray-500">
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              技术包装
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术策略
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术通稿
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              发布会稿
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>新对话</span>
+          </button>
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>搜索历史记录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="flex flex-col items-center justify-center h-full">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-medium text-gray-800 mb-2">您在忙什么？</h2>
+          <p class="text-gray-500 text-sm max-w-md">
+            我是您的AI助手，可以帮助您处理技术包装、推广策略、技术通稿等各种工作流程。
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border-t border-gray-200 p-4"></div>
+  </div>
+</div>`,
+    },
+    'ai-chat-source-tools': {
+      id: 'preset-ai-chat-source-tools',
+      name: 'AI问答+来源+更多工具箱',
+      type: 'ai-chat-source-tools' as const,
+      description: '左侧来源选择 + 中间AI对话 + 右侧工具箱的完整页面模板',
+      html: `<div class="flex h-screen bg-gray-50">
+  <!-- 左侧来源栏 -->
+  <div class="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
+    <!-- 标题和操作按钮 -->
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900 mb-3">来源</h2>
+      <div class="flex gap-2">
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          添加文件
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          知识库选择
+        </button>
+      </div>
+    </div>
+    <!-- 选择所有来源 -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+        <span class="text-sm text-gray-700">选择所有来源</span>
+      </label>
+    </div>
+    <!-- 来源列表 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 text-center text-gray-500 text-sm">
+        暂无来源，点击"添加文件"或"知识库选择"添加来源
+      </div>
+    </div>
+  </div>
+  <!-- 中间AI对话栏 -->
+  <div class="flex-1 flex flex-col">
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-800">AI问答</h1>
+          <div class="flex items-center mt-1 space-x-4 text-sm text-gray-500">
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              技术包装
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术策略
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              技术通稿
+            </span>
+            <span class="flex items-center">
+              <div class="w-2 h-2 bg-gray-300 rounded-full mr-2"></div>
+              发布会稿
+            </span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>新对话</span>
+          </button>
+          <button class="flex items-center space-x-1.5 px-4 py-2 bg-green-500 text-white rounded-md text-sm font-medium hover:bg-green-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>搜索历史记录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="flex flex-col items-center justify-center h-full">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-medium text-gray-800 mb-2">您在忙什么？</h2>
+          <p class="text-gray-500 text-sm max-w-md">
+            我是您的AI助手，可以帮助您处理技术包装、推广策略、技术通稿等各种工作流程。
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white border-t border-gray-200 p-4"></div>
+  </div>
+  <!-- 右侧工具箱栏 -->
+  <div class="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
+    <!-- 标题 -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
+      <div class="flex-1 flex flex-col justify-center">
+        <h2 class="text-lg font-semibold text-gray-900">更多工具箱</h2>
+        <div class="text-xs text-transparent mt-1">占位</div>
+      </div>
+    </div>
+    <!-- 工具网格 -->
+    <div class="p-4 border-b border-gray-200">
+      <div class="grid grid-cols-2 gap-3">
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">技术转译</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">用户场景挖掘</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">发布会场景化</span>
+        </button>
+        <button class="relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500">
+          <svg class="w-6 h-6 mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+          </svg>
+          <span class="text-xs text-gray-700 text-center">领导人口语化</span>
+        </button>
+      </div>
+    </div>
+    <!-- 相关内容 -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">相关内容</h3>
+        <div class="text-center py-8 text-gray-400 text-sm">
+          暂无相关内容
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,
+    },
   };
 
   // 从localStorage加载模板列表
@@ -498,7 +747,7 @@ const TemplateManagementPage: React.FC = () => {
     saveTemplates(updated);
   };
 
-  const handleUsePreset = (type: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge') => {
+  const handleUsePreset = (type: 'speech' | 'ai-chat' | 'ai-chat-edit' | 'ai-chat-knowledge' | 'ai-chat-source' | 'ai-chat-source-tools') => {
     const preset = PRESET_TEMPLATES[type];
     setEditingTemplate(null);
     setFormData({
@@ -562,7 +811,7 @@ const TemplateManagementPage: React.FC = () => {
             <div className="flex-1">
               <h3 className="font-medium text-blue-900 mb-2">快速开始</h3>
               <p className="text-sm text-blue-800 mb-3">您可以使用预设模板快速创建新模板</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 <button
                   onClick={() => handleUsePreset('speech')}
                   className="px-4 py-2 bg-white border border-blue-300 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
@@ -586,6 +835,18 @@ const TemplateManagementPage: React.FC = () => {
                   className="px-4 py-2 bg-white border border-blue-300 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
                 >
                   使用AI对话带知识点
+                </button>
+                <button
+                  onClick={() => handleUsePreset('ai-chat-source')}
+                  className="px-4 py-2 bg-white border border-blue-300 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                >
+                  使用AI问答+来源
+                </button>
+                <button
+                  onClick={() => handleUsePreset('ai-chat-source-tools')}
+                  className="px-4 py-2 bg-white border border-blue-300 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+                >
+                  使用AI问答+来源+更多工具箱
                 </button>
               </div>
             </div>
@@ -623,12 +884,16 @@ const TemplateManagementPage: React.FC = () => {
                       template.type === 'ai-chat' ? 'bg-blue-100 text-blue-800' :
                       template.type === 'ai-chat-edit' ? 'bg-green-100 text-green-800' :
                       template.type === 'ai-chat-knowledge' ? 'bg-orange-100 text-orange-800' :
+                      template.type === 'ai-chat-source' ? 'bg-indigo-100 text-indigo-800' :
+                      template.type === 'ai-chat-source-tools' ? 'bg-pink-100 text-pink-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {template.type === 'speech' && 'A问答'}
                       {template.type === 'ai-chat' && 'AI问答'}
                       {template.type === 'ai-chat-edit' && 'AI对话编辑'}
                       {template.type === 'ai-chat-knowledge' && 'AI对话带知识点'}
+                      {template.type === 'ai-chat-source' && 'AI问答+来源'}
+                      {template.type === 'ai-chat-source-tools' && 'AI问答+来源+工具箱'}
                       {template.type === 'custom' && '自定义'}
                     </span>
                   </div>
@@ -719,6 +984,8 @@ const TemplateManagementPage: React.FC = () => {
                       <option value="ai-chat">AI问答</option>
                       <option value="ai-chat-edit">AI对话编辑</option>
                       <option value="ai-chat-knowledge">AI对话带知识点</option>
+                      <option value="ai-chat-source">AI问答+来源</option>
+                      <option value="ai-chat-source-tools">AI问答+来源+更多工具箱</option>
                     </select>
                   </div>
 

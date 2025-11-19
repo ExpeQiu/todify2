@@ -3,7 +3,7 @@
  * 用于区分不同页面的配置和行为
  */
 
-export type PageType = 'tech-package' | 'press-release';
+export type PageType = 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
 
 export interface ToolItemConfig {
   id: string;
@@ -24,7 +24,7 @@ export interface PageConfig {
 export const techPackageConfig: PageConfig = {
   pageType: 'tech-package',
   pageTitle: '技术包装',
-  dialogueTitle: '发布会写稿助手',
+  dialogueTitle: 'AI内容助手',
   studioTitle: '更多工具箱',
   workflowSelectionKey: 'ai-search.workflows.selection.tech-package',
   featureLabelMap: {
@@ -54,7 +54,7 @@ export const techPackageConfig: PageConfig = {
 export const pressReleaseConfig: PageConfig = {
   pageType: 'press-release',
   pageTitle: '发布会稿',
-  dialogueTitle: '发布会写稿助手',
+  dialogueTitle: 'AI内容助手',
   studioTitle: '更多工具箱',
   workflowSelectionKey: 'ai-search.workflows.selection.press-release',
   featureLabelMap: {
@@ -78,8 +78,64 @@ export const pressReleaseConfig: PageConfig = {
   ],
 };
 
+export const techStrategyConfig: PageConfig = {
+  pageType: 'tech-strategy',
+  pageTitle: '技术策略',
+  dialogueTitle: 'AI内容助手',
+  studioTitle: '更多工具箱',
+  workflowSelectionKey: 'ai-search.workflows.selection.tech-strategy',
+  featureLabelMap: {
+    "five-view-analysis": "技术转译",
+    "three-fix-analysis": "用户场景挖掘",
+    "tech-matrix": "技术矩阵",
+    "propagation-strategy": "传播策略",
+    "exhibition-video": "展具与视频",
+    translation: "翻译",
+    "ppt-outline": "技术讲稿",
+    script: "脚本",
+  },
+  enabledToolIds: [
+    'propagation-strategy',
+    'five-view-analysis',
+    'three-fix-analysis',
+    'translation',
+  ],
+};
+
+export const techArticleConfig: PageConfig = {
+  pageType: 'tech-article',
+  pageTitle: '技术通稿',
+  dialogueTitle: 'AI内容助手',
+  studioTitle: '更多工具箱',
+  workflowSelectionKey: 'ai-search.workflows.selection.tech-article',
+  featureLabelMap: {
+    "five-view-analysis": "技术转译",
+    "three-fix-analysis": "用户场景挖掘",
+    "tech-matrix": "技术矩阵",
+    "propagation-strategy": "传播策略",
+    "exhibition-video": "展具与视频",
+    translation: "翻译",
+    "ppt-outline": "技术讲稿",
+    script: "脚本",
+  },
+  enabledToolIds: [
+    'ppt-outline',
+    'translation',
+  ],
+};
+
 // 根据页面类型获取配置
 export const getPageConfig = (pageType: PageType): PageConfig => {
-  return pageType === 'press-release' ? pressReleaseConfig : techPackageConfig;
+  switch (pageType) {
+    case 'press-release':
+      return pressReleaseConfig;
+    case 'tech-strategy':
+      return techStrategyConfig;
+    case 'tech-article':
+      return techArticleConfig;
+    case 'tech-package':
+    default:
+      return techPackageConfig;
+  }
 };
 

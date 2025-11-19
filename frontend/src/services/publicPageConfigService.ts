@@ -145,9 +145,18 @@ class PublicPageConfigService {
    */
   async createConfig(data: CreatePublicPageConfigRequest): Promise<PublicPageConfig> {
     try {
-      const response = await api.post<ApiResponse<PublicPageConfig>>('/public-page-configs', data);
+      // 如果没有提供displayMode，使用默认值'role'
+      const requestData = {
+        ...data,
+        displayMode: data.displayMode || 'role',
+      };
+      const response = await api.post<ApiResponse<PublicPageConfig>>('/public-page-configs', requestData);
       if (response.data.success && response.data.data) {
         const config = response.data.data;
+        // 如果创建时指定了isActive，需要单独更新
+        if (data.isActive !== undefined && data.isActive !== config.isActive) {
+          return await this.toggleConfig(config.id, data.isActive);
+        }
         return this.normalizeConfig(config);
       }
       throw new Error('创建配置失败');
@@ -212,8 +221,43 @@ class PublicPageConfigService {
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      throw new Error('获取公开配置失败');
+      const now = new Date();
+      return {
+        roles: [],
+        config: {
+          id: 'default',
+          name: '默认公开配置',
+          description: '后端未返回公开配置',
+          address: 'public',
+          displayMode: 'all',
+          accessToken: token,
+          isActive: false,
+          templateType: 'ai-chat',
+          createdAt: now,
+          updatedAt: now,
+        },
+      };
     } catch (error: any) {
+      const code = error?.code;
+      const status = error?.response?.status;
+      const now = new Date();
+      if (status === 500 || status === 404 || code === 'ECONNREFUSED' || code === 'ERR_NETWORK') {
+        return {
+          roles: [],
+          config: {
+            id: 'default',
+            name: '默认公开配置',
+            description: '后端不可用或未配置公开数据',
+            address: 'public',
+            displayMode: 'all',
+            accessToken: token,
+            isActive: false,
+            templateType: 'ai-chat',
+            createdAt: now,
+            updatedAt: now,
+          },
+        };
+      }
       console.error('获取公开配置失败:', error);
       throw error;
     }
@@ -228,8 +272,43 @@ class PublicPageConfigService {
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      throw new Error('获取公开配置失败');
+      const now = new Date();
+      return {
+        roles: [],
+        config: {
+          id: configId,
+          name: '默认公开配置',
+          description: '后端未返回公开配置',
+          address: 'public',
+          displayMode: 'all',
+          accessToken: '',
+          isActive: false,
+          templateType: 'ai-chat',
+          createdAt: now,
+          updatedAt: now,
+        },
+      };
     } catch (error: any) {
+      const code = error?.code;
+      const status = error?.response?.status;
+      const now = new Date();
+      if (status === 500 || status === 404 || code === 'ECONNREFUSED' || code === 'ERR_NETWORK') {
+        return {
+          roles: [],
+          config: {
+            id: configId,
+            name: '默认公开配置',
+            description: '后端不可用或未配置公开数据',
+            address: 'public',
+            displayMode: 'all',
+            accessToken: '',
+            isActive: false,
+            templateType: 'ai-chat',
+            createdAt: now,
+            updatedAt: now,
+          },
+        };
+      }
       console.error('获取公开配置失败:', error);
       throw error;
     }
@@ -261,8 +340,43 @@ class PublicPageConfigService {
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
-      throw new Error('获取公开配置失败');
+      const now = new Date();
+      return {
+        roles: [],
+        config: {
+          id: 'default',
+          name: '默认公开配置',
+          description: '后端未返回公开配置',
+          address,
+          displayMode: 'all',
+          accessToken: '',
+          isActive: false,
+          templateType: 'ai-chat',
+          createdAt: now,
+          updatedAt: now,
+        },
+      };
     } catch (error: any) {
+      const code = error?.code;
+      const status = error?.response?.status;
+      const now = new Date();
+      if (status === 500 || status === 404 || code === 'ECONNREFUSED' || code === 'ERR_NETWORK') {
+        return {
+          roles: [],
+          config: {
+            id: 'default',
+            name: '默认公开配置',
+            description: '后端不可用或未配置公开数据',
+            address,
+            displayMode: 'all',
+            accessToken: '',
+            isActive: false,
+            templateType: 'ai-chat',
+            createdAt: now,
+            updatedAt: now,
+          },
+        };
+      }
       console.error('获取公开配置失败:', error);
       throw error;
     }
@@ -341,6 +455,97 @@ class PublicPageConfigService {
       console.error('切换状态失败:', error);
       throw error;
     }
+  }
+
+  /**
+   * 初始化/更新默认页面配置
+   * 确保技术包装、技术策略、技术通稿、发布会稿这4个页面使用正确的模板并处于开启状态
+   * @param templates 模板HTML映射对象，用于获取模板HTML内容
+   */
+  async ensureDefaultPageConfigs(templates?: Record<string, string>): Promise<PublicPageConfig[]> {
+    const existingConfigs = await this.getAllConfigs();
+    const updatedConfigs: PublicPageConfig[] = [];
+
+    // 定义需要确保的4个页面配置
+    const defaultPageConfigs = [
+      {
+        name: '技术包装',
+        description: '技术内容包装工作流公开页面',
+        address: 'tech-package',
+        templateType: 'ai-chat-source-tools' as const,
+      },
+      {
+        name: '技术策略',
+        description: '技术策略生成工作流公开页面',
+        address: 'tech-strategy',
+        templateType: 'ai-chat-source-tools' as const,
+      },
+      {
+        name: '技术通稿',
+        description: '核心内容生成工作流公开页面',
+        address: 'tech-article',
+        templateType: 'ai-chat-source-tools' as const,
+      },
+      {
+        name: '发布会稿',
+        description: '技术发布内容生成工作流公开页面',
+        address: 'press-release',
+        templateType: 'ai-chat-source-tools' as const,
+      },
+    ];
+
+    for (const defaultConfig of defaultPageConfigs) {
+      try {
+        // 查找是否已存在（通过名称匹配）
+        let existing = existingConfigs.find(c => c.name === defaultConfig.name);
+
+        // 获取模板HTML
+        const templateHtml = templates?.[defaultConfig.templateType] || '';
+
+        if (!existing) {
+          // 如果不存在，创建新配置
+          const newConfig = await this.createConfig({
+            name: defaultConfig.name,
+            description: defaultConfig.description,
+            address: defaultConfig.address,
+            templateType: defaultConfig.templateType,
+            customHtml: templateHtml,
+            isActive: true,
+          });
+          updatedConfigs.push(newConfig);
+        } else {
+          // 如果存在，检查是否需要更新
+          const needsUpdate = 
+            existing.templateType !== defaultConfig.templateType ||
+            !existing.isActive ||
+            existing.address !== defaultConfig.address ||
+            (templateHtml && existing.customHtml !== templateHtml);
+
+          if (needsUpdate) {
+            // 更新配置
+            const updated = await this.updateConfig(existing.id, {
+              description: defaultConfig.description,
+              address: defaultConfig.address,
+              templateType: defaultConfig.templateType,
+              customHtml: templateHtml || existing.customHtml,
+              isActive: true,
+            });
+            updatedConfigs.push(updated);
+          } else {
+            updatedConfigs.push(existing);
+          }
+        }
+      } catch (error) {
+        console.error(`初始化/更新配置 "${defaultConfig.name}" 失败:`, error);
+        // 如果出错，尝试使用现有配置
+        const existing = existingConfigs.find(c => c.name === defaultConfig.name);
+        if (existing) {
+          updatedConfigs.push(existing);
+        }
+      }
+    }
+
+    return updatedConfigs;
   }
 }
 

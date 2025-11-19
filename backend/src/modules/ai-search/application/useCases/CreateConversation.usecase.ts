@@ -20,7 +20,8 @@ export class CreateConversationUseCase {
     try {
       const record = await this.aiSearchService.createConversation(
         dto.title || `对话 ${new Date().toLocaleString()}`,
-        dto.sources || []
+        dto.sources || [],
+        dto.pageType
       );
 
       const conversation: ConversationView = {

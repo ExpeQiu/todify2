@@ -16,7 +16,7 @@ interface SourceSidebarProps {
   selectedSources?: string[];
   onSourcesChange?: (sources: Source[]) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
-  pageType?: 'tech-package' | 'press-release';
+  pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
 }
 
 const SourceSidebar: React.FC<SourceSidebarProps> = ({

@@ -58,15 +58,18 @@ router.post('/', async (req, res) => {
     const { name, description, address, displayMode, workflowId, roleIds, templateType, customHtml } = req.body;
     
     // 验证必填字段
-    if (!name || !displayMode) {
+    if (!name) {
       return res.status(400).json(formatValidationErrorResponse([{
-        field: 'name/displayMode',
-        message: '配置名称和显示模式不能为空'
+        field: 'name',
+        message: '配置名称不能为空'
       }]));
     }
 
+    // 如果没有提供displayMode，使用默认值'role'
+    const finalDisplayMode = displayMode || 'role';
+
     // 验证显示模式
-    if (!['all', 'workflow', 'custom', 'role'].includes(displayMode)) {
+    if (finalDisplayMode && !['all', 'workflow', 'custom', 'role'].includes(finalDisplayMode)) {
       return res.status(400).json(formatValidationErrorResponse([{
         field: 'displayMode',
         message: '显示模式必须是all、workflow、custom或role之一'
@@ -74,7 +77,7 @@ router.post('/', async (req, res) => {
     }
 
     // 验证workflow模式
-    if (displayMode === 'workflow' && !workflowId) {
+    if (finalDisplayMode === 'workflow' && !workflowId) {
       return res.status(400).json(formatValidationErrorResponse([{
         field: 'workflowId',
         message: '工作流模式下必须提供workflowId'
@@ -82,30 +85,26 @@ router.post('/', async (req, res) => {
     }
 
     // 验证custom模式
-    if (displayMode === 'custom' && (!roleIds || !Array.isArray(roleIds) || roleIds.length === 0)) {
+    if (finalDisplayMode === 'custom' && (!roleIds || !Array.isArray(roleIds) || roleIds.length === 0)) {
       return res.status(400).json(formatValidationErrorResponse([{
         field: 'roleIds',
         message: '自定义模式下必须提供角色ID列表'
       }]));
     }
 
-    // 验证role模式
-    if (displayMode === 'role' && (!roleIds || !Array.isArray(roleIds) || roleIds.length === 0)) {
-      return res.status(400).json(formatValidationErrorResponse([{
-        field: 'roleIds',
-        message: 'AI角色模式下必须提供角色ID列表'
-      }]));
-    }
+    // 验证role模式（如果没有提供roleIds，使用空数组）
+    // 注意：role模式允许空数组，表示显示所有角色
     
     const createData: CreatePublicPageConfigDTO = {
       name,
       description,
       address,
-      displayMode,
+      displayMode: finalDisplayMode,
       workflowId,
-      roleIds,
+      roleIds: roleIds || (finalDisplayMode === 'role' ? [] : undefined),
       templateType,
       customHtml,
+      isActive: req.body.isActive, // 支持创建时设置isActive
     };
     
     const newConfig = await publicPageConfigModel.create(createData);

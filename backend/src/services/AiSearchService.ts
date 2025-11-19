@@ -7,6 +7,7 @@ export interface ConversationRecord {
   id: string;
   title: string;
   sources: string; // JSON string
+  page_type?: string;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export interface OutputContentRecord {
   content: string; // JSON string
   message_id: string;
   conversation_id: string;
+  page_type?: string;
   created_at: string;
 }
 
@@ -46,10 +48,21 @@ export class AiSearchService {
           id TEXT PRIMARY KEY,
           title TEXT NOT NULL,
           sources TEXT NOT NULL,
+          page_type TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
+      
+      // 如果表已存在但没有 page_type 字段，添加该字段
+      try {
+        await db.query(`ALTER TABLE ai_search_conversations ADD COLUMN page_type TEXT`);
+      } catch (error: any) {
+        // 如果字段已存在，忽略错误
+        if (!error?.message?.includes('duplicate column') && !error?.message?.includes('already exists')) {
+          logger.warn('添加 page_type 字段失败（可能已存在）', { error });
+        }
+      }
 
       // 创建AI问答消息表
       await db.query(`
@@ -74,11 +87,22 @@ export class AiSearchService {
           content TEXT NOT NULL,
           message_id TEXT NOT NULL,
           conversation_id TEXT NOT NULL,
+          page_type TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (message_id) REFERENCES ai_search_messages(id) ON DELETE CASCADE,
           FOREIGN KEY (conversation_id) REFERENCES ai_search_conversations(id) ON DELETE CASCADE
         )
       `);
+      
+      // 如果表已存在但没有 page_type 字段，添加该字段
+      try {
+        await db.query(`ALTER TABLE ai_search_outputs ADD COLUMN page_type TEXT`);
+      } catch (error: any) {
+        // 如果字段已存在，忽略错误
+        if (!error?.message?.includes('duplicate column') && !error?.message?.includes('already exists')) {
+          logger.warn('添加 page_type 字段失败（可能已存在）', { error });
+        }
+      }
 
       // 创建索引
       await db.query(`
@@ -94,6 +118,16 @@ export class AiSearchService {
       await db.query(`
         CREATE INDEX IF NOT EXISTS idx_ai_search_outputs_message_id 
         ON ai_search_outputs(message_id)
+      `);
+      
+      await db.query(`
+        CREATE INDEX IF NOT EXISTS idx_ai_search_conversations_page_type 
+        ON ai_search_conversations(page_type)
+      `);
+      
+      await db.query(`
+        CREATE INDEX IF NOT EXISTS idx_ai_search_outputs_page_type 
+        ON ai_search_outputs(page_type)
       `);
 
       // 创建字段映射配置表
@@ -115,20 +149,21 @@ export class AiSearchService {
   /**
    * 创建对话
    */
-  async createConversation(title: string, sources: any[]): Promise<ConversationRecord> {
+  async createConversation(title: string, sources: any[], pageType?: string): Promise<ConversationRecord> {
     const id = uuidv4();
     const now = new Date().toISOString();
     
     await db.query(
-      `INSERT INTO ai_search_conversations (id, title, sources, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?)`,
-      [id, title, JSON.stringify(sources), now, now]
+      `INSERT INTO ai_search_conversations (id, title, sources, page_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, title, JSON.stringify(sources), pageType || null, now, now]
     );
 
     return {
       id,
       title,
       sources: JSON.stringify(sources),
+      page_type: pageType,
       created_at: now,
       updated_at: now,
     };
@@ -137,17 +172,25 @@ export class AiSearchService {
   /**
    * 获取对话列表
    */
-  async getConversations(): Promise<ConversationRecord[]> {
+  async getConversations(pageType?: string): Promise<ConversationRecord[]> {
     try {
-      const rows = await db.query(
-        `SELECT * FROM ai_search_conversations 
-         ORDER BY updated_at DESC`
-      ) as any[];
+      let query = `SELECT * FROM ai_search_conversations`;
+      const params: any[] = [];
+      
+      if (pageType) {
+        query += ` WHERE page_type = ?`;
+        params.push(pageType);
+      }
+      
+      query += ` ORDER BY updated_at DESC`;
+      
+      const rows = await db.query(query, params) as any[];
 
       return rows.map((row) => ({
         id: row.id,
         title: row.title,
         sources: row.sources,
+        page_type: row.page_type,
         created_at: row.created_at,
         updated_at: row.updated_at,
       }));
@@ -330,18 +373,31 @@ export class AiSearchService {
     conversationId: string,
     messageId: string,
     content: string,
-    title?: string
+    title?: string,
+    pageType?: string
   ): Promise<OutputContentRecord> {
     const id = uuidv4();
     const now = new Date().toISOString();
     
     const outputTitle = title || `${type}_${new Date().toISOString()}`;
+    
+    // 如果没有提供 pageType，尝试从对话中获取
+    let finalPageType = pageType;
+    if (!finalPageType) {
+      const conversationRows = await db.query(
+        `SELECT page_type FROM ai_search_conversations WHERE id = ?`,
+        [conversationId]
+      ) as any[];
+      if (conversationRows.length > 0) {
+        finalPageType = conversationRows[0].page_type;
+      }
+    }
 
     await db.query(
       `INSERT INTO ai_search_outputs 
-       (id, type, title, content, message_id, conversation_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, type, outputTitle, JSON.stringify(content), messageId, conversationId, now]
+       (id, type, title, content, message_id, conversation_id, page_type, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, type, outputTitle, JSON.stringify(content), messageId, conversationId, finalPageType || null, now]
     );
 
     // 更新消息的输出字段
@@ -377,6 +433,7 @@ export class AiSearchService {
       content: JSON.stringify(content),
       message_id: messageId,
       conversation_id: conversationId,
+      page_type: finalPageType,
       created_at: now,
     };
   }
@@ -384,13 +441,23 @@ export class AiSearchService {
   /**
    * 获取输出内容列表
    */
-  async getOutputs(conversationId?: string): Promise<OutputContentRecord[]> {
+  async getOutputs(conversationId?: string, pageType?: string): Promise<OutputContentRecord[]> {
     let sql = `SELECT * FROM ai_search_outputs`;
     const params: any[] = [];
+    const conditions: string[] = [];
 
     if (conversationId) {
-      sql += ` WHERE conversation_id = ?`;
+      conditions.push(`conversation_id = ?`);
       params.push(conversationId);
+    }
+    
+    if (pageType) {
+      conditions.push(`page_type = ?`);
+      params.push(pageType);
+    }
+
+    if (conditions.length > 0) {
+      sql += ` WHERE ${conditions.join(' AND ')}`;
     }
 
     sql += ` ORDER BY created_at DESC`;
@@ -405,6 +472,7 @@ export class AiSearchService {
         content: row.content,
         message_id: row.message_id,
         conversation_id: row.conversation_id,
+        page_type: row.page_type,
         created_at: row.created_at,
       }));
     } catch (error) {
@@ -453,6 +521,27 @@ export class FieldMappingService {
     } catch (error) {
       logger.error('保存字段映射配置失败', { error });
       throw error;
+    }
+  }
+
+  /**
+   * 获取字段映射配置
+   */
+  async getFieldMappingConfig(workflowId: string): Promise<FieldMappingConfigType | null> {
+    try {
+      const rows = await db.query(
+        `SELECT config FROM ai_search_field_mappings WHERE workflow_id = ?`,
+        [workflowId]
+      ) as any[];
+
+      if (rows.length === 0) {
+        return null;
+      }
+
+      return JSON.parse(rows[0].config);
+    } catch (error) {
+      logger.error('获取字段映射配置失败', { error });
+      return null;
     }
   }
 

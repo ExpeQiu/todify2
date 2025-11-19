@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import FieldMappingConfig from './FieldMappingConfig';
+import { FeatureObjectType } from '../../types/aiSearch';
 import { agentWorkflowService } from '../../services/agentWorkflowService';
 import { aiSearchService } from '../../services/aiSearchService';
 import { WorkflowConfig } from '../../types/aiSearch';
@@ -9,12 +10,18 @@ interface FieldMappingConfigModalProps {
   workflowId: string;
   onClose: () => void;
   onSave: () => void;
+  featureType?: FeatureObjectType | null;
+  pageType?: string; // 页面类型，用于区分相同 featureType 但不同 pageType 的配置
+  mappingsOnly?: boolean;
 }
 
 const FieldMappingConfigModal: React.FC<FieldMappingConfigModalProps> = ({
   workflowId,
   onClose,
   onSave,
+  featureType,
+  pageType,
+  mappingsOnly,
 }) => {
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,6 +112,9 @@ const FieldMappingConfigModal: React.FC<FieldMappingConfigModalProps> = ({
       workflowConfig={workflowConfig}
       onClose={onClose}
       onSave={handleSave}
+      featureTypeOverride={featureType ?? null}
+      pageTypeOverride={pageType}
+      mappingsOnly={mappingsOnly}
     />
   );
 };

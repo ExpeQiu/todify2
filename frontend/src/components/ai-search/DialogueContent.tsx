@@ -43,7 +43,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   selectedWorkflowId,
   onWorkflowChange,
   isWorkflowLoading = false,
-  dialogueTitle = "发布会写稿助手",
+  dialogueTitle = "AI内容助手",
 }) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -116,12 +116,35 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       };
       lastSubmissionRef.current = submission;
 
+      // 检测是否是首次发送（messages.length === 0 且 sources.length > 0）
+      const isFirstMessage = messages.length === 0 && sources.length > 0;
+      
+      // 构建文件列表和知识库名称（仅在首次发送时）
+      let fileList: string | undefined;
+      let knowledgeBaseNames: string | undefined;
+      
+      if (isFirstMessage) {
+        // 筛选文件（type === 'external'）
+        const fileSources = sources.filter((s) => s.type === 'external');
+        if (fileSources.length > 0) {
+          fileList = fileSources.map((s) => s.title).join(', ');
+        }
+        
+        // 筛选知识库（type === 'knowledge_base'）
+        const knowledgeBaseSources = sources.filter((s) => s.type === 'knowledge_base');
+        if (knowledgeBaseSources.length > 0) {
+          knowledgeBaseNames = knowledgeBaseSources.map((s) => s.title).join(', ');
+        }
+      }
+
       const response = await aiSearchService.sendMessage(activeConversation.id, {
         content: submission.content,
         sources: sources,
         files: submission.files,
         contextWindowSize,
         workflowId: workflowId || undefined,
+        fileList: fileList,
+        knowledgeBaseNames: knowledgeBaseNames,
       });
 
       if (response.userMessage && response.aiMessage) {
@@ -176,6 +199,15 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  const translateErrorMessage = (msg: string | null): string | null => {
+    if (!msg) return null;
+    const m = msg.trim();
+    if (m.includes("fieldMappingService.getFieldMappingConfig is not a function")) {
+      return "获取字段映射配置失败：缺少 getFieldMappingConfig 方法";
+    }
+    return m;
   };
 
   return (
@@ -330,7 +362,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
               <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <div className="flex-1">
                 <div className="flex items-start justify-between">
-                  <p className="font-medium text-red-700">{errorMessage}</p>
+                  <p className="font-medium text-red-700">{translateErrorMessage(errorMessage)}</p>
                   {lastSubmissionRef.current && !isLoading && (
                     <button
                       onClick={() => {

@@ -8,6 +8,8 @@ import AiSearchNode from "../components/nodes/AiSearchNode";
 import PromotionStrategyNode from "../components/nodes/PromotionStrategyNode";
 import TechPackagePage from "./TechPackagePage";
 import PressReleasePage from "./PressReleasePage";
+import TechStrategyPage from "./TechStrategyPage";
+import TechArticlePage from "./TechArticlePage";
 import { getNodeById } from "../config/workflowNodes";
 import LoadingAnimation, {
   LoadingButton,
@@ -159,6 +161,14 @@ const NodePage: React.FC = () => {
   // 如果节点类型是 speech，使用发布会稿页面
   if (nodeType === 'speech') {
     return <PressReleasePage />;
+  }
+
+  if (nodeType === 'tech-strategy') {
+    return <TechStrategyPage />;
+  }
+
+  if (nodeType === 'tech-article') {
+    return <TechArticlePage />;
   }
 
   // 如果找到了公开配置且模板类型是 speech，使用发布会稿页面

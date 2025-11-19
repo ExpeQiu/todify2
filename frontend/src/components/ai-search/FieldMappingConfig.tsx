@@ -15,12 +15,18 @@ interface FieldMappingConfigProps {
   workflowConfig: WorkflowConfig | null;
   onClose: () => void;
   onSave: (config: FieldMappingConfigType) => void;
+  featureTypeOverride?: FeatureObjectType | null;
+  pageTypeOverride?: string; // 页面类型，用于区分相同 featureType 但不同 pageType 的配置
+  mappingsOnly?: boolean;
 }
 
 const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
   workflowConfig,
   onClose,
   onSave,
+  featureTypeOverride,
+  pageTypeOverride,
+  mappingsOnly,
 }) => {
   const [workflows, setWorkflows] = useState<AgentWorkflow[]>([]);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>(
@@ -37,7 +43,12 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
   });
 
   const [loading, setLoading] = useState(false);
-  const [selectedFeatureType, setSelectedFeatureType] = useState<FeatureObjectType | null>('ai-dialog');
+  const [selectedFeatureType, setSelectedFeatureType] = useState<FeatureObjectType | null>(featureTypeOverride ?? 'ai-dialog');
+  useEffect(() => {
+    if (featureTypeOverride) {
+      setSelectedFeatureType(featureTypeOverride);
+    }
+  }, [featureTypeOverride]);
   const [sampleInputText, setSampleInputText] = useState<string>(() =>
     JSON.stringify(
       {
@@ -327,25 +338,44 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
       if (response.data.success && response.data.data) {
         const loadedConfig = response.data.data;
         
+        // 保留完整的 featureObjects 列表，避免丢失其他 pageType 的配置
+        const allFeatureObjects = Array.isArray(loadedConfig.featureObjects) 
+          ? loadedConfig.featureObjects 
+          : [];
+        
         // 如果当前选择的功能对象有配置，加载其配置
         if (selectedFeatureType) {
-          const featureConfig = loadedConfig.featureObjects?.find(
-            f => f.featureType === selectedFeatureType && f.workflowId === workflowId
-          );
+          // 根据 featureType 和 pageType 查找配置（如果提供了 pageTypeOverride）
+          const featureConfig = allFeatureObjects.find((f: any) => {
+            const matchesFeatureType = f.featureType === selectedFeatureType;
+            const matchesPageType = pageTypeOverride 
+              ? (f.pageType === pageTypeOverride)
+              : true; // 如果没有提供 pageTypeOverride，匹配第一个
+            return matchesFeatureType && matchesPageType;
+          });
           
           if (featureConfig) {
+            // 保留所有 featureObjects，只更新当前编辑的配置
             setConfig({
               ...loadedConfig,
-              workflowId: featureConfig.workflowId,
-              inputMappings: featureConfig.inputMappings,
-              outputMappings: featureConfig.outputMappings,
+              workflowId: featureConfig.workflowId || workflowId,
+              inputMappings: featureConfig.inputMappings || [],
+              outputMappings: featureConfig.outputMappings || [],
+              featureObjects: allFeatureObjects, // 保留所有 featureObjects
             });
           } else {
-            // 如果没有找到功能对象配置，使用默认配置
+            // 如果没有找到功能对象配置，使用默认配置，但保留现有的 featureObjects
+            const defaultConfig = {
+              workflowId: workflowConfig.id,
+              inputMappings: [],
+              outputMappings: [],
+              featureObjects: allFeatureObjects, // 保留现有的 featureObjects
+            };
             initializeDefaultConfig(workflowConfig);
+            setConfig(prev => ({ ...prev, ...defaultConfig }));
           }
         } else {
-          // 如果没有选择功能对象，使用默认配置
+          // 如果没有选择功能对象，使用完整配置
           setConfig(loadedConfig);
         }
       } else {
@@ -417,12 +447,28 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
         workflowId: selectedWorkflowId,
         inputMappings: config.inputMappings,
         outputMappings: config.outputMappings,
+        pageType: pageTypeOverride as any, // 添加 pageType
       };
 
       // 更新功能对象配置列表
-      const updatedFeatureObjects = config.featureObjects 
-        ? [...config.featureObjects.filter(f => f.featureType !== selectedFeatureType), featureConfig]
-        : [featureConfig];
+      // 重要：根据 featureType 和 pageType 来过滤，避免覆盖其他 pageType 的配置
+      const existingFeatureObjects = Array.isArray(config.featureObjects) 
+        ? config.featureObjects 
+        : [];
+      
+      // 移除相同 featureType 和 pageType 的配置（如果提供了 pageTypeOverride）
+      // 如果没有提供 pageTypeOverride，则移除所有相同 featureType 的配置（向后兼容）
+      const filteredFeatureObjects = existingFeatureObjects.filter((f: any) => {
+        if (pageTypeOverride) {
+          // 如果提供了 pageType，只移除相同 featureType 和 pageType 的配置
+          return !(f.featureType === selectedFeatureType && f.pageType === pageTypeOverride);
+        } else {
+          // 如果没有提供 pageType，移除所有相同 featureType 的配置（向后兼容）
+          return f.featureType !== selectedFeatureType;
+        }
+      });
+      
+      const updatedFeatureObjects = [...filteredFeatureObjects, featureConfig];
 
       const configToSave: FieldMappingConfigType = {
         ...config,
@@ -574,7 +620,7 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
           </button>
         </div>
 
-        {/* 功能对象选择 */}
+        {!mappingsOnly && (
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             需配置的功能对象
@@ -634,12 +680,14 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
             })}
           </div>
         </div>
+        )}
 
-        {/* 工作流选择 */}
+
+        {/* 关联工作流选择 - 在mappingsOnly模式下也显示 */}
         {selectedFeatureType && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              选择工作流
+              关联工作流
             </label>
             <select
               value={selectedWorkflowId}
@@ -649,7 +697,7 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
               <option value="">请选择工作流</option>
               {workflows.map((workflow) => (
                 <option key={workflow.id} value={workflow.id}>
-                  {workflow.name}
+                  {workflow.name}（{workflow.id.slice(0, 8)}...）
                 </option>
               ))}
             </select>
@@ -1180,4 +1228,3 @@ const FieldMappingConfig: React.FC<FieldMappingConfigProps> = ({
 };
 
 export default FieldMappingConfig;
-

@@ -53,20 +53,39 @@ export interface AgentWorkflow {
 }
 
 /**
- * 工作流执行实例
+ * 工作流执行实例（统一表结构，支持Agent工作流和Dify工作流）
  */
 export interface WorkflowExecution {
   id: string;
-  workflow_id: string;
+  execution_type: 'agent_workflow' | 'dify_workflow';
+  
+  // Agent工作流字段
+  workflow_id?: string;
   workflow_name?: string;
+  shared_context?: string; // JSON字符串
+  node_results?: string; // JSON字符串
+  
+  // Dify工作流字段
+  workflow_run_id?: string;
+  task_id?: string;
+  message_id?: string;
+  app_type?: string;
+  
+  // 通用字段
   status: string;
-  shared_context: string; // JSON字符串
-  node_results: string; // JSON字符串
+  error_message?: string;
+  inputs?: string; // JSON字符串
+  outputs?: string; // JSON字符串
+  elapsed_time?: number;
+  total_tokens?: number;
+  total_steps?: number;
+  duration?: number;
+  
+  // 时间戳
   start_time?: string;
   end_time?: string;
-  duration?: number;
-  error?: string; // JSON字符串
-  metadata?: string; // JSON字符串
+  started_at?: string;
+  finished_at?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -113,13 +132,35 @@ export interface UpdateAgentWorkflowDTO {
 
 export interface CreateWorkflowExecutionDTO {
   id?: string;
-  workflow_id: string;
+  execution_type: 'agent_workflow' | 'dify_workflow';
+  
+  // Agent工作流字段
+  workflow_id?: string;
   workflow_name?: string;
-  status?: string;
   shared_context?: Record<string, any>;
   node_results?: any[];
+  
+  // Dify工作流字段
+  workflow_run_id?: string;
+  task_id?: string;
+  message_id?: string;
+  app_type?: string;
+  
+  // 通用字段
+  status?: string;
+  error_message?: string;
+  inputs?: Record<string, any>;
+  outputs?: Record<string, any>;
+  elapsed_time?: number;
+  total_tokens?: number;
+  total_steps?: number;
+  duration?: number;
+  
+  // 时间戳
   start_time?: string;
-  error?: any;
+  end_time?: string;
+  started_at?: string;
+  finished_at?: string;
   metadata?: Record<string, any>;
 }
 
@@ -197,22 +238,47 @@ export class AgentWorkflowModel {
       }
     }
     
-    // 创建工作流执行表
+    // 创建工作流执行表（统一结构，支持Agent工作流和Dify工作流）
+    // 注意：如果表已存在（通过迁移脚本创建），此CREATE TABLE IF NOT EXISTS不会修改现有结构
     const createExecutionTableSQL = `
       CREATE TABLE IF NOT EXISTS workflow_executions (
         id TEXT PRIMARY KEY,
-        workflow_id TEXT NOT NULL,
+        execution_type TEXT NOT NULL CHECK (execution_type IN ('agent_workflow', 'dify_workflow')),
+        
+        -- Agent工作流执行字段
+        workflow_id TEXT,
         workflow_name TEXT,
+        shared_context TEXT DEFAULT '{}',
+        node_results TEXT DEFAULT '[]',
+        
+        -- Dify工作流执行字段
+        workflow_run_id TEXT UNIQUE,
+        task_id TEXT,
+        message_id TEXT,
+        app_type TEXT,
+        
+        -- 通用执行字段
         status TEXT NOT NULL DEFAULT 'pending',
-        shared_context TEXT NOT NULL DEFAULT '{}',
-        node_results TEXT NOT NULL DEFAULT '[]',
+        error_message TEXT,
+        inputs TEXT,
+        outputs TEXT,
+        
+        -- 执行统计
+        elapsed_time REAL DEFAULT 0,
+        total_tokens INTEGER DEFAULT 0,
+        total_steps INTEGER DEFAULT 0,
+        duration INTEGER,
+        
+        -- 时间戳
         start_time TIMESTAMP,
         end_time TIMESTAMP,
-        duration INTEGER,
-        error TEXT,
-        metadata TEXT,
+        started_at DATETIME,
+        finished_at DATETIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (workflow_id) REFERENCES agent_workflows(id) ON DELETE SET NULL,
+        FOREIGN KEY (message_id) REFERENCES chat_messages(message_id) ON DELETE SET NULL
       );
     `;
     
@@ -224,39 +290,59 @@ export class AgentWorkflowModel {
       }
     }
 
-    // 补充缺失字段（向后兼容旧表结构）
+    // 如果表已存在但缺少新字段，尝试添加（向后兼容）
     const columnMigrations = [
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN workflow_name TEXT',
-        name: 'workflow_name',
+        sql: "ALTER TABLE workflow_executions ADD COLUMN execution_type TEXT CHECK (execution_type IN ('agent_workflow', 'dify_workflow'))",
+        name: 'execution_type',
       },
       {
-        sql: "ALTER TABLE workflow_executions ADD COLUMN shared_context TEXT NOT NULL DEFAULT '{}'",
-        name: 'shared_context',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN workflow_run_id TEXT UNIQUE',
+        name: 'workflow_run_id',
       },
       {
-        sql: "ALTER TABLE workflow_executions ADD COLUMN node_results TEXT NOT NULL DEFAULT '[]'",
-        name: 'node_results',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN task_id TEXT',
+        name: 'task_id',
       },
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN metadata TEXT',
-        name: 'metadata',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN message_id TEXT',
+        name: 'message_id',
       },
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN start_time TIMESTAMP',
-        name: 'start_time',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN app_type TEXT',
+        name: 'app_type',
       },
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN end_time TIMESTAMP',
-        name: 'end_time',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN error_message TEXT',
+        name: 'error_message',
       },
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN duration INTEGER',
-        name: 'duration',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN inputs TEXT',
+        name: 'inputs',
       },
       {
-        sql: 'ALTER TABLE workflow_executions ADD COLUMN error TEXT',
-        name: 'error',
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN outputs TEXT',
+        name: 'outputs',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN elapsed_time REAL DEFAULT 0',
+        name: 'elapsed_time',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN total_tokens INTEGER DEFAULT 0',
+        name: 'total_tokens',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN total_steps INTEGER DEFAULT 0',
+        name: 'total_steps',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN started_at DATETIME',
+        name: 'started_at',
+      },
+      {
+        sql: 'ALTER TABLE workflow_executions ADD COLUMN finished_at DATETIME',
+        name: 'finished_at',
       },
     ];
 
@@ -267,25 +353,22 @@ export class AgentWorkflowModel {
         const message: string | undefined = error?.message;
         if (
           !message ||
-          (!message.includes('duplicate column') && !message.includes('already exists'))
+          (!message.includes('duplicate column') && !message.includes('already exists') && !message.includes('UNIQUE'))
         ) {
           console.warn(`添加 workflow_executions.${migration.name} 字段时出现警告:`, message || error);
         }
       }
     }
 
-    // 如果元数据为空，为现有记录填充默认值，避免解析错误
+    // 如果execution_type为空，为现有记录设置默认值（假设都是agent_workflow）
     try {
       await this.db.query(
         `UPDATE workflow_executions 
-         SET shared_context = COALESCE(shared_context, '{}'),
-             node_results = COALESCE(node_results, '[]'),
-             status = COALESCE(status, 'pending'),
-             created_at = COALESCE(created_at, CURRENT_TIMESTAMP),
-             updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP)`
+         SET execution_type = 'agent_workflow'
+         WHERE execution_type IS NULL`
       );
     } catch (error: any) {
-      console.warn('更新 workflow_executions 默认值时出现警告:', error?.message || error);
+      console.warn('更新 workflow_executions execution_type 默认值时出现警告:', error?.message || error);
     }
     
     // 创建工作流模板表
@@ -541,31 +624,53 @@ export class WorkflowExecutionModel {
   }
 
   /**
-   * 创建执行实例
+   * 创建执行实例（支持Agent工作流和Dify工作流）
    */
   async create(data: CreateWorkflowExecutionDTO): Promise<WorkflowExecution> {
     await this.ensureConnection();
 
     const id = data.id || `exec_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     const status = data.status || 'pending';
+    const executionType = data.execution_type;
 
     const sql = `
       INSERT INTO workflow_executions (
-        id, workflow_id, workflow_name, status, shared_context, node_results,
-        start_time, error, metadata, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        id, execution_type, workflow_id, workflow_name, shared_context, node_results,
+        workflow_run_id, task_id, message_id, app_type,
+        status, error_message, inputs, outputs,
+        elapsed_time, total_tokens, total_steps, duration,
+        start_time, end_time, started_at, finished_at,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
     const params = [
       id,
-      data.workflow_id,
-      data.workflow_name,
+      executionType,
+      // Agent工作流字段
+      data.workflow_id || null,
+      data.workflow_name || null,
+      data.shared_context ? JSON.stringify(data.shared_context) : null,
+      data.node_results ? JSON.stringify(data.node_results) : null,
+      // Dify工作流字段
+      data.workflow_run_id || null,
+      data.task_id || null,
+      data.message_id || null,
+      data.app_type || null,
+      // 通用字段
       status,
-      data.shared_context ? JSON.stringify(data.shared_context) : '{}',
-      data.node_results ? JSON.stringify(data.node_results) : '[]',
+      data.error_message || null,
+      data.inputs ? JSON.stringify(data.inputs) : null,
+      data.outputs ? JSON.stringify(data.outputs) : null,
+      data.elapsed_time || null,
+      data.total_tokens || null,
+      data.total_steps || null,
+      data.duration || null,
+      // 时间戳
       data.start_time || null,
-      data.error ? JSON.stringify(data.error) : null,
-      data.metadata ? JSON.stringify(data.metadata) : null,
+      data.end_time || null,
+      data.started_at || null,
+      data.finished_at || null,
     ];
 
     await this.db.query(sql, params);
@@ -590,16 +695,31 @@ export class WorkflowExecutionModel {
     const row = rows[0];
     return {
       id: row.id,
+      execution_type: row.execution_type,
+      // Agent工作流字段
       workflow_id: row.workflow_id,
       workflow_name: row.workflow_name,
-      status: row.status,
       shared_context: row.shared_context,
       node_results: row.node_results,
+      // Dify工作流字段
+      workflow_run_id: row.workflow_run_id,
+      task_id: row.task_id,
+      message_id: row.message_id,
+      app_type: row.app_type,
+      // 通用字段
+      status: row.status,
+      error_message: row.error_message,
+      inputs: row.inputs,
+      outputs: row.outputs,
+      elapsed_time: row.elapsed_time,
+      total_tokens: row.total_tokens,
+      total_steps: row.total_steps,
+      duration: row.duration,
+      // 时间戳
       start_time: row.start_time,
       end_time: row.end_time,
-      duration: row.duration,
-      error: row.error,
-      metadata: row.metadata,
+      started_at: row.started_at,
+      finished_at: row.finished_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
@@ -617,16 +737,31 @@ export class WorkflowExecutionModel {
 
     return rows.map((row: any) => ({
       id: row.id,
+      execution_type: row.execution_type,
+      // Agent工作流字段
       workflow_id: row.workflow_id,
       workflow_name: row.workflow_name,
-      status: row.status,
       shared_context: row.shared_context,
       node_results: row.node_results,
+      // Dify工作流字段
+      workflow_run_id: row.workflow_run_id,
+      task_id: row.task_id,
+      message_id: row.message_id,
+      app_type: row.app_type,
+      // 通用字段
+      status: row.status,
+      error_message: row.error_message,
+      inputs: row.inputs,
+      outputs: row.outputs,
+      elapsed_time: row.elapsed_time,
+      total_tokens: row.total_tokens,
+      total_steps: row.total_steps,
+      duration: row.duration,
+      // 时间戳
       start_time: row.start_time,
       end_time: row.end_time,
-      duration: row.duration,
-      error: row.error,
-      metadata: row.metadata,
+      started_at: row.started_at,
+      finished_at: row.finished_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
     }));
@@ -638,36 +773,100 @@ export class WorkflowExecutionModel {
   async update(id: string, updates: Partial<WorkflowExecution>): Promise<WorkflowExecution> {
     await this.ensureConnection();
 
-    const sql = `
-      UPDATE workflow_executions SET
-        status = ?,
-        shared_context = ?,
-        node_results = ?,
-        start_time = ?,
-        end_time = ?,
-        duration = ?,
-        error = ?,
-        metadata = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `;
-
     const existing = await this.getById(id);
     if (!existing) {
       throw new Error(`执行实例不存在: ${id}`);
     }
 
-    const params = [
-      updates.status ?? existing.status,
-      updates.shared_context !== undefined ? updates.shared_context : existing.shared_context,
-      updates.node_results !== undefined ? updates.node_results : existing.node_results,
-      updates.start_time !== undefined ? updates.start_time : existing.start_time,
-      updates.end_time !== undefined ? updates.end_time : existing.end_time,
-      updates.duration !== undefined ? updates.duration : existing.duration,
-      updates.error !== undefined ? (updates.error ? JSON.stringify(updates.error) : null) : existing.error,
-      updates.metadata !== undefined ? (updates.metadata ? JSON.stringify(updates.metadata) : null) : existing.metadata,
-      id,
-    ];
+    // 构建动态更新SQL
+    const updateFields: string[] = [];
+    const params: any[] = [];
+
+    if (updates.status !== undefined) {
+      updateFields.push('status = ?');
+      params.push(updates.status);
+    }
+    if (updates.shared_context !== undefined) {
+      updateFields.push('shared_context = ?');
+      params.push(updates.shared_context ? JSON.stringify(updates.shared_context) : null);
+    }
+    if (updates.node_results !== undefined) {
+      updateFields.push('node_results = ?');
+      params.push(updates.node_results ? JSON.stringify(updates.node_results) : null);
+    }
+    if (updates.workflow_run_id !== undefined) {
+      updateFields.push('workflow_run_id = ?');
+      params.push(updates.workflow_run_id);
+    }
+    if (updates.task_id !== undefined) {
+      updateFields.push('task_id = ?');
+      params.push(updates.task_id);
+    }
+    if (updates.message_id !== undefined) {
+      updateFields.push('message_id = ?');
+      params.push(updates.message_id);
+    }
+    if (updates.app_type !== undefined) {
+      updateFields.push('app_type = ?');
+      params.push(updates.app_type);
+    }
+    if (updates.error_message !== undefined) {
+      updateFields.push('error_message = ?');
+      params.push(updates.error_message);
+    }
+    if (updates.inputs !== undefined) {
+      updateFields.push('inputs = ?');
+      params.push(updates.inputs ? JSON.stringify(updates.inputs) : null);
+    }
+    if (updates.outputs !== undefined) {
+      updateFields.push('outputs = ?');
+      params.push(updates.outputs ? JSON.stringify(updates.outputs) : null);
+    }
+    if (updates.elapsed_time !== undefined) {
+      updateFields.push('elapsed_time = ?');
+      params.push(updates.elapsed_time);
+    }
+    if (updates.total_tokens !== undefined) {
+      updateFields.push('total_tokens = ?');
+      params.push(updates.total_tokens);
+    }
+    if (updates.total_steps !== undefined) {
+      updateFields.push('total_steps = ?');
+      params.push(updates.total_steps);
+    }
+    if (updates.duration !== undefined) {
+      updateFields.push('duration = ?');
+      params.push(updates.duration);
+    }
+    if (updates.start_time !== undefined) {
+      updateFields.push('start_time = ?');
+      params.push(updates.start_time);
+    }
+    if (updates.end_time !== undefined) {
+      updateFields.push('end_time = ?');
+      params.push(updates.end_time);
+    }
+    if (updates.started_at !== undefined) {
+      updateFields.push('started_at = ?');
+      params.push(updates.started_at);
+    }
+    if (updates.finished_at !== undefined) {
+      updateFields.push('finished_at = ?');
+      params.push(updates.finished_at);
+    }
+
+    if (updateFields.length === 0) {
+      return existing;
+    }
+
+    updateFields.push('updated_at = CURRENT_TIMESTAMP');
+    params.push(id);
+
+    const sql = `
+      UPDATE workflow_executions SET
+        ${updateFields.join(', ')}
+      WHERE id = ?
+    `;
 
     await this.db.query(sql, params);
 

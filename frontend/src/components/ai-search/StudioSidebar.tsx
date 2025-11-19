@@ -14,6 +14,7 @@ interface StudioSidebarProps {
   studioTitle?: string;
   featureLabelMap?: Record<string, string>;
   enabledToolIds?: string[]; // 启用的工具ID列表
+  pageType?: string; // 当前页面类型，用于跳转到字段映射管理页面时过滤
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -26,6 +27,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   studioTitle = "更多工具箱",
   featureLabelMap = {},
   enabledToolIds,
+  pageType,
 }) => {
   const navigate = useNavigate();
   const formatDaysAgo = (date: Date) => {
@@ -109,10 +111,19 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     },
   ];
 
-  // 根据 enabledToolIds 过滤工具项
-  const toolItems = enabledToolIds
+  // 扩展：为未在静态列表中的启用ID生成通用工具项
+  const staticFiltered = enabledToolIds
     ? allToolItems.filter(item => enabledToolIds.includes(item.id))
     : allToolItems;
+
+  const unknownIds = (enabledToolIds || []).filter(id => !allToolItems.some(item => item.id === id));
+  const unknownItems = unknownIds.map(id => ({
+    id,
+    label: featureLabelMap[id] || id,
+    icon: FileText,
+  }));
+
+  const toolItems = enabledToolIds ? [...staticFiltered, ...unknownItems] : staticFiltered;
 
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
@@ -128,7 +139,10 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
         </div>
         {onShowFieldMappingConfig && (
           <button
-            onClick={() => navigate('/field-mapping-management')}
+            onClick={() => {
+              // 传递当前 pageType 到字段映射管理页面，用于过滤显示
+              navigate(`/field-mapping-management${pageType ? `?pageType=${pageType}` : ''}`);
+            }}
             className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
             title="字段映射管理"
           >

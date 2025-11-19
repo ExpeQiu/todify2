@@ -8,6 +8,8 @@ import NodeConfigPanel from '../components/WorkflowEditor/NodeConfigPanel';
 import WorkflowSettingsModal from '../components/WorkflowEditor/WorkflowSettingsModal';
 import SaveTemplateModal from '../components/WorkflowEditor/SaveTemplateModal';
 import MultiChatContainer from '../components/MultiChatContainer';
+import ConfirmDialog from '../components/common/ConfirmDialog';
+import WorkflowRunInputModal from '../components/WorkflowEditor/WorkflowRunInputModal';
 import { AgentWorkflow, AgentWorkflowNode, AgentWorkflowEdge, InputParameter, WorkflowExecutionMode } from '../types/agentWorkflow';
 import { WorkflowNodeType } from '../types/agentWorkflow';
 import { AIRoleConfig } from '../types/aiRole';
@@ -16,6 +18,7 @@ import { aiRoleService } from '../services/aiRoleService';
 import { WorkflowEngine } from '../services/workflowEngine';
 import { createSmartWorkflowTemplate, validateSmartWorkflowAgents } from '../utils/smartWorkflowTemplate';
 import { getNodeTypeMetadata } from '../config/workflowNodeTypes';
+import { toast } from 'sonner';
 
 /**
  * Agent工作流主页面
@@ -34,12 +37,100 @@ const AgentWorkflowPage: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [showMultiChatModal, setShowMultiChatModal] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmSwitchOpen, setConfirmSwitchOpen] = useState(false);
+  const [pendingSwitchWorkflow, setPendingSwitchWorkflow] = useState<AgentWorkflow | null>(null);
+  const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
+  const [pendingPublishStatus, setPendingPublishStatus] = useState<boolean | null>(null);
+  const [runModalOpen, setRunModalOpen] = useState(false);
+  const [runParams, setRunParams] = useState<InputParameter[]>([]);
+  const [confirmCreateNewOpen, setConfirmCreateNewOpen] = useState(false);
+  const [workflowSearch, setWorkflowSearch] = useState('');
+  const [workflowSort, setWorkflowSort] = useState<'updated' | 'nodes'>('updated');
+  const [confirmRestoreOpen, setConfirmRestoreOpen] = useState(false);
+  const [draftWorkflow, setDraftWorkflow] = useState<AgentWorkflow | null>(null);
 
   // 加载数据
   useEffect(() => {
     loadWorkflows();
     loadAgents();
   }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
+      const isMac = navigator.platform.toLowerCase().includes('mac');
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      if (cmdOrCtrl && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (isDirty) handleSave();
+      } else if (cmdOrCtrl && e.key === 'Enter') {
+        e.preventDefault();
+        handleRun();
+      } else if (cmdOrCtrl && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setShowSidebar(s => !s);
+      } else if (e.key === 'F2') {
+        if (currentWorkflow) {
+          setEditingWorkflowId(currentWorkflow.id);
+          setEditingWorkflowName(currentWorkflow.name);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isDirty, currentWorkflow]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agent-workflow-sidebar-open', JSON.stringify(showSidebar));
+    } catch {}
+  }, [showSidebar]);
+
+  useEffect(() => {
+    if (currentWorkflow?.id) {
+      try {
+        localStorage.setItem('agent-workflow-selected-id', currentWorkflow.id);
+      } catch {}
+    }
+  }, [currentWorkflow?.id]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agent-workflow-search', workflowSearch);
+      localStorage.setItem('agent-workflow-sort', workflowSort);
+    } catch {}
+  }, [workflowSearch, workflowSort]);
+
+  useEffect(() => {
+    const savedSidebar = localStorage.getItem('agent-workflow-sidebar-open');
+    const savedSearch = localStorage.getItem('agent-workflow-search');
+    const savedSort = localStorage.getItem('agent-workflow-sort');
+    if (savedSidebar) setShowSidebar(JSON.parse(savedSidebar));
+    if (savedSearch) setWorkflowSearch(savedSearch);
+    if (savedSort) setWorkflowSort(savedSort as any);
+    const draft = localStorage.getItem('agent-workflow-autosave');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        setDraftWorkflow(parsed);
+        setConfirmRestoreOpen(true);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isDirty && currentWorkflow) {
+      const timer = setTimeout(() => {
+        try {
+          localStorage.setItem('agent-workflow-autosave', JSON.stringify(currentWorkflow));
+        } catch {}
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isDirty, currentWorkflow]);
 
   const loadWorkflows = async () => {
     try {
@@ -158,9 +249,9 @@ const AgentWorkflowPage: React.FC = () => {
     }
     
     if (!skipCheck && isDirty && currentWorkflow) {
-      if (!confirm('当前工作流有未保存的更改，确定要切换吗？')) {
-        return;
-      }
+      setPendingSwitchWorkflow(workflow);
+      setConfirmSwitchOpen(true);
+      return;
     }
     setCurrentWorkflow(workflow);
     setSelectedNode(null);
@@ -169,29 +260,14 @@ const AgentWorkflowPage: React.FC = () => {
 
   // 删除工作流
   const handleDeleteWorkflow = async (workflowId: string) => {
-    if (!confirm('确定要删除此工作流吗？此操作不可撤销。')) {
-      return;
-    }
-
-    try {
-      await agentWorkflowService.deleteWorkflow(workflowId);
-      await loadWorkflows();
-      if (currentWorkflow?.id === workflowId) {
-        setCurrentWorkflow(null);
-        setSelectedNode(null);
-      }
-    } catch (error) {
-      console.error('删除工作流失败:', error);
-      alert('删除失败: ' + (error instanceof Error ? error.message : String(error)));
-    }
+    setConfirmDeleteId(workflowId);
   };
 
   // 创建新工作流
   const handleCreateNewWorkflow = () => {
     if (isDirty && currentWorkflow) {
-      if (!confirm('当前工作流有未保存的更改，确定要创建新工作流吗？')) {
-        return;
-      }
+      setConfirmCreateNewOpen(true);
+      return;
     }
 
     const newWorkflow: AgentWorkflow = {
@@ -322,13 +398,13 @@ const AgentWorkflowPage: React.FC = () => {
 
   const handleRun = async () => {
     if (!currentWorkflow) {
-      alert('请先创建一个工作流');
+      toast.error('请先创建一个工作流');
       return;
     }
 
     // 验证工作流
     if (!currentWorkflow.nodes || currentWorkflow.nodes.length === 0) {
-      alert('工作流至少需要一个节点');
+      toast.error('工作流至少需要一个节点');
       return;
     }
 
@@ -336,9 +412,7 @@ const AgentWorkflowPage: React.FC = () => {
     const unconfiguredNodes = currentWorkflow.nodes.filter(node => !node.agentId || node.agentId.trim() === '');
     if (unconfiguredNodes.length > 0) {
       const nodeNames = unconfiguredNodes.map(n => n.data?.label || n.id).join(', ');
-      const shouldContinue = confirm(
-        `以下节点未配置Agent：${nodeNames}\n\n这些节点将无法执行。是否继续？`
-      );
+      const shouldContinue = confirm(`以下节点未配置Agent：${nodeNames}\n\n这些节点将无法执行。是否继续？`);
       if (!shouldContinue) {
         return;
       }
@@ -355,7 +429,7 @@ const AgentWorkflowPage: React.FC = () => {
       // 验证工作流是否有效
       const validNodes = latestWorkflow.nodes.filter(n => n.agentId && n.agentId.trim() !== '');
       if (validNodes.length === 0) {
-        alert('工作流中没有配置Agent的节点，无法执行');
+        toast.error('工作流中没有配置Agent的节点，无法执行');
         return;
       }
 
@@ -371,204 +445,16 @@ const AgentWorkflowPage: React.FC = () => {
         });
       });
       
-      // 如果有输入参数，收集用户输入
-      let input: any = {};
-      
       if (inputParams.length > 0) {
-        // 创建输入对话框
-        const inputModal = document.createElement('div');
-        inputModal.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10000;
-        `;
-        
-        const inputForm = document.createElement('div');
-        inputForm.style.cssText = `
-          background: white;
-          border-radius: 8px;
-          padding: 24px;
-          max-width: 600px;
-          max-height: 80vh;
-          overflow-y: auto;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        `;
-        
-        const title = document.createElement('h3');
-        title.textContent = '工作流输入参数';
-        title.style.cssText = 'margin: 0 0 20px 0; font-size: 18px; font-weight: 600;';
-        inputForm.appendChild(title);
-        
-        const formInputs: { [key: string]: HTMLInputElement | HTMLTextAreaElement } = {};
-        
-        inputParams.forEach((param) => {
-          const group = document.createElement('div');
-          group.style.cssText = 'margin-bottom: 16px;';
-          
-          const label = document.createElement('label');
-          label.textContent = `${param.name}${param.required ? ' *' : ''}`;
-          label.style.cssText = 'display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px;';
-          if (param.description) {
-            const desc = document.createElement('div');
-            desc.textContent = param.description;
-            desc.style.cssText = 'font-size: 12px; color: #6b7280; margin-bottom: 4px;';
-            label.appendChild(desc);
-          }
-          group.appendChild(label);
-          
-          let inputElement: HTMLInputElement | HTMLTextAreaElement;
-          
-          if (param.type === 'file') {
-            inputElement = document.createElement('input');
-            inputElement.type = 'file';
-            if (param.accept) {
-              inputElement.accept = param.accept;
-            }
-            inputElement.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;';
-            group.appendChild(inputElement);
-          } else if (param.type === 'boolean') {
-            inputElement = document.createElement('input');
-            inputElement.type = 'checkbox';
-            (inputElement as HTMLInputElement).checked = param.defaultValue || false;
-            inputElement.style.cssText = 'width: 20px; height: 20px;';
-            group.appendChild(inputElement);
-          } else if (param.type === 'number') {
-            inputElement = document.createElement('input');
-            inputElement.type = 'number';
-            inputElement.value = param.defaultValue !== undefined ? String(param.defaultValue) : '';
-            inputElement.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;';
-            group.appendChild(inputElement);
-          } else if (param.type === 'object' || param.type === 'array') {
-            inputElement = document.createElement('textarea');
-            inputElement.value = param.defaultValue !== undefined ? JSON.stringify(param.defaultValue, null, 2) : '';
-            inputElement.rows = 4;
-            inputElement.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace;';
-            inputElement.placeholder = '请输入JSON格式的数据';
-            group.appendChild(inputElement);
-          } else {
-            inputElement = document.createElement('input');
-            inputElement.type = 'text';
-            inputElement.value = param.defaultValue !== undefined ? String(param.defaultValue) : '';
-            inputElement.style.cssText = 'width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;';
-            group.appendChild(inputElement);
-          }
-          
-          formInputs[param.name] = inputElement;
-          inputForm.appendChild(group);
-        });
-        
-        const buttonGroup = document.createElement('div');
-        buttonGroup.style.cssText = 'display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px;';
-        
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = '取消';
-        cancelBtn.style.cssText = 'padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: white; cursor: pointer;';
-        cancelBtn.onclick = () => {
-          document.body.removeChild(inputModal);
-          setLoading(false);
-        };
-        buttonGroup.appendChild(cancelBtn);
-        
-        const confirmBtn = document.createElement('button');
-        confirmBtn.textContent = '执行';
-        confirmBtn.style.cssText = 'padding: 8px 16px; border: none; border-radius: 6px; background: #3b82f6; color: white; cursor: pointer;';
-        confirmBtn.onclick = () => {
-          // 收集输入值
-          let hasError = false;
-          inputParams.forEach(param => {
-            const inputElement = formInputs[param.name];
-            
-            if (param.type === 'file') {
-              const fileInput = inputElement as HTMLInputElement;
-              if (fileInput.files && fileInput.files.length > 0) {
-                input[param.name] = fileInput.files[0];
-              } else if (param.required) {
-                alert(`必需参数 ${param.name} 未提供`);
-                hasError = true;
-                return;
-              }
-            } else if (param.type === 'boolean') {
-              const checkbox = inputElement as HTMLInputElement;
-              input[param.name] = checkbox.checked;
-            } else if (param.type === 'number') {
-              const numberInput = inputElement as HTMLInputElement;
-              const value = numberInput.value ? parseFloat(numberInput.value) : undefined;
-              if (value !== undefined) {
-                input[param.name] = value;
-              } else if (param.required) {
-                alert(`必需参数 ${param.name} 未提供`);
-                hasError = true;
-                return;
-              }
-            } else if (param.type === 'object' || param.type === 'array') {
-              const textarea = inputElement as HTMLTextAreaElement;
-              if (textarea.value.trim()) {
-                try {
-                  input[param.name] = JSON.parse(textarea.value);
-                } catch {
-                  alert(`参数 ${param.name} JSON格式错误`);
-                  hasError = true;
-                  return;
-                }
-              } else if (param.required) {
-                alert(`必需参数 ${param.name} 未提供`);
-                hasError = true;
-                return;
-              }
-            } else {
-              const textInput = inputElement as HTMLInputElement;
-              if (textInput.value) {
-                input[param.name] = textInput.value;
-              } else if (param.required) {
-                alert(`必需参数 ${param.name} 未提供`);
-                hasError = true;
-                return;
-              }
-            }
-          });
-          
-          if (hasError) return;
-          
-          document.body.removeChild(inputModal);
-          
-          // 执行工作流
-          executeWorkflowWithInput(input);
-        };
-        buttonGroup.appendChild(confirmBtn);
-        
-        inputForm.appendChild(buttonGroup);
-        inputModal.appendChild(inputForm);
-        document.body.appendChild(inputModal);
-        
-        return; // 等待用户输入
-      } else {
-        // 没有输入参数，使用默认输入
-        const executionInput = prompt('请输入工作流执行的输入参数（JSON格式）:', JSON.stringify({ query: '测试输入' }));
-        if (executionInput) {
-          try {
-            input = JSON.parse(executionInput);
-          } catch {
-            alert('输入格式错误，使用默认输入');
-            input = { query: '测试输入' };
-          }
-        } else {
-          input = { query: '测试输入' };
-        }
-        
-        // 执行工作流
-        executeWorkflowWithInput(input);
+        setRunParams(inputParams);
+        setRunModalOpen(true);
+        return;
       }
+      executeWorkflowWithInput({ query: '测试输入' });
       
     } catch (error) {
       console.error('执行工作流失败:', error);
-      alert('执行失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('执行失败', { description: error instanceof Error ? error.message : String(error) });
       setLoading(false);
     }
   };
@@ -591,11 +477,10 @@ const AgentWorkflowPage: React.FC = () => {
       // 显示执行结果
       const successCount = result.nodeResults?.filter(r => r.status === 'completed').length || 0;
       const failCount = result.nodeResults?.filter(r => r.status === 'failed').length || 0;
-      const message = `工作流执行完成！\n成功: ${successCount} 个节点\n失败: ${failCount} 个节点\n\n查看控制台获取详细信息。`;
-      alert(message);
+      toast.success('工作流执行完成', { description: `成功 ${successCount}，失败 ${failCount}` });
     } catch (error) {
       console.error('执行工作流失败:', error);
-      alert('执行失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('执行失败', { description: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -807,7 +692,7 @@ const AgentWorkflowPage: React.FC = () => {
   // 处理发布工作流按钮点击
   const handlePublish = async () => {
     if (!currentWorkflow) {
-      alert('请先选择一个工作流');
+      toast.error('请先选择一个工作流');
       return;
     }
 
@@ -893,66 +778,89 @@ const AgentWorkflowPage: React.FC = () => {
         <div className="workflow-content">
           {/* 左侧工作流列表侧边栏 */}
           {showSidebar && (
-            <div className="workflow-sidebar">
-              <div className="sidebar-header">
-                <h2 className="text-lg font-semibold text-gray-800">工作流列表</h2>
-                <button
-                  onClick={() => setShowSidebar(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                  title="隐藏侧边栏"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-              
-              <div className="sidebar-actions">
-                <button
-                  onClick={handleCreateNewWorkflow}
-                  className="sidebar-button primary"
-                  title="创建新工作流"
-                >
-                  <Plus size={18} />
-                  <span>新建工作流</span>
-                </button>
-                <button
-                  onClick={handleCreateSmartWorkflow}
-                  disabled={creatingSmartWorkflow}
-                  className="sidebar-button secondary"
-                  title="从模板创建智能工作流"
-                >
-                  {creatingSmartWorkflow ? (
-                    <Loader className="animate-spin" size={18} />
-                  ) : (
-                    <Sparkles size={18} />
-                  )}
-                  <span>智能工作流</span>
-                </button>
-              </div>
+        <div className="workflow-sidebar">
+          <div className="sidebar-header">
+            <h2 className="text-lg font-semibold text-gray-800">工作流列表</h2>
+            <button
+              onClick={() => setShowSidebar(false)}
+              className="text-gray-500 hover:text-gray-700"
+              title="隐藏侧边栏"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+          
+          <div className="sidebar-actions">
+            <button
+              onClick={handleCreateNewWorkflow}
+              className="sidebar-button primary"
+              title="创建新工作流"
+            >
+              <Plus size={18} />
+              <span>新建工作流</span>
+            </button>
+            <button
+              onClick={handleCreateSmartWorkflow}
+              disabled={creatingSmartWorkflow}
+              className="sidebar-button secondary"
+              title="从模板创建智能工作流"
+            >
+              {creatingSmartWorkflow ? (
+                <Loader className="animate-spin" size={18} />
+              ) : (
+                <Sparkles size={18} />
+              )}
+              <span>智能工作流</span>
+            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={workflowSearch}
+                onChange={(e) => setWorkflowSearch(e.target.value)}
+                placeholder="搜索工作流"
+                className="workflow-search-input"
+              />
+              <select
+                value={workflowSort}
+                onChange={(e) => setWorkflowSort(e.target.value as any)}
+                className="workflow-sort-select"
+              >
+                <option value="updated">按更新时间</option>
+                <option value="nodes">按节点数</option>
+              </select>
+            </div>
+          </div>
 
-              <div className="workflow-list">
-                {workflows.length === 0 ? (
-                  <div className="empty-state">
-                    <FileText size={32} className="text-gray-400" />
-                    <p className="text-gray-500 text-sm mt-2">暂无工作流</p>
-                    <p className="text-gray-400 text-xs mt-1">点击上方按钮创建</p>
-                  </div>
-                ) : (
-                  workflows.map((workflow) => (
-                    <div
-                      key={workflow.id}
-                      className={`workflow-item ${
-                        currentWorkflow?.id === workflow.id ? 'active' : ''
-                      }`}
-                      onClick={(e) => {
-                        // 如果正在编辑，不执行切换
-                        if (editingWorkflowId) return;
-                        // 如果点击的是标题区域（可能是在双击），不切换
-                        if ((e.target as HTMLElement).closest('.workflow-item-title')) {
-                          return;
-                        }
-                        handleSwitchWorkflow(workflow);
-                      }}
-                    >
+          <div className="workflow-list">
+            {workflows.length === 0 ? (
+              <div className="empty-state">
+                <FileText size={32} className="text-gray-400" />
+                <p className="text-gray-500 text-sm mt-2">暂无工作流</p>
+                <p className="text-gray-400 text-xs mt-1">点击上方按钮创建</p>
+              </div>
+            ) : (
+              workflows
+                .filter(w => !workflowSearch || w.name.toLowerCase().includes(workflowSearch.toLowerCase()))
+                .sort((a, b) => {
+                  if (workflowSort === 'nodes') return (b.nodes?.length || 0) - (a.nodes?.length || 0);
+                  return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+                })
+                .map((workflow) => (
+                <div
+                  key={workflow.id}
+                  className={`workflow-item ${
+                    currentWorkflow?.id === workflow.id ? 'active' : ''
+                  }`}
+                  onClick={(e) => {
+                    // 如果正在编辑，不执行切换
+                    if (editingWorkflowId) return;
+                    // 如果点击的是标题区域（可能是在双击），不切换
+                    if ((e.target as HTMLElement).closest('.workflow-item-title')) {
+                      return;
+                    }
+                    handleSwitchWorkflow(workflow);
+                  }}
+                >
                       <div className="workflow-item-content">
                         {editingWorkflowId === workflow.id ? (
                           <input
@@ -1146,6 +1054,149 @@ const AgentWorkflowPage: React.FC = () => {
         </div>
       )}
 
+      {confirmDeleteId && (
+        <ConfirmDialog
+          open={!!confirmDeleteId}
+          title="确定要删除此工作流吗？"
+          description="此操作不可撤销"
+          confirmText="删除"
+          cancelText="取消"
+          onConfirm={async () => {
+            const id = confirmDeleteId;
+            setConfirmDeleteId(null);
+            try {
+              if (id) {
+                await agentWorkflowService.deleteWorkflow(id);
+                await loadWorkflows();
+                if (currentWorkflow?.id === id) {
+                  setCurrentWorkflow(null);
+                  setSelectedNode(null);
+                }
+                toast.success('工作流已删除');
+              }
+            } catch (error: any) {
+              toast.error('删除失败', { description: error?.message });
+            }
+          }}
+          onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+
+      {confirmSwitchOpen && pendingSwitchWorkflow && (
+        <ConfirmDialog
+          open={confirmSwitchOpen}
+          title="当前工作流有未保存的更改"
+          description="是否切换到其他工作流？未保存的更改将丢失"
+          confirmText="切换"
+          cancelText="取消"
+          onConfirm={() => {
+            setConfirmSwitchOpen(false);
+            if (pendingSwitchWorkflow) {
+              setCurrentWorkflow(pendingSwitchWorkflow);
+              setSelectedNode(null);
+              setIsDirty(false);
+              setPendingSwitchWorkflow(null);
+            }
+          }}
+          onCancel={() => {
+            setConfirmSwitchOpen(false);
+            setPendingSwitchWorkflow(null);
+          }}
+        />
+      )}
+
+      {confirmPublishOpen && pendingPublishStatus !== null && currentWorkflow && (
+        <ConfirmDialog
+          open={confirmPublishOpen}
+          title={pendingPublishStatus ? '发布工作流' : '取消发布工作流'}
+          description={pendingPublishStatus ? '发布后，该工作流可以被前端页面绑定使用' : '取消发布后，前端页面将无法绑定该工作流'}
+          confirmText={pendingPublishStatus ? '发布' : '取消发布'}
+          cancelText="返回"
+          onConfirm={async () => {
+            setConfirmPublishOpen(false);
+            try {
+              const updated = await agentWorkflowService.updateWorkflow(currentWorkflow.id, {
+                published: pendingPublishStatus || false,
+              });
+              setWorkflows(workflows.map(w => w.id === currentWorkflow.id ? updated : w));
+              setCurrentWorkflow(updated);
+              toast.success(pendingPublishStatus ? '发布成功' : '取消发布成功');
+            } catch (error: any) {
+              toast.error('操作失败', { description: error?.message });
+            } finally {
+              setPendingPublishStatus(null);
+            }
+          }}
+          onCancel={() => {
+            setConfirmPublishOpen(false);
+            setPendingPublishStatus(null);
+          }}
+        />
+      )}
+
+      {confirmCreateNewOpen && (
+        <ConfirmDialog
+          open={confirmCreateNewOpen}
+          title="当前工作流有未保存的更改"
+          description="确定要创建新工作流吗？未保存的更改将丢失"
+          confirmText="创建"
+          cancelText="取消"
+          onConfirm={() => {
+            setConfirmCreateNewOpen(false);
+            const newWorkflow: AgentWorkflow = {
+              id: `workflow-${Date.now()}`,
+              name: `新工作流 ${workflows.length + 1}`,
+              description: '',
+              version: '1.0.0',
+              nodes: [],
+              edges: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            setCurrentWorkflow(newWorkflow);
+            setSelectedNode(null);
+            setIsDirty(false);
+          }}
+          onCancel={() => setConfirmCreateNewOpen(false)}
+        />
+      )}
+
+      {runModalOpen && (
+        <WorkflowRunInputModal
+          open={runModalOpen}
+          params={runParams}
+          onCancel={() => {
+            setRunModalOpen(false);
+            setLoading(false);
+          }}
+          onSubmit={(values) => {
+            setRunModalOpen(false);
+            executeWorkflowWithInput(values);
+          }}
+        />
+      )}
+
+      {confirmRestoreOpen && draftWorkflow && (
+        <ConfirmDialog
+          open={confirmRestoreOpen}
+          title="检测到本地草稿"
+          description="是否恢复到上次自动保存的工作流草稿"
+          confirmText="恢复"
+          cancelText="忽略"
+          onConfirm={() => {
+            setConfirmRestoreOpen(false);
+            setCurrentWorkflow(draftWorkflow);
+            setSelectedNode(null);
+            setIsDirty(false);
+          }}
+          onCancel={() => {
+            setConfirmRestoreOpen(false);
+            setDraftWorkflow(null);
+            try { localStorage.removeItem('agent-workflow-autosave'); } catch {}
+          }}
+        />
+      )}
+
       <style>{`
         .agent-workflow-page {
           width: 100%;
@@ -1192,6 +1243,21 @@ const AgentWorkflowPage: React.FC = () => {
           flex-direction: column;
           gap: 8px;
           border-bottom: 1px solid #e5e7eb;
+        }
+
+        .workflow-search-input {
+          flex: 1;
+          padding: 6px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 13px;
+        }
+
+        .workflow-sort-select {
+          padding: 6px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 13px;
         }
 
         .sidebar-button {

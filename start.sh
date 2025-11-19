@@ -30,15 +30,35 @@ check_port() {
 # 函数：等待服务启动
 wait_for_service() {
     local url=$1
-    local max_attempts=30
+    local log_file=$2
+    local pid=$3
+    local max_attempts=60
     local attempt=0
     
     echo "⏳ 等待服务启动: $url"
     while [ $attempt -lt $max_attempts ]; do
+        # 检查进程是否还在运行
+        if ! kill -0 $pid 2>/dev/null; then
+            echo "❌ 服务进程已退出"
+            return 1
+        fi
+        
+        # 尝试连接服务
         if curl -s "$url" > /dev/null 2>&1; then
             echo "✅ 服务已就绪: $url"
             return 0
         fi
+        
+        # 每5秒显示一次进度
+        if [ $((attempt % 5)) -eq 0 ] && [ $attempt -gt 0 ]; then
+            echo "   等待中... ($attempt/$max_attempts 秒)"
+            # 显示最近的日志（如果有）
+            if [ -f "$log_file" ]; then
+                echo "   最近日志:"
+                tail -3 "$log_file" | sed 's/^/   /' || true
+            fi
+        fi
+        
         attempt=$((attempt + 1))
         sleep 1
     done
@@ -131,16 +151,37 @@ echo "🎯 启动服务..."
 # 启动后端服务
 echo "🔧 启动后端服务 (端口: $BACKEND_PORT)..."
 cd "$SCRIPT_DIR/backend"
-PORT=$BACKEND_PORT npm run dev > /tmp/backend.log 2>&1 &
+
+# 确保日志文件存在
+BACKEND_LOG="/tmp/backend.log"
+touch "$BACKEND_LOG"
+
+# 启动服务并捕获 PID
+PORT=$BACKEND_PORT npm run dev > "$BACKEND_LOG" 2>&1 &
 BACKEND_PID=$!
+
+# 等待一小段时间让进程启动
+sleep 2
+
+# 检查进程是否还在运行
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "❌ 后端服务启动失败，进程已退出"
+    echo "📋 查看日志:"
+    cat "$BACKEND_LOG"
+    exit 1
+fi
 
 # 等待后端启动
 echo "⏳ 等待后端服务启动..."
-if wait_for_service "http://localhost:$BACKEND_PORT/api/health"; then
+if wait_for_service "http://localhost:$BACKEND_PORT/api/health" "$BACKEND_LOG" "$BACKEND_PID"; then
     echo "✅ 后端服务启动成功"
 else
-    echo "❌ 后端服务启动失败，查看日志:"
-    tail -20 /tmp/backend.log
+    echo "❌ 后端服务启动失败"
+    echo "📋 查看完整日志:"
+    cat "$BACKEND_LOG"
+    echo ""
+    echo "📋 查看进程状态:"
+    ps aux | grep -E "node|ts-node" | grep -v grep || echo "未找到相关进程"
     kill $BACKEND_PID 2>/dev/null
     exit 1
 fi
@@ -162,8 +203,12 @@ echo "📱 前端地址: http://localhost:$FRONTEND_PORT"
 echo "🔧 后端地址: http://localhost:$BACKEND_PORT"
 echo ""
 echo "📋 日志文件:"
-echo "   后端: /tmp/backend.log"
+echo "   后端: $BACKEND_LOG"
 echo "   前端: /tmp/frontend.log"
+echo ""
+echo "💡 提示: 使用以下命令查看实时日志:"
+echo "   tail -f $BACKEND_LOG"
+echo "   tail -f /tmp/frontend.log"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 echo "=========================================="

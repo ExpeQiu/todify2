@@ -18,6 +18,8 @@ export const SendMessageSchema = z.object({
       return Math.max(-1, numericValue);
     }),
   workflowId: z.string().min(1).optional(),
+  fileList: z.string().optional(), // 文件列表（逗号分隔的文件名）
+  knowledgeBaseNames: z.string().optional(), // 知识库名称列表（逗号分隔）
 });
 
 export type SendMessageDTO = z.infer<typeof SendMessageSchema>;

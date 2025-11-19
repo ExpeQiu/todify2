@@ -29,7 +29,7 @@ class AiSearchService {
   /**
    * 获取配置的工作流
    */
-  async getWorkflowConfig(pageType?: 'tech-package' | 'press-release'): Promise<WorkflowConfig | null> {
+  async getWorkflowConfig(pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article'): Promise<WorkflowConfig | null> {
     try {
       // 先尝试从API获取配置的工作流ID，传递pageType参数
       const params = pageType ? `?pageType=${pageType}` : '';
@@ -144,7 +144,7 @@ class AiSearchService {
   /**
    * 上传文件
    */
-  async uploadFiles(files: File[], pageType?: 'tech-package' | 'press-release'): Promise<FileUploadResponse[]> {
+  async uploadFiles(files: File[], pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article'): Promise<FileUploadResponse[]> {
     try {
       const formData = new FormData();
       files.forEach((file) => {
@@ -297,7 +297,7 @@ class AiSearchService {
    * 创建对话
    */
   async createConversation(
-    request: CreateConversationRequest
+    request: CreateConversationRequest & { pageType?: string }
   ): Promise<Conversation> {
     try {
       const response = await api.post('/ai-search/conversations', request);
@@ -314,9 +314,10 @@ class AiSearchService {
   /**
    * 获取对话列表
    */
-  async getConversations(): Promise<Conversation[]> {
+  async getConversations(pageType?: string): Promise<Conversation[]> {
     try {
-      const response = await api.get('/ai-search/conversations');
+      const params = pageType ? `?pageType=${encodeURIComponent(pageType)}` : '';
+      const response = await api.get(`/ai-search/conversations${params}`);
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
@@ -395,6 +396,12 @@ class AiSearchService {
       if (typeof request.contextWindowSize === 'number') {
         formData.append('contextWindowSize', String(request.contextWindowSize));
       }
+      if (request.fileList) {
+        formData.append('fileList', request.fileList);
+      }
+      if (request.knowledgeBaseNames) {
+        formData.append('knowledgeBaseNames', request.knowledgeBaseNames);
+      }
 
       const response = await api.post(
         `/ai-search/conversations/${conversationId}/messages`,
@@ -472,7 +479,8 @@ class AiSearchService {
     type: 'ppt' | 'script' | 'mindmap',
     conversationId: string,
     messageId: string,
-    content: string
+    content: string,
+    pageType?: string
   ): Promise<OutputContent> {
     try {
       const response = await api.post('/ai-search/outputs', {
@@ -480,6 +488,7 @@ class AiSearchService {
         conversationId,
         messageId,
         content,
+        pageType,
       });
 
       if (response.data.success && response.data.data) {
@@ -495,11 +504,17 @@ class AiSearchService {
   /**
    * 获取输出内容列表
    */
-  async getOutputs(conversationId?: string): Promise<OutputContent[]> {
+  async getOutputs(conversationId?: string, pageType?: string): Promise<OutputContent[]> {
     try {
-      const url = conversationId
-        ? `/ai-search/outputs?conversationId=${conversationId}`
-        : '/ai-search/outputs';
+      const params = new URLSearchParams();
+      if (conversationId) {
+        params.set('conversationId', conversationId);
+      }
+      if (pageType) {
+        params.set('pageType', pageType);
+      }
+      const query = params.toString();
+      const url = query ? `/ai-search/outputs?${query}` : '/ai-search/outputs';
       const response = await api.get(url);
       if (response.data.success && response.data.data) {
         return response.data.data;
@@ -521,7 +536,11 @@ class AiSearchService {
         return response.data.data;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
+      // 404 表示配置不存在，这是正常情况，返回 null
+      if (error?.response?.status === 404) {
+        return null;
+      }
       console.error('获取字段映射配置失败:', error);
       return null;
     }
@@ -539,6 +558,21 @@ class AiSearchService {
       throw new Error(response.data.error || '获取字段映射配置列表失败');
     } catch (error) {
       console.error('获取字段映射配置列表失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 保存字段映射配置（支持功能对象维度）
+   */
+  async saveFieldMappingConfig(workflowId: string, config: FieldMappingConfig): Promise<void> {
+    try {
+      const response = await api.post(`/ai-search/field-mappings/${workflowId}`, config);
+      if (!response.data.success) {
+        throw new Error(response.data.error || '保存字段映射配置失败');
+      }
+    } catch (error) {
+      console.error('保存字段映射配置失败:', error);
       throw error;
     }
   }

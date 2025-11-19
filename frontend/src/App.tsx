@@ -1,8 +1,7 @@
 // import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import WorkflowPage from "./pages/WorkflowPage";
 import NodePage from "./pages/NodePage";
-import ConfigManagementPage from "./pages/ConfigManagementPage";
 import ConfigPage from "./pages/ConfigPage";
 import TechPointManagement from "./pages/TechPointManagement";
 import CarSeriesManagement from "./pages/CarSeriesManagement";
@@ -23,6 +22,9 @@ import AddressPage from "./pages/AddressPage";
 import TemplateManagementPage from "./pages/TemplateManagementPage";
 import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
+import TechStrategyPage from "./pages/TechStrategyPage";
+import TechArticlePage from "./pages/TechArticlePage";
+import PressReleasePage from "./pages/PressReleasePage";
 
 function App() {
   return (
@@ -146,9 +148,36 @@ function App() {
             element={<PublicChatPage />}
           />
 
+          {/* 标准独立页面路由 */}
+          <Route
+            path="/tech-package"
+            element={<TechPackagePage />}
+          />
+
+          <Route
+            path="/tech-strategy"
+            element={<TechStrategyPage />}
+          />
+
+          <Route
+            path="/tech-article"
+            element={<TechArticlePage />}
+          />
+
+          <Route
+            path="/press-release"
+            element={<PressReleasePage />}
+          />
+
+          {/* 向后兼容的路由重定向 */}
           <Route
             path="/ai-search"
-            element={<TechPackagePage />}
+            element={<Navigate to="/tech-package" replace />}
+          />
+
+          <Route
+            path="/tech-publish"
+            element={<Navigate to="/press-release" replace />}
           />
 
           <Route

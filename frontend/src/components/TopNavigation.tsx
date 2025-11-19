@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  ArrowLeft,
   MessageCircle,
   Target,
   FileText,
   Mic,
-  Settings,
-  History,
-  Sparkles,
+  Home,
+  Bot,
+  Workflow,
+  MessageSquare,
+  Layers,
 } from "lucide-react";
 import publicPageConfigService from "../services/publicPageConfigService";
 import { PublicPageConfig } from "../types/publicPageConfig";
@@ -18,65 +19,59 @@ interface TopNavigationProps {
 }
 
 interface NavigationItem {
+  id: string;
   label: string;
   icon: any;
   path: string;
   disabled: boolean;
-  isBack?: boolean;
-  hideWhenDisabled?: boolean;
+  category: 'main' | 'management';
+  configId?: string;
 }
+
+// 主要功能的固定顺序和映射
+const MAIN_NAV_ORDER = [
+  { name: 'AI问答', icon: Home, path: '/', address: null },
+  { name: '技术包装', icon: MessageCircle, path: '/tech-package', address: 'tech-package' },
+  { name: '技术策略', icon: Target, path: '/tech-strategy', address: 'tech-strategy' },
+  { name: '技术通稿', icon: FileText, path: '/tech-article', address: 'tech-article' },
+  { name: '发布会稿', icon: Mic, path: '/press-release', address: 'press-release' },
+];
+
+// 管理功能的固定顺序和映射
+const MANAGEMENT_NAV_ORDER = [
+  { name: 'AI角色', icon: Bot, path: '/ai-roles' },
+  { name: 'Agent工作流', icon: Workflow, path: '/agent-workflow' },
+  { name: '多角色对话', icon: MessageSquare, path: '/ai-chat-multi' },
+  { name: '页面配置', icon: Layers, path: '/public-page-configs' },
+];
+
 
 const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showTooltip, setShowTooltip] = useState(false);
   const [activeConfigs, setActiveConfigs] = useState<PublicPageConfig[]>([]);
-
-  // 根据配置名称智能推断模板类型
-  const inferTemplateType = (config: PublicPageConfig): 'speech' | 'ai-chat' | null => {
-    // 如果已经有模板类型，直接返回
-    if (config.templateType === 'speech' || config.templateType === 'ai-chat') {
-      return config.templateType;
-    }
-    
-    // 根据配置名称推断
-    const name = config.name.toLowerCase();
-    if (name.includes('发布会') || name.includes('演讲') || name.includes('speech')) {
-      return 'speech';
-    }
-    if (name.includes('ai问答') || name.includes('问答') || name.includes('ai-chat')) {
-      return 'ai-chat';
-    }
-    
-    return null;
-  };
+  const [loading, setLoading] = useState(true);
 
   // 加载启用的公共页面配置
   const loadActiveConfigs = async () => {
     try {
-      console.log('[TopNavigation] 开始加载配置...');
-      const configs = await publicPageConfigService.ensureDefaultFeatureConfigs();
-      console.log('[TopNavigation] 获取到配置列表:', configs);
-      // 过滤出已启用的配置，并推断模板类型
-      const enabled = configs
-        .filter((config) => config.isActive)
-        .map((config) => ({
-          ...config,
-          inferredTemplateType: inferTemplateType(config),
-        }))
-        .filter((config) => config.inferredTemplateType !== null) as Array<PublicPageConfig & { inferredTemplateType: 'speech' | 'ai-chat' }>;
-      console.log('[TopNavigation] 已启用的配置（含推断类型）:', enabled);
+      setLoading(true);
+      const configs = await publicPageConfigService.getAllConfigs();
+      // 过滤出已启用且有地址的配置
+      const enabled = configs.filter(
+        (config) => config.isActive && config.address
+      );
       setActiveConfigs(enabled);
     } catch (error: any) {
-      // 对于后端未运行的情况，静默处理，不输出错误日志
+      // 对于后端未运行的情况，静默处理
       const errorStatus = error?.response?.status || 'N/A';
       const errorCode = error?.code;
       if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
-        // 静默失败，保持当前配置状态
         return;
       }
-      // 其他错误才输出日志
       console.error('[TopNavigation] 加载配置失败:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,208 +81,193 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
 
     // 监听配置更新事件
     const handleConfigUpdate = () => {
-      console.log('[TopNavigation] 收到配置更新事件，重新加载配置');
       loadActiveConfigs();
     };
 
-    console.log('[TopNavigation] 注册事件监听器');
     window.addEventListener('publicPageConfigUpdated', handleConfigUpdate);
 
-    // 监听storage变化（作为备用方案，用于跨标签页通信）
+    // 监听storage变化（跨标签页通信）
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'publicPageConfigsRefresh') {
-        console.log('[TopNavigation] 收到storage事件（跨标签页），重新加载配置');
         loadActiveConfigs();
       }
     };
     window.addEventListener('storage', handleStorageChange);
     
-    // 监听自定义刷新事件（用于同标签页触发）
-    const handleCustomRefresh = (e: Event) => {
-      console.log('[TopNavigation] 收到自定义刷新事件（同标签页），重新加载配置');
+    // 监听自定义刷新事件（同标签页触发）
+    const handleCustomRefresh = () => {
       loadActiveConfigs();
     };
     window.addEventListener('publicPageConfigsRefresh', handleCustomRefresh);
 
-    // 轮询检查已禁用 - 使用事件监听机制代替
-    // const intervalId = setInterval(() => {
-    //   console.log('[TopNavigation] 轮询检查配置状态');
-    //   loadActiveConfigs();
-    // }, 5000);
-
     return () => {
-      console.log('[TopNavigation] 清理事件监听器');
       window.removeEventListener('publicPageConfigUpdated', handleConfigUpdate);
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('publicPageConfigsRefresh', handleCustomRefresh);
-      // clearInterval(intervalId);
     };
   }, []);
 
-  // 根据配置状态判断导航项是否启用
-  const isFeatureEnabled = (path: string): boolean => {
-    // 检查是否有对应的已启用配置
-    const configForPath = activeConfigs.find((config) => {
-      // 检查原始模板类型或推断的模板类型
-      const templateType = config.templateType || (config as any).inferredTemplateType;
-      
-      // 根据地址配置匹配
-      if (path === '/ai-search' && config.address === 'ai-search') {
-        return true;
+  // 动态生成主要功能导航项
+  const mainItems: NavigationItem[] = useMemo(() => {
+    const items: NavigationItem[] = [];
+
+    // 按照固定顺序生成主要功能项
+    MAIN_NAV_ORDER.forEach((navItem) => {
+      // 如果是AI问答，直接添加
+      if (navItem.name === 'AI问答') {
+        items.push({
+          id: 'home',
+          label: navItem.name,
+          icon: navItem.icon,
+          path: navItem.path,
+          disabled: false,
+          category: 'main',
+        });
+        return;
       }
-      if (path === '/node/speech' && templateType === 'speech') {
-        return true;
+
+      // 其他功能：从配置中查找对应的配置
+      const config = activeConfigs.find(
+        (c) => c.address === navItem.address || c.name === navItem.name
+      );
+
+      if (config) {
+        items.push({
+          id: config.id,
+          label: config.name,
+          icon: navItem.icon,
+          path: `/${config.address}`,
+          disabled: false,
+          category: 'main',
+          configId: config.id,
+        });
+      } else {
+        // 如果配置不存在，仍然显示但禁用
+        items.push({
+          id: `placeholder-${navItem.address}`,
+          label: navItem.name,
+          icon: navItem.icon,
+          path: navItem.path,
+          disabled: true,
+          category: 'main',
+        });
       }
-      if (path === '/node/ai-search' && templateType === 'ai-chat') {
-        return true;
-      }
-      return false;
     });
-    const enabled = !!configForPath;
-    console.log(`[TopNavigation] 路径 ${path} 是否启用:`, enabled, '活跃配置:', activeConfigs);
-    return enabled;
-  };
 
-  // 动态生成导航项，根据配置状态决定是否启用
-  // 使用 useMemo 确保在 activeConfigs 变化时重新计算
-  const navigationItems: NavigationItem[] = React.useMemo(() => [
-    {
-      label: "AI问答",
-      icon: ArrowLeft,
-      path: "/",
-      isBack: true,
-      disabled: false,
-    },
-    {
-      label: "技术包装",
-      icon: MessageCircle,
-      path: "/ai-search",
-      disabled: !isFeatureEnabled('/ai-search'),
-      hideWhenDisabled: true,
-    },
-    {
-      label: "技术策略",
-      icon: Target,
-      path: "/node/promotion-strategy",
-      disabled: true,
-    },
-    {
-      label: "技术通稿",
-      icon: FileText,
-      path: "/node/core-draft",
-      disabled: true,
-    },
-    {
-      label: "发布会稿",
-      icon: Mic,
-      path: "/node/speech",
-      disabled: !isFeatureEnabled('/node/speech'),
-      hideWhenDisabled: true,
-    },
-    {
-      label: "配置管理",
-      icon: Settings,
-      path: "/config",
-      disabled: true,
-    },
-    {
-      label: "AI管理",
-      icon: Sparkles,
-      path: "/ai-management",
-      disabled: false,
-    },
-  ], [activeConfigs]);
+    return items;
+  }, [activeConfigs]);
 
-  const handleNavigation = (path: string, isBack?: boolean, disabled?: boolean) => {
+  // 生成管理功能导航项
+  const managementItems: NavigationItem[] = useMemo(() => {
+    return MANAGEMENT_NAV_ORDER.map((navItem) => ({
+      id: navItem.path,
+      label: navItem.name,
+      icon: navItem.icon,
+      path: navItem.path,
+      disabled: false,
+      category: 'management' as const,
+    }));
+  }, []);
+
+  const handleNavigation = (path: string, disabled?: boolean) => {
     if (disabled) {
-      setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 2000);
       return;
     }
-    
-    if (isBack) {
-      navigate("/");
-    } else {
-      navigate(path);
-    }
+    navigate(path);
   };
 
   const isCurrentPath = (path: string) => {
-    // 对于 /ai-search，需要精确匹配
-    if (path === '/ai-search') {
-      return location.pathname === '/ai-search';
+    // 首页特殊处理
+    if (path === '/') {
+      return location.pathname === '/' || location.pathname === '/tech-package';
     }
-    return location.pathname === path;
+    // 精确匹配
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
+  // 渲染导航按钮组
+  const renderNavGroup = (items: NavigationItem[], groupIndex: number) => {
+    return (
+      <div key={groupIndex} className="flex items-center">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const isCurrent = isCurrentPath(item.path);
+
+          return (
+            <React.Fragment key={item.id}>
+              <button
+                onClick={() => handleNavigation(item.path, item.disabled)}
+                disabled={item.disabled}
+                className={`
+                  relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
+                  transition-all duration-200 group
+                  ${
+                    item.disabled
+                      ? "text-gray-400 cursor-not-allowed opacity-50"
+                      : isCurrent
+                        ? "text-blue-600 bg-blue-50 shadow-sm"
+                        : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  }
+                `}
+                title={item.label}
+              >
+                <Icon className={`w-4 h-4 ${isCurrent ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'}`} />
+                <span>{item.label}</span>
+                
+                {/* 当前页面指示器 */}
+                {isCurrent && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
+                )}
+              </button>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
-    <div
-      className="bg-white border-b border-gray-200 sticky top-0 z-50"
-      data-oid=".tu43vu"
-    >
-      <div
-        className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10"
-        data-oid="8_cl.sx"
-      >
-        <div className="flex items-center h-14" data-oid="5t6ul1a">
-          {/* 导航项目 */}
-          <div className="flex items-center space-x-6" data-oid="0mo2mzh">
-            {navigationItems
-              .filter((item) => !(item as any).hideWhenDisabled || !item.disabled)
-              .map((item) => {
-              const Icon = item.icon;
-              const isCurrent = isCurrentPath(item.path);
-              const isBackButton = item.isBack;
-              const isDisabled = item.disabled;
+    <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16">
+          {/* 第一组：AI问答 */}
+          <div className="flex items-center">
+            {renderNavGroup([mainItems[0]], 0)}
+          </div>
+          
+          {/* 分隔符 */}
+          <span className="mx-3 text-gray-300">｜</span>
 
-              return (
-                <div key={item.label} className="relative">
-                  <button
-                    onClick={() => handleNavigation(item.path, item.isBack, item.disabled)}
-                    disabled={isDisabled && !isBackButton}
-                    className={`
-                      flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200
-                      ${
-                        isDisabled && !isBackButton
-                          ? "text-gray-400 cursor-not-allowed opacity-50"
-                          : isCurrent
-                            ? "text-blue-600 bg-blue-50 border border-blue-200"
-                            : !isDisabled
-                              ? "text-blue-600 hover:text-blue-900 hover:bg-blue-50 border border-blue-200"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                      }
-                    `}
-                    data-oid="ihzb7gy"
-                  >
-                    <Icon className="w-3.5 h-3.5" data-oid="23w8k44" />
-                    <span className="text-xs" data-oid="2axt_ib">
-                      {item.label}
-                    </span>
-                  </button>
-                  
-                  {/* 提示框 */}
-                  {showTooltip && isDisabled && !isBackButton && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-md whitespace-nowrap z-10">
-                      增强版-功能开发中
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          {/* 第二组：技术包装、技术策略、技术通稿、发布会稿 */}
+          <div className="flex items-center">
+            {renderNavGroup(mainItems.slice(1), 1)}
           </div>
 
+          {/* 分隔符 */}
+          <span className="mx-3 text-gray-300">｜</span>
 
+          {/* 第三组：AI角色、Agent工作流、多角色对话、页面配置 */}
+          <div className="flex items-center">
+            {renderNavGroup(managementItems, 2)}
+          </div>
 
-          {/* 当前页面标题 */}
+          {/* 分隔符 */}
           {currentPageTitle && (
-            <div className="ml-auto" data-oid="2zsz-9o">
-              <h1
-                className="text-base font-semibold text-gray-900"
-                data-oid=":v67a9e"
-              >
-                {currentPageTitle}
-              </h1>
+            <>
+              <span className="mx-3 text-gray-300">｜</span>
+              {/* 当前页面标题 */}
+              <div className="flex items-center">
+                <h1 className="text-base font-semibold text-gray-900">
+                  {currentPageTitle}
+                </h1>
+              </div>
+            </>
+          )}
+
+          {/* 加载状态指示器 */}
+          {loading && (
+            <div className="ml-4 flex items-center">
+              <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>

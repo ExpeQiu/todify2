@@ -13,7 +13,13 @@ const RESERVED_ROUTES = [
   'workflow', 'config', 'tech-points', 'car-series', 'ai-search-test',
   'ai-chat', 'workflow-stats', 'enhanced-workflow-stats', 'history',
   'ai-roles', 'ai-chat-multi', 'agent-workflow', 'public-page-configs',
-  'ai-management', 'public-chat'
+  'ai-management', 'public-chat',
+  // 标准独立页面路由
+  'tech-package', 'tech-strategy', 'tech-article', 'press-release',
+  // 向后兼容的路由（已重定向）
+  'ai-search', 'tech-publish',
+  // 管理页面路由
+  'template-management', 'field-mapping-management'
 ];
 
 /**

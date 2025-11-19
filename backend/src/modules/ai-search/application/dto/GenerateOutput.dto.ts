@@ -6,6 +6,7 @@ export const GenerateOutputSchema = z.object({
   messageId: z.string().min(1),
   content: z.any(),
   title: z.string().optional(),
+  pageType: z.string().optional(),
 });
 
 export type GenerateOutputDTO = z.infer<typeof GenerateOutputSchema>;

@@ -505,7 +505,8 @@ router.post('/conversations', ensureTablesInitialized, async (req: Request, res:
  */
 router.get('/conversations', ensureTablesInitialized, async (req: Request, res: Response) => {
   try {
-    const result = await getConversationsUseCase.execute();
+    const pageType = req.query.pageType as string | undefined;
+    const result = await getConversationsUseCase.execute(pageType);
 
     if (!result.success) {
       return res.status(500).json(
@@ -598,6 +599,8 @@ router.post(
         sources: Array.isArray(sourcesValue) ? sourcesValue : undefined,
         contextWindowSize: req.body.contextWindowSize,
         workflowId: req.body.workflowId,
+        fileList: req.body.fileList,
+        knowledgeBaseNames: req.body.knowledgeBaseNames,
       };
       const files = req.files as Express.Multer.File[];
 
@@ -609,6 +612,8 @@ router.post(
         files,
         contextWindowSize: dto.contextWindowSize,
         workflowId: dto.workflowId,
+        fileList: dto.fileList,
+        knowledgeBaseNames: dto.knowledgeBaseNames,
       });
 
       if (!result.success) {
@@ -754,8 +759,11 @@ router.post('/outputs', ensureTablesInitialized, async (req: Request, res: Respo
  */
 router.get('/outputs', ensureTablesInitialized, async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.query;
-    const result = await getOutputsUseCase.execute(conversationId as string | undefined);
+    const { conversationId, pageType } = req.query;
+    const result = await getOutputsUseCase.execute(
+      conversationId as string | undefined,
+      pageType as string | undefined
+    );
 
     if (!result.success) {
       return res.status(500).json(
