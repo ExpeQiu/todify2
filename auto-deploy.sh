@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Todify2 自动化部署脚本（使用 sshpass）
+# Todify3 自动化部署脚本（使用 sshpass）
 # 非 Docker 部署方案（PM2）
 
 set -e  # 遇到错误立即退出
@@ -10,9 +10,9 @@ SSH_USER="root"
 SSH_HOST="47.113.225.93"
 SSH_PASSWORD="Qb89100820"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-REMOTE_DIR="/root/todify2-deploy"
-BACKEND_PORT="3003"
-FRONTEND_PORT="3001"
+REMOTE_DIR="/root/todify3-deploy"
+BACKEND_PORT="2203"
+FRONTEND_PORT="2201"
 EXTERNAL_PORT="5678"
 
 # 颜色输出
@@ -107,7 +107,7 @@ build_local() {
 package_files() {
     log_info "打包部署文件..."
     
-    DEPLOY_PACKAGE="todify2-deploy-$(date +%Y%m%d_%H%M%S).tar.gz"
+    DEPLOY_PACKAGE="todify3-deploy-$(date +%Y%m%d_%H%M%S).tar.gz"
     TEMP_DIR="deploy-temp"
     
     # 清理旧的临时目录
@@ -177,8 +177,8 @@ npm install
 
 # 停止旧服务
 echo "🛑 停止旧服务..."
-pm2 stop todify2-backend todify2-frontend 2>/dev/null || true
-pm2 delete todify2-backend todify2-frontend 2>/dev/null || true
+pm2 stop todify3-backend todify3-frontend 2>/dev/null || true
+pm2 delete todify3-backend todify3-frontend 2>/dev/null || true
 
 # 停止可能占用端口的旧进程
 pkill -f "node.*3003" 2>/dev/null || true
@@ -196,7 +196,7 @@ if [ ! -d "node_modules/tsconfig-paths" ]; then
 fi
 
 # 使用 tsconfig-paths 启动服务
-pm2 start node --name "todify2-backend" -- \
+pm2 start node --name "todify3-backend" -- \
     -r tsconfig-paths/register \
     dist/index.js \
     PORT=$BACKEND_PORT
@@ -204,7 +204,7 @@ pm2 start node --name "todify2-backend" -- \
 # 启动前端服务
 echo "🚀 启动前端服务..."
 cd "$REMOTE_DIR/frontend"
-pm2 start npm --name "todify2-frontend" -- run preview -- --host 0.0.0.0 --port $FRONTEND_PORT
+pm2 start npm --name "todify3-frontend" -- run preview -- --host 0.0.0.0 --port $FRONTEND_PORT
 
 # 保存 PM2 配置
 pm2 save
@@ -220,19 +220,19 @@ echo "📊 服务状态:"
 pm2 status
 
 # 检查服务是否正常运行
-if pm2 list | grep -q "todify2-backend.*online"; then
+if pm2 list | grep -q "todify3-backend.*online"; then
     echo "✅ 后端服务启动成功"
 else
     echo "❌ 后端服务启动失败，查看日志:"
-    pm2 logs todify2-backend --lines 20 --nostream
+    pm2 logs todify3-backend --lines 20 --nostream
     exit 1
 fi
 
-if pm2 list | grep -q "todify2-frontend.*online"; then
+if pm2 list | grep -q "todify3-frontend.*online"; then
     echo "✅ 前端服务启动成功"
 else
     echo "⚠️  前端服务启动失败，查看日志:"
-    pm2 logs todify2-frontend --lines 20 --nostream
+    pm2 logs todify3-frontend --lines 20 --nostream
 fi
 
 echo "✅ 部署完成"
@@ -322,7 +322,7 @@ EOF
 cleanup() {
     log_info "清理临时文件..."
     rm -rf deploy-temp
-    rm -f todify2-deploy-*.tar.gz
+    rm -f todify3-deploy-*.tar.gz
     log_success "清理完成"
 }
 
@@ -330,7 +330,7 @@ cleanup() {
 main() {
     echo ""
     echo "=========================================="
-    echo "🚀 Todify2 自动化部署（PM2 方案）"
+    echo "🚀 Todify3 自动化部署（PM2 方案）"
     echo "=========================================="
     echo ""
     
@@ -358,9 +358,9 @@ main() {
     echo ""
     echo "📋 服务管理命令:"
     echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 status'"
-    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 logs todify2-backend'"
-    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 restart todify2-backend'"
-    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 restart todify2-frontend'"
+    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 logs todify3-backend'"
+    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 restart todify3-backend'"
+    echo "  sshpass -p '$SSH_PASSWORD' ssh $SSH_OPTIONS $SSH_USER@$SSH_HOST 'pm2 restart todify3-frontend'"
     echo ""
 }
 

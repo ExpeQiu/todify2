@@ -2,7 +2,7 @@
 
 ## 1. 系统架构
 
-基于 `system-architecture.md` 和 `后端项目架构规划.md` 的规划，Todify2 采用前后端分离的现代 Web 应用架构。
+基于 `system-architecture.md` 和 `后端项目架构规划.md` 的规划，Todify3 采用前后端分离的现代 Web 应用架构。
 
 ### 1.1 总体架构图
 

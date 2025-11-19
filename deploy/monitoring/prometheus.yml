@@ -1,11 +1,11 @@
 # Prometheus 配置文件示例
-# 用于抓取 Todify2 后端指标
+# 用于抓取 Todify3 后端指标
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'todify2'
+    cluster: 'todify3'
     environment: 'production'
 
 # Alertmanager 配置
@@ -21,12 +21,12 @@ rule_files:
 
 # 抓取配置
 scrape_configs:
-  # Todify2 后端服务
+  # Todify3 后端服务
   - job_name: 'todify-backend'
     static_configs:
       - targets: ['localhost:3001']
         labels:
-          service: 'todify2-backend'
+          service: 'todify3-backend'
           environment: 'production'
     metrics_path: '/metrics'
     scrape_interval: 15s

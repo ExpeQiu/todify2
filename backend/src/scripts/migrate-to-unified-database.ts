@@ -4,7 +4,7 @@ import path from 'path';
 
 /**
  * 数据库统一迁移脚本
- * 将 database.db 和 todify2.db 合并到统一的数据库中
+ * 将 database.db 和 todify3.db 合并到统一的数据库中
  */
 class DatabaseMigration {
   private sourceDb1: DatabaseManager;

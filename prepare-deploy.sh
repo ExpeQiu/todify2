@@ -3,14 +3,14 @@
 # 准备部署包脚本
 # 用于打包项目文件，排除不必要的文件
 
-echo "📦 准备 Todify2 部署包..."
+echo "📦 准备 Todify3 部署包..."
 
 # 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 创建部署包目录
-DEPLOY_DIR="todify2-deploy"
+DEPLOY_DIR="todify3-deploy"
 rm -rf "$DEPLOY_DIR"
 mkdir -p "$DEPLOY_DIR"
 

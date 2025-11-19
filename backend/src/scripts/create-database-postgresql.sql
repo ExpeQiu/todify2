@@ -2,7 +2,7 @@
 -- 技术点信息管理系统
 
 -- 创建数据库（如果需要）
--- CREATE DATABASE todify2;
+-- CREATE DATABASE todify3;
 
 -- 1. 技术分类表
 CREATE TABLE IF NOT EXISTS tech_categories (

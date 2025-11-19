@@ -38,7 +38,7 @@
 ### 数据库设计
 
 #### 数据存储
-./data/todify2.db
+./data/todify3.db
 
 #### 关键信息链路梳理：
 - 维护技术点信息，需维护其技术分类，及对应的车型-车系信息
@@ -56,7 +56,7 @@
 
 AI检索与编辑组件：AiSearchComponent，独立测试页面：http://localhost:3000/ai-search-test
 
-AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwork/todify2/frontend/src/components/AIInterArea.tsx
+AI对话：/Users/expeqiu/Library/Mobile Documents/com~apple~CloudDocs/git/JLwork/todify3/frontend/src/components/AIInterArea.tsx
 
 
 聊天测试页面：http://localhost:3000/ai-chat

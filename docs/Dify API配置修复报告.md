@@ -136,7 +136,7 @@ curl http://47.113.225.93:8088/api/health
 **响应**:
 ```json
 {
-  "message": "Todify2 Backend API",
+  "message": "Todify3 Backend API",
   "version": "1.0.0",
   "status": "running",
   "timestamp": "2025-10-28T03:25:17.353Z"

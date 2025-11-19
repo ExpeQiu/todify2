@@ -10,7 +10,7 @@ export interface DocumentData {
 }
 
 class DocumentService {
-  private readonly STORAGE_KEY = 'todify2_documents';
+  private readonly STORAGE_KEY = 'todify3_documents';
 
   // 保存文档到本地存储
   saveDocument(document: DocumentData): DocumentData {

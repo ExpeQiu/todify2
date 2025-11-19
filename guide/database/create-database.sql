@@ -1,7 +1,7 @@
--- Todify2 数据库创建脚本
+-- Todify3 数据库创建脚本
 -- 创建数据库
-CREATE DATABASE IF NOT EXISTS todify2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE todify2;
+CREATE DATABASE IF NOT EXISTS todify3 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE todify3;
 
 -- 1. 技术分类表
 CREATE TABLE tech_categories (

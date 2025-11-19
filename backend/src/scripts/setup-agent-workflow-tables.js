@@ -7,7 +7,7 @@ const sqlPath = path.join(__dirname, 'create-agent-workflow-tables.sql');
 const sql = fs.readFileSync(sqlPath, 'utf-8');
 
 // 数据库路径
-const dbPath = path.join(__dirname, '../../data/todify2.db');
+const dbPath = path.join(__dirname, '../../data/todify3.db');
 
 console.log('开始创建Agent工作流数据库表...');
 console.log('数据库路径:', dbPath);

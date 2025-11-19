@@ -84,7 +84,7 @@ docker-compose logs -f alertmanager
 slack_configs:
   - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
     channel: '#alerts'
-    title: 'Todify2 告警'
+    title: 'Todify3 告警'
 ```
 
 **邮件示例**:

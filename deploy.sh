@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Todify2 生产环境部署脚本
+# Todify3 生产环境部署脚本
 # 用于在阿里云服务器上部署项目
 
-echo "🚀 开始部署 Todify2 到生产环境..."
+echo "🚀 开始部署 Todify3 到生产环境..."
 
 # 设置颜色输出
 RED='\033[0;31m'
@@ -96,7 +96,7 @@ start_service() {
     # 使用 PM2 或直接启动
     if command -v pm2 &> /dev/null; then
         echo "使用 PM2 启动服务..."
-        pm2 start src/index.ts --name "todify2-backend" --interpreter ts-node
+        pm2 start src/index.ts --name "todify3-backend" --interpreter ts-node
     else
         echo "直接启动服务..."
         nohup npm run dev > ../backend.log 2>&1 &
@@ -124,7 +124,7 @@ main() {
     start_service
     
     echo ""
-    echo -e "${GREEN}🎉 Todify2 部署完成!${NC}"
+    echo -e "${GREEN}🎉 Todify3 部署完成!${NC}"
     echo -e "${GREEN}📱 前端地址: http://47.113.225.93:8088/static/index.html${NC}"
     echo -e "${GREEN}🔧 API 地址: http://47.113.225.93:8088/api/health${NC}"
     echo ""

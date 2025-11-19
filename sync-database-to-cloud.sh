@@ -32,7 +32,7 @@ log_error() {
 SERVER_IP="47.113.225.93"
 SERVER_USER="root"
 SERVER_PASSWORD="Qb89100820"
-DEPLOY_PATH="/root/todify2-deploy"
+DEPLOY_PATH="/root/todify3-deploy"
 BACKEND_PATH="${DEPLOY_PATH}/backend"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
@@ -54,7 +54,7 @@ check_sshpass() {
 # 检查本地数据库文件
 check_local_database() {
     log_info "检查本地数据库文件..."
-    local db_path="./backend/data/todify2.db"
+    local db_path="./backend/data/todify3.db"
     
     if [ ! -f "$db_path" ]; then
         log_error "本地数据库文件不存在: $db_path"
@@ -77,9 +77,9 @@ backup_cloud_database() {
         mkdir -p data/backup
         
         # 备份现有数据库文件
-        if [ -f "data/todify2.db" ]; then
-            backup_file="data/backup/todify2.db.backup.\$(date +%Y%m%d_%H%M%S)"
-            cp data/todify2.db "\$backup_file"
+        if [ -f "data/todify3.db" ]; then
+            backup_file="data/backup/todify3.db.backup.\$(date +%Y%m%d_%H%M%S)"
+            cp data/todify3.db "\$backup_file"
             echo "✅ 数据库已备份到: \$backup_file"
         else
             echo "⚠️  云端数据库文件不存在，跳过备份"
@@ -161,9 +161,9 @@ ENDSSH
 sync_all_databases() {
     log_info "同步所有数据库文件..."
     
-    # 同步todify2.db
-    if [ -f "./backend/data/todify2.db" ]; then
-        sync_database_file "./backend/data/todify2.db"
+    # 同步todify3.db
+    if [ -f "./backend/data/todify3.db" ]; then
+        sync_database_file "./backend/data/todify3.db"
     fi
     
     # 同步database.db（如果存在）
@@ -184,13 +184,13 @@ restart_services() {
     
     sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
         echo "🔄 重启后端服务..."
-        pm2 restart todify2-backend
+        pm2 restart todify3-backend
         
         echo "⏳ 等待服务启动..."
         sleep 3
         
         echo "📊 服务状态:"
-        pm2 status todify2-backend
+        pm2 status todify3-backend
         
         echo ""
         echo "🔍 检查服务健康状态..."
@@ -278,10 +278,10 @@ main() {
     echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 status'"
     echo ""
     echo "  重启服务:"
-    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 restart todify2-backend'"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 restart todify3-backend'"
     echo ""
     echo "  查看日志:"
-    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 logs todify2-backend'"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 logs todify3-backend'"
     echo ""
 }
 

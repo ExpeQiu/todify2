@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Todify2 本地启动脚本
+# Todify3 本地启动脚本
 # 用于同时启动前端和后端服务
 
-echo "🚀 启动 Todify2 项目..."
+echo "🚀 启动 Todify3 项目..."
 
 # 检查是否安装了 Node.js
 if ! command -v node &> /dev/null; then
@@ -197,7 +197,7 @@ sleep 3
 
 echo ""
 echo "=========================================="
-echo "🎉 Todify2 启动完成!"
+echo "🎉 Todify3 启动完成!"
 echo "=========================================="
 echo "📱 前端地址: http://localhost:$FRONTEND_PORT"
 echo "🔧 后端地址: http://localhost:$BACKEND_PORT"

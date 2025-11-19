@@ -87,7 +87,7 @@
 
 ## 注意事项
 
-1. **数据备份**: 已自动备份到 `backend/data/todify2.db.backup.*`
+1. **数据备份**: 已自动备份到 `backend/data/todify3.db.backup.*`
 2. **迁移记录**: 所有迁移记录保存在 `database_migrations` 表中
 3. **向后兼容**: 代码已适配，但建议进行全面测试
 
@@ -96,7 +96,7 @@
 ```bash
 # 数据库初始化
 cd backend/src/scripts
-DB_PATH=../../data/todify2.db bash init-database-v2.sh
+DB_PATH=../../data/todify3.db bash init-database-v2.sh
 
 # 执行迁移
 cd backend

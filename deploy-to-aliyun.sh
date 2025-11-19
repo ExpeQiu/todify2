@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Todify2 部署到阿里云服务器脚本
+# Todify3 部署到阿里云服务器脚本
 # 使用sshpass自动输入密码进行SSH连接
 
 set -e  # 遇到错误立即退出
@@ -33,12 +33,12 @@ log_error() {
 SERVER_IP="47.113.225.93"
 SERVER_USER="root"
 SERVER_PASSWORD="Qb89100820"
-DEPLOY_PATH="/root/todify2-deploy"
+DEPLOY_PATH="/root/todify3-deploy"
 EXTERNAL_PORT="5678"  # 对外访问端口
 FRONTEND_PORT="3001"  # 前端服务端口
 BACKEND_PORT="3003"   # 后端服务端口
 
-log_info "开始部署 Todify2 到阿里云服务器..."
+log_info "开始部署 Todify3 到阿里云服务器..."
 
 # 检查sshpass工具
 check_sshpass() {
@@ -103,7 +103,7 @@ echo "🚀 启动生产环境服务..."
 # 启动后端服务（端口${BACKEND_PORT}）
 cd ${DEPLOY_PATH}/backend
 if command -v pm2 &> /dev/null; then
-    pm2 start npm --name "todify2-backend" -- run dev:prod || pm2 restart todify2-backend
+    pm2 start npm --name "todify3-backend" -- run dev:prod || pm2 restart todify3-backend
 else
     nohup npm run dev > backend.log 2>&1 &
 fi
@@ -111,7 +111,7 @@ fi
 # 启动前端服务（端口${FRONTEND_PORT}）
 cd ${DEPLOY_PATH}/frontend
 if command -v pm2 &> /dev/null; then
-    pm2 start npm --name "todify2-frontend" -- run preview || pm2 restart todify2-frontend
+    pm2 start npm --name "todify3-frontend" -- run preview || pm2 restart todify3-frontend
 else
     nohup npm run preview -- --host 0.0.0.0 --port ${FRONTEND_PORT} > frontend.log 2>&1 &
 fi
@@ -126,7 +126,7 @@ chmod +x deploy-temp/start-production.sh
 
 # 创建Nginx配置文件
 log_info "创建Nginx配置文件..."
-cat > deploy-temp/nginx-todify2.conf << EOF
+cat > deploy-temp/nginx-todify3.conf << EOF
 server {
     listen ${EXTERNAL_PORT};
     server_name ${SERVER_IP};
@@ -212,8 +212,8 @@ fi
 
 echo "🔄 停止旧服务..."
 if command -v pm2 &> /dev/null; then
-    pm2 stop todify2-backend todify2-frontend 2>/dev/null || true
-    pm2 delete todify2-backend todify2-frontend 2>/dev/null || true
+    pm2 stop todify3-backend todify3-frontend 2>/dev/null || true
+    pm2 delete todify3-backend todify3-frontend 2>/dev/null || true
 else
     pkill -f "node.*backend" 2>/dev/null || true
     pkill -f "node.*frontend" 2>/dev/null || true
@@ -222,10 +222,10 @@ fi
 sleep 2
 
 echo "🔧 配置Nginx..."
-if [ -f ${DEPLOY_PATH}/nginx-todify2.conf ]; then
-    sudo cp ${DEPLOY_PATH}/nginx-todify2.conf /etc/nginx/sites-available/todify2
-    if [ ! -f /etc/nginx/sites-enabled/todify2 ]; then
-        sudo ln -s /etc/nginx/sites-available/todify2 /etc/nginx/sites-enabled/todify2
+if [ -f ${DEPLOY_PATH}/nginx-todify3.conf ]; then
+    sudo cp ${DEPLOY_PATH}/nginx-todify3.conf /etc/nginx/sites-available/todify3
+    if [ ! -f /etc/nginx/sites-enabled/todify3 ]; then
+        sudo ln -s /etc/nginx/sites-available/todify3 /etc/nginx/sites-enabled/todify3
     fi
     sudo nginx -t && sudo systemctl reload nginx || echo "Nginx配置失败，请手动检查"
 fi

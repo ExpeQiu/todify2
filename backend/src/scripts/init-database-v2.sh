@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Todify2 统一数据库初始化脚本 v2.0
+# Todify3 统一数据库初始化脚本 v2.0
 # 创建日期: 2025-01-XX
 # 说明: 统一执行数据库架构和索引脚本
 
@@ -125,7 +125,7 @@ init_postgresql() {
 
 # 主函数
 main() {
-    info "开始初始化 Todify2 数据库 v2.0"
+    info "开始初始化 Todify3 数据库 v2.0"
     info "=================================="
     
     check_files

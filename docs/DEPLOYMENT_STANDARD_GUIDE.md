@@ -1,8 +1,8 @@
-# Todify2 项目部署标准指南
+# Todify3 项目部署标准指南
 
 ## 📋 概述
 
-本文档记录了Todify2项目的完整部署过程，包括问题排查、修复方案和最佳实践，为后续部署提供标准化指导。
+本文档记录了Todify3项目的完整部署过程，包括问题排查、修复方案和最佳实践，为后续部署提供标准化指导。
 
 ## 🏗️ 项目架构
 
@@ -100,7 +100,7 @@ TECH_ARTICLE_API_KEY=app-3TK9U2F3WwFP7vOoq0Ut84KA
 TECH_PUBLISH_API_KEY=app-WcV5IDjuNKbOKIBDPWdb7HF4
 
 # 数据库配置
-SQLITE_DB_PATH=./data/todify2.db
+SQLITE_DB_PATH=./data/todify3.db
 NODE_ENV=production
 ```
 
@@ -175,19 +175,19 @@ sudo systemctl enable nginx
 
 case "$1" in
     start)
-        echo "启动Todify2服务..."
+        echo "启动Todify3服务..."
         cd /root/todify2-deploy/backend && npm run dev > backend.log 2>&1 &
         cd /root/todify2-deploy/frontend && npm run dev > frontend.log 2>&1 &
         echo "服务启动完成"
         ;;
     stop)
-        echo "停止Todify2服务..."
+        echo "停止Todify3服务..."
         pkill -f "node.*backend"
         pkill -f "node.*frontend"
         echo "服务停止完成"
         ;;
     restart)
-        echo "重启Todify2服务..."
+        echo "重启Todify3服务..."
         $0 stop
         sleep 2
         $0 start

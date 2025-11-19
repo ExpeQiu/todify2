@@ -34,7 +34,7 @@
 **文件**: `deploy/monitoring/prometheus.yml`
 
 **配置内容**:
-- ✅ Todify2 后端服务抓取配置
+- ✅ Todify3 后端服务抓取配置
 - ✅ 告警规则文件引用
 - ✅ Alertmanager 配置
 - ✅ 全局配置（抓取间隔、评估间隔等）

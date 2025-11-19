@@ -532,7 +532,7 @@ export class AgentWorkflowService {
         query,
         conversationId,
         inputs,
-        userId: 'todify2-user',
+        userId: 'todify3-user',
       });
 
       if (isSuccess(result)) {
@@ -552,7 +552,7 @@ export class AgentWorkflowService {
       const result = await gateway.executeWorkflow({
         workflowId: 'workflow',
         inputs,
-        userId: 'todify2-user',
+        userId: 'todify3-user',
       });
 
       if (isSuccess(result)) {

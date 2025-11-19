@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Todify2 快速部署脚本
+# Todify3 快速部署脚本
 # 使用方法: ./quick-deploy.sh [start|stop|restart|status|update]
 
 set -e
 
 # 配置变量
-PROJECT_DIR="/root/todify2-deploy"
+PROJECT_DIR="/root/todify3-deploy"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 BACKEND_DIR="$PROJECT_DIR/backend"
-NGINX_CONFIG="/etc/nginx/sites-available/todify2"
+NGINX_CONFIG="/etc/nginx/sites-available/todify3"
 SERVICE_SCRIPT="$PROJECT_DIR/manage-service.sh"
 
 # 颜色输出
@@ -65,7 +65,7 @@ check_services() {
 
 # 启动服务
 start_services() {
-    log_info "启动Todify2服务..."
+    log_info "启动Todify3服务..."
     
     # 检查目录是否存在
     if [ ! -d "$PROJECT_DIR" ]; then
@@ -107,7 +107,7 @@ start_services() {
 
 # 停止服务
 stop_services() {
-    log_info "停止Todify2服务..."
+    log_info "停止Todify3服务..."
     
     # 停止Node.js进程
     pkill -f "node.*backend" || true
@@ -120,7 +120,7 @@ stop_services() {
 
 # 重启服务
 restart_services() {
-    log_info "重启Todify2服务..."
+    log_info "重启Todify3服务..."
     stop_services
     sleep 2
     start_services
@@ -162,19 +162,19 @@ create_service_script() {
 
 case "$1" in
     start)
-        echo "启动Todify2服务..."
-        cd /root/todify2-deploy/backend && npm run dev > backend.log 2>&1 &
-        cd /root/todify2-deploy/frontend && npm run dev > frontend.log 2>&1 &
+        echo "启动Todify3服务..."
+        cd /root/todify3-deploy/backend && npm run dev > backend.log 2>&1 &
+        cd /root/todify3-deploy/frontend && npm run dev > frontend.log 2>&1 &
         echo "服务启动完成"
         ;;
     stop)
-        echo "停止Todify2服务..."
+        echo "停止Todify3服务..."
         pkill -f "node.*backend"
         pkill -f "node.*frontend"
         echo "服务停止完成"
         ;;
     restart)
-        echo "重启Todify2服务..."
+        echo "重启Todify3服务..."
         $0 stop
         sleep 2
         $0 start
@@ -239,7 +239,7 @@ verify_deployment() {
 
 # 显示帮助信息
 show_help() {
-    echo "Todify2 快速部署脚本"
+    echo "Todify3 快速部署脚本"
     echo ""
     echo "使用方法: $0 [命令]"
     echo ""

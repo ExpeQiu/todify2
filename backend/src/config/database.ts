@@ -35,7 +35,7 @@ export function getDatabaseConfig(): DatabaseConfig {
 
   if (dbType === 'sqlite') {
     config.sqlite = {
-      path: process.env.SQLITE_DB_PATH || './data/todify2.db'
+      path: process.env.SQLITE_DB_PATH || './data/todify3.db'
     };
   } else {
     config.postgresql = {
@@ -43,7 +43,7 @@ export function getDatabaseConfig(): DatabaseConfig {
       port: parseInt(process.env.PG_PORT || '5432'),
       user: process.env.PG_USER || 'postgres',
       password: process.env.PG_PASSWORD || '',
-      database: process.env.PG_DATABASE || 'todify2'
+      database: process.env.PG_DATABASE || 'todify3'
     };
   }
 

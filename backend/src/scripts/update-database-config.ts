@@ -73,7 +73,7 @@ class DatabaseConfigUpdater {
       'PG_PORT': '5432',
       'PG_USER': 'postgres',
       'PG_PASSWORD': '',
-      'PG_DATABASE': 'todify2_unified'
+      'PG_DATABASE': 'todify3_unified'
     };
     
     const existingKeys = new Set<string>();
@@ -103,7 +103,7 @@ class DatabaseConfigUpdater {
     
     // 添加注释说明
     const headerComment = [
-      '# Todify2 数据库配置',
+      '# Todify3 数据库配置',
       '# 统一数据库配置 - 合并了聊天和业务数据',
       '# 创建时间: ' + new Date().toISOString(),
       ''
@@ -130,7 +130,7 @@ class DatabaseConfigUpdater {
     
     // 更新默认数据库路径
     configContent = configContent.replace(
-      /path: process\.env\.SQLITE_DB_PATH \|\| '\.\/data\/todify2\.db'/g,
+      /path: process\.env\.SQLITE_DB_PATH \|\| '\.\/data\/todify3\.db'/g,
       "path: process.env.SQLITE_DB_PATH || './data/unified.db'"
     );
     
@@ -170,7 +170,7 @@ class DatabaseConfigUpdater {
     // 备份现有数据库文件
     const databasesToBackup = [
       { source: 'database.db', name: 'chat_database' },
-      { source: 'todify2.db', name: 'business_database' },
+      { source: 'todify3.db', name: 'business_database' },
       { source: 'database.sqlite', name: 'legacy_database' }
     ];
     

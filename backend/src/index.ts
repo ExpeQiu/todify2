@@ -197,7 +197,7 @@ app.get('/api/v1/public-config/:configId', async (req, res) => {
 // API 健康检查
 app.get('/api/health', (req, res) => {
   res.json({ 
-    message: 'Todify2 Backend API',
+    message: 'Todify3 Backend API',
     version: '1.0.0',
     status: 'running',
     timestamp: new Date().toISOString(),

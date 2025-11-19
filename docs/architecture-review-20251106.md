@@ -1,4 +1,4 @@
-# Todify2 架构梳理与规划报告（2025-11-06）
+# Todify3 架构梳理与规划报告（2025-11-06）
 
 ## 1. 项目全景梳理
 
@@ -26,7 +26,7 @@
 | `styles/` | CSS 与设计 token | 无统一主题系统 |
 
 ### 1.3 基础设施与外部依赖
-- **数据库**：默认 SQLite（`backend/data/todify2.db`），支持 PostgreSQL；脚本目录包含多套迁移/初始化方案。
+- **数据库**：默认 SQLite（`backend/data/todify3.db`），支持 PostgreSQL；脚本目录包含多套迁移/初始化方案。
 - **AI 集成**：`services/DifyClient.ts` 与 `routes/dify-proxy.ts` 直接调用 Dify REST API（`/chat-messages`, `/workflows/run`），API Key 由环境变量管理。
 - **工作流执行**：前端通过 `workflowEngine.ts` 解析 Agent Workflow JSON，后端 `AgentWorkflowService` 负责落库与执行记录。
 - **构建与部署**：

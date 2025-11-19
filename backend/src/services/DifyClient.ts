@@ -103,7 +103,7 @@ class DifyClient {
     return gateway;
   }
 
-  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify2-user'): Promise<DifyWorkflowResponse> {
+  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise<DifyWorkflowResponse> {
     logger.info('调用 Dify 工作流', { appType, responseMode });
     const gateway = this.getGateway(appType);
     const result = await gateway.executeWorkflow({
@@ -123,7 +123,7 @@ class DifyClient {
     throw new Error('Dify 工作流调用未返回有效数据');
   }
 
-  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify2-user'): Promise<any> {
+  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise<any> {
     logger.info('调用 Dify 应用', { appType, responseMode });
     const gateway = this.getGateway(appType);
     const result = await gateway.executeChat({
@@ -317,7 +317,7 @@ ${inputs.Additional_information || '未提供具体信息'}
       query: queryText,
       conversationId,
       inputs: additionalInfo ? { Additional_information: additionalInfo } : {},
-      userId: 'todify2-user',
+      userId: 'todify3-user',
     });
 
     if (isSuccess(result) && result.value.raw) {

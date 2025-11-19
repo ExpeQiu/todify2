@@ -1,7 +1,7 @@
 {
   "dashboard": {
-    "title": "Todify2 系统监控",
-    "tags": ["todify2", "monitoring"],
+    "title": "Todify3 系统监控",
+    "tags": ["todify3", "monitoring"],
     "timezone": "browser",
     "schemaVersion": 16,
     "version": 1,

@@ -1,6 +1,6 @@
 # 监控部署指南
 
-本文档说明如何部署和配置 Todify2 的监控系统（Prometheus + Grafana + Alertmanager）。
+本文档说明如何部署和配置 Todify3 的监控系统（Prometheus + Grafana + Alertmanager）。
 
 ## 前置要求
 
@@ -134,7 +134,7 @@ docker-compose up -d
 slack_configs:
   - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
     channel: '#alerts'
-    title: 'Todify2 告警'
+    title: 'Todify3 告警'
 ```
 
 **邮件**:

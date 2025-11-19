@@ -1,4 +1,4 @@
-# Todify2 部署问题解决知识库
+# Todify3 部署问题解决知识库
 
 ## 🚨 紧急问题快速解决
 
@@ -147,7 +147,7 @@ cd /root/todify2-deploy/backend
 node create-stats-tables.js
 
 # 检查文件权限
-chmod 644 /root/todify2-deploy/backend/data/todify2.db
+chmod 644 /root/todify2-deploy/backend/data/todify3.db
 ```
 
 ### 3. Nginx配置问题
@@ -264,7 +264,7 @@ logrotate -f /etc/logrotate.d/todify2
 #!/bin/bash
 # 服务状态检查脚本
 
-echo "=== Todify2 服务状态检查 ==="
+echo "=== Todify3 服务状态检查 ==="
 echo "时间: $(date)"
 echo ""
 
@@ -297,7 +297,7 @@ tail -5 /root/todify2-deploy/frontend/frontend.log 2>/dev/null || echo "无前�
 #!/bin/bash
 # 快速修复脚本
 
-echo "=== Todify2 快速修复 ==="
+echo "=== Todify3 快速修复 ==="
 
 # 停止所有服务
 echo "1. 停止服务..."
