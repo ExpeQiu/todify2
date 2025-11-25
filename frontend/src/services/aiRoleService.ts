@@ -172,7 +172,7 @@ class AIRoleService {
         inputs,
         conversationId,
       }, {
-        timeout: 180_000, // AI对话请求使用3分钟超时
+        timeout: 420_000, // AI对话请求使用7分钟超时（独立Agent可能需要多轮工具调用，留出缓冲）
       });
       return response.data;
     } catch (error) {

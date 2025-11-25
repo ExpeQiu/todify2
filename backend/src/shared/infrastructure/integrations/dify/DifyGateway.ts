@@ -71,12 +71,16 @@ export class DifyGateway {
 
     const attachLogging = (instance: AxiosInstance, service: 'chat' | 'workflow') => {
       instance.interceptors.request.use((request) => {
-        logger.debug('Dify 请求', {
+        const requestInfo = {
           service,
           method: request.method,
           url: request.url,
+          baseURL: request.baseURL,
+          fullUrl: request.baseURL ? `${request.baseURL}${request.url}` : request.url,
           data: request.data,
-        });
+        };
+        logger.debug('Dify 请求', requestInfo);
+        console.log('Dify 请求详情:', JSON.stringify(requestInfo, null, 2));
         return request;
       });
 
@@ -89,12 +93,22 @@ export class DifyGateway {
           return response;
         },
         (error) => {
-          logger.error('Dify 响应错误', {
+          const errorInfo = {
             service,
             message: error.message,
             status: error.response?.status,
             data: error.response?.data,
-          });
+            url: error.config?.url,
+            baseURL: error.config?.baseURL,
+            fullUrl: error.config?.baseURL ? `${error.config.baseURL}${error.config.url}` : error.config?.url,
+            code: error.code,
+            errno: error.errno,
+            syscall: error.syscall,
+            address: error.address,
+            port: error.port,
+          };
+          logger.error('Dify 响应错误', errorInfo);
+          console.error('Dify 响应错误详情:', JSON.stringify(errorInfo, null, 2));
           return Promise.reject(error);
         }
       );
@@ -124,11 +138,40 @@ export class DifyGateway {
         raw: response.data,
       });
     } catch (error) {
-      logger.error('Dify executeChat 失败', { error, input });
+      const axiosError = error as any;
+      const errorDetails = {
+        message: axiosError.message || (error instanceof Error ? error.message : String(error)),
+        code: axiosError.code,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        responseData: axiosError.response?.data,
+        requestUrl: axiosError.config?.url,
+        requestBaseURL: axiosError.config?.baseURL,
+        fullUrl: axiosError.config?.baseURL ? `${axiosError.config.baseURL}${axiosError.config.url}` : axiosError.config?.url,
+        errno: axiosError.errno,
+        syscall: axiosError.syscall,
+        address: axiosError.address,
+        port: axiosError.port,
+      };
+      logger.error('Dify executeChat 失败', { error: errorDetails, input });
+      console.error('Dify executeChat 详细错误:', JSON.stringify(errorDetails, null, 2));
+      
+      // 构建详细的错误消息
+      let errorMessage = errorDetails.message;
+      if (errorDetails.code) {
+        errorMessage += ` (${errorDetails.code})`;
+      }
+      if (errorDetails.status) {
+        errorMessage += ` [HTTP ${errorDetails.status}]`;
+      }
+      if (errorDetails.responseData) {
+        errorMessage += `: ${JSON.stringify(errorDetails.responseData)}`;
+      }
+      
       return failure({
         code: 'DIFY_CHAT_ERROR',
         message: '调用 Dify 聊天服务失败',
-        details: error instanceof Error ? error.message : error,
+        details: errorMessage,
       });
     }
   }

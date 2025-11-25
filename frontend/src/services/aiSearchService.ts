@@ -415,12 +415,61 @@ class AiSearchService {
 
       if (response.data.success && response.data.data) {
         const payload = response.data.data;
+        
+        // 添加调试日志
+        console.log('[aiSearchService] 发送消息响应:', {
+          hasUserMessage: !!payload.userMessage,
+          hasAiMessage: !!payload.aiMessage,
+          aiMessageContent: payload.aiMessage?.content,
+          aiMessageContentLength: payload.aiMessage?.content?.length,
+          aiMessageOutputs: payload.aiMessage?.outputs,
+          error: payload.error,
+          errorDetail: payload.errorDetail,
+        });
+        
         const normalized = {
           userMessage: this.normalizeMessage(response.data.data.userMessage),
           aiMessage: payload.aiMessage ? this.normalizeMessage(payload.aiMessage) : undefined,
           error: payload.error,
           errorDetail: payload.errorDetail,
         };
+        
+        // 如果AI消息内容为空或只有默认消息，记录警告
+        if (normalized.aiMessage && (!normalized.aiMessage.content || normalized.aiMessage.content.trim() === '工作流执行完成')) {
+          const outputs = normalized.aiMessage.outputs || {};
+          
+          // 详细展开outputs对象
+          console.warn('[aiSearchService] AI消息内容异常 - 详细信息:', {
+            content: normalized.aiMessage.content,
+            outputs: JSON.parse(JSON.stringify(outputs)), // 深度克隆以便查看完整对象
+            outputsKeys: Object.keys(outputs),
+            outputsContent: outputs.content,
+            outputsContentType: typeof outputs.content,
+            outputsText: outputs.text,
+            outputsAnswer: outputs.answer,
+            outputsOutput: outputs.output,
+            outputsMetadata: outputs.metadata,
+            fullMessage: JSON.parse(JSON.stringify(normalized.aiMessage)), // 深度克隆
+          });
+          
+          // 尝试从outputs中提取实际内容
+          const possibleContent = 
+            (outputs.content && typeof outputs.content === 'string' ? outputs.content : '') ||
+            (outputs.text && typeof outputs.text === 'string' ? outputs.text : '') ||
+            (outputs.answer && typeof outputs.answer === 'string' ? outputs.answer : '') ||
+            (outputs.output && typeof outputs.output === 'string' ? outputs.output : '') ||
+            '';
+          
+          if (possibleContent && possibleContent.trim() && possibleContent.trim() !== '工作流执行完成') {
+            console.warn('[aiSearchService] 发现outputs中有实际内容，但content字段使用了默认值:', {
+              actualContent: possibleContent.substring(0, 200),
+              actualContentLength: possibleContent.length,
+            });
+          } else {
+            console.error('[aiSearchService] 未在outputs中找到实际内容，需要检查后端日志');
+          }
+        }
+        
         return normalized;
       }
       throw new Error(response.data.error || '发送消息失败');

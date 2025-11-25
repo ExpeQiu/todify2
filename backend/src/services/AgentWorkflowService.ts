@@ -190,8 +190,30 @@ export class AgentWorkflowService {
       const nodes = JSON.parse(workflow.nodes);
       const edges = JSON.parse(workflow.edges || '[]');
 
+      logger.info('开始执行工作流', {
+        workflowId,
+        workflowName: workflow.name,
+        nodesCount: nodes.length,
+        edgesCount: edges.length,
+        nodeTypes: nodes.map((n: any) => n.type),
+        agentNodes: nodes.filter((n: any) => n.type === 'agent').map((n: any) => ({
+          id: n.id,
+          agentId: n.agentId || n.data?.agentId,
+          hasData: !!n.data,
+        })),
+        outputNodes: nodes.filter((n: any) => n.type === 'output').map((n: any) => ({
+          id: n.id,
+          outputs: n.data?.outputs,
+        })),
+      });
+
       // 检查是否有配置的Agent节点
       const hasConfiguredAgent = this.workflowHasConfiguredAgent(workflow);
+      logger.info('检查Agent节点配置', {
+        workflowId,
+        hasConfiguredAgent,
+      });
+      
       if (!hasConfiguredAgent) {
         const fallbackOutput = this.buildFallbackOutput(workflow, options?.input ?? {});
         await workflowExecutionModel.update(execution.id, {
@@ -226,8 +248,22 @@ export class AgentWorkflowService {
       const executionOrder = this.topologicalSort(nodes, edges);
       const nodeResults: any[] = [];
 
+      logger.info('工作流执行顺序', {
+        workflowId,
+        executionOrderLevels: executionOrder.length,
+        executionOrder: executionOrder.map((level, idx) => ({
+          level: idx + 1,
+          nodes: level.map((n: any) => ({ id: n.id, type: n.type })),
+        })),
+      });
+
       for (const level of executionOrder) {
         // 并行执行同一层的节点
+        logger.info('执行节点层级', {
+          workflowId,
+          levelNodes: level.map((n: any) => ({ id: n.id, type: n.type })),
+        });
+        
         const levelResults = await Promise.allSettled(
           level.map(node => this.executeNode(node, sharedContext, options))
         );
@@ -235,12 +271,26 @@ export class AgentWorkflowService {
         levelResults.forEach((result, index) => {
           const node = level[index];
           if (result.status === 'fulfilled') {
+            const nodeOutput = result.value;
             nodeResults.push({
               nodeId: node.id,
               status: 'completed',
-              output: result.value,
+              output: nodeOutput,
             });
-            sharedContext.nodeOutputs[node.id] = result.value;
+            sharedContext.nodeOutputs[node.id] = nodeOutput;
+            
+            // 记录节点执行结果（特别是Agent节点）
+            if (node.type === 'agent') {
+              logger.info('Agent节点执行完成', {
+                nodeId: node.id,
+                hasOutput: !!nodeOutput,
+                outputType: typeof nodeOutput,
+                outputKeys: nodeOutput && typeof nodeOutput === 'object' ? Object.keys(nodeOutput) : null,
+                hasAnswer: nodeOutput && typeof nodeOutput === 'object' ? !!nodeOutput.answer : false,
+                answerType: nodeOutput && typeof nodeOutput === 'object' && nodeOutput.answer ? typeof nodeOutput.answer : null,
+                answerLength: nodeOutput && typeof nodeOutput === 'object' && nodeOutput.answer && typeof nodeOutput.answer === 'string' ? nodeOutput.answer.length : null,
+              });
+            }
           } else {
             nodeResults.push({
               nodeId: node.id,
@@ -257,53 +307,333 @@ export class AgentWorkflowService {
       let finalOutput: any = null;
       let outputContent = '';
 
+      // 辅助函数：从输出对象中提取内容
+      const extractContent = (output: any): string => {
+        if (!output) return '';
+        
+        // 如果是字符串，直接返回
+        if (typeof output === 'string') {
+          return output.trim();
+        }
+        
+        // 如果是数组，尝试提取第一个元素
+        if (Array.isArray(output)) {
+          if (output.length > 0) {
+            return extractContent(output[0]);
+          }
+          return '';
+        }
+        
+        // 如果是对象，尝试从常见字段中提取
+        if (typeof output === 'object') {
+          // 优先从 answer 字段提取（Agent节点chatflow模式通常返回这个字段）
+          if (output.answer && typeof output.answer === 'string' && output.answer.trim()) {
+            logger.info('从answer字段提取内容', {
+              answerLength: output.answer.length,
+              answerPreview: output.answer.substring(0, 100),
+            });
+            return output.answer.trim();
+          }
+          // 然后尝试 result 字段（Agent节点workflow模式通常返回这个字段）
+          if (output.result && typeof output.result === 'string' && output.result.trim()) {
+            logger.info('从result字段提取内容', {
+              resultLength: output.result.length,
+              resultPreview: output.result.substring(0, 100),
+            });
+            return output.result.trim();
+          }
+          // 尝试 content 字段
+          if (output.content && typeof output.content === 'string' && output.content.trim()) {
+            logger.info('从content字段提取内容', {
+              contentLength: output.content.length,
+              contentPreview: output.content.substring(0, 100),
+            });
+            return output.content.trim();
+          }
+          // 尝试 text 字段
+          if (output.text && typeof output.text === 'string' && output.text.trim()) {
+            logger.info('从text字段提取内容', {
+              textLength: output.text.length,
+              textPreview: output.text.substring(0, 100),
+            });
+            return output.text.trim();
+          }
+          // 尝试 message 字段
+          if (output.message && typeof output.message === 'string' && output.message.trim()) {
+            logger.info('从message字段提取内容', {
+              messageLength: output.message.length,
+              messagePreview: output.message.substring(0, 100),
+            });
+            return output.message.trim();
+          }
+          
+          // 如果都没有，尝试从raw字段中提取
+          if (output.raw) {
+            const rawContent = extractContent(output.raw);
+            if (rawContent) return rawContent;
+          }
+          
+          // 如果对象有 value 字段（输出节点的结构），递归提取
+          if (output.value !== undefined && output.value !== null) {
+            const valueContent = extractContent(output.value);
+            if (valueContent) return valueContent;
+          }
+          
+          // 如果对象有 outputs 字段（输出节点的结构），尝试从第一个输出项提取
+          if (output.outputs && Array.isArray(output.outputs) && output.outputs.length > 0) {
+            const firstOutput = output.outputs[0];
+            if (firstOutput.value !== undefined && firstOutput.value !== null) {
+              const valueContent = extractContent(firstOutput.value);
+              if (valueContent) return valueContent;
+            }
+          }
+          
+          // 最后回退：字符串化整个对象（但这不是我们想要的，应该返回空字符串）
+          // 返回空字符串，让调用者知道提取失败
+          return '';
+        }
+        
+        // 其他类型，转换为字符串
+        return String(output);
+      };
+
       if (outputNode) {
         const outputData = outputNode.data || {};
         const outputs = outputData.outputs || [];
         
         if (outputs.length > 0 && outputs[0].sourceNodeId) {
-          finalOutput = sharedContext.nodeOutputs[outputs[0].sourceNodeId];
+          const sourceNodeId = outputs[0].sourceNodeId;
+          const sourceOutput = sharedContext.nodeOutputs[sourceNodeId];
           
-          // 提取内容
-          if (finalOutput) {
-            if (typeof finalOutput === 'string') {
-              outputContent = finalOutput;
-            } else if (finalOutput.answer) {
-              outputContent = finalOutput.answer;
-            } else if (finalOutput.content) {
-              outputContent = finalOutput.content;
-            } else if (finalOutput.text) {
-              outputContent = finalOutput.text;
-            } else if (finalOutput.result) {
-              outputContent = finalOutput.result;
+          logger.info('输出节点配置了源节点', {
+            sourceNodeId,
+            sourceField: outputs[0].sourceField,
+            hasSourceOutput: !!sourceOutput,
+            sourceOutputType: typeof sourceOutput,
+            sourceOutputKeys: sourceOutput && typeof sourceOutput === 'object' ? Object.keys(sourceOutput) : null,
+          });
+          
+          // 如果输出节点配置了 sourceField，从该字段提取
+          if (outputs[0].sourceField) {
+            const fieldPath = outputs[0].sourceField.split('.');
+            let extractedValue = sourceOutput;
+            for (const key of fieldPath) {
+              if (extractedValue && typeof extractedValue === 'object') {
+                extractedValue = extractedValue[key];
+              } else {
+                extractedValue = undefined;
+                break;
+              }
+            }
+            if (extractedValue !== undefined) {
+              finalOutput = extractedValue;
+              outputContent = extractContent(extractedValue);
+              logger.info('从源节点的指定字段提取内容', {
+                fieldPath: outputs[0].sourceField,
+                extractedType: typeof extractedValue,
+                contentLength: outputContent.length,
+              });
             } else {
-              outputContent = JSON.stringify(finalOutput, null, 2);
+              // 如果指定字段不存在，尝试从整个源输出中提取
+              finalOutput = sourceOutput;
+              outputContent = extractContent(sourceOutput);
+              logger.info('从源节点的整个输出提取内容', {
+                contentLength: outputContent.length,
+              });
+            }
+          } else {
+            // 如果没有指定字段，从整个源输出中提取
+            finalOutput = sourceOutput;
+            outputContent = extractContent(sourceOutput);
+            logger.info('从源节点的整个输出提取内容（无字段指定）', {
+              contentLength: outputContent.length,
+            });
+          }
+        } else {
+          // 如果输出节点没有配置源节点，尝试从输出节点本身的输出中提取
+          logger.warn('输出节点没有配置源节点，尝试从输出节点结果中提取', {
+            outputNodeId: outputNode.id,
+          });
+          
+          const outputNodeResult = sharedContext.nodeOutputs[outputNode.id];
+          if (outputNodeResult) {
+            logger.info('输出节点执行结果', {
+              hasOutputs: !!outputNodeResult.outputs,
+              outputsLength: Array.isArray(outputNodeResult.outputs) ? outputNodeResult.outputs.length : 0,
+              outputNodeResultType: typeof outputNodeResult,
+              outputNodeResultKeys: typeof outputNodeResult === 'object' ? Object.keys(outputNodeResult) : null,
+            });
+            
+            // 输出节点的结果通常是结构化的：{ outputs: [{ name, value, type }], count: 1 }
+            // 需要从 outputs[].value 中提取实际内容
+            if (outputNodeResult.outputs && Array.isArray(outputNodeResult.outputs)) {
+              // 尝试从输出节点的输出数组中提取
+              for (const outputItem of outputNodeResult.outputs) {
+                if (outputItem.value !== undefined && outputItem.value !== null) {
+                  logger.info('从输出节点的value字段提取', {
+                    outputName: outputItem.name,
+                    valueType: typeof outputItem.value,
+                    valueKeys: outputItem.value && typeof outputItem.value === 'object' ? Object.keys(outputItem.value) : null,
+                  });
+                  
+                  const extracted = extractContent(outputItem.value);
+                  if (extracted && extracted.trim()) {
+                    finalOutput = outputItem.value;
+                    outputContent = extracted;
+                    logger.info('从输出节点的value字段提取内容成功', {
+                      outputName: outputItem.name,
+                      contentLength: outputContent.length,
+                      contentPreview: outputContent.substring(0, 100),
+                    });
+                    break;
+                  }
+                }
+              }
+            }
+            // 如果还是没有，尝试直接提取整个输出节点结果
+            if (!outputContent || !outputContent.trim()) {
+              logger.warn('从输出节点的value字段提取失败，尝试直接提取整个结果');
+              outputContent = extractContent(outputNodeResult);
+              if (outputContent && outputContent.trim()) {
+                finalOutput = outputNodeResult;
+                logger.info('从输出节点结果直接提取内容', {
+                  contentLength: outputContent.length,
+                  contentPreview: outputContent.substring(0, 100),
+                });
+              }
+            }
+          } else {
+            logger.warn('输出节点执行结果不存在', {
+              outputNodeId: outputNode.id,
+              availableNodeOutputs: Object.keys(sharedContext.nodeOutputs || {}),
+            });
+          }
+        }
+      }
+
+      // 如果没有找到输出节点或内容为空，尝试从所有agent节点获取结果
+      if (!outputContent || !outputContent.trim()) {
+        const agentNodes = nodes.filter((n: any) => n.type === 'agent');
+        logger.info('尝试从Agent节点提取内容', {
+          agentNodesCount: agentNodes.length,
+          agentNodeIds: agentNodes.map(n => n.id),
+          availableNodeOutputs: Object.keys(sharedContext.nodeOutputs || {}),
+        });
+        
+        if (agentNodes.length > 0) {
+          // 从最后一个agent节点开始，向前查找
+          for (let i = agentNodes.length - 1; i >= 0; i--) {
+            const agentNode = agentNodes[i];
+            const agentOutput = sharedContext.nodeOutputs[agentNode.id];
+            
+            logger.info('检查Agent节点输出', {
+              nodeId: agentNode.id,
+              hasOutput: !!agentOutput,
+              outputType: typeof agentOutput,
+              outputKeys: agentOutput && typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
+            });
+            
+            if (agentOutput) {
+              // 直接尝试从answer字段提取（Agent节点chatflow模式通常返回这个字段）
+              let extracted = '';
+              if (agentOutput.answer && typeof agentOutput.answer === 'string' && agentOutput.answer.trim()) {
+                extracted = agentOutput.answer.trim();
+                logger.info('从Agent节点answer字段提取内容', {
+                  nodeId: agentNode.id,
+                  extractedLength: extracted.length,
+                  extractedPreview: extracted.substring(0, 100),
+                });
+              } else if (agentOutput.result && typeof agentOutput.result === 'string' && agentOutput.result.trim()) {
+                // 尝试从result字段提取（Agent节点workflow模式通常返回这个字段）
+                extracted = agentOutput.result.trim();
+                logger.info('从Agent节点result字段提取内容', {
+                  nodeId: agentNode.id,
+                  extractedLength: extracted.length,
+                  extractedPreview: extracted.substring(0, 100),
+                });
+              } else {
+                // 使用extractContent函数提取
+                logger.info('使用extractContent函数从Agent节点提取内容', {
+                  nodeId: agentNode.id,
+                  outputType: typeof agentOutput,
+                  outputKeys: typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
+                });
+                extracted = extractContent(agentOutput);
+              }
+              
+              if (extracted && extracted.trim()) {
+                finalOutput = agentOutput;
+                outputContent = extracted;
+                logger.info('从Agent节点提取内容成功', { 
+                  nodeId: agentNode.id,
+                  contentLength: outputContent.length,
+                  contentPreview: outputContent.substring(0, 100),
+                });
+                break;
+              } else {
+                logger.warn('从Agent节点提取内容失败', {
+                  nodeId: agentNode.id,
+                  extractedLength: extracted?.length || 0,
+                  outputType: typeof agentOutput,
+                  outputKeys: typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
+                  hasAnswer: agentOutput && typeof agentOutput === 'object' ? !!agentOutput.answer : false,
+                  hasResult: agentOutput && typeof agentOutput === 'object' ? !!agentOutput.result : false,
+                  answerType: agentOutput && typeof agentOutput === 'object' && agentOutput.answer ? typeof agentOutput.answer : null,
+                  resultType: agentOutput && typeof agentOutput === 'object' && agentOutput.result ? typeof agentOutput.result : null,
+                });
+              }
+            } else {
+              logger.warn('Agent节点输出不存在', {
+                nodeId: agentNode.id,
+              });
             }
           }
         }
       }
 
-      // 如果没有找到输出节点，尝试从最后一个agent节点获取结果
-      if (!finalOutput) {
-        const agentNodes = nodes.filter((n: any) => n.type === 'agent');
-        if (agentNodes.length > 0) {
-          const lastAgentNode = agentNodes[agentNodes.length - 1];
-          finalOutput = sharedContext.nodeOutputs[lastAgentNode.id];
+      // 如果还是没有内容，尝试从所有节点输出中查找
+      if (!outputContent || !outputContent.trim()) {
+        logger.info('尝试从所有节点输出中查找内容', {
+          availableNodeOutputs: Object.keys(sharedContext.nodeOutputs || {}),
+        });
+        
+        for (const [nodeId, nodeOutput] of Object.entries(sharedContext.nodeOutputs || {})) {
+          logger.info('检查节点输出', {
+            nodeId,
+            outputType: typeof nodeOutput,
+            outputKeys: nodeOutput && typeof nodeOutput === 'object' ? Object.keys(nodeOutput) : null,
+          });
           
-          if (finalOutput) {
-            if (typeof finalOutput === 'string') {
-              outputContent = finalOutput;
-            } else if (finalOutput.answer) {
-              outputContent = finalOutput.answer;
-            } else if (finalOutput.content) {
-              outputContent = finalOutput.content;
-            } else if (finalOutput.text) {
-              outputContent = finalOutput.text;
-            } else if (finalOutput.result) {
-              outputContent = finalOutput.result;
-            } else {
-              outputContent = JSON.stringify(finalOutput, null, 2);
-            }
+          // 直接尝试从answer字段提取（chatflow模式）
+          let extracted = '';
+          if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.answer && typeof nodeOutput.answer === 'string' && nodeOutput.answer.trim()) {
+            extracted = nodeOutput.answer.trim();
+            logger.info('从节点输出answer字段提取内容', {
+              nodeId,
+              extractedLength: extracted.length,
+              extractedPreview: extracted.substring(0, 100),
+            });
+          } else if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.result && typeof nodeOutput.result === 'string' && nodeOutput.result.trim()) {
+            // 尝试从result字段提取（workflow模式）
+            extracted = nodeOutput.result.trim();
+            logger.info('从节点输出result字段提取内容', {
+              nodeId,
+              extractedLength: extracted.length,
+              extractedPreview: extracted.substring(0, 100),
+            });
+          } else {
+            extracted = extractContent(nodeOutput);
+          }
+          
+          if (extracted && extracted.trim()) {
+            finalOutput = nodeOutput;
+            outputContent = extracted;
+            logger.info('从节点输出中提取内容成功', { 
+              nodeId,
+              contentLength: outputContent.length,
+              contentPreview: outputContent.substring(0, 100),
+            });
+            break;
           }
         }
       }
@@ -317,6 +647,16 @@ export class AgentWorkflowService {
         shared_context: JSON.stringify(sharedContext),
       });
 
+      // 记录最终提取的内容
+      logger.info('工作流执行完成，提取结果', {
+        workflowId,
+        executionId: execution.id,
+        hasContent: !!outputContent,
+        contentLength: outputContent?.length || 0,
+        nodeResultsCount: nodeResults.length,
+        nodeOutputsKeys: Object.keys(sharedContext.nodeOutputs || {}),
+      });
+
       return {
         executionId: execution.id,
         message: outputContent || '工作流执行完成',
@@ -325,6 +665,7 @@ export class AgentWorkflowService {
             output: finalOutput || outputContent,
             text: outputContent,
             answer: outputContent,
+            content: outputContent,
             metadata: {
               workflowId,
               executionId: execution.id,
@@ -453,16 +794,38 @@ export class AgentWorkflowService {
     const inputs = data.inputs || [];
     const workflowInput = sharedContext.workflowInput || {};
 
+    logger.info('执行输入节点', {
+      nodeId: node.id,
+      inputsCount: inputs.length,
+      inputNames: inputs.map((i: any) => i.name),
+      workflowInputKeys: Object.keys(workflowInput),
+      hasQuery: !!workflowInput.query,
+    });
+
     const results: any[] = [];
     for (const inputParam of inputs) {
       const inputName = inputParam.name || 'input';
       let value = workflowInput[inputName];
+
+      // 如果字段名为 'input' 但没有值，尝试使用 'query' 字段
+      if (value === undefined && inputName === 'input' && workflowInput.query) {
+        value = workflowInput.query;
+        logger.info('输入节点：将query字段映射到input', {
+          nodeId: node.id,
+          queryValue: typeof value === 'string' ? value.substring(0, 100) : value,
+        });
+      }
 
       if (value === undefined && inputParam.defaultValue !== undefined) {
         value = inputParam.defaultValue;
       }
 
       if (inputParam.required && value === undefined) {
+        logger.error('输入节点必需参数未提供', {
+          nodeId: node.id,
+          inputName,
+          availableKeys: Object.keys(workflowInput),
+        });
         throw new Error(`必需参数 ${inputName} 未提供`);
       }
 
@@ -473,6 +836,12 @@ export class AgentWorkflowService {
         type: inputParam.type || typeof value,
       });
     }
+
+    logger.info('输入节点执行完成', {
+      nodeId: node.id,
+      resultsCount: results.length,
+      results: results.map((r: any) => ({ name: r.name, type: r.type, hasValue: r.value !== undefined })),
+    });
 
     return {
       inputs: results,
@@ -504,12 +873,40 @@ export class AgentWorkflowService {
 
     // 准备输入数据
     const nodeInput = this.prepareNodeInput(node, sharedContext);
-    const query = nodeInput.query || nodeInput.input || JSON.stringify(nodeInput);
+    
+    // 尝试从多个可能的字段中提取query
+    // 优先级：query > input > workflowInput.query > 整个nodeInput的字符串化
+    let query = nodeInput.query;
+    if (!query) {
+      query = nodeInput.input;
+    }
+    if (!query && nodeInput.workflowInput?.query) {
+      query = nodeInput.workflowInput.query;
+    }
+    if (!query && typeof nodeInput === 'object') {
+      // 如果还是没有，尝试从其他常见字段中提取
+      query = nodeInput.question || nodeInput.text || nodeInput.content;
+    }
+    if (!query) {
+      // 最后回退：如果nodeInput是字符串，直接使用；否则字符串化
+      query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);
+    }
+    
     const inputs = { ...nodeInput };
     delete inputs.query;
     delete inputs.input;
 
+    // 检查 provider 类型，Workflow 目前只支持 Dify
+    const provider = role.provider || 'dify';
+    if (provider === 'direct-agent') {
+      throw new Error(`AI角色 ${agentId} 是 Direct Agent 类型，不支持在 Workflow 中使用。请使用 Dify 类型的角色。`);
+    }
+
     // 根据连接类型调用Dify API
+    if (!role.difyConfig) {
+      throw new Error(`AI角色 ${agentId} 的Dify配置不存在`);
+    }
+
     const { connectionType, apiKey, apiUrl } = role.difyConfig;
     let conversationId = nodeInput.conversationId || '';
 
@@ -517,13 +914,42 @@ export class AgentWorkflowService {
       throw new Error(`AI角色 ${agentId} 的Dify配置不完整`);
     }
 
+    // 处理相对路径：如果是相对路径，使用实际的 Dify 服务器地址
+    let actualBaseUrl = apiUrl;
+    if (apiUrl.startsWith('/')) {
+      // 相对路径，通过后端代理处理，使用实际的 Dify 服务器地址
+      actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';
+      logger.info('检测到相对路径，转换为完整URL', {
+        agentId,
+        原始: apiUrl,
+        转换后: actualBaseUrl,
+      });
+    }
+
+    logger.info('创建 DifyGateway', {
+      agentId,
+      baseUrl: actualBaseUrl,
+      apiKey: apiKey.substring(0, 10) + '...',
+      connectionType,
+    });
+
     // 创建自定义的DifyGateway
     const gateway = new DifyGateway({
-      baseUrl: apiUrl,
-      workflowBaseUrl: apiUrl,
+      baseUrl: actualBaseUrl,
+      workflowBaseUrl: actualBaseUrl,
       apiKey,
       timeout: 60_000,
       maxRetries: 3,
+    });
+
+    logger.info('准备执行Agent节点', {
+      nodeId: node.id,
+      agentId,
+      connectionType,
+      query: query?.substring(0, 100),
+      queryLength: query?.length || 0,
+      hasConversationId: !!conversationId,
+      inputsKeys: Object.keys(inputs || {}),
     });
 
     if (connectionType === 'chatflow') {
@@ -537,14 +963,31 @@ export class AgentWorkflowService {
 
       if (isSuccess(result)) {
         const chatResponse = result.value.raw as any;
-        return {
+        const agentOutput = {
           answer: chatResponse.answer || result.value.answer,
           conversation_id: chatResponse.conversation_id || result.value.conversationId,
           message_id: chatResponse.message_id || result.value.messageId,
           metadata: chatResponse.metadata || {},
           raw: chatResponse,
         };
+        
+        logger.info('Agent节点执行完成 (chatflow)', {
+          nodeId: node.id,
+          agentId,
+          hasAnswer: !!agentOutput.answer,
+          answerLength: agentOutput.answer?.length || 0,
+          answerPreview: agentOutput.answer?.substring(0, 200) || null,
+          answerType: typeof agentOutput.answer,
+          rawKeys: chatResponse && typeof chatResponse === 'object' ? Object.keys(chatResponse) : null,
+        });
+        
+        return agentOutput;
       } else {
+        logger.error('Agent节点执行失败 (chatflow)', {
+          nodeId: node.id,
+          agentId,
+          error: result.error,
+        });
         throw new Error(result.error.message || 'Dify聊天调用失败');
       }
     } else {
@@ -557,14 +1000,32 @@ export class AgentWorkflowService {
 
       if (isSuccess(result)) {
         const workflowResponse = result.value.raw as any;
-        return {
+        const agentOutput = {
           result: workflowResponse.data?.outputs?.text || workflowResponse.data?.outputs?.answer || '',
           conversation_id: workflowResponse.conversation_id,
           workflow_run_id: workflowResponse.workflow_run_id || result.value.workflowRunId,
           task_id: workflowResponse.task_id || result.value.taskId,
           raw: workflowResponse,
         };
+        
+        logger.info('Agent节点执行完成 (workflow)', {
+          nodeId: node.id,
+          agentId,
+          hasResult: !!agentOutput.result,
+          resultLength: agentOutput.result?.length || 0,
+          resultPreview: agentOutput.result?.substring(0, 200) || null,
+          resultType: typeof agentOutput.result,
+          rawKeys: workflowResponse && typeof workflowResponse === 'object' ? Object.keys(workflowResponse) : null,
+          outputsKeys: workflowResponse?.data?.outputs && typeof workflowResponse.data.outputs === 'object' ? Object.keys(workflowResponse.data.outputs) : null,
+        });
+        
+        return agentOutput;
       } else {
+        logger.error('Agent节点执行失败 (workflow)', {
+          nodeId: node.id,
+          agentId,
+          error: result.error,
+        });
         throw new Error(result.error.message || 'Dify工作流调用失败');
       }
     }

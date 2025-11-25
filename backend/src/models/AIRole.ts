@@ -42,6 +42,101 @@ export interface DifyConfig {
 }
 
 /**
+ * Prompt变量定义
+ */
+export interface PromptVariable {
+  name: string;
+  description: string;
+  type: 'static' | 'dynamic' | 'context';
+  value?: string;
+  source?: string;
+}
+
+/**
+ * Prompt模板
+ */
+export interface PromptTemplate {
+  id: string;
+  name: string;
+  content: string;
+  variables: string[];
+}
+
+/**
+ * 工具参数定义
+ */
+export interface ToolParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  description: string;
+  required: boolean;
+  enum?: string[];
+  default?: any;
+}
+
+/**
+ * 工具配置
+ */
+export interface ToolConfig {
+  id: string;
+  name: string;
+  description: string;
+  type: 'search' | 'api' | 'calculation' | 'workflow' | 'agent' | 'time' | 'custom';
+  enabled: boolean;
+  parameters: ToolParameter[];
+  implementation?: {
+    endpoint?: string;
+    method?: string;
+    headers?: Record<string, string>;
+    workflowId?: string;
+    agentId?: string;
+  };
+}
+
+/**
+ * Agent调用配置
+ */
+export interface AgentCallConfig {
+  id: string;
+  targetAgentId?: string;
+  targetWorkflowId?: string;
+  name: string;
+  description: string;
+  trigger: 'manual' | 'auto';
+  inputMapping?: Record<string, string>;
+  outputMapping?: Record<string, string>;
+}
+
+/**
+ * Direct Agent配置
+ */
+export interface DirectAgentConfig {
+  llm: {
+    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';
+    apiKey: string;
+    apiBaseUrl?: string;
+    model: string;
+    temperature: number;
+    maxTokens: number;
+    topP?: number;
+  };
+  prompt: {
+    systemPrompt: string;
+    variables?: PromptVariable[];
+    templates?: PromptTemplate[];
+  };
+  contextStrategy: {
+    type: 'window' | 'summary' | 'hybrid';
+    maxMessages: number;
+    maxTokens: number;
+    summaryThreshold?: number;
+    includeSystemPrompt: boolean;
+  };
+  tools?: ToolConfig[];
+  agentCalls?: AgentCallConfig[];
+}
+
+/**
  * AI角色配置（前端格式）
  */
 export interface AIRoleConfig {
@@ -50,7 +145,9 @@ export interface AIRoleConfig {
   description: string;
   avatar?: string;
   systemPrompt?: string;
-  difyConfig: DifyConfig;
+  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容
+  difyConfig?: DifyConfig;
+  agentConfig?: DirectAgentConfig;
   enabled: boolean;
   source?: 'smart-workflow' | 'independent-page' | 'custom';
   createdAt: Date;
@@ -66,7 +163,9 @@ export interface CreateAIRoleDTO {
   description: string;
   avatar?: string;
   systemPrompt?: string;
-  difyConfig: DifyConfig;
+  provider?: 'dify' | 'direct-agent';
+  difyConfig?: DifyConfig;
+  agentConfig?: DirectAgentConfig;
   enabled?: boolean;
   source?: 'smart-workflow' | 'independent-page' | 'custom';
 }
@@ -79,7 +178,9 @@ export interface UpdateAIRoleDTO {
   description?: string;
   avatar?: string;
   systemPrompt?: string;
+  provider?: 'dify' | 'direct-agent';
   difyConfig?: DifyConfig;
+  agentConfig?: DirectAgentConfig;
   enabled?: boolean;
   source?: 'smart-workflow' | 'independent-page' | 'custom';
 }
@@ -110,15 +211,66 @@ export class AIRoleModel {
    * 将数据库记录转换为前端格式
    */
   private toAIRoleConfig(row: AIRole): AIRoleConfig {
-    const difyConfig: DifyConfig = JSON.parse(row.dify_config);
+    let configData: any = {};
+    
+    // 安全解析 JSON
+    if (row.dify_config) {
+      try {
+        configData = JSON.parse(row.dify_config);
+      } catch (error) {
+        console.error('解析配置数据失败:', error, '原始数据:', row.dify_config);
+        // 如果解析失败，尝试使用空对象，后续会设置为默认 Dify 配置
+        configData = {};
+      }
+    }
+    
+    // 判断是 Dify 配置还是 Direct Agent 配置
+    // 优先检查 provider 字段
+    const provider = (configData.provider === 'direct-agent' ? 'direct-agent' : 'dify') as 'dify' | 'direct-agent';
+    
+    let difyConfig: DifyConfig | undefined;
+    let agentConfig: DirectAgentConfig | undefined;
+    
+    if (provider === 'direct-agent') {
+      // Direct Agent 配置
+      // 支持两种格式：{ provider: 'direct-agent', agentConfig: {...} } 或直接是 agentConfig
+      if (configData.agentConfig && typeof configData.agentConfig === 'object') {
+        agentConfig = configData.agentConfig as DirectAgentConfig;
+      } else if (configData.llm && typeof configData.llm === 'object') {
+        // 旧格式：直接包含 llm, prompt, contextStrategy 等
+        agentConfig = configData as DirectAgentConfig;
+      }
+    } else {
+      // Dify 配置（向后兼容）
+      // 检查是否包含 Dify 必需的字段，或者如果 configData 不为空，假设是 Dify 配置
+      if (configData && (configData.apiUrl || configData.apiKey || configData.connectionType || Object.keys(configData).length > 0)) {
+        // 确保包含必需的字段，如果没有则使用默认值
+        difyConfig = {
+          apiUrl: configData.apiUrl || '/api/dify/chat-messages',
+          apiKey: configData.apiKey || '',
+          connectionType: configData.connectionType || 'chatflow',
+          inputFields: configData.inputFields || []
+        } as DifyConfig;
+      } else {
+        // 如果完全没有配置，使用默认的 Dify 配置
+        difyConfig = {
+          apiUrl: '/api/dify/chat-messages',
+          apiKey: '',
+          connectionType: 'chatflow',
+          inputFields: []
+        };
+      }
+    }
     
     return {
       id: row.id,
-      name: row.name,
-      description: row.description,
+      name: row.name || '',
+      description: row.description || '',
       avatar: row.avatar || undefined,
       systemPrompt: row.system_prompt || undefined,
+      provider,
       difyConfig,
+      agentConfig,
       enabled: row.enabled === 1,
       source: (row.source as any) || undefined,
       createdAt: new Date(row.created_at || Date.now()),
@@ -194,13 +346,21 @@ export class AIRoleModel {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
+    // 根据 provider 决定存储的配置
+    let configToStore: any;
+    if (data.provider === 'direct-agent' && data.agentConfig) {
+      configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };
+    } else {
+      configToStore = { provider: data.provider || 'dify', ...data.difyConfig };
+    }
+
     const params = [
       id,
       data.name,
       data.description,
       data.avatar || null,
       data.systemPrompt || null,
-      JSON.stringify(data.difyConfig),
+      JSON.stringify(configToStore),
       enabled,
       data.source || null,
     ];
@@ -225,7 +385,12 @@ export class AIRoleModel {
       return null;
     }
 
-    return this.toAIRoleConfig(rows[0] as AIRole);
+    try {
+      return this.toAIRoleConfig(rows[0] as AIRole);
+    } catch (error) {
+      console.error(`转换AI角色失败 (ID: ${id}):`, error);
+      throw error; // 单个记录查询失败时抛出错误
+    }
   }
 
   /**
@@ -239,7 +404,19 @@ export class AIRoleModel {
     const result = await this.db.query(sql);
     const rows = Array.isArray(result) ? result : result.rows || [];
 
-    return rows.map((row: AIRole) => this.toAIRoleConfig(row));
+    // 安全转换，跳过有问题的记录
+    const roles: AIRoleConfig[] = [];
+    for (const row of rows) {
+      try {
+        const role = this.toAIRoleConfig(row as AIRole);
+        roles.push(role);
+      } catch (error) {
+        console.error(`转换AI角色失败 (ID: ${(row as any).id}):`, error);
+        // 继续处理其他记录，不中断整个流程
+      }
+    }
+
+    return roles;
   }
 
   /**
@@ -252,7 +429,19 @@ export class AIRoleModel {
     const result = await this.db.query(sql);
     const rows = Array.isArray(result) ? result : result.rows || [];
 
-    return rows.map((row: AIRole) => this.toAIRoleConfig(row));
+    // 安全转换，跳过有问题的记录
+    const roles: AIRoleConfig[] = [];
+    for (const row of rows) {
+      try {
+        const role = this.toAIRoleConfig(row as AIRole);
+        roles.push(role);
+      } catch (error) {
+        console.error(`转换AI角色失败 (ID: ${(row as any).id}):`, error);
+        // 继续处理其他记录
+      }
+    }
+
+    return roles;
   }
 
   /**
@@ -280,12 +469,37 @@ export class AIRoleModel {
       WHERE id = ?
     `;
 
+    // 决定更新的配置
+    let configToStore: any;
+    const provider = data.provider ?? existing.provider ?? 'dify';
+    
+    if (provider === 'direct-agent') {
+      if (data.agentConfig) {
+        configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };
+      } else if (existing.agentConfig) {
+        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };
+      } else {
+        // 从 difyConfig 迁移到 agentConfig（如果需要）
+        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };
+      }
+    } else {
+      if (data.difyConfig) {
+        configToStore = { provider: 'dify', ...data.difyConfig };
+      } else if (existing.difyConfig) {
+        configToStore = { provider: 'dify', ...existing.difyConfig };
+      } else {
+        // 保持现有配置
+        const existingConfig = JSON.parse((existing as any).dify_config || '{}');
+        configToStore = existingConfig;
+      }
+    }
+
     const params = [
       data.name ?? existing.name,
       data.description ?? existing.description,
       data.avatar !== undefined ? data.avatar : existing.avatar,
       data.systemPrompt !== undefined ? data.systemPrompt : existing.systemPrompt,
-      data.difyConfig ? JSON.stringify(data.difyConfig) : JSON.stringify(existing.difyConfig),
+      JSON.stringify(configToStore),
       data.enabled !== undefined ? (data.enabled ? 1 : 0) : existing.enabled ? 1 : 0,
       data.source !== undefined ? data.source : existing.source,
       id,

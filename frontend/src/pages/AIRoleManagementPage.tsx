@@ -14,14 +14,28 @@ import {
   MessageSquare,
   Settings,
   PlusCircle,
-  MinusCircle
+  MinusCircle,
+  Cpu,
+  FileText,
+  Layers,
+  Wrench,
+  Network,
+  Upload,
+  ExternalLink,
+  Workflow,
+  MessageCircle,
+  X,
+  Maximize2
 } from 'lucide-react';
 import TopNavigation from '../components/TopNavigation';
 import aiRoleService, { AIRoleUsage } from '../services/aiRoleService';
-import { AIRoleConfig, DifyInputField } from '../types/aiRole';
+import { AIRoleConfig, DifyInputField, DirectAgentConfig, PromptVariable, ToolConfig, AgentCallConfig } from '../types/aiRole';
 import migrationService from '../services/migrationService';
-import { Upload, ExternalLink, FileText, Workflow, MessageCircle, Trash2 as TrashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AIRoleChat from '../components/AIRoleChat';
+
+// 为 Trash2 创建别名以避免冲突
+const TrashIcon = Trash2;
 
 const AIRoleManagementPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,6 +72,7 @@ const AIRoleManagementPage: React.FC = () => {
     independentPageConfigs: any[];
   } | null>(null);
   const [migrating, setMigrating] = useState(false);
+  const [showChatDialog, setShowChatDialog] = useState(false);
 
   // 表单状态
   const [formData, setFormData] = useState<Partial<AIRoleConfig>>({
@@ -65,14 +80,19 @@ const AIRoleManagementPage: React.FC = () => {
     description: '',
     avatar: '',
     systemPrompt: '',
+    provider: 'dify',
     difyConfig: {
       apiUrl: '/api/dify/chat-messages',
       apiKey: '',
       connectionType: 'chatflow',
       inputFields: []
     },
+    agentConfig: undefined,
     enabled: true
   });
+
+  // Direct Agent Tab 状态
+  const [activeTab, setActiveTab] = useState<'llm' | 'prompt' | 'context' | 'tools' | 'agents'>('llm');
 
   useEffect(() => {
     // 先加载localStorage中的配置（用于显示）
@@ -272,16 +292,19 @@ const AIRoleManagementPage: React.FC = () => {
       description: '',
       avatar: '',
       systemPrompt: '',
+      provider: 'dify',
       difyConfig: {
         apiUrl: '/api/dify/chat-messages',
         apiKey: '',
         connectionType: 'chatflow',
         inputFields: []
       },
+      agentConfig: undefined,
       enabled: true
     });
     setSelectedRole(null);
     setIsEditing(false);
+    setActiveTab('llm');
   };
 
   // 加载角色使用情况
@@ -325,8 +348,11 @@ const AIRoleManagementPage: React.FC = () => {
       const hasChanges = 
         formData.name !== selectedRole.name ||
         formData.description !== selectedRole.description ||
+        formData.provider !== selectedRole.provider ||
         formData.difyConfig?.apiUrl !== selectedRole.difyConfig?.apiUrl ||
-        formData.difyConfig?.apiKey !== selectedRole.difyConfig?.apiKey;
+        formData.difyConfig?.apiKey !== selectedRole.difyConfig?.apiKey ||
+        formData.agentConfig?.llm?.apiKey !== selectedRole.agentConfig?.llm?.apiKey ||
+        formData.agentConfig?.llm?.apiBaseUrl !== selectedRole.agentConfig?.llm?.apiBaseUrl;
       
       if (hasChanges && !confirm('当前角色有未保存的更改，确定要切换吗？')) {
         return;
@@ -336,6 +362,10 @@ const AIRoleManagementPage: React.FC = () => {
     setSelectedRole(role);
     setFormData(role);
     setIsEditing(false);
+    // 根据 provider 设置默认 tab
+    if (role.provider === 'direct-agent') {
+      setActiveTab('llm');
+    }
     // 加载使用情况
     loadRoleUsage(role.id);
   };
@@ -351,6 +381,19 @@ const AIRoleManagementPage: React.FC = () => {
           [difyField]: value
         }
       }));
+    } else if (field.startsWith('agentConfig.')) {
+      // 处理 agentConfig 的嵌套字段更新
+      const parts = field.split('.');
+      if (parts.length === 2) {
+        const agentField = parts[1];
+        setFormData(prev => ({
+          ...prev,
+          agentConfig: {
+            ...prev.agentConfig!,
+            [agentField]: value
+          }
+        }));
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -408,9 +451,27 @@ const AIRoleManagementPage: React.FC = () => {
       return;
     }
 
-    if (!formData.difyConfig?.apiUrl || !formData.difyConfig?.apiKey) {
-      setMessage({ type: 'error', text: '请填写Dify API地址和密钥' });
-      return;
+    const provider = formData.provider || 'dify';
+
+    // 根据 provider 验证配置
+    if (provider === 'dify') {
+      if (!formData.difyConfig?.apiUrl || !formData.difyConfig?.apiKey) {
+        setMessage({ type: 'error', text: '请填写Dify API地址和密钥' });
+        return;
+      }
+    } else if (provider === 'direct-agent') {
+      if (!formData.agentConfig?.llm?.apiKey || !formData.agentConfig?.llm?.apiBaseUrl || !formData.agentConfig?.llm?.model) {
+        setMessage({ type: 'error', text: '请填写LLM API密钥、API地址和模型名称' });
+        return;
+      }
+      if (!formData.agentConfig?.prompt?.systemPrompt) {
+        setMessage({ type: 'error', text: '请填写系统提示词' });
+        return;
+      }
+      if (!formData.agentConfig?.contextStrategy) {
+        setMessage({ type: 'error', text: '请配置上下文策略' });
+        return;
+      }
     }
 
     setSaving(true);
@@ -563,10 +624,10 @@ const AIRoleManagementPage: React.FC = () => {
       <div className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-8">
           <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">AI角色管理</h1>
-            <p className="text-gray-700 mt-2 text-lg">创建和管理您的AI对话角色</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">AI角色管理</h1>
+            <p className="text-gray-600 mt-2 text-xl font-medium">创建和管理您的AI对话角色</p>
             {/* 快速导航 */}
-            <div className="flex items-center gap-3 mt-4 flex-wrap text-base md:text-lg">
+            <div className="flex items-center gap-4 mt-5 flex-wrap text-base md:text-lg">
               <a
                 href="/agent-workflow"
                 className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
@@ -592,22 +653,22 @@ const AIRoleManagementPage: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* 后端连接状态指示 */}
             {migrationStatus && migrationStatus.backendAvailable === false && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-lg text-base font-medium">
-                <AlertCircle size={16} />
+              <div className="flex items-center gap-2.5 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-semibold shadow-sm">
+                <AlertCircle size={18} />
                 <span>后端未连接</span>
               </div>
             )}
             {migrationStatus && migrationStatus.backendAvailable === true && roles.length > 0 && (
               <>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-base font-medium">
-                  <CheckCircle size={16} />
+                <div className="flex items-center gap-2.5 px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-semibold shadow-sm">
+                  <CheckCircle size={18} />
                   <span>已连接 ({roles.length}个角色)</span>
                 </div>
                 {duplicateInfo && duplicateInfo.totalDuplicates > 0 && (
                   <button
                     onClick={handleRemoveDuplicates}
                     disabled={removingDuplicates}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     title={`发现 ${duplicateInfo.totalDuplicates} 个重复角色`}
                   >
                     {removingDuplicates ? (
@@ -629,17 +690,17 @@ const AIRoleManagementPage: React.FC = () => {
               <button
                 onClick={handleMigrate}
                 disabled={migrating || !migrationStatus.backendAvailable}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 title={!migrationStatus.backendAvailable ? '请先启动后端服务器' : ''}
               >
                 {migrating ? (
                   <>
-                    <Loader className="animate-spin" size={20} />
+                    <Loader className="animate-spin" size={18} />
                     <span>迁移中...</span>
                   </>
                 ) : (
                   <>
-                    <Upload size={20} />
+                    <Upload size={18} />
                     <span>导入现有配置 ({migrationStatus.smartWorkflowCount + migrationStatus.independentPageCount}个)</span>
                   </>
                 )}
@@ -651,7 +712,7 @@ const AIRoleManagementPage: React.FC = () => {
                 setIsEditing(false);
                 setSelectedRole(null);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base"
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-base font-semibold"
             >
               <Plus size={20} />
               <span>新建角色</span>
@@ -663,17 +724,17 @@ const AIRoleManagementPage: React.FC = () => {
           {/* 左侧：角色列表 */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
-                <h2 className="text-white font-semibold flex items-center gap-2">
-                  <MessageSquare size={20} />
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4">
+                <h2 className="text-white font-semibold text-lg flex items-center gap-2.5">
+                  <MessageSquare size={22} />
                   已创建的角色
                 </h2>
               </div>
-              <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto text-base">
+              <div className="divide-y divide-gray-200 max-h-[calc(100vh-50px)] overflow-y-auto">
                 {roles.length === 0 && (!localStorageConfigs || (localStorageConfigs.smartWorkflowConfigs.length === 0 && localStorageConfigs.independentPageConfigs.length === 0)) ? (
-                  <div className="p-6 text-center text-gray-500 text-base">
-                    <Bot size={48} className="mx-auto mb-2 opacity-50" />
-                    <p>暂无AI角色，点击上方按钮创建</p>
+                  <div className="p-8 text-center text-gray-500">
+                    <Bot size={56} className="mx-auto mb-3 opacity-50" />
+                    <p className="text-base">暂无AI角色，点击上方按钮创建</p>
                     {migrationStatus && migrationStatus.backendAvailable === false && (
                       <p className="text-sm text-yellow-600 mt-2">
                         {migrationStatus.errorMessage || '后端服务未连接'}
@@ -684,14 +745,14 @@ const AIRoleManagementPage: React.FC = () => {
                   <>
                     {/* 显示localStorage中的待迁移配置 */}
                     {localStorageConfigs && (localStorageConfigs.smartWorkflowConfigs.length > 0 || localStorageConfigs.independentPageConfigs.length > 0) && migrationStatus && !migrationStatus.backendAvailable && (
-                      <div className="p-4 bg-yellow-50 border-b-2 border-yellow-200 text-base">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle size={16} className="text-yellow-600" />
-                          <span className="font-semibold text-yellow-800">
+                      <div className="p-5 bg-yellow-50 border-b-2 border-yellow-200">
+                        <div className="flex items-center gap-2.5 mb-3">
+                          <AlertCircle size={18} className="text-yellow-600" />
+                          <span className="font-semibold text-base text-yellow-800">
                             待迁移配置（localStorage）
                           </span>
                         </div>
-                        <div className="space-y-1 text-sm text-yellow-700 leading-relaxed">
+                        <div className="space-y-1.5 text-sm text-yellow-700 leading-relaxed">
                           {localStorageConfigs.smartWorkflowConfigs.length > 0 && (
                             <div>智能工作流配置: {localStorageConfigs.smartWorkflowConfigs.length}个</div>
                           )}
@@ -704,86 +765,132 @@ const AIRoleManagementPage: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* 显示已创建的角色 */}
-                    {roles.length > 0 && roles.map((role) => (
-                      <div
-                        key={role.id}
-                        onClick={() => selectRole(role)}
-                        className={`p-4 cursor-pointer transition-colors ${
-                          selectedRole?.id === role.id
-                            ? 'bg-blue-50 border-l-4 border-blue-600'
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            {role.avatar ? (
-                              <img
-                                src={role.avatar}
-                                alt={role.name}
-                                className="w-10 h-10 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <Bot className="w-6 h-6 text-blue-600" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-gray-800 truncate text-lg">
-                                  {role.name}
-                                </h3>
-                                {role.source && (
-                                  <span className={`text-sm px-2 py-0.5 rounded flex-shrink-0 ${
-                                    role.source === 'smart-workflow' 
-                                      ? 'bg-blue-100 text-blue-700' 
-                                      : role.source === 'independent-page'
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {role.source === 'smart-workflow' ? '智能工作流' : 
-                                     role.source === 'independent-page' ? '独立页面' : '自定义'}
+                    {/* 显示已创建的角色 - 按类型分组 */}
+                    {roles.length > 0 && (() => {
+                      // 按 provider 分组
+                      const difyRoles = roles.filter(role => role.provider === 'dify' || !role.provider);
+                      const directAgentRoles = roles.filter(role => role.provider === 'direct-agent');
+                      
+                      const renderRoleItem = (role: AIRoleConfig) => (
+                        <div
+                          key={role.id}
+                          onClick={() => selectRole(role)}
+                          className={`p-5 cursor-pointer transition-all duration-200 ${
+                            selectedRole?.id === role.id
+                              ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm'
+                              : 'hover:bg-gray-50 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-4 flex-1">
+                              {role.avatar ? (
+                                <img
+                                  src={role.avatar}
+                                  alt={role.name}
+                                  className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center ring-2 ring-gray-200">
+                                  <Bot className="w-7 h-7 text-blue-600" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2.5 mb-1.5">
+                                  <h3 className="font-semibold text-gray-900 truncate text-lg">
+                                    {role.name}
+                                  </h3>
+                                  {role.source && (
+                                    <span className={`text-sm px-2 py-0.5 rounded flex-shrink-0 ${
+                                      role.source === 'smart-workflow' 
+                                        ? 'bg-blue-100 text-blue-700' 
+                                        : role.source === 'independent-page'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {role.source === 'smart-workflow' ? '智能工作流' : 
+                                       role.source === 'independent-page' ? '独立页面' : '自定义'}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-2.5 line-clamp-2 leading-relaxed">
+                                  {role.description}
+                                </p>
+                                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                                  <span
+                                    className={`text-sm px-2 py-0.5 rounded ${
+                                      role.enabled
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-gray-100 text-gray-600'
+                                    }`}
+                                  >
+                                    {role.enabled ? '启用' : '禁用'}
                                   </span>
-                                )}
-                              </div>
-                              <p className="text-base text-gray-600 mt-2 line-clamp-2">
-                                {role.description}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                <span
-                                  className={`text-sm px-2 py-0.5 rounded ${
-                                    role.enabled
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-gray-100 text-gray-600'
-                                  }`}
-                                >
-                                  {role.enabled ? '启用' : '禁用'}
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  {role.difyConfig.connectionType}
-                                </span>
-                                {/* 使用情况徽章 */}
-                                {roleUsages.has(role.id) && (() => {
-                                  const usage = roleUsages.get(role.id)!;
-                                  if (usage.totalUsageCount > 0) {
-                                    return (
-                                      <span className="text-sm px-2 py-0.5 rounded bg-purple-100 text-purple-700 flex items-center gap-1">
-                                        <FileText size={12} />
-                                        {usage.totalUsageCount}处使用
-                                      </span>
-                                    );
-                                  }
-                                  return null;
-                                })()}
-                                {loadingUsages.has(role.id) && (
-                                  <Loader className="w-3 h-3 animate-spin text-gray-400" />
-                                )}
+                                  {role.provider === 'dify' || !role.provider ? (
+                                    <span className="text-sm text-gray-500">
+                                      {role.difyConfig?.connectionType || 'chatflow'}
+                                    </span>
+                                  ) : (
+                                    <span className="text-sm text-gray-500">
+                                      独立Agent
+                                    </span>
+                                  )}
+                                  {/* 使用情况徽章 */}
+                                  {roleUsages.has(role.id) && (() => {
+                                    const usage = roleUsages.get(role.id)!;
+                                    if (usage.totalUsageCount > 0) {
+                                      return (
+                                        <span className="text-sm px-2 py-0.5 rounded bg-purple-100 text-purple-700 flex items-center gap-1">
+                                          <FileText size={12} />
+                                          {usage.totalUsageCount}处使用
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                  {loadingUsages.has(role.id) && (
+                                    <Loader className="w-3 h-3 animate-spin text-gray-400" />
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+
+                      return (
+                        <>
+                          {/* Dify 工作流分组 */}
+                          {difyRoles.length > 0 && (
+                            <>
+                              <div className="sticky top-0 bg-gray-50 px-5 py-3 border-b-2 border-gray-200 z-10">
+                                <div className="flex items-center gap-2">
+                                  <Workflow size={18} className="text-blue-600" />
+                                  <h3 className="font-semibold text-gray-800 text-base">
+                                    Dify 工作流 ({difyRoles.length})
+                                  </h3>
+                                </div>
+                              </div>
+                              {difyRoles.map(renderRoleItem)}
+                            </>
+                          )}
+                          
+                          {/* 独立 Agent 分组 */}
+                          {directAgentRoles.length > 0 && (
+                            <>
+                              <div className="sticky top-0 bg-gray-50 px-5 py-3 border-b-2 border-gray-200 z-10">
+                                <div className="flex items-center gap-2">
+                                  <Cpu size={18} className="text-purple-600" />
+                                  <h3 className="font-semibold text-gray-800 text-base">
+                                    独立 Agent ({directAgentRoles.length})
+                                  </h3>
+                                </div>
+                              </div>
+                              {directAgentRoles.map(renderRoleItem)}
+                            </>
+                          )}
+                        </>
+                      );
+                    })()}
                   </>
                 )}
               </div>
@@ -793,24 +900,24 @@ const AIRoleManagementPage: React.FC = () => {
           {/* 右侧：角色配置 */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4">
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-white font-semibold flex items-center gap-2">
-                    <Settings size={20} />
+                  <h2 className="text-white font-semibold text-lg flex items-center gap-2.5">
+                    <Settings size={22} />
                     {isEditing ? '编辑角色' : '角色配置'}
                   </h2>
                   {selectedRole && !isEditing && (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold"
                       >
                         <Edit2 size={16} />
                         编辑
                       </button>
                       <button
                         onClick={deleteRole}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold"
                       >
                         <Trash2 size={16} />
                         删除
@@ -820,22 +927,22 @@ const AIRoleManagementPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-8 space-y-8">
                 {/* 使用情况显示 */}
                 {selectedRole && !isEditing && roleUsages.has(selectedRole.id) && (() => {
                   const usage = roleUsages.get(selectedRole.id)!;
                   return (
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-5 border border-purple-200">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <FileText size={20} className="text-purple-600" />
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200 shadow-sm">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2.5">
+                        <FileText size={22} className="text-purple-600" />
                         使用情况
                       </h3>
                       {usage.totalUsageCount === 0 ? (
                         <p className="text-gray-700 text-base">此角色未在任何功能页面中使用</p>
                       ) : (
-                        <div className="space-y-2">
-                          <p className="text-base text-gray-700 mb-3">
-                            此角色在 <span className="font-semibold text-purple-700">{usage.totalUsageCount}</span> 个位置使用：
+                        <div className="space-y-3">
+                          <p className="text-base text-gray-700 mb-4">
+                            此角色在 <span className="font-semibold text-purple-700 text-lg">{usage.totalUsageCount}</span> 个位置使用：
                           </p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             {usage.locations.map((location, index) => (
@@ -886,10 +993,10 @@ const AIRoleManagementPage: React.FC = () => {
 
                 {/* 基本信息 */}
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">基本信息</h3>
-                  <div className="space-y-4">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-6">基本信息</h3>
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         角色名称
                       </label>
                       <input
@@ -897,25 +1004,25 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.name || ''}
                         onChange={(e) => updateFormField('name', e.target.value)}
                         placeholder="例如：AI技术顾问"
-                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         角色描述
                       </label>
                       <textarea
                         value={formData.description || ''}
                         onChange={(e) => updateFormField('description', e.target.value)}
                         placeholder="描述这个AI角色的用途和特点"
-                        rows={3}
-                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows={4}
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         头像URL（可选）
                       </label>
                       <input
@@ -923,21 +1030,88 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.avatar || ''}
                         onChange={(e) => updateFormField('avatar', e.target.value)}
                         placeholder="https://example.com/avatar.png"
-                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Dify配置 */}
+                {/* Provider 选择器 */}
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">Dify配置</h3>
-                  <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-base text-blue-800 leading-relaxed">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-6">Agent类型</h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-6">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="provider"
+                          value="dify"
+                          checked={formData.provider === 'dify' || !formData.provider}
+                          onChange={(e) => {
+                            updateFormField('provider', e.target.value);
+                            setActiveTab('llm');
+                          }}
+                          className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Dify工作流</span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="radio"
+                          name="provider"
+                          value="direct-agent"
+                          checked={formData.provider === 'direct-agent'}
+                          onChange={(e) => {
+                            updateFormField('provider', e.target.value);
+                            setActiveTab('llm');
+                            // 初始化 Direct Agent 配置
+                            if (!formData.agentConfig) {
+                              setFormData(prev => ({
+                                ...prev,
+                                agentConfig: {
+                                  llm: {
+                                    provider: 'openai',
+                                    apiKey: '',
+                                    apiBaseUrl: 'https://api.openai.com/v1',
+                                    model: 'gpt-3.5-turbo',
+                                    temperature: 0.7,
+                                    maxTokens: 2000
+                                  },
+                                  prompt: {
+                                    systemPrompt: '',
+                                    variables: [],
+                                    templates: []
+                                  },
+                                  contextStrategy: {
+                                    type: 'window',
+                                    maxMessages: 10,
+                                    maxTokens: 4000,
+                                    includeSystemPrompt: true
+                                  },
+                                  tools: [],
+                                  agentCalls: []
+                                }
+                              }));
+                            }
+                          }}
+                          className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">独立Agent</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 根据 Provider 显示不同的配置 */}
+                {(formData.provider === 'dify' || !formData.provider) ? (
+                  <div>
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-6">Dify配置</h3>
+                  <div className="mb-6 rounded-xl border-2 border-blue-200 bg-blue-50 p-5 text-base text-blue-800 leading-relaxed shadow-sm">
                     所有 AI 调用已通过后端的 Dify 网关统一处理，此处配置仅用于后台同步记录，请勿填写外部服务的真实凭据。
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         API地址
                       </label>
                       <input
@@ -945,12 +1119,12 @@ const AIRoleManagementPage: React.FC = () => {
                         value={formData.difyConfig?.apiUrl || ''}
                         onChange={(e) => updateFormField('difyConfig.apiUrl', e.target.value)}
                         placeholder="/api/dify/chat-messages"
-                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         API密钥
                       </label>
                       <div className="relative">
@@ -959,7 +1133,7 @@ const AIRoleManagementPage: React.FC = () => {
                           value={formData.difyConfig?.apiKey || ''}
                           onChange={(e) => updateFormField('difyConfig.apiKey', e.target.value)}
                           placeholder="app-xxxxxxxxxx"
-                          className="w-full px-4 py-2 pr-10 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-4 py-3 pr-12 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                         />
                         <button
                           onClick={() => setShowApiKey(!showApiKey)}
@@ -971,52 +1145,51 @@ const AIRoleManagementPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-base font-medium text-gray-700 mb-2">
+                      <label className="block text-base font-semibold text-gray-800 mb-2.5">
                         连接类型
                       </label>
                       <select
                         value={formData.difyConfig?.connectionType || 'chatflow'}
                         onChange={(e) => updateFormField('difyConfig.connectionType', e.target.value)}
-                        className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       >
                         <option value="chatflow">Chatflow（聊天流）</option>
                         <option value="workflow">Workflow（工作流）</option>
                       </select>
                     </div>
                   </div>
-                </div>
 
-                {/* 输入字段配置 */}
-                {(formData.difyConfig?.connectionType === 'workflow' || formData.difyConfig?.connectionType === 'chatflow') && (
-                  <div>
-                    <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-                      <h3 className="text-2xl font-semibold text-gray-800">
+                  {/* 输入字段配置 */}
+                  {(formData.difyConfig?.connectionType === 'workflow' || formData.difyConfig?.connectionType === 'chatflow') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                      <h3 className="text-2xl font-semibold text-gray-900">
                         {formData.difyConfig?.connectionType === 'workflow' ? 'Dify工作流输入字段' : 'Dify聊天流输入字段'}
                       </h3>
                       <button
                         onClick={addInputField}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-base"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold"
                       >
                         <PlusCircle size={18} />
                         添加字段
                       </button>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {formData.difyConfig?.inputFields && formData.difyConfig.inputFields.length > 0 ? (
                         formData.difyConfig.inputFields.map((field, index) => (
-                          <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-base font-medium text-gray-700">字段 #{index + 1}</span>
+                          <div key={index} className="border-2 border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-base font-semibold text-gray-800">字段 #{index + 1}</span>
                               <button
                                 onClick={() => removeInputField(index)}
-                                className="text-red-600 hover:text-red-700 transition-colors"
+                                className="text-red-600 hover:text-red-700 transition-colors p-1 hover:bg-red-50 rounded"
                               >
-                                <MinusCircle size={18} />
+                                <MinusCircle size={20} />
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
                                   变量名 *
                                 </label>
                                 <input
@@ -1024,11 +1197,11 @@ const AIRoleManagementPage: React.FC = () => {
                                   value={field.variable}
                                   onChange={(e) => updateInputField(index, { variable: e.target.value })}
                                   placeholder="例如：Additional_information"
-                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
                                   字段标签 *
                                 </label>
                                 <input
@@ -1036,17 +1209,17 @@ const AIRoleManagementPage: React.FC = () => {
                                   value={field.label}
                                   onChange={(e) => updateInputField(index, { label: e.target.value })}
                                   placeholder="例如：补充信息"
-                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 />
                               </div>
                               <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
                                   字段类型 *
                                 </label>
                                 <select
                                   value={field.type}
                                   onChange={(e) => updateInputField(index, { type: e.target.value as DifyInputField['type'] })}
-                                  className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                 >
                                   <option value="text">文本 (text)</option>
                                   <option value="paragraph">段落 (paragraph)</option>
@@ -1055,21 +1228,21 @@ const AIRoleManagementPage: React.FC = () => {
                                   <option value="number">数字 (number)</option>
                                 </select>
                               </div>
-                              <div className="flex items-center">
+                              <div className="flex items-center pt-7">
                                 <input
                                   type="checkbox"
                                   checked={field.required}
                                   onChange={(e) => updateInputField(index, { required: e.target.checked })}
-                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                                 />
-                                <label className="ml-2 text-sm text-gray-600">必填</label>
+                                <label className="ml-2.5 text-sm font-medium text-gray-700">必填</label>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-3">
+                            <div className="grid grid-cols-2 gap-4 mt-4">
                               {['paragraph', 'text'].includes(field.type) && (
                                 <>
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                       最大长度
                                     </label>
                                     <input
@@ -1077,11 +1250,11 @@ const AIRoleManagementPage: React.FC = () => {
                                       value={field.maxLength || ''}
                                       onChange={(e) => updateInputField(index, { maxLength: parseInt(e.target.value) || undefined })}
                                       placeholder="例如：5000"
-                                      className="w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      className="w-full px-3 py-2.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                                       占位符
                                     </label>
                                     <input
@@ -1142,6 +1315,1148 @@ const AIRoleManagementPage: React.FC = () => {
                           暂无输入字段，点击上方按钮添加
                         </div>
                       )}
+                      </div>
+                    </div>
+                  )}
+                  </div>
+                ) : (
+                  <div>
+                    {/* Tab 导航 */}
+                    <div className="border-b border-gray-200 mb-6">
+                      <nav className="flex space-x-4">
+                        {[
+                          { id: 'llm', label: 'LLM配置', icon: Cpu },
+                          { id: 'prompt', label: 'Prompt配置', icon: FileText },
+                          { id: 'context', label: '上下文策略', icon: Layers },
+                          { id: 'tools', label: '工具配置', icon: Wrench },
+                          { id: 'agents', label: 'Agent协作', icon: Network }
+                        ].map(tab => {
+                          const Icon = tab.icon;
+                          return (
+                            <button
+                              key={tab.id}
+                              onClick={() => setActiveTab(tab.id as any)}
+                              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors text-base font-medium ${
+                                activeTab === tab.id
+                                  ? 'border-blue-600 text-blue-600'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              }`}
+                            >
+                              <Icon size={18} />
+                              {tab.label}
+                            </button>
+                          );
+                        })}
+                      </nav>
+                    </div>
+
+                    {/* Tab 内容 */}
+                    <div className="space-y-6">
+                      {/* LLM 配置 Tab */}
+                      {activeTab === 'llm' && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              LLM Provider *
+                            </label>
+                            <select
+                              value={formData.agentConfig?.llm?.provider || 'openai'}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    llm: {
+                                      ...prev.agentConfig!.llm,
+                                      provider: e.target.value as any
+                                    }
+                                  }
+                                }));
+                              }}
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="openai">OpenAI</option>
+                              <option value="azure-openai">Azure OpenAI</option>
+                              <option value="qwen">通义千问</option>
+                              <option value="ernie">文心一言</option>
+                              <option value="custom">自定义端点</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              模型名称 *
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.agentConfig?.llm?.model || ''}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    llm: {
+                                      ...prev.agentConfig!.llm,
+                                      model: e.target.value
+                                    }
+                                  }
+                                }));
+                              }}
+                              placeholder="例如：gpt-4, gpt-3.5-turbo, qwen-max"
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              API Key *
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showApiKey ? 'text' : 'password'}
+                                value={formData.agentConfig?.llm?.apiKey || ''}
+                                onChange={(e) => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    agentConfig: {
+                                      ...prev.agentConfig!,
+                                      llm: {
+                                        ...prev.agentConfig!.llm,
+                                        apiKey: e.target.value
+                                      }
+                                    }
+                                  }));
+                                }}
+                                placeholder="sk-..."
+                                className="w-full px-4 py-2 pr-10 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <button
+                                onClick={() => setShowApiKey(!showApiKey)}
+                                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                              >
+                                {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              API 地址 *
+                            </label>
+                            <input
+                              type="url"
+                              value={formData.agentConfig?.llm?.apiBaseUrl || ''}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    llm: {
+                                      ...prev.agentConfig!.llm,
+                                      apiBaseUrl: e.target.value
+                                    }
+                                  }
+                                }));
+                              }}
+                              placeholder="https://api.openai.com/v1"
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            <p className="mt-1 text-sm text-gray-500">
+                              例如：https://api.openai.com/v1 或 https://api.azure.com/openai/v1
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              Temperature: {formData.agentConfig?.llm?.temperature || 0.7}
+                            </label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="2"
+                              step="0.1"
+                              value={formData.agentConfig?.llm?.temperature || 0.7}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    llm: {
+                                      ...prev.agentConfig!.llm,
+                                      temperature: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }));
+                              }}
+                              className="w-full"
+                            />
+                            <div className="flex justify-between text-sm text-gray-500 mt-1">
+                              <span>保守 (0)</span>
+                              <span>平衡 (1)</span>
+                              <span>创新 (2)</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              最大 Token 数 *
+                            </label>
+                            <input
+                              type="number"
+                              value={formData.agentConfig?.llm?.maxTokens || 2000}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    llm: {
+                                      ...prev.agentConfig!.llm,
+                                      maxTokens: parseInt(e.target.value) || 2000
+                                    }
+                                  }
+                                }));
+                              }}
+                              min="1"
+                              max="32000"
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Prompt 配置 Tab */}
+                      {activeTab === 'prompt' && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              系统提示词 *
+                            </label>
+                            <textarea
+                              value={formData.agentConfig?.prompt?.systemPrompt || ''}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    prompt: {
+                                      ...prev.agentConfig!.prompt!,
+                                      systemPrompt: e.target.value
+                                    }
+                                  }
+                                }));
+                              }}
+                              rows={10}
+                              placeholder="例如：你是一个专业的AI助手，擅长..."
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                            />
+                            <p className="mt-2 text-sm text-gray-500">
+                              支持变量替换，使用 {'{{variable}}'} 或 {'{variable}'} 格式
+                            </p>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-base font-medium text-gray-700">
+                                Prompt 变量
+                              </label>
+                              <button
+                                onClick={() => {
+                                  const newVar: PromptVariable = {
+                                    name: '',
+                                    description: '',
+                                    type: 'static',
+                                    value: ''
+                                  };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    agentConfig: {
+                                      ...prev.agentConfig!,
+                                      prompt: {
+                                        ...prev.agentConfig!.prompt!,
+                                        variables: [...(prev.agentConfig?.prompt?.variables || []), newVar]
+                                      }
+                                    }
+                                  }));
+                                }}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                              >
+                                <Plus size={16} />
+                                添加变量
+                              </button>
+                            </div>
+                            <div className="space-y-3">
+                              {formData.agentConfig?.prompt?.variables?.map((variable, index) => (
+                                <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">变量名 *</label>
+                                      <input
+                                        type="text"
+                                        value={variable.name}
+                                        onChange={(e) => {
+                                          const vars = [...(formData.agentConfig?.prompt?.variables || [])];
+                                          vars[index] = { ...vars[index], name: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              prompt: {
+                                                ...prev.agentConfig!.prompt!,
+                                                variables: vars
+                                              }
+                                            }
+                                          }));
+                                        }}
+                                        placeholder="user_name"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">类型 *</label>
+                                      <select
+                                        value={variable.type}
+                                        onChange={(e) => {
+                                          const vars = [...(formData.agentConfig?.prompt?.variables || [])];
+                                          vars[index] = { ...vars[index], type: e.target.value as any };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              prompt: {
+                                                ...prev.agentConfig!.prompt!,
+                                                variables: vars
+                                              }
+                                            }
+                                          }));
+                                        }}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      >
+                                        <option value="static">静态值</option>
+                                        <option value="dynamic">动态值</option>
+                                        <option value="context">上下文</option>
+                                      </select>
+                                    </div>
+                                    {variable.type === 'static' && (
+                                      <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">值</label>
+                                        <input
+                                          type="text"
+                                          value={variable.value || ''}
+                                          onChange={(e) => {
+                                            const vars = [...(formData.agentConfig?.prompt?.variables || [])];
+                                            vars[index] = { ...vars[index], value: e.target.value };
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              agentConfig: {
+                                                ...prev.agentConfig!,
+                                                prompt: {
+                                                  ...prev.agentConfig!.prompt!,
+                                                  variables: vars
+                                                }
+                                              }
+                                            }));
+                                          }}
+                                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                        />
+                                      </div>
+                                    )}
+                                    {variable.type === 'dynamic' && (
+                                      <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">来源路径</label>
+                                        <input
+                                          type="text"
+                                          value={variable.source || ''}
+                                          onChange={(e) => {
+                                            const vars = [...(formData.agentConfig?.prompt?.variables || [])];
+                                            vars[index] = { ...vars[index], source: e.target.value };
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              agentConfig: {
+                                                ...prev.agentConfig!,
+                                                prompt: {
+                                                  ...prev.agentConfig!.prompt!,
+                                                  variables: vars
+                                                }
+                                              }
+                                            }));
+                                          }}
+                                          placeholder="user.profile.name"
+                                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                        />
+                                      </div>
+                                    )}
+                                    <div className="col-span-2 flex justify-end">
+                                      <button
+                                        onClick={() => {
+                                          const vars = formData.agentConfig?.prompt?.variables?.filter((_, i) => i !== index) || [];
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              prompt: {
+                                                ...prev.agentConfig!.prompt!,
+                                                variables: vars
+                                              }
+                                            }
+                                          }));
+                                        }}
+                                        className="text-red-600 hover:text-red-700 text-sm"
+                                      >
+                                        删除
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 上下文策略 Tab */}
+                      {activeTab === 'context' && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              策略类型 *
+                            </label>
+                            <select
+                              value={formData.agentConfig?.contextStrategy?.type || 'window'}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    contextStrategy: {
+                                      ...prev.agentConfig!.contextStrategy!,
+                                      type: e.target.value as any
+                                    }
+                                  }
+                                }));
+                              }}
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="window">窗口策略（保留最近N条消息）</option>
+                              <option value="summary">摘要策略（旧消息压缩为摘要）</option>
+                              <option value="hybrid">混合策略（Token控制+摘要）</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              最大消息数: {formData.agentConfig?.contextStrategy?.maxMessages || 10}
+                            </label>
+                            <input
+                              type="range"
+                              min="1"
+                              max="100"
+                              value={formData.agentConfig?.contextStrategy?.maxMessages || 10}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    contextStrategy: {
+                                      ...prev.agentConfig!.contextStrategy!,
+                                      maxMessages: parseInt(e.target.value)
+                                    }
+                                  }
+                                }));
+                              }}
+                              className="w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-base font-medium text-gray-700 mb-2">
+                              最大 Token 数 *
+                            </label>
+                            <input
+                              type="number"
+                              value={formData.agentConfig?.contextStrategy?.maxTokens || 4000}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    contextStrategy: {
+                                      ...prev.agentConfig!.contextStrategy!,
+                                      maxTokens: parseInt(e.target.value) || 4000
+                                    }
+                                  }
+                                }));
+                              }}
+                              min="1000"
+                              max="32000"
+                              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          {formData.agentConfig?.contextStrategy?.type === 'summary' && (
+                            <div>
+                              <label className="block text-base font-medium text-gray-700 mb-2">
+                                摘要阈值
+                              </label>
+                              <input
+                                type="number"
+                                value={formData.agentConfig?.contextStrategy?.summaryThreshold || 20}
+                                onChange={(e) => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    agentConfig: {
+                                      ...prev.agentConfig!,
+                                      contextStrategy: {
+                                        ...prev.agentConfig!.contextStrategy!,
+                                        summaryThreshold: parseInt(e.target.value) || 20
+                                      }
+                                    }
+                                  }));
+                                }}
+                                min="5"
+                                className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <p className="mt-1 text-sm text-gray-500">当消息数超过此值时，触发摘要生成</p>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={formData.agentConfig?.contextStrategy?.includeSystemPrompt ?? true}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    contextStrategy: {
+                                      ...prev.agentConfig!.contextStrategy!,
+                                      includeSystemPrompt: e.target.checked
+                                    }
+                                  }
+                                }));
+                              }}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                            <label className="text-base font-medium text-gray-700">每次对话都包含 System Prompt</label>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 工具配置 Tab */}
+                      {activeTab === 'tools' && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-800">工具列表</h4>
+                            <button
+                              onClick={() => {
+                                const newTool: ToolConfig = {
+                                  id: `tool-${Date.now()}`,
+                                  name: '',
+                                  description: '',
+                                  type: 'api',
+                                  enabled: true,
+                                  parameters: []
+                                };
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    tools: [...(prev.agentConfig?.tools || []), newTool]
+                                  }
+                                }));
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                            >
+                              <Plus size={16} />
+                              添加工具
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {formData.agentConfig?.tools && formData.agentConfig.tools.length > 0 ? (
+                              formData.agentConfig.tools.map((tool, index) => (
+                                <div key={tool.id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={tool.enabled}
+                                          onChange={(e) => {
+                                            const tools = [...(formData.agentConfig?.tools || [])];
+                                            tools[index] = { ...tools[index], enabled: e.target.checked };
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              agentConfig: {
+                                                ...prev.agentConfig!,
+                                                tools
+                                              }
+                                            }));
+                                          }}
+                                          className="w-4 h-4 text-blue-600 rounded"
+                                        />
+                                        <span className="font-medium text-gray-700">工具 #{index + 1}</span>
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                          {tool.type}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => {
+                                        const tools = formData.agentConfig?.tools?.filter((_, i) => i !== index) || [];
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          agentConfig: {
+                                            ...prev.agentConfig!,
+                                            tools
+                                          }
+                                        }));
+                                      }}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">工具名称 *</label>
+                                      <input
+                                        type="text"
+                                        value={tool.name}
+                                        onChange={(e) => {
+                                          const tools = [...(formData.agentConfig?.tools || [])];
+                                          tools[index] = { ...tools[index], name: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              tools
+                                            }
+                                          }));
+                                        }}
+                                        placeholder="例如：search_web"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">工具类型 *</label>
+                                      <select
+                                        value={tool.type}
+                                        onChange={(e) => {
+                                          const tools = [...(formData.agentConfig?.tools || [])];
+                                          tools[index] = { ...tools[index], type: e.target.value as any };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              tools
+                                            }
+                                          }));
+                                        }}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      >
+                                        <option value="search">搜索</option>
+                                        <option value="api">API调用</option>
+                                        <option value="calculation">计算</option>
+                                        <option value="time">时间</option>
+                                        <option value="workflow">Workflow调用</option>
+                                        <option value="agent">Agent调用</option>
+                                        <option value="custom">自定义</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">工具描述 *</label>
+                                      <textarea
+                                        value={tool.description}
+                                        onChange={(e) => {
+                                          const tools = [...(formData.agentConfig?.tools || [])];
+                                          tools[index] = { ...tools[index], description: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              tools
+                                            }
+                                          }));
+                                        }}
+                                        rows={2}
+                                        placeholder="描述这个工具的功能和用途"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+
+                                    {/* 根据工具类型显示不同的配置 */}
+                                    {(tool.type === 'api' || tool.type === 'workflow' || tool.type === 'agent') && (
+                                      <div className="col-span-2 space-y-2">
+                                        {tool.type === 'api' && (
+                                          <>
+                                            <div>
+                                              <label className="block text-sm font-medium text-gray-600 mb-1">API端点</label>
+                                              <input
+                                                type="url"
+                                                value={tool.implementation?.endpoint || ''}
+                                                onChange={(e) => {
+                                                  const tools = [...(formData.agentConfig?.tools || [])];
+                                                  tools[index] = {
+                                                    ...tools[index],
+                                                    implementation: {
+                                                      ...tools[index].implementation,
+                                                      endpoint: e.target.value
+                                                    }
+                                                  };
+                                                  setFormData(prev => ({
+                                                    ...prev,
+                                                    agentConfig: {
+                                                      ...prev.agentConfig!,
+                                                      tools
+                                                    }
+                                                  }));
+                                                }}
+                                                placeholder="https://api.example.com/endpoint"
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label className="block text-sm font-medium text-gray-600 mb-1">HTTP方法</label>
+                                              <select
+                                                value={tool.implementation?.method || 'POST'}
+                                                onChange={(e) => {
+                                                  const tools = [...(formData.agentConfig?.tools || [])];
+                                                  tools[index] = {
+                                                    ...tools[index],
+                                                    implementation: {
+                                                      ...tools[index].implementation,
+                                                      method: e.target.value
+                                                    }
+                                                  };
+                                                  setFormData(prev => ({
+                                                    ...prev,
+                                                    agentConfig: {
+                                                      ...prev.agentConfig!,
+                                                      tools
+                                                    }
+                                                  }));
+                                                }}
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                              >
+                                                <option value="GET">GET</option>
+                                                <option value="POST">POST</option>
+                                                <option value="PUT">PUT</option>
+                                                <option value="DELETE">DELETE</option>
+                                              </select>
+                                            </div>
+                                          </>
+                                        )}
+                                        {tool.type === 'workflow' && (
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Workflow ID</label>
+                                            <input
+                                              type="text"
+                                              value={tool.implementation?.workflowId || ''}
+                                              onChange={(e) => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                tools[index] = {
+                                                  ...tools[index],
+                                                  implementation: {
+                                                    ...tools[index].implementation,
+                                                    workflowId: e.target.value
+                                                  }
+                                                };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              placeholder="workflow-id"
+                                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                            />
+                                          </div>
+                                        )}
+                                        {tool.type === 'agent' && (
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-600 mb-1">Agent ID</label>
+                                            <input
+                                              type="text"
+                                              value={tool.implementation?.agentId || ''}
+                                              onChange={(e) => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                tools[index] = {
+                                                  ...tools[index],
+                                                  implementation: {
+                                                    ...tools[index].implementation,
+                                                    agentId: e.target.value
+                                                  }
+                                                };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              placeholder="agent-id"
+                                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* 参数配置 - 简化版 */}
+                                    <div className="col-span-2">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-gray-600">参数定义</label>
+                                        <button
+                                          onClick={() => {
+                                            const tools = [...(formData.agentConfig?.tools || [])];
+                                            tools[index] = {
+                                              ...tools[index],
+                                              parameters: [
+                                                ...(tools[index].parameters || []),
+                                                {
+                                                  name: '',
+                                                  type: 'string',
+                                                  description: '',
+                                                  required: false
+                                                }
+                                              ]
+                                            };
+                                            setFormData(prev => ({
+                                              ...prev,
+                                              agentConfig: {
+                                                ...prev.agentConfig!,
+                                                tools
+                                              }
+                                            }));
+                                          }}
+                                          className="text-xs text-blue-600 hover:text-blue-800"
+                                        >
+                                          + 添加参数
+                                        </button>
+                                      </div>
+                                      <div className="space-y-2">
+                                        {tool.parameters?.map((param, paramIndex) => (
+                                          <div key={paramIndex} className="flex gap-2 items-center">
+                                            <input
+                                              type="text"
+                                              value={param.name}
+                                              onChange={(e) => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                const params = [...(tools[index].parameters || [])];
+                                                params[paramIndex] = { ...params[paramIndex], name: e.target.value };
+                                                tools[index] = { ...tools[index], parameters: params };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              placeholder="参数名"
+                                              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded"
+                                            />
+                                            <select
+                                              value={param.type}
+                                              onChange={(e) => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                const params = [...(tools[index].parameters || [])];
+                                                params[paramIndex] = { ...params[paramIndex], type: e.target.value as any };
+                                                tools[index] = { ...tools[index], parameters: params };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              className="px-2 py-1 text-xs border border-gray-300 rounded"
+                                            >
+                                              <option value="string">string</option>
+                                              <option value="number">number</option>
+                                              <option value="boolean">boolean</option>
+                                              <option value="array">array</option>
+                                              <option value="object">object</option>
+                                            </select>
+                                            <input
+                                              type="checkbox"
+                                              checked={param.required}
+                                              onChange={(e) => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                const params = [...(tools[index].parameters || [])];
+                                                params[paramIndex] = { ...params[paramIndex], required: e.target.checked };
+                                                tools[index] = { ...tools[index], parameters: params };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              className="w-4 h-4"
+                                            />
+                                            <span className="text-xs text-gray-500">必填</span>
+                                            <button
+                                              onClick={() => {
+                                                const tools = [...(formData.agentConfig?.tools || [])];
+                                                const params = tools[index].parameters?.filter((_, i) => i !== paramIndex) || [];
+                                                tools[index] = { ...tools[index], parameters: params };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    tools
+                                                  }
+                                                }));
+                                              }}
+                                              className="text-red-600 text-xs"
+                                            >
+                                              删除
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-8 text-gray-500 text-base">
+                                暂无工具，点击上方按钮添加
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Agent 协作 Tab */}
+                      {activeTab === 'agents' && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-800">Agent 调用配置</h4>
+                            <button
+                              onClick={() => {
+                                const newCall: AgentCallConfig = {
+                                  id: `call-${Date.now()}`,
+                                  name: '',
+                                  description: '',
+                                  trigger: 'auto',
+                                  inputMapping: {},
+                                  outputMapping: {}
+                                };
+                                setFormData(prev => ({
+                                  ...prev,
+                                  agentConfig: {
+                                    ...prev.agentConfig!,
+                                    agentCalls: [...(prev.agentConfig?.agentCalls || []), newCall]
+                                  }
+                                }));
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                            >
+                              <Plus size={16} />
+                              添加调用
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {formData.agentConfig?.agentCalls && formData.agentConfig.agentCalls.length > 0 ? (
+                              formData.agentConfig.agentCalls.map((call, index) => (
+                                <div key={call.id || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                  <div className="flex items-start justify-between mb-3">
+                                    <span className="font-medium text-gray-700">调用 #{index + 1}</span>
+                                    <button
+                                      onClick={() => {
+                                        const calls = formData.agentConfig?.agentCalls?.filter((_, i) => i !== index) || [];
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          agentConfig: {
+                                            ...prev.agentConfig!,
+                                            agentCalls: calls
+                                          }
+                                        }));
+                                      }}
+                                      className="text-red-600 hover:text-red-700"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">调用名称 *</label>
+                                      <input
+                                        type="text"
+                                        value={call.name}
+                                        onChange={(e) => {
+                                          const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                          calls[index] = { ...calls[index], name: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              agentCalls: calls
+                                            }
+                                          }));
+                                        }}
+                                        placeholder="例如：调用数据分析Agent"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">触发方式 *</label>
+                                      <select
+                                        value={call.trigger}
+                                        onChange={(e) => {
+                                          const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                          calls[index] = { ...calls[index], trigger: e.target.value as any };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              agentCalls: calls
+                                            }
+                                          }));
+                                        }}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      >
+                                        <option value="auto">自动触发</option>
+                                        <option value="manual">手动触发</option>
+                                      </select>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">调用描述 *</label>
+                                      <textarea
+                                        value={call.description}
+                                        onChange={(e) => {
+                                          const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                          calls[index] = { ...calls[index], description: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              agentCalls: calls
+                                            }
+                                          }));
+                                        }}
+                                        rows={2}
+                                        placeholder="描述这个调用的用途"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">目标 Agent ID</label>
+                                      <input
+                                        type="text"
+                                        value={call.targetAgentId || ''}
+                                        onChange={(e) => {
+                                          const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                          calls[index] = { ...calls[index], targetAgentId: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              agentCalls: calls
+                                            }
+                                          }));
+                                        }}
+                                        placeholder="agent-id"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">目标 Workflow ID</label>
+                                      <input
+                                        type="text"
+                                        value={call.targetWorkflowId || ''}
+                                        onChange={(e) => {
+                                          const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                          calls[index] = { ...calls[index], targetWorkflowId: e.target.value };
+                                          setFormData(prev => ({
+                                            ...prev,
+                                            agentConfig: {
+                                              ...prev.agentConfig!,
+                                              agentCalls: calls
+                                            }
+                                          }));
+                                        }}
+                                        placeholder="workflow-id"
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
+                                      />
+                                    </div>
+                                    <div className="col-span-2">
+                                      <p className="text-xs text-gray-500 mb-2">输入/输出映射配置（JSON格式，键值对）</p>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                          <label className="block text-xs font-medium text-gray-600 mb-1">输入映射</label>
+                                          <textarea
+                                            value={JSON.stringify(call.inputMapping || {}, null, 2)}
+                                            onChange={(e) => {
+                                              try {
+                                                const mapping = JSON.parse(e.target.value);
+                                                const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                                calls[index] = { ...calls[index], inputMapping: mapping };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    agentCalls: calls
+                                                  }
+                                                }));
+                                              } catch (err) {
+                                                // 忽略 JSON 解析错误
+                                              }
+                                            }}
+                                            rows={3}
+                                            placeholder='{"query": "user_query"}'
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded font-mono"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-xs font-medium text-gray-600 mb-1">输出映射</label>
+                                          <textarea
+                                            value={JSON.stringify(call.outputMapping || {}, null, 2)}
+                                            onChange={(e) => {
+                                              try {
+                                                const mapping = JSON.parse(e.target.value);
+                                                const calls = [...(formData.agentConfig?.agentCalls || [])];
+                                                calls[index] = { ...calls[index], outputMapping: mapping };
+                                                setFormData(prev => ({
+                                                  ...prev,
+                                                  agentConfig: {
+                                                    ...prev.agentConfig!,
+                                                    agentCalls: calls
+                                                  }
+                                                }));
+                                              } catch (err) {
+                                                // 忽略 JSON 解析错误
+                                              }
+                                            }}
+                                            rows={3}
+                                            placeholder='{"result": "output"}'
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded font-mono"
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-8 text-gray-500 text-base">
+                                暂无 Agent 调用配置，点击上方按钮添加
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1153,25 +2468,34 @@ const AIRoleManagementPage: React.FC = () => {
                       type="checkbox"
                       checked={formData.enabled || false}
                       onChange={(e) => updateFormField('enabled', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
-                    <label className="text-base font-medium text-gray-700">启用此角色</label>
+                    <label className="text-base font-semibold text-gray-800 ml-2.5">启用此角色</label>
                   </div>
 
                   <div className="flex items-center gap-3">
                     {selectedRole && (
-                      <button
-                        onClick={testConnection}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-base font-medium"
-                      >
-                        <TestTube size={18} />
-                        测试连接
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setShowChatDialog(true)}
+                          className="flex items-center gap-2 px-5 py-2.5 border-2 border-blue-300 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 hover:border-blue-400 transition-all shadow-sm hover:shadow-md text-sm font-semibold"
+                        >
+                          <MessageSquare size={18} />
+                          对话测试
+                        </button>
+                        <button
+                          onClick={testConnection}
+                          className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm hover:shadow-md text-sm font-semibold"
+                        >
+                          <TestTube size={18} />
+                          测试连接
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={saveRole}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     >
                       {saving ? (
                         <>
@@ -1191,17 +2515,17 @@ const AIRoleManagementPage: React.FC = () => {
                 {/* 测试结果 */}
                 {selectedRole && testResults[selectedRole.id] && (
                   <div
-                    className={`p-4 rounded-lg ${
+                    className={`p-5 rounded-xl shadow-sm ${
                       testResults[selectedRole.id].success
-                        ? 'bg-green-50 text-green-800'
-                        : 'bg-red-50 text-red-800'
+                        ? 'bg-green-50 text-green-800 border-2 border-green-200'
+                        : 'bg-red-50 text-red-800 border-2 border-red-200'
                     }`}
                   >
-                    <div className="flex items-center gap-2 text-base font-medium">
+                    <div className="flex items-center gap-2.5 text-base font-semibold">
                       {testResults[selectedRole.id].success ? (
-                        <CheckCircle size={20} />
+                        <CheckCircle size={22} />
                       ) : (
-                        <AlertCircle size={20} />
+                        <AlertCircle size={22} />
                       )}
                       <span>{testResults[selectedRole.id].message}</span>
                     </div>
@@ -1212,6 +2536,42 @@ const AIRoleManagementPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 对话测试对话框 */}
+      {showChatDialog && selectedRole && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowChatDialog(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl flex flex-col w-full max-w-2xl h-[85vh] max-h-[700px] overflow-hidden">
+            {/* 对话框标题栏 */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-5 h-5" />
+                <span className="font-semibold text-base">{selectedRole.name}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowChatDialog(false)}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  title="关闭"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* 对话内容区域 */}
+            <div className="flex-1 overflow-hidden bg-white">
+              <AIRoleChat roleConfig={selectedRole} compact={false} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
