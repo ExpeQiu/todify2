@@ -47,10 +47,22 @@ wait_for_service() {
             return 1
         fi
         
-        # 尝试连接服务
-        if curl -s -f "$url" > /dev/null 2>&1; then
+        # 尝试连接服务（增加超时时间，避免快速失败）
+        if curl -s -f --max-time 2 "$url" > /dev/null 2>&1; then
             echo "✅ 服务已就绪: $url"
             return 0
+        fi
+        
+        # 检查日志中是否显示服务已启动
+        if [ -f "$log_file" ]; then
+            if grep -q "Backend server 已启动\|server.*started\|listening on" "$log_file" 2>/dev/null; then
+                # 如果日志显示已启动，再等待2秒后重试一次
+                sleep 2
+                if curl -s -f --max-time 2 "$url" > /dev/null 2>&1; then
+                    echo "✅ 服务已就绪: $url"
+                    return 0
+                fi
+            fi
         fi
         
         # 检查日志中是否有明显的错误
@@ -274,7 +286,7 @@ PORT=$BACKEND_PORT npm run dev > "$BACKEND_LOG" 2>&1 &
 BACKEND_PID=$!
 
 # 等待一小段时间让进程启动
-sleep 3
+sleep 5
 
 # 检查进程是否还在运行
 if ! kill -0 $BACKEND_PID 2>/dev/null; then

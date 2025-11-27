@@ -20,10 +20,51 @@ export const mapWorkflowInput = (
 ) => {
   if (inputMappings && inputMappings.length > 0) {
     const mapped = fieldMappingEngine.mapInputFields(data, inputMappings);
+    
+    // 确保关键字段始终被保留（即使映射配置中没有配置）
+    // 这些字段对于附件传递至关重要
+    if (data.sources && Array.isArray(data.sources)) {
+      mapped.sources = data.sources;
+      logger.info('mapWorkflowInput: 保留 sources 字段', {
+        sourcesCount: data.sources.length,
+        sources: data.sources.map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          type: s.type,
+          hasUrl: !!s.url,
+          url: s.url,
+        })),
+      });
+    }
+    if (data.files && Array.isArray(data.files)) {
+      mapped.files = data.files;
+      logger.info('mapWorkflowInput: 保留 files 字段', {
+        filesCount: data.files.length,
+      });
+    }
+    if (data.fileList && Array.isArray(data.fileList)) {
+      mapped.fileList = data.fileList;
+      logger.info('mapWorkflowInput: 保留 fileList 字段', {
+        fileListCount: data.fileList.length,
+      });
+    }
+    
     // 确保 query 字段存在（即使映射配置中没有）
     if (!mapped.query && data.query) {
       mapped.query = data.query;
     }
+    
+    logger.info('mapWorkflowInput: 映射完成', {
+      hasInputMappings: true,
+      mappedKeys: Object.keys(mapped),
+      hasSources: !!mapped.sources,
+      sourcesCount: Array.isArray(mapped.sources) ? mapped.sources.length : 0,
+      hasFiles: !!mapped.files,
+      filesCount: Array.isArray(mapped.files) ? mapped.files.length : 0,
+      hasFileList: !!mapped.fileList,
+      fileListCount: Array.isArray(mapped.fileList) ? mapped.fileList.length : 0,
+    });
+    
     return mapped;
   }
   // 如果没有映射配置，直接返回数据，但确保 query 字段存在
@@ -31,6 +72,16 @@ export const mapWorkflowInput = (
   if (!result.query && data.query) {
     result.query = data.query;
   }
+  
+  logger.info('mapWorkflowInput: 无映射配置，直接返回', {
+    hasInputMappings: false,
+    resultKeys: Object.keys(result),
+    hasSources: !!result.sources,
+    sourcesCount: Array.isArray(result.sources) ? result.sources.length : 0,
+    hasFiles: !!result.files,
+    filesCount: Array.isArray(result.files) ? result.files.length : 0,
+  });
+  
   return result;
 };
 

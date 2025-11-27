@@ -17,15 +17,16 @@ api.interceptors.response.use(
   (error) => {
     // 对于页面工具配置的 404 错误，静默处理（不抛出错误）
     if (error?.config?.url?.includes('/page-tool-configs/') && error?.response?.status === 404) {
-      // 返回一个模拟的成功响应，data 为 null
+      // 返回一个模拟的成功响应，data 为 null，表示配置不存在（这是正常情况）
       return Promise.resolve({
         data: {
           success: false,
           data: null,
+          message: '配置不存在',
         },
-        status: 404,
-        statusText: 'Not Found',
-        headers: {},
+        status: 200, // 返回 200 而不是 404，避免浏览器控制台显示错误
+        statusText: 'OK',
+        headers: error.response?.headers || {},
         config: error.config,
       });
     }

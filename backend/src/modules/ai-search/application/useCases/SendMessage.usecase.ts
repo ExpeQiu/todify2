@@ -83,11 +83,65 @@ export class SendMessageUseCase {
         });
         const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 
+        // 获取对话的 Dify conversation_id（如果存在），用于多轮对话
+        const difyConversationId = conversationRecord?.difyConversationId || null;
+        
+        logger.info('准备发送消息到Dify工作流', {
+          本地对话ID: params.conversationId,
+          DifyConversationId: difyConversationId || '未设置（首次对话，Dify将返回新的conversation_id）',
+        });
+        
+        // 将 Dify conversation_id 添加到 workflowInput 中，这样 Agent 节点可以获取到
+        if (difyConversationId) {
+          workflowInput.conversationId = difyConversationId;
+          logger.info('已设置Dify conversation_id到工作流输入', { difyConversationId });
+        } else {
+          logger.info('首次对话，未设置Dify conversation_id，Dify将创建新的对话');
+        }
+
         const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {
           input: workflowInput,
         });
 
+        // 从工作流执行结果中提取 Dify conversation_id
+        // Agent 节点的输出中可能包含 conversation_id
+        let newDifyConversationId: string | null = null;
+        
+        // 尝试从工作流执行结果的数据中提取 conversation_id
+        // 首先检查 outputs 中是否包含 conversation_id
+        if (workflowResult?.data?.outputs) {
+          const outputs = workflowResult.data.outputs;
+          if (outputs.conversation_id && typeof outputs.conversation_id === 'string') {
+            newDifyConversationId = outputs.conversation_id;
+          } else if (outputs.output && typeof outputs.output === 'object' && outputs.output.conversation_id) {
+            newDifyConversationId = outputs.output.conversation_id;
+          } else if (outputs.metadata && typeof outputs.metadata === 'object' && outputs.metadata.conversation_id) {
+            newDifyConversationId = outputs.metadata.conversation_id;
+          }
+        }
+        
+        // 如果还没有找到，尝试从 extractedOutput 中提取
         const extractedOutput = extractWorkflowOutput(workflowResult, mappingConfig.outputMappings);
+        if (!newDifyConversationId && extractedOutput && typeof extractedOutput === 'object') {
+          if (extractedOutput.conversation_id && typeof extractedOutput.conversation_id === 'string') {
+            newDifyConversationId = extractedOutput.conversation_id;
+          }
+        }
+
+        // 如果获取到了新的 conversation_id，保存到对话记录中
+        if (newDifyConversationId) {
+          await this.aiSearchService.updateDifyConversationId(params.conversationId, newDifyConversationId);
+          logger.info('✅ 已更新对话的 Dify conversation_id', {
+            本地对话ID: params.conversationId,
+            DifyConversationId: newDifyConversationId,
+            是否首次对话: !difyConversationId,
+          });
+        } else {
+          logger.warn('⚠️ 未从Dify工作流响应中提取到conversation_id', {
+            本地对话ID: params.conversationId,
+            之前是否有DifyConversationId: !!difyConversationId,
+          });
+        }
 
         // 辅助函数：确保内容是字符串
         const ensureStringContent = (content: any): string => {
@@ -252,8 +306,68 @@ export class SendMessageUseCase {
       ? params.knowledgeBaseNames.split(',').map((name) => name.trim()).filter((name) => name.length > 0)
       : [];
 
+    // 判断是否是第一次对话（对话不存在或没有历史消息）
+    const isFirstMessage = !params.conversation || 
+                          !params.conversation.messages || 
+                          params.conversation.messages.length === 0;
+    
+    // 只在第一次对话时，提取外部来源的文本内容（description）作为附加信息
+    let additionalContext = '';
+    if (isFirstMessage) {
+      const externalTextSources = effectiveSources.filter((s: any) => 
+        s.type === 'external' && s.description && s.description.trim()
+      );
+      
+      if (externalTextSources.length > 0) {
+        const textContents: string[] = [];
+        externalTextSources.forEach((source: any) => {
+          if (source.description && source.description.trim()) {
+            const title = source.title || '附加信息';
+            textContents.push(`【${title}】\n${source.description.trim()}`);
+          }
+        });
+        
+        if (textContents.length > 0) {
+          additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
+          logger.info('提取外部来源文本内容作为附加信息（仅第一次对话）', {
+            isFirstMessage: true,
+            sourcesCount: externalTextSources.length,
+            totalTextLength: additionalContext.length,
+            sources: externalTextSources.map((s: any) => ({
+              id: s.id,
+              title: s.title,
+              descriptionLength: s.description?.length || 0,
+            })),
+          });
+        }
+      }
+    } else {
+      // 后续对话时，记录日志但不添加附加信息
+      const externalTextSources = effectiveSources.filter((s: any) => 
+        s.type === 'external' && s.description && s.description.trim()
+      );
+      if (externalTextSources.length > 0) {
+        logger.info('检测到外部来源文本，但非第一次对话，跳过附加信息', {
+          isFirstMessage: false,
+          messageCount: params.conversation?.messages?.length || 0,
+          sourcesCount: externalTextSources.length,
+        });
+      }
+    }
+
+    // 将附加信息合并到 query 中（仅在第一次对话时）
+    let finalQuery = params.content;
+    if (additionalContext) {
+      finalQuery = params.content + additionalContext;
+      logger.info('合并附加信息到查询内容', {
+        originalLength: params.content.length,
+        additionalLength: additionalContext.length,
+        finalLength: finalQuery.length,
+      });
+    }
+
     return {
-      query: params.content,
+      query: finalQuery,
       summary: context.summary,
       keyPhrases: context.keyPhrases,
       sources: effectiveSources,
@@ -265,7 +379,9 @@ export class SendMessageUseCase {
         })) || [],
       fileList: fileListArray, // 文件列表数组
       knowledgeBaseNames: knowledgeBaseNamesArray, // 知识库名称数组
-      conversationId: params.conversation?.id,
+      // 注意：使用 Dify 的 conversation_id，不是本地对话ID
+      // 首次对话时为空，Dify 会返回新的 conversation_id
+      conversationId: params.conversation?.difyConversationId || '',
       history: context.history,
       historySize: context.historySize,
       historyLimit: context.historyLimit,

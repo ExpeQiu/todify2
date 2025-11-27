@@ -29,6 +29,7 @@ export interface WorkflowInput {
   workflowId: string;
   inputs: Record<string, unknown>;
   userId?: string;
+  conversationId?: string; // Dify conversation_id，用于多轮对话
 }
 
 export interface WorkflowOutput {
@@ -178,12 +179,19 @@ export class DifyGateway {
 
   async executeWorkflow(input: WorkflowInput): Promise<Result<WorkflowOutput>> {
     try {
+      const requestBody: any = {
+        inputs: input.inputs,
+        response_mode: 'blocking',
+        user: input.userId ?? 'todify-user',
+      };
+
+      // 如果提供了 conversation_id，添加到请求体中（Dify工作流API支持此参数用于多轮对话）
+      if (input.conversationId && input.conversationId.trim() !== '') {
+        requestBody.conversation_id = input.conversationId;
+      }
+
       const response = await this.retry(() =>
-        this.workflowClient.post('/workflows/run', {
-          inputs: input.inputs,
-          response_mode: 'blocking',
-          user: input.userId ?? 'todify-user',
-        })
+        this.workflowClient.post('/workflows/run', requestBody)
       );
 
       return success({

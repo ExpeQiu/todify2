@@ -363,6 +363,7 @@ class AiSearchService {
           updatedAt: payload.updatedAt ? new Date(payload.updatedAt) : new Date(),
           hasMoreMessages: Boolean(payload.hasMoreMessages),
           nextCursor: payload.nextCursor || undefined,
+          difyConversationId: payload.difyConversationId || undefined,
         };
       }
       return null;

@@ -7,6 +7,8 @@ import MessageItem from "./MessageItem";
 interface DialogueContentProps {
   conversation: Conversation | null;
   sources: Source[];
+  sentSourceIds?: string[]; // 已发送给 Dify 的来源 ID
+  onSourcesSent?: (sourceIds: string[]) => void; // 标记来源已发送
   contextWindowSize: number;
   onContextWindowSizeChange?: (value: number) => void;
   workflowId?: string | null;
@@ -28,6 +30,8 @@ interface DialogueContentProps {
 const DialogueContent: React.FC<DialogueContentProps> = ({
   conversation,
   sources,
+  sentSourceIds = [],
+  onSourcesSent,
   contextWindowSize,
   onContextWindowSizeChange,
   workflowId,
@@ -58,7 +62,19 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   // 同步对话消息
   useEffect(() => {
     if (conversation) {
-      setMessages(conversation.messages || []);
+      const rawMessages = conversation.messages || [];
+      // 按消息ID去重，保留最新的消息
+      const messageMap = new Map<string, Message>();
+      rawMessages.forEach((msg) => {
+        messageMap.set(msg.id, msg);
+      });
+      // 按时间排序
+      const uniqueMessages = Array.from(messageMap.values()).sort((a, b) => {
+        const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+        const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+        return timeA - timeB; // 升序排列，最早的在前
+      });
+      setMessages(uniqueMessages);
     } else {
       setMessages([]);
     }
@@ -116,22 +132,23 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       };
       lastSubmissionRef.current = submission;
 
-      // 检测是否是首次发送（messages.length === 0 且 sources.length > 0）
-      const isFirstMessage = messages.length === 0 && sources.length > 0;
+      // 计算新增的来源（当前选中但尚未发送过的）
+      const newSources = sources.filter((s) => !sentSourceIds.includes(s.id));
+      const newSourceIds = newSources.map((s) => s.id);
       
-      // 构建文件列表和知识库名称（仅在首次发送时）
+      // 构建文件列表和知识库名称（仅针对新增的来源）
       let fileList: string | undefined;
       let knowledgeBaseNames: string | undefined;
       
-      if (isFirstMessage) {
-        // 筛选文件（type === 'external'）
-        const fileSources = sources.filter((s) => s.type === 'external');
+      if (newSources.length > 0) {
+        // 筛选新增的文件（type === 'external'）
+        const fileSources = newSources.filter((s) => s.type === 'external');
         if (fileSources.length > 0) {
           fileList = fileSources.map((s) => s.title).join(', ');
         }
         
-        // 筛选知识库（type === 'knowledge_base'）
-        const knowledgeBaseSources = sources.filter((s) => s.type === 'knowledge_base');
+        // 筛选新增的知识库（type === 'knowledge_base'）
+        const knowledgeBaseSources = newSources.filter((s) => s.type === 'knowledge_base');
         if (knowledgeBaseSources.length > 0) {
           knowledgeBaseNames = knowledgeBaseSources.map((s) => s.title).join(', ');
         }
@@ -139,7 +156,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
 
       const response = await aiSearchService.sendMessage(activeConversation.id, {
         content: submission.content,
-        sources: sources,
+        sources: newSources, // 只传递新增的来源
         files: submission.files,
         contextWindowSize,
         workflowId: workflowId || undefined,
@@ -148,18 +165,44 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       });
 
       if (response.userMessage && response.aiMessage) {
-        const newMessages = [
-          ...messages,
-          response.userMessage,
-          response.aiMessage,
-        ];
+        // 合并消息并去重（按消息ID）
+        const messageMap = new Map<string, Message>();
+        // 先添加现有消息
+        messages.forEach((msg) => {
+          messageMap.set(msg.id, msg);
+        });
+        // 再添加新消息（会覆盖重复的）
+        messageMap.set(response.userMessage.id, response.userMessage);
+        messageMap.set(response.aiMessage.id, response.aiMessage);
+        // 按时间排序
+        const newMessages = Array.from(messageMap.values()).sort((a, b) => {
+          const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+          const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+          return timeA - timeB; // 升序排列，最早的在前
+        });
         setMessages(newMessages);
+
+        // 标记新增来源已发送，避免重复发送
+        if (newSourceIds.length > 0 && onSourcesSent) {
+          onSourcesSent(newSourceIds);
+        }
 
         if (onMessageSent) {
           onMessageSent(response.aiMessage);
         }
       } else if (response.userMessage) {
-        const newMessages = [...messages, response.userMessage];
+        // 合并消息并去重
+        const messageMap = new Map<string, Message>();
+        messages.forEach((msg) => {
+          messageMap.set(msg.id, msg);
+        });
+        messageMap.set(response.userMessage.id, response.userMessage);
+        // 按时间排序
+        const newMessages = Array.from(messageMap.values()).sort((a, b) => {
+          const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+          const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+          return timeA - timeB;
+        });
         setMessages(newMessages);
       }
 
@@ -251,7 +294,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
-                      d="M10 12a1 1 0 01-.707-.293l-3-3a1 1 0 111.414-1.414L10 9.586l2.293-2.293a1 1 011.414 1.414l-3 3A1 1 0 0110 12z"
+                      d="M10 12a1 1 0 0 1-.707-.293l-3-3a1 1 0 1 1 1.414-1.414L10 9.586l2.293-2.293a1 1 0 0 1 1.414 1.414l-3 3A1 1 0 0 1 10 12z"
                       clipRule="evenodd"
                     />
                   </svg>

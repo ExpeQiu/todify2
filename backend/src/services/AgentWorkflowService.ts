@@ -647,6 +647,19 @@ export class AgentWorkflowService {
         shared_context: JSON.stringify(sharedContext),
       });
 
+      // 从 Agent 节点输出中提取 conversation_id（用于多轮对话）
+      let conversationId: string | null = null;
+      for (const [nodeId, nodeOutput] of Object.entries(sharedContext.nodeOutputs || {})) {
+        if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.conversation_id) {
+          conversationId = nodeOutput.conversation_id;
+          logger.info('从 Agent 节点输出中提取到 conversation_id', {
+            nodeId,
+            conversationId,
+          });
+          break;
+        }
+      }
+
       // 记录最终提取的内容
       logger.info('工作流执行完成，提取结果', {
         workflowId,
@@ -655,6 +668,7 @@ export class AgentWorkflowService {
         contentLength: outputContent?.length || 0,
         nodeResultsCount: nodeResults.length,
         nodeOutputsKeys: Object.keys(sharedContext.nodeOutputs || {}),
+        hasConversationId: !!conversationId,
       });
 
       return {
@@ -666,6 +680,7 @@ export class AgentWorkflowService {
             text: outputContent,
             answer: outputContent,
             content: outputContent,
+            conversation_id: conversationId || undefined, // 包含 conversation_id 用于多轮对话
             metadata: {
               workflowId,
               executionId: execution.id,
@@ -908,7 +923,17 @@ export class AgentWorkflowService {
     }
 
     const { connectionType, apiKey, apiUrl } = role.difyConfig;
+    // 尝试从多个可能的位置获取 conversationId
+    // 优先级：nodeInput.conversationId > nodeInput.workflowInput.conversationId > sharedContext.workflowInput.conversationId
     let conversationId = nodeInput.conversationId || '';
+    if (!conversationId && nodeInput.workflowInput?.conversationId) {
+      conversationId = nodeInput.workflowInput.conversationId;
+      logger.info('从 nodeInput.workflowInput 获取到 conversationId', { conversationId });
+    }
+    if (!conversationId && sharedContext.workflowInput?.conversationId) {
+      conversationId = sharedContext.workflowInput.conversationId;
+      logger.info('从 sharedContext.workflowInput 获取到 conversationId', { conversationId });
+    }
 
     if (!apiKey || !apiUrl) {
       throw new Error(`AI角色 ${agentId} 的Dify配置不完整`);
@@ -948,7 +973,7 @@ export class AgentWorkflowService {
       connectionType,
       query: query?.substring(0, 100),
       queryLength: query?.length || 0,
-      hasConversationId: !!conversationId,
+      '传递给Dify的conversationId': conversationId || '空（首次对话）',
       inputsKeys: Object.keys(inputs || {}),
     });
 

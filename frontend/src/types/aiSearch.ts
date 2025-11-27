@@ -30,6 +30,7 @@ export interface Conversation {
   updatedAt: Date;
   hasMoreMessages?: boolean;
   nextCursor?: string;
+  difyConversationId?: string; // Dify返回的conversation_id，用于多轮对话
 }
 
 /**

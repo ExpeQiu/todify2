@@ -162,19 +162,44 @@ class AIRoleService {
    */
   async chatWithRole(
     roleId: string,
-    query: string,
+    query?: string,
     inputs: any = {},
-    conversationId?: string
+    conversationId?: string,
+    files?: File[]
   ): Promise<ChatResponse> {
     try {
-      const response = await api.post(`/ai-roles/${roleId}/chat`, {
-        query,
-        inputs,
-        conversationId,
-      }, {
-        timeout: 420_000, // AI对话请求使用7分钟超时（独立Agent可能需要多轮工具调用，留出缓冲）
-      });
-      return response.data;
+      // 如果有文件，使用 FormData 上传
+      if (files && files.length > 0) {
+        const formData = new FormData();
+        formData.append('query', query || '');
+        formData.append('inputs', JSON.stringify(inputs));
+        if (conversationId) {
+          formData.append('conversationId', conversationId);
+        }
+        
+        // 添加所有文件
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+
+        const response = await api.post(`/ai-roles/${roleId}/chat`, formData, {
+          timeout: 420_000, // AI对话请求使用7分钟超时（独立Agent可能需要多轮工具调用，留出缓冲）
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      } else {
+        // 没有文件，使用 JSON
+        const response = await api.post(`/ai-roles/${roleId}/chat`, {
+          query,
+          inputs,
+          conversationId,
+        }, {
+          timeout: 420_000, // AI对话请求使用7分钟超时（独立Agent可能需要多轮工具调用，留出缓冲）
+        });
+        return response.data;
+      }
     } catch (error) {
       console.error('AI角色对话失败:', error);
       return {

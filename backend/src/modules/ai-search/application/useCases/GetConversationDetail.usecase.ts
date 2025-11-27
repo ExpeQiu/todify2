@@ -42,6 +42,7 @@ export class GetConversationDetailUseCase {
         updatedAt: conversation.updatedAt instanceof Date ? conversation.updatedAt : new Date(conversation.updatedAt),
         hasMoreMessages: Boolean(conversation.hasMoreMessages),
         nextCursor: conversation.nextCursor || undefined,
+        difyConversationId: conversation.difyConversationId || undefined,
       };
 
       return success(detail);

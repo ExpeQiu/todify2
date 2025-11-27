@@ -8,8 +8,15 @@ import { testConnection } from './config/database';
 import { publicPageConfigModel, aiRoleModel } from './models';
 import { logger } from './shared/lib/logger';
 import { errorTracking } from './shared/infrastructure/monitoring/errorTracking';
-import { performanceMonitor } from './shared/infrastructure/monitoring/performanceMonitor';
-import { prometheusMetrics } from './shared/infrastructure/monitoring/prometheusMetrics';
+import { SourceInformationService } from './services/sourceInformationService';
+
+// 导入监控模块
+import { performanceMonitor as _performanceMonitor } from './shared/infrastructure/monitoring/performanceMonitor';
+import { prometheusMetrics as _prometheusMetrics } from './shared/infrastructure/monitoring/prometheusMetrics';
+
+// 确保模块正确加载
+const performanceMonitor = _performanceMonitor || null;
+const prometheusMetrics = _prometheusMetrics || null;
 
 dotenv.config();
 
@@ -24,10 +31,18 @@ app.use(cors());
 app.use(express.json());
 
 // 性能监控中间件（放在最前面）
-app.use(performanceMonitor.middleware());
+if (performanceMonitor && typeof performanceMonitor.middleware === 'function') {
+  app.use(performanceMonitor.middleware());
+} else {
+  logger.warn('性能监控中间件未正确加载，跳过');
+}
 
 // Prometheus 指标中间件（放在性能监控之后）
-app.use(prometheusMetrics.middleware());
+if (prometheusMetrics && typeof prometheusMetrics.middleware === 'function') {
+  app.use(prometheusMetrics.middleware());
+} else {
+  logger.warn('Prometheus 指标中间件未正确加载，跳过');
+}
 
 // 添加请求日志中间件（放在最前面，但要在路由之前）
 app.use((req, res, next) => {
@@ -319,6 +334,16 @@ async function startServer() {
       logger.info('公开页面配置数据库表初始化成功');
     } catch (error) {
       logger.warn('公开页面配置数据库表初始化警告', { error });
+      // 不阻止服务器启动，表会在首次使用时自动创建
+    }
+    
+    // 初始化来源信息数据库表
+    try {
+      const sourceInformationService = new SourceInformationService();
+      await sourceInformationService.initializeTable();
+      logger.info('来源信息数据库表初始化成功');
+    } catch (error) {
+      logger.warn('来源信息数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     

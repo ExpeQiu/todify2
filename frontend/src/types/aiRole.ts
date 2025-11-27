@@ -155,6 +155,12 @@ export interface ConversationMessage {
   liked?: boolean;
   disliked?: boolean;
   isRegenerating?: boolean;
+  attachments?: Array<{
+    name: string;
+    size: number;
+    type: string;
+    url?: string;
+  }>;
 }
 
 export interface AIRoleChatProps {

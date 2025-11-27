@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { Plus, Search, FileText, X, Edit } from "lucide-react";
+import { Plus, Search, FileText, X } from "lucide-react";
 import AddSourceModal from "./AddSourceModal";
+import AddTextModal from "./AddTextModal";
+import EditSourceModal from "./EditSourceModal";
 import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
 
 export interface Source {
@@ -27,11 +29,13 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   pageType,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTextModal, setShowTextModal] = useState(false);
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
+  const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [isSelectAll, setIsSelectAll] = useState(false);
 
   const handleAddSource = () => {
-    setShowAddModal(true);
+    setShowTextModal(true);
   };
 
   const handleExplore = () => {
@@ -60,7 +64,22 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     }
   };
 
-  const handleDeleteSource = (sourceId: string) => {
+  const handleSourceClick = (source: Source) => {
+    setEditingSource(source);
+  };
+
+  const handleUpdateSource = (updatedSource: Source) => {
+    if (onSourcesChange) {
+      const newSources = sources.map((s) =>
+        s.id === updatedSource.id ? updatedSource : s
+      );
+      onSourcesChange(newSources);
+    }
+    setEditingSource(null);
+  };
+
+  const handleDeleteSource = (sourceId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡，防止触发编辑弹窗
     if (onSourcesChange) {
       const newSources = sources.filter((s) => s.id !== sourceId);
       onSourcesChange(newSources);
@@ -81,6 +100,17 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
       onSourcesChange([...sources, source]);
     }
     setShowAddModal(false);
+  };
+
+  const handleAddTextSource = (newSource: Omit<Source, "id">) => {
+    const source: Source = {
+      ...newSource,
+      id: `text_${Date.now()}`,
+    };
+    if (onSourcesChange) {
+      onSourcesChange([...sources, source]);
+    }
+    setShowTextModal(false);
   };
 
   const handleSelectFromKnowledgeBase = (selectedItems: any[]) => {
@@ -107,7 +137,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
-            添加文件
+            添加信息
           </button>
           <button
             onClick={handleExplore}
@@ -136,19 +166,21 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
       <div className="flex-1 overflow-y-auto">
         {sources.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
-            暂无来源，点击"添加文件"或"知识库选择"添加来源
+            暂无来源，点击"添加信息"或"知识库选择"添加来源
           </div>
         ) : (
           <div className="p-2">
             {sources.map((source) => (
               <div
                 key={source.id}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
+                onClick={() => handleSourceClick(source)}
+                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
               >
                 <input
                   type="checkbox"
                   checked={selectedSources.includes(source.id)}
                   onChange={() => handleSourceToggle(source.id)}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
                 />
                 <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
@@ -164,7 +196,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => handleDeleteSource(source.id)}
+                    onClick={(e) => handleDeleteSource(source.id, e)}
                     className="p-1 hover:bg-gray-200 rounded transition-colors"
                     title="删除"
                   >
@@ -176,6 +208,14 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
           </div>
         )}
       </div>
+
+      {/* 添加文本来源弹窗 */}
+      {showTextModal && (
+        <AddTextModal
+          onClose={() => setShowTextModal(false)}
+          onAddTextSource={handleAddTextSource}
+        />
+      )}
 
       {/* 添加来源弹窗 */}
       {showAddModal && (
@@ -191,6 +231,15 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <KnowledgeBaseBrowser
           onClose={() => setShowKnowledgeBrowser(false)}
           onSelect={handleSelectFromKnowledgeBase}
+        />
+      )}
+
+      {/* 编辑来源弹窗 */}
+      {editingSource && (
+        <EditSourceModal
+          source={editingSource}
+          onClose={() => setEditingSource(null)}
+          onUpdate={handleUpdateSource}
         />
       )}
     </div>

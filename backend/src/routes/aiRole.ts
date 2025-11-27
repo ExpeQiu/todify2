@@ -1,4 +1,7 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import DifyClient from '../services/DifyClient';
 import { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';
 import { aiRoleModel } from '../models';
@@ -6,8 +9,58 @@ import { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';
 import { OpenAIProvider } from '../services/llm/OpenAIProvider';
 import { ChatMessage } from '../services/llm/types';
 import { AgentOrchestrator } from '../services/agent/AgentOrchestrator';
+import { FileService } from '../services/FileService';
 
 const router = express.Router();
+
+// 配置multer用于文件上传
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/ai-roles/';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // 生成唯一文件名，但保留原始扩展名
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${uniqueSuffix}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  },
+  fileFilter: (req, file, cb) => {
+    // 允许的文件类型
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'text/markdown',
+      'application/json',
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`不支持的文件类型: ${file.mimetype}`));
+    }
+  },
+});
+
+const fileService = new FileService();
 
 /**
  * 获取所有AI角色
@@ -265,12 +318,87 @@ router.delete('/:id', async (req, res) => {
 /**
  * 与指定AI角色对话
  * POST /api/v1/ai-roles/:id/chat
+ * 支持multipart/form-data（带文件）和application/json（不带文件）
  * 注意：必须在 /:id 路由之前定义，否则会被当作 id 处理
  */
-router.post('/:id/chat', async (req, res) => {
+router.post('/:id/chat', upload.array('files', 10), async (req, res) => {
   try {
     const { id } = req.params;
-    const { query, inputs = {}, conversationId = '' } = req.body;
+    
+    // 处理文件上传
+    const uploadedFiles = req.files as Express.Multer.File[];
+    let fileUrls: string[] = [];
+    
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      // 保存文件到数据库并获取文件URL
+      const filePromises = uploadedFiles.map(async (file) => {
+        const filePath = file.path;
+        const fileUrl = `/uploads/ai-roles/${file.filename}`;
+        
+        // 确定文件分类
+        let category = 'general';
+        if (file.mimetype.startsWith('image/')) {
+          category = 'image';
+        } else if (file.mimetype.startsWith('application/pdf') || 
+                   file.mimetype.includes('document') || 
+                   file.mimetype.includes('word') ||
+                   file.mimetype.includes('text')) {
+          category = 'document';
+        }
+
+        // 处理文件名编码
+        let originalName = file.originalname;
+        try {
+          const hasGarbledChars = /ã€|ç¥|æ|Ã|â€|â€|â€/.test(originalName);
+          if (hasGarbledChars) {
+            const buffer = Buffer.from(originalName, 'latin1');
+            const decoded = buffer.toString('utf8');
+            if (/[\u4e00-\u9fa5]/.test(decoded)) {
+              originalName = decoded;
+            }
+          }
+        } catch (e) {
+          // 忽略编码错误，使用原始文件名
+        }
+
+        // 保存文件记录到数据库
+        const fileRecord = await fileService.createFile({
+          original_name: originalName,
+          stored_name: file.filename,
+          file_path: filePath,
+          file_url: fileUrl,
+          mime_type: file.mimetype,
+          file_size: file.size,
+          category,
+          conversation_id: req.body.conversationId || undefined,
+        });
+
+        return fileUrl;
+      });
+      
+      fileUrls = await Promise.all(filePromises);
+    }
+    
+    // 获取请求参数（支持JSON和FormData）
+    let query: string = '';
+    let inputs: any = {};
+    let conversationId: string = '';
+    
+    if (req.headers['content-type']?.includes('multipart/form-data')) {
+      // FormData格式
+      query = req.body.query || '';
+      try {
+        inputs = typeof req.body.inputs === 'string' ? JSON.parse(req.body.inputs) : (req.body.inputs || {});
+      } catch (e) {
+        inputs = req.body.inputs || {};
+      }
+      conversationId = req.body.conversationId || '';
+    } else {
+      // JSON格式
+      query = req.body.query || '';
+      inputs = req.body.inputs || {};
+      conversationId = req.body.conversationId || '';
+    }
     
     // 获取角色配置
     const role = await aiRoleModel.getById(id);
@@ -283,11 +411,11 @@ router.post('/:id/chat', async (req, res) => {
       return res.status(400).json(formatApiResponse(false, null, 'AI角色已禁用'));
     }
     
-    // 验证查询参数
-    if (!query || query.trim() === '') {
+    // 验证查询参数：如果没有查询内容，至少要有文件上传
+    if ((!query || query.trim() === '') && fileUrls.length === 0) {
       return res.status(400).json(formatValidationErrorResponse([{
         field: 'query',
-        message: '查询内容不能为空'
+        message: '查询内容或文件至少需要提供一个'
       }]));
     }
     
@@ -367,11 +495,24 @@ router.post('/:id/chat', async (req, res) => {
       
       if (connectionType === 'chatflow') {
         // 使用聊天流模式，使用角色配置的API信息
-        console.log('准备调用 Dify chatflow，参数:', { query, conversationId, inputs, userId: 'ai-role-user' });
+        // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理
+        const inputsWithFiles = { ...inputs };
+        if (fileUrls.length > 0) {
+          inputsWithFiles.files = fileUrls;
+        }
+        
+        console.log('准备调用 Dify chatflow，参数:', { 
+          query, 
+          conversationId, 
+          inputsKeys: Object.keys(inputsWithFiles),
+          files: fileUrls.length,
+          fileUrls,
+          userId: 'ai-role-user' 
+        });
         const chatResult = await gateway.executeChat({
-          query,
+          query: query || '',
           conversationId,
-          inputs,
+          inputs: inputsWithFiles,
           userId: 'ai-role-user',
         });
         

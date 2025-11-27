@@ -8,6 +8,7 @@ export interface ConversationRecord {
   title: string;
   sources: string; // JSON string
   page_type?: string;
+  dify_conversation_id?: string; // Dify返回的conversation_id，用于多轮对话
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +62,16 @@ export class AiSearchService {
         // 如果字段已存在，忽略错误
         if (!error?.message?.includes('duplicate column') && !error?.message?.includes('already exists')) {
           logger.warn('添加 page_type 字段失败（可能已存在）', { error });
+        }
+      }
+
+      // 如果表已存在但没有 dify_conversation_id 字段，添加该字段
+      try {
+        await db.query(`ALTER TABLE ai_search_conversations ADD COLUMN dify_conversation_id TEXT`);
+      } catch (error: any) {
+        // 如果字段已存在，忽略错误
+        if (!error?.message?.includes('duplicate column') && !error?.message?.includes('already exists')) {
+          logger.warn('添加 dify_conversation_id 字段失败（可能已存在）', { error });
         }
       }
 
@@ -191,6 +202,7 @@ export class AiSearchService {
         title: row.title,
         sources: row.sources,
         page_type: row.page_type,
+        dify_conversation_id: row.dify_conversation_id,
         created_at: row.created_at,
         updated_at: row.updated_at,
       }));
@@ -272,6 +284,7 @@ export class AiSearchService {
       id: conversation.id,
       title: conversation.title,
       sources: JSON.parse(conversation.sources || '[]'),
+      difyConversationId: conversation.dify_conversation_id,
       messages: messagesAsc.map((row) => ({
         id: row.id,
         role: row.role,
@@ -356,6 +369,16 @@ export class AiSearchService {
       outputs: outputsJson || undefined,
       created_at: now,
     };
+  }
+
+  /**
+   * 更新对话的 Dify conversation_id
+   */
+  async updateDifyConversationId(conversationId: string, difyConversationId: string): Promise<void> {
+    await db.query(
+      `UPDATE ai_search_conversations SET dify_conversation_id = ?, updated_at = ? WHERE id = ?`,
+      [difyConversationId, new Date().toISOString(), conversationId]
+    );
   }
 
   /**

@@ -19,6 +19,7 @@ import workflowExecutionRouter from './workflowExecution';
 import workflowTemplateRouter from './workflowTemplate';
 import publicPageConfigRouter from './publicPageConfig';
 import pageToolConfigRouter from './pageToolConfig';
+import sourceInformationRouter from './sourceInformationRoutes';
 
 const router = Router();
 
@@ -53,6 +54,7 @@ router.use('/executions', workflowExecutionRouter);
 router.use('/workflow-templates', workflowTemplateRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
 router.use('/page-tool-configs', pageToolConfigRouter);
+router.use('/source-information', sourceInformationRouter);
 router.use('/ai-search', aiSearchModuleRouter);
 
 // 健康检查
@@ -87,6 +89,22 @@ router.get('/test', (req, res) => {
     success: true,
     message: 'Test endpoint working',
     timestamp: new Date().toISOString()
+  });
+});
+
+// 404 处理中间件（必须在所有路由之后）
+router.use((req, res) => {
+  logger.warn('API 路由未找到', {
+    method: req.method,
+    originalUrl: req.originalUrl,
+    path: req.path,
+  });
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: `路由不存在: ${req.method} ${req.path}`,
+    },
   });
 });
 

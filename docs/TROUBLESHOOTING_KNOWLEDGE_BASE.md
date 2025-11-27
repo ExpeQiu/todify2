@@ -144,7 +144,7 @@ ls -la /root/todify2-deploy/backend/data/
 
 # 重新创建数据库表
 cd /root/todify2-deploy/backend
-node create-stats-tables.js
+npx ts-node src/scripts/create-workflow-stats-tables.ts
 
 # 检查文件权限
 chmod 644 /root/todify2-deploy/backend/data/todify3.db

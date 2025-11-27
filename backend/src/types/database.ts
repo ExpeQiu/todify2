@@ -349,3 +349,20 @@ export type UpdateTechSpeechDTO = Partial<CreateTechSpeechDTO>;
 
 export type CreateKnowledgePointDTO = Omit<KnowledgePoint, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateKnowledgePointDTO = Partial<CreateKnowledgePointDTO>;
+
+// 来源信息接口
+export interface SourceInformation extends BaseEntity {
+  source_id: string;
+  title: string;
+  type: 'knowledge_base' | 'external';
+  url?: string;
+  description?: string;
+  page_type?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
+  conversation_id?: string;
+  metadata?: Record<string, any>;
+  status: 'active' | 'archived' | 'deleted';
+  created_by?: string;
+}
+
+export type CreateSourceInformationDTO = Omit<SourceInformation, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateSourceInformationDTO = Partial<CreateSourceInformationDTO>;

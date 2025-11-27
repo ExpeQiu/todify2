@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown, Paperclip, X } from 'lucide-react';
 import aiRoleService from '../services/aiRoleService';
 import { AIRoleConfig, ConversationMessage } from '../types/aiRole';
 
@@ -24,8 +24,11 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(
     initialConversationId
   );
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 当外部传入的conversationId变化时更新
   useEffect(() => {
@@ -50,26 +53,34 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if ((!inputMessage.trim() && attachedFiles.length === 0) || isLoading || isUploadingFiles) return;
 
     const userMessage: ConversationMessage = {
       id: Date.now().toString(),
-      content: inputMessage.trim(),
+      content: inputMessage.trim() || (attachedFiles.length > 0 ? `[已上传 ${attachedFiles.length} 个文件]` : ''),
       role: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      attachments: attachedFiles.map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type
+      }))
     };
 
     setMessages(prev => [...prev, userMessage]);
     const currentInput = inputMessage.trim();
+    const currentFiles = [...attachedFiles];
     setInputMessage('');
+    setAttachedFiles([]);
     setIsLoading(true);
 
     try {
       const result = await aiRoleService.chatWithRole(
         roleConfig.id,
-        currentInput,
+        currentInput || undefined,
         {},
-        currentConversationId
+        currentConversationId,
+        currentFiles.length > 0 ? currentFiles : undefined
       );
 
       let responseContent = '抱歉，我无法处理您的请求。';
@@ -176,6 +187,29 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
     );
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setAttachedFiles(prev => [...prev, ...files].slice(0, 10)); // 最多10个文件
+    }
+    // 清空input，允许重复选择同一文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   return (
     <div className={`flex flex-col h-full ${compact ? 'bg-white' : 'bg-gray-50'} rounded-lg overflow-hidden`}>
       {/* 消息区域 */}
@@ -218,6 +252,22 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
                       <p className="text-sm whitespace-pre-wrap break-words">
                         {message.content}
                       </p>
+                      {message.attachments && message.attachments.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {message.attachments.map((attachment, idx) => (
+                            <div
+                              key={idx}
+                              className={`text-xs flex items-center gap-1 ${
+                                message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                              }`}
+                            >
+                              <Paperclip className="w-3 h-3" />
+                              <span className="truncate">{attachment.name}</span>
+                              <span>({formatFileSize(attachment.size)})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mt-1">
                         <p
                           className={`text-xs ${
@@ -304,7 +354,47 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
 
       {/* 输入区域 */}
       <div className="border-t border-gray-200 p-4">
+        {/* 附件预览 */}
+        {attachedFiles.length > 0 && (
+          <div className="mb-2 space-y-1">
+            {attachedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm"
+              >
+                <Paperclip className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span className="flex-1 truncate text-gray-700">{file.name}</span>
+                <span className="text-xs text-gray-500 flex-shrink-0">
+                  {formatFileSize(file.size)}
+                </span>
+                <button
+                  onClick={() => handleRemoveFile(index)}
+                  className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+                  disabled={isLoading}
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileSelect}
+            disabled={isLoading || isUploadingFiles}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading || isUploadingFiles || attachedFiles.length >= 10}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="上传附件"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
           <input
             ref={inputRef}
             type="text"
@@ -313,14 +403,14 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
             onKeyPress={handleKeyPress}
             placeholder="输入消息..."
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isLoading}
+            disabled={isLoading || isUploadingFiles}
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading}
+            disabled={(!inputMessage.trim() && attachedFiles.length === 0) || isLoading || isUploadingFiles}
             className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? (
+            {isLoading || isUploadingFiles ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />

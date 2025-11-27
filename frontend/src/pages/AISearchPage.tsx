@@ -349,7 +349,22 @@ const AISearchPage: React.FC = () => {
           if (options?.append && prev && prev.id === conversationId) {
             const previousMessages = prev.messages || [];
             const newMessages = detail.messages || [];
-            const mergedMessages = [...newMessages, ...previousMessages];
+            // 合并消息并去重（按消息ID）
+            const messageMap = new Map<string, any>();
+            // 先添加旧消息
+            previousMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 再添加新消息（会覆盖重复的）
+            newMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 按时间排序
+            const mergedMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
             return {
               ...prev,
               messages: mergedMessages,
@@ -360,16 +375,44 @@ const AISearchPage: React.FC = () => {
           }
           if (prev && prev.id === conversationId && prev.messages?.length) {
             const incomingMessages = detail.messages || [];
-            const incomingIds = new Set(incomingMessages.map((item) => item.id));
-            const preservedMessages = (prev.messages || []).filter(
-              (message) => !incomingIds.has(message.id)
-            );
+            // 使用Map去重，保留最新的消息
+            const messageMap = new Map<string, any>();
+            // 先添加现有消息
+            prev.messages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 再添加新消息（会覆盖重复的）
+            incomingMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 按时间排序
+            const mergedMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
             return {
               ...detail,
-              messages: [...preservedMessages, ...incomingMessages],
+              messages: mergedMessages,
               hasMoreMessages:
                 detail.hasMoreMessages ?? prev.hasMoreMessages,
               nextCursor: detail.nextCursor ?? prev.nextCursor,
+            };
+          }
+          // 对于新对话，确保消息去重并按时间排序
+          if (detail.messages && detail.messages.length > 0) {
+            const messageMap = new Map<string, any>();
+            detail.messages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            const uniqueMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
+            return {
+              ...detail,
+              messages: uniqueMessages,
             };
           }
           return detail;
@@ -385,9 +428,34 @@ const AISearchPage: React.FC = () => {
   const loadConversations = useCallback(async (options?: { refreshActive?: boolean; activeConversationId?: string }) => {
     try {
       const data = await aiSearchService.getConversations();
-      setConversations(data);
+      // 按ID去重，保留最新的对话（按updated_at排序）
+      const conversationMap = new Map<string, Conversation>();
+      data.forEach((conv) => {
+        const existing = conversationMap.get(conv.id);
+        if (!existing) {
+          conversationMap.set(conv.id, conv);
+        } else {
+          // 如果已存在，比较更新时间，保留更新的
+          const existingTime = existing.updatedAt instanceof Date 
+            ? existing.updatedAt.getTime() 
+            : new Date(existing.updatedAt).getTime();
+          const currentTime = conv.updatedAt instanceof Date 
+            ? conv.updatedAt.getTime() 
+            : new Date(conv.updatedAt).getTime();
+          if (currentTime > existingTime) {
+            conversationMap.set(conv.id, conv);
+          }
+        }
+      });
+      // 转换为数组并按更新时间排序
+      const uniqueConversations = Array.from(conversationMap.values()).sort((a, b) => {
+        const timeA = a.updatedAt instanceof Date ? a.updatedAt.getTime() : new Date(a.updatedAt).getTime();
+        const timeB = b.updatedAt instanceof Date ? b.updatedAt.getTime() : new Date(b.updatedAt).getTime();
+        return timeB - timeA; // 降序排列，最新的在前
+      });
+      setConversations(uniqueConversations);
 
-      if (data.length === 0) {
+      if (uniqueConversations.length === 0) {
         setCurrentConversation(null);
         return;
       }
@@ -395,7 +463,7 @@ const AISearchPage: React.FC = () => {
       const activeId =
         options?.activeConversationId ||
         currentConversation?.id ||
-        data[0].id;
+        uniqueConversations[0].id;
 
       if (!activeId) {
         return;

@@ -15,6 +15,7 @@ import { agentWorkflowService } from "../../services/agentWorkflowService";
 import { AgentWorkflow } from "../../types/agentWorkflow";
 import { PageConfig } from "../../configs/pageConfigs";
 import { pageToolConfigService } from "../../services/pageToolConfigService";
+import sourceService from "../../services/sourceService";
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
@@ -26,6 +27,8 @@ interface BaseAISearchPageProps {
 const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
+  // 追踪当前对话中已发送给 Dify 的来源 ID，避免重复发送
+  const [sentSourceIds, setSentSourceIds] = useState<string[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [outputs, setOutputs] = useState<OutputContent[]>([]);
@@ -144,6 +147,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     loadWorkflowConfig();
     loadFiles();
     
+    // 加载页面类型的来源信息（始终加载，作为基础来源）
+    loadPageTypeSources();
+    
     const handleFilesUploaded = () => {
       loadFiles();
     };
@@ -154,6 +160,41 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 加载页面类型的来源信息（作为基础来源，始终保留）
+  const loadPageTypeSources = useCallback(async () => {
+    try {
+      console.log('[SourceInfo] 开始加载页面类型来源信息:', config.pageType);
+      const sourceResult = await sourceService.loadSourceInformationByPageType(config.pageType);
+      console.log('[SourceInfo] 加载结果:', {
+        success: sourceResult.success,
+        count: sourceResult.data?.length || 0,
+        error: sourceResult.error
+      });
+      
+      if (sourceResult.success && sourceResult.data && sourceResult.data.length > 0) {
+        console.log('[SourceInfo] 加载到的来源:', sourceResult.data.map(s => ({ id: s.id, title: s.title })));
+        setSources(prev => {
+          // 合并现有来源和数据库中的来源，避免重复
+          const sourceMap = new Map<string, Source>();
+          // 先添加现有来源
+          prev.forEach(s => sourceMap.set(s.id, s));
+          // 再添加数据库中的来源（会覆盖重复的）
+          sourceResult.data!.forEach(s => sourceMap.set(s.id, s));
+          const merged = Array.from(sourceMap.values());
+          console.log('[SourceInfo] 合并后的来源数量:', merged.length);
+          return merged;
+        });
+      } else if (sourceResult.error) {
+        console.warn('[SourceInfo] 加载失败:', sourceResult.error);
+      } else {
+        console.log('[SourceInfo] 没有找到页面类型的来源信息');
+      }
+    } catch (error) {
+      console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
+      // 不阻止页面加载，只记录错误
+    }
+  }, [config.pageType]);
 
   const loadFiles = useCallback(async () => {
     try {
@@ -420,6 +461,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   };
 
+  // 用于防止重复加载的ref
+  const loadingConversationRef = useRef<Set<string>>(new Set());
+  
   const loadConversationDetail = useCallback(
     async (
       conversationId: string,
@@ -429,6 +473,16 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       }
     ) => {
       if (!conversationId) return;
+      
+      // 如果正在加载同一个对话，且不是追加模式，则跳过
+      if (!options?.append && loadingConversationRef.current.has(conversationId)) {
+        console.log('[SourceInfo] 跳过重复加载对话:', conversationId);
+        return;
+      }
+      
+      // 标记为正在加载
+      loadingConversationRef.current.add(conversationId);
+      
       try {
         const detail = await aiSearchService.getConversation(conversationId, {
           limit: MESSAGE_PAGE_SIZE,
@@ -437,31 +491,136 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         if (!detail) {
           return;
         }
+        
+        // 从数据库加载该对话的来源信息（仅在非追加模式下加载，避免重复）
+        if (!options?.append) {
+          try {
+            console.log('[SourceInfo] 开始加载对话来源信息:', conversationId);
+            const sourceResult = await sourceService.loadSourceInformationByConversationId(conversationId);
+            console.log('[SourceInfo] 对话来源加载结果:', {
+              success: sourceResult.success,
+              count: sourceResult.data?.length || 0,
+              error: sourceResult.error
+            });
+            
+            const dbSources = sourceResult.success && sourceResult.data ? sourceResult.data : [];
+            const conversationSources = detail.sources || [];
+            
+            // 合并所有来源：现有来源 + 对话来源 + 数据库来源
+            setSources(prev => {
+              const sourceMap = new Map<string, Source>();
+              
+              // 1. 先添加现有的来源（包括页面类型的来源）
+              prev.forEach(s => sourceMap.set(s.id, s));
+              
+              // 2. 添加对话中的来源
+              conversationSources.forEach(s => sourceMap.set(s.id, s));
+              
+              // 3. 添加数据库中的来源（会覆盖重复的）
+              dbSources.forEach(s => sourceMap.set(s.id, s));
+              
+              const merged = Array.from(sourceMap.values());
+              console.log('[SourceInfo] 合并后的来源数量:', merged.length, {
+                prev: prev.length,
+                conversation: conversationSources.length,
+                db: dbSources.length
+              });
+              return merged;
+            });
+          } catch (error) {
+            console.error("[SourceInfo] 加载对话来源信息失败:", error);
+            // 如果加载失败，至少保留对话中的来源
+            if (detail.sources && detail.sources.length > 0) {
+              setSources(prev => {
+                const sourceMap = new Map<string, Source>();
+                prev.forEach(s => sourceMap.set(s.id, s));
+                detail.sources!.forEach(s => sourceMap.set(s.id, s));
+                return Array.from(sourceMap.values());
+              });
+            }
+          }
+        }
+        
         setCurrentConversation((prev) => {
+          console.log('[ConversationDebug] 加载对话详情:', {
+            本地对话ID: conversationId,
+            之前的本地对话ID: prev?.id || '无',
+            是否追加模式: options?.append || false,
+            之前消息数: prev?.messages?.length || 0,
+            新消息数: detail.messages?.length || 0,
+            'Dify conversation_id (当前)': detail.difyConversationId || '未设置（首次对话时正常）',
+            'Dify conversation_id (之前)': prev?.difyConversationId || '未设置',
+          });
+          
           if (options?.append && prev && prev.id === conversationId) {
             const previousMessages = prev.messages || [];
             const newMessages = detail.messages || [];
-            const mergedMessages = [...newMessages, ...previousMessages];
+            // 合并消息并去重（按消息ID）
+            const messageMap = new Map<string, any>();
+            // 先添加旧消息
+            previousMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 再添加新消息（会覆盖重复的）
+            newMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 按时间排序
+            const mergedMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
             return {
               ...prev,
               messages: mergedMessages,
               sources: detail.sources,
               hasMoreMessages: detail.hasMoreMessages,
               nextCursor: detail.nextCursor,
+              difyConversationId: detail.difyConversationId || prev.difyConversationId,
             };
           }
           if (prev && prev.id === conversationId && prev.messages?.length) {
             const incomingMessages = detail.messages || [];
-            const incomingIds = new Set(incomingMessages.map((item) => item.id));
-            const preservedMessages = (prev.messages || []).filter(
-              (message) => !incomingIds.has(message.id)
-            );
+            // 使用Map去重，保留最新的消息
+            const messageMap = new Map<string, any>();
+            // 先添加现有消息
+            prev.messages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 再添加新消息（会覆盖重复的）
+            incomingMessages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            // 按时间排序
+            const mergedMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
             return {
               ...detail,
-              messages: [...preservedMessages, ...incomingMessages],
+              messages: mergedMessages,
               hasMoreMessages:
                 detail.hasMoreMessages ?? prev.hasMoreMessages,
               nextCursor: detail.nextCursor ?? prev.nextCursor,
+              difyConversationId: detail.difyConversationId || prev.difyConversationId,
+            };
+          }
+          // 对于新对话，确保消息去重并按时间排序
+          if (detail.messages && detail.messages.length > 0) {
+            const messageMap = new Map<string, any>();
+            detail.messages.forEach((msg) => {
+              messageMap.set(msg.id, msg);
+            });
+            const uniqueMessages = Array.from(messageMap.values()).sort((a, b) => {
+              const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+              const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+              return timeA - timeB;
+            });
+            return {
+              ...detail,
+              messages: uniqueMessages,
             };
           }
           return detail;
@@ -469,6 +628,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       } catch (error) {
         console.error("加载对话详情失败:", error);
         reportError("加载对话详情失败，请稍后重试", error instanceof Error ? error.message : undefined);
+      } finally {
+        // 清除加载标记
+        loadingConversationRef.current.delete(conversationId);
       }
     },
     [reportError]
@@ -477,17 +639,55 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const loadConversations = useCallback(async (options?: { refreshActive?: boolean; activeConversationId?: string }) => {
     try {
       const data = await aiSearchService.getConversations(config.pageType);
-      setConversations(data);
+      console.log('[ConversationDebug] 加载对话列表，原始数据:', data.length, '条对话');
+      
+      // 按ID去重，保留最新的对话（按updated_at排序）
+      const conversationMap = new Map<string, Conversation>();
+      const duplicateIds: string[] = [];
+      data.forEach((conv) => {
+        const existing = conversationMap.get(conv.id);
+        if (!existing) {
+          conversationMap.set(conv.id, conv);
+        } else {
+          duplicateIds.push(conv.id);
+          // 如果已存在，比较更新时间，保留更新的
+          const existingTime = existing.updatedAt instanceof Date 
+            ? existing.updatedAt.getTime() 
+            : new Date(existing.updatedAt).getTime();
+          const currentTime = conv.updatedAt instanceof Date 
+            ? conv.updatedAt.getTime() 
+            : new Date(conv.updatedAt).getTime();
+          if (currentTime > existingTime) {
+            conversationMap.set(conv.id, conv);
+          }
+        }
+      });
+      
+      if (duplicateIds.length > 0) {
+        console.warn('[ConversationDebug] 发现重复的对话ID:', duplicateIds);
+      }
+      
+      // 转换为数组并按更新时间排序
+      const uniqueConversations = Array.from(conversationMap.values()).sort((a, b) => {
+        const timeA = a.updatedAt instanceof Date ? a.updatedAt.getTime() : new Date(a.updatedAt).getTime();
+        const timeB = b.updatedAt instanceof Date ? b.updatedAt.getTime() : new Date(b.updatedAt).getTime();
+        return timeB - timeA; // 降序排列，最新的在前
+      });
+      
+      console.log('[ConversationDebug] 去重后的对话列表:', uniqueConversations.length, '条对话，IDs:', uniqueConversations.map(c => c.id));
+      setConversations(uniqueConversations);
 
-      if (data.length === 0) {
+      if (uniqueConversations.length === 0) {
         setCurrentConversation(null);
+        // 如果没有对话，确保加载页面类型的来源信息
+        await loadPageTypeSources();
         return;
       }
 
       const activeId =
         options?.activeConversationId ||
         currentConversation?.id ||
-        data[0].id;
+        uniqueConversations[0].id;
 
       if (!activeId) {
         return;
@@ -504,7 +704,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error("加载对话历史失败:", error);
       reportError("加载对话历史失败，请稍后重试", error instanceof Error ? error.message : undefined);
     }
-  }, [currentConversation, loadConversationDetail, reportError]);
+  }, [currentConversation, loadConversationDetail, reportError, loadPageTypeSources, config.pageType]);
 
   const loadOutputs = async () => {
     try {
@@ -535,9 +735,76 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   }, [currentConversation, isLoadingMoreMessages, loadConversationDetail]);
 
-  const handleSourcesChange = useCallback((newSources: Source[]) => {
-    setSources(newSources);
-  }, []);
+  const handleSourcesChange = useCallback(async (newSources: Source[]) => {
+    // 先更新状态
+    setSources(prevSources => {
+      // 保存新添加的来源信息到数据库
+      (async () => {
+        try {
+          const previousSourceIds = new Set(prevSources.map(s => s.id));
+          const newSourceIds = new Set(newSources.map(s => s.id));
+          
+          // 找出新添加的来源
+          const addedSources = newSources.filter(s => !previousSourceIds.has(s.id));
+          
+          // 找出被删除的来源
+          const deletedSourceIds = prevSources
+            .filter(s => !newSourceIds.has(s.id))
+            .map(s => s.id);
+          
+          // 保存新添加的来源
+          if (addedSources.length > 0) {
+            console.log('[SourceInfo] 保存新添加的来源:', addedSources.length, '个', {
+              pageType: config.pageType,
+              conversationId: currentConversation?.id,
+              sources: addedSources.map(s => ({ id: s.id, title: s.title }))
+            });
+            
+            if (currentConversation?.id) {
+              // 如果有当前对话，保存到对话关联的来源
+              const result = await sourceService.saveSourceInformationBatch(
+                addedSources,
+                config.pageType,
+                currentConversation.id
+              );
+              if (result.success) {
+                console.log('[SourceInfo] 保存成功（关联对话）:', result.data?.length || 0, '条');
+              } else {
+                console.error('[SourceInfo] 保存失败（关联对话）:', result.error);
+              }
+            } else {
+              // 如果没有对话，只保存页面类型的来源
+              const result = await sourceService.saveSourceInformationBatch(
+                addedSources,
+                config.pageType
+              );
+              if (result.success) {
+                console.log('[SourceInfo] 保存成功（页面类型）:', result.data?.length || 0, '条');
+              } else {
+                console.error('[SourceInfo] 保存失败（页面类型）:', result.error);
+              }
+            }
+          }
+          
+          // 删除被移除的来源（软删除）
+          if (deletedSourceIds.length > 0) {
+            console.log('[SourceInfo] 删除来源:', deletedSourceIds.length, '个');
+            for (const sourceId of deletedSourceIds) {
+              const result = await sourceService.deleteSourceInformation(sourceId);
+              if (!result.success) {
+                console.error('[SourceInfo] 删除来源失败:', sourceId, result.error);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("[SourceInfo] 保存来源信息失败:", error);
+          // 不阻止用户操作，只记录错误
+        }
+      })();
+      
+      return newSources;
+    });
+  }, [currentConversation?.id, config.pageType]);
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedSourceIds(selectedIds);
@@ -546,13 +813,23 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const handleCreateConversation = useCallback(async (): Promise<Conversation | null> => {
     try {
       clearGlobalError();
+      
+      // 如果已有当前对话，直接返回，避免重复创建
+      if (currentConversation) {
+        console.log('[ConversationDebug] 已有当前对话，跳过创建:', currentConversation.id);
+        return currentConversation;
+      }
+      
       const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
+      console.log('[ConversationDebug] 创建新对话，来源数量:', selectedSources.length);
 
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
         pageType: config.pageType,
       });
+
+      console.log('[ConversationDebug] 新对话已创建:', conversation.id);
 
       if (selectedWorkflowId) {
         persistWorkflowSelection(selectedWorkflowId, conversation.id);
@@ -572,16 +849,19 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     selectedWorkflowId,
     persistWorkflowSelection,
     loadConversations,
+    currentConversation,
   ]);
 
   const handleCreateNewConversation = useCallback(async () => {
     try {
       clearGlobalError();
-      const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
-
+      // 提出新问题时，清空勾选状态和已发送来源
+      setSelectedSourceIds([]);
+      setSentSourceIds([]);
+      
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
-        sources: selectedSources,
+        sources: [], // 新对话不附带来源，等用户勾选后首次发送时传递
         pageType: config.pageType,
       });
 
@@ -595,8 +875,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   }, [
     clearGlobalError,
-    sources,
-    selectedSourceIds,
     reportError,
     selectedWorkflowId,
     persistWorkflowSelection,
@@ -607,7 +885,20 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     setShowConversationList(true);
   }, []);
 
+  // 标记来源已发送给 Dify，避免重复发送
+  const handleSourcesSent = useCallback((sourceIds: string[]) => {
+    setSentSourceIds(prev => {
+      const newIds = sourceIds.filter(id => !prev.includes(id));
+      if (newIds.length === 0) return prev;
+      return [...prev, ...newIds];
+    });
+  }, []);
+
   const handleSelectConversation = async (conversation: Conversation) => {
+    // 切换对话时重置勾选状态和已发送来源
+    setSelectedSourceIds([]);
+    setSentSourceIds([]);
+    
     await loadConversationDetail(conversation.id);
     if (selectedWorkflowId) {
       persistWorkflowSelection(selectedWorkflowId, conversation.id);
@@ -628,6 +919,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       await aiSearchService.deleteConversation(id);
       if (currentConversation?.id === id) {
         setCurrentConversation(null);
+        // 如果删除的是当前对话，确保加载页面类型的来源信息
+        await loadPageTypeSources();
       }
       await loadConversations();
     } catch (error) {
@@ -638,9 +931,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
   const handleMessageSent = async (message: any) => {
     clearGlobalError();
-    if (currentConversation) {
-      await loadConversationDetail(currentConversation.id);
-    }
+    // 只刷新对话列表，loadConversations 内部会调用 loadConversationDetail
+    // 避免重复加载
     await loadConversations({
       refreshActive: true,
       activeConversationId: currentConversation?.id,
@@ -791,6 +1083,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         <DialogueContent
           conversation={currentConversation}
           sources={sources.filter((s) => selectedSourceIds.includes(s.id))}
+          sentSourceIds={sentSourceIds}
+          onSourcesSent={handleSourcesSent}
           contextWindowSize={contextWindowSize}
           onContextWindowSizeChange={setContextWindowSize}
           workflowId={selectedWorkflowId}
