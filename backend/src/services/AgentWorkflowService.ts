@@ -5,6 +5,7 @@ import { logger } from '@/shared/lib/logger';
 import DifyClient from './DifyClient';
 import { DifyGateway } from '@/shared/infrastructure/integrations/dify';
 import { isSuccess } from '@/shared/lib/result';
+import { AgentOrchestrator } from './agent/AgentOrchestrator';
 
 /**
  * Agent工作流服务
@@ -158,6 +159,98 @@ export class AgentWorkflowService {
    */
   async searchWorkflows(query: string): Promise<AgentWorkflow[]> {
     return await agentWorkflowModel.search(query);
+  }
+
+  /**
+   * 直接执行AI角色（不通过工作流）
+   * 支持 Dify 类型和 Direct Agent 类型
+   * @param roleId AI角色ID
+   * @param input 输入数据，包含 query、sources、history 等
+   */
+  async executeRole(
+    roleId: string,
+    input: Record<string, any>
+  ): Promise<{ executionId: string; message: string; data?: any }> {
+    logger.info('直接执行AI角色', { roleId, inputKeys: Object.keys(input) });
+    
+    // 获取角色配置
+    const role = await aiRoleModel.getById(roleId);
+    if (!role) {
+      throw new Error(`AI角色不存在: ${roleId}`);
+    }
+    
+    if (!role.enabled) {
+      throw new Error(`AI角色已禁用: ${roleId}`);
+    }
+    
+    const provider = role.provider || 'dify';
+    
+    // 提取 query
+    const query = input.query || input.input || input.text || input.content || JSON.stringify(input);
+    
+    try {
+      if (provider === 'direct-agent') {
+        // Direct Agent 类型：使用 AgentOrchestrator
+        logger.info('使用 Direct Agent 模式执行', { roleId, queryLength: query?.length });
+        
+        const orchestrator = new AgentOrchestrator();
+        const result = await orchestrator.executeAgent(
+          roleId,
+          query,
+          '', // 不传递 conversationId，每次是独立的调用
+          input // 传递完整输入作为上下文
+        );
+        
+        return {
+          executionId: `exec_direct_${Date.now()}`,
+          message: result.content || '角色执行完成',
+          data: {
+            outputs: {
+              answer: result.content,
+              content: result.content,
+              conversationId: result.conversationId,
+              usage: result.usage,
+              metadata: result.metadata,
+            },
+            nodeOutputs: {},
+          },
+        };
+      } else {
+        // Dify 类型：使用 executeAgentNode
+        logger.info('使用 Dify 模式执行', { roleId, queryLength: query?.length });
+        
+        // 构建一个虚拟的 Agent 节点
+        const virtualNode = {
+          id: `virtual_${Date.now()}`,
+          type: 'agent',
+          agentId: roleId,
+          data: { agentId: roleId },
+        };
+        
+        // 构建共享上下文
+        const sharedContext = {
+          workflowInput: input,
+          nodeOutputs: {},
+        };
+        
+        const result = await this.executeAgentNode(virtualNode, sharedContext);
+        
+        // 提取内容
+        const content = result?.answer || result?.result || result?.content || '';
+        
+        return {
+          executionId: `exec_role_${Date.now()}`,
+          message: content || '角色执行完成',
+          data: {
+            outputs: result,
+            nodeOutputs: { [virtualNode.id]: result },
+          },
+        };
+      }
+    } catch (error) {
+      logger.error('AI角色执行失败', { roleId, provider, error });
+      throw error;
+    }
   }
 
   /**

@@ -57,6 +57,20 @@ export class TriggerAgentUseCase {
         (f: FeatureObjectMapping) => f.featureType === dto.featureType
       );
 
+      // 调试日志：检查功能对象配置
+      logger.info('查找功能对象配置', {
+        featureType: dto.featureType,
+        allFeatureObjects: baseMappingConfig.featureObjects?.map((f: any) => ({
+          featureType: f.featureType,
+          workflowId: f.workflowId,
+          pageType: f.pageType,
+        })),
+        foundConfig: featureConfig ? {
+          featureType: featureConfig.featureType,
+          workflowId: featureConfig.workflowId,
+        } : null,
+      });
+
       if (!featureConfig) {
         return failure({
           code: 'FEATURE_NOT_FOUND',
@@ -64,7 +78,35 @@ export class TriggerAgentUseCase {
         });
       }
 
-      const targetWorkflowId = featureConfig.workflowId || workflowId;
+      // 优先使用 agentId（AI角色ID），如果没有再使用 workflowId
+      // agentId 用于直接调用 AI 角色，workflowId 用于通过工作流调用
+      const configuredAgentId = (featureConfig as any).agentId;
+      const configuredWorkflowId = featureConfig.workflowId;
+      
+      // 如果配置了 agentId，使用它；否则使用 workflowId
+      // 注意：只有当 agentId 是不同的角色时才使用它，避免使用当前工作流
+      let targetWorkflowId: string;
+      if (configuredAgentId && configuredAgentId !== workflowId) {
+        targetWorkflowId = configuredAgentId;
+        logger.info('使用配置的 AI 角色', {
+          featureType: dto.featureType,
+          agentId: configuredAgentId,
+        });
+      } else if (configuredWorkflowId && configuredWorkflowId !== workflowId) {
+        targetWorkflowId = configuredWorkflowId;
+        logger.info('使用配置的工作流', {
+          featureType: dto.featureType,
+          workflowId: configuredWorkflowId,
+        });
+      } else {
+        targetWorkflowId = workflowId;
+        logger.warn('功能对象未配置专属 agentId 或 workflowId，将使用当前工作流', {
+          featureType: dto.featureType,
+          fallbackWorkflowId: workflowId,
+          configuredAgentId,
+          configuredWorkflowId,
+        });
+      }
       const targetMappingConfig = targetWorkflowId === workflowId
         ? baseMappingConfig
         : await ensureFieldMappingConfig(this.fieldMappingService, targetWorkflowId);
@@ -89,10 +131,23 @@ export class TriggerAgentUseCase {
 
       const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);
 
-      const workflowResult = await agentWorkflowService.executeWorkflow(
-        targetWorkflowId,
-        { input: workflowInput }
-      );
+      // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID
+      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头
+      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');
+      
+      let workflowResult;
+      if (isRoleId) {
+        // 直接调用 AI 角色
+        logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });
+        workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);
+      } else {
+        // 通过工作流调用
+        logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });
+        workflowResult = await agentWorkflowService.executeWorkflow(
+          targetWorkflowId,
+          { input: workflowInput }
+        );
+      }
 
       const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);
 
@@ -151,15 +206,23 @@ export class TriggerAgentUseCase {
     }
 
     const sortedMessages = [...(conversation.messages || [])];
-    const lastAssistantMessage = [...sortedMessages].reverse().find((m) => m.role === 'assistant');
     const lastUserMessage = [...sortedMessages].reverse().find((m) => m.role === 'user');
+    // 过滤掉无效的助手消息内容（如"工作流执行完成"）
+    const invalidContents = ['工作流执行完成', '子Agent已执行', '触发子Agent'];
+    const lastValidAssistantMessage = [...sortedMessages].reverse().find(
+      (m) => m.role === 'assistant' && 
+             m.content && 
+             !invalidContents.some(invalid => m.content.startsWith(invalid))
+    );
 
-    if (!baseContent && lastAssistantMessage) {
-      baseContent = lastAssistantMessage.content;
-    }
-
+    // 优先使用用户消息作为输入（避免使用之前失败的助手回复）
     if (!baseContent && lastUserMessage) {
       baseContent = lastUserMessage.content;
+    }
+
+    // 如果没有用户消息，使用有效的助手消息
+    if (!baseContent && lastValidAssistantMessage) {
+      baseContent = lastValidAssistantMessage.content;
     }
 
     return baseContent;
@@ -200,7 +263,9 @@ export class TriggerAgentUseCase {
       historySize: context.historySize,
       summary: context.summary,
       keyPhrases: context.keyPhrases,
-      conversationId: conversation.id,
+      // 子Agent（如五看、三定等）每次调用都是独立的分析任务
+      // 不需要传递 conversationId，让 Dify 创建新的对话
+      conversationId: '',
       featureType: dto.featureType,
       lastAssistantMessage: lastAssistantMessage || undefined,
       lastUserMessage: lastUserMessage || undefined,

@@ -110,8 +110,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       animated: edge.animated,
       label: edge.label,
       style: typeof edge.style === 'string' ? JSON.parse(edge.style) : edge.style,
-      // 使用 bezier 类型创建曲线连接
-      type: 'bezier',
+      // 使用 smoothstep 类型创建曲线连接（React Flow 内置类型）
+      type: 'smoothstep',
     }));
   }, []);
 
@@ -352,7 +352,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         className="workflow-canvas-reactflow"
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         defaultEdgeOptions={{
-          type: 'bezier',
+          type: 'smoothstep',
           animated: false,
         }}
         snapToGrid

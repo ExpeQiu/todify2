@@ -277,6 +277,22 @@ export class SendMessageUseCase {
     }
   }
 
+  /**
+   * 获取功能类型的中文标签
+   */
+  private getFeatureLabel(featureType: string): string {
+    const labelMap: Record<string, string> = {
+      'five-view-analysis': '五看分析',
+      'three-fix-analysis': '三定分析',
+      'tech-matrix': '技术矩阵',
+      'propagation-strategy': '传播策略',
+      'exhibition-video': '展具与视频',
+      'translation': '翻译',
+      'ai-dialog': 'AI对话',
+    };
+    return labelMap[featureType] || '子Agent分析';
+  }
+
   private buildConversationData(
     params: {
       conversation: any | null;
@@ -362,6 +378,52 @@ export class SendMessageUseCase {
       logger.info('合并附加信息到查询内容', {
         originalLength: params.content.length,
         additionalLength: additionalContext.length,
+        finalLength: finalQuery.length,
+      });
+    }
+
+    // 检查上一条消息是否是子Agent（工具箱）生成的内容
+    // 主Agent和子Agent交叉对话的逻辑：
+    // 1. 主对话使用同一个 dify_conversation_id 保持多轮对话
+    // 2. 子Agent（五看、三定等）处理上下文窗口内容，生成分析结果
+    // 3. 当用户继续主对话时，如果上一条是子Agent的输出，则将其作为上下文传递给主Agent
+    let toolOutputContext = '';
+    if (!isFirstMessage && context.history && context.history.length > 0) {
+      // 找到最后一条助手消息
+      const lastAssistantMessage = [...context.history]
+        .reverse()
+        .find((msg: any) => msg.role === 'assistant');
+      
+      // 检查最后一条助手消息是否是子Agent的输出（hasOutputs 为 true 表示是工具生成的）
+      if (lastAssistantMessage && lastAssistantMessage.hasOutputs) {
+        // 获取工具类型标签
+        const featureType = (params.conversation?.messages || [])
+          .find((m: any) => m.id === lastAssistantMessage.id)?.outputs?.metadata?.featureType;
+        const toolLabel = featureType ? this.getFeatureLabel(featureType) : '子Agent分析';
+        
+        // 将子Agent的输出作为上下文
+        const contentPreview = lastAssistantMessage.content.length > 2000
+          ? lastAssistantMessage.content.substring(0, 2000) + '\n...(内容已截断)'
+          : lastAssistantMessage.content;
+        
+        toolOutputContext = `\n\n=== ${toolLabel}结果（请参考以下内容继续对话）===\n${contentPreview}`;
+        
+        logger.info('检测到上一条消息是子Agent输出，将其作为上下文', {
+          messageId: lastAssistantMessage.id,
+          featureType: featureType || 'unknown',
+          toolLabel,
+          contentLength: lastAssistantMessage.content.length,
+          truncated: lastAssistantMessage.content.length > 2000,
+        });
+      }
+    }
+    
+    // 将子Agent输出上下文合并到 query 中
+    if (toolOutputContext) {
+      finalQuery = finalQuery + toolOutputContext;
+      logger.info('合并子Agent输出到查询内容', {
+        originalLength: params.content.length,
+        contextLength: toolOutputContext.length,
         finalLength: finalQuery.length,
       });
     }
