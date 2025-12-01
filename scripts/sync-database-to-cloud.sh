@@ -32,9 +32,10 @@ log_error() {
 SERVER_IP="47.113.225.93"
 SERVER_USER="root"
 SERVER_PASSWORD="Qb89100820"
-DEPLOY_PATH="/root/todify3-deploy"
+DEPLOY_PATH="/root/todify3"
 BACKEND_PATH="${DEPLOY_PATH}/backend"
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+SERVICE_NAME="todify3"
 
 # 检查sshpass工具
 check_sshpass() {
@@ -184,18 +185,18 @@ restart_services() {
     
     sshpass -p "$SERVER_PASSWORD" ssh $SSH_OPTIONS $SERVER_USER@$SERVER_IP << ENDSSH
         echo "🔄 重启后端服务..."
-        pm2 restart todify3-backend
+        pm2 restart ${SERVICE_NAME}-backend
         
         echo "⏳ 等待服务启动..."
         sleep 3
         
         echo "📊 服务状态:"
-        pm2 status todify3-backend
+        pm2 status ${SERVICE_NAME}-backend
         
         echo ""
         echo "🔍 检查服务健康状态..."
         sleep 2
-        curl -s http://localhost:3003/api/health | head -3 || echo "⚠️  服务可能还在启动中"
+        curl -s http://localhost:2203/api/health | head -3 || echo "⚠️  服务可能还在启动中"
 ENDSSH
     
     log_success "服务重启完成"
@@ -278,10 +279,10 @@ main() {
     echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 status'"
     echo ""
     echo "  重启服务:"
-    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 restart todify3-backend'"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 restart ${SERVICE_NAME}-backend'"
     echo ""
     echo "  查看日志:"
-    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 logs todify3-backend'"
+    echo "    sshpass -p '${SERVER_PASSWORD}' ssh ${SSH_OPTIONS} ${SERVER_USER}@${SERVER_IP} 'pm2 logs ${SERVICE_NAME}-backend'"
     echo ""
 }
 
