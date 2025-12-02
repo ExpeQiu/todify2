@@ -88,6 +88,7 @@ export interface FileUploadResponse {
   size: number;
   category?: string; // 文件分类
   createdAt?: string; // 创建时间
+  markdownContent?: string; // Markdown内容
 }
 
 /**

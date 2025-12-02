@@ -8,6 +8,7 @@ import { formatApiResponse } from '@/utils/validation';
 import { agentWorkflowService } from '@/services/AgentWorkflowService';
 import { AiSearchService, FieldMappingService } from '@/services/AiSearchService';
 import { fileService } from '@/services/FileService';
+import { fileToMarkdownService } from '@/services/FileToMarkdownService';
 import { fieldMappingEngine } from '@/utils/fieldMapping';
 import { FeatureObjectMapping } from '@/types/aiSearch';
 import { logger } from '@/shared/lib/logger';
@@ -62,22 +63,24 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    // 允许的文件类型
+    // 允许的文件类型：PDF, PPT, txt, markdown, word
     const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
       'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint', // .ppt
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
       'text/plain',
       'text/markdown',
     ];
-    if (allowedTypes.includes(file.mimetype)) {
+    // 也允许通过扩展名判断
+    const allowedExtensions = ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.txt', '.md', '.markdown'];
+    const fileExtension = require('path').extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
       cb(null, true);
     } else {
-      cb(new Error('不支持的文件类型'));
+      cb(new Error(`不支持的文件类型: ${file.mimetype}。支持的类型：PDF, PPT, txt, markdown, word`));
     }
   },
 });
@@ -247,8 +250,31 @@ router.post(
             logger.warn('文件名编码修复失败，使用原始文件名', { originalName, error: e });
           }
 
-          // 构建metadata，包含pageType信息
-          const metadata = pageType ? { pageType } : undefined;
+          // 提取文件内容并转换为Markdown
+          let markdownContent: string | undefined;
+          try {
+            markdownContent = await fileToMarkdownService.convertToMarkdown(
+              filePath,
+              file.mimetype,
+              originalName
+            );
+            logger.info('文件转Markdown成功', {
+              originalName,
+              markdownLength: markdownContent.length,
+            });
+          } catch (error) {
+            logger.warn('文件转Markdown失败，继续上传文件', {
+              originalName,
+              error: error instanceof Error ? error.message : String(error),
+            });
+            // 即使转换失败，也继续上传文件
+          }
+
+          // 构建metadata，包含pageType和markdown内容
+          const metadata: any = pageType ? { pageType } : {};
+          if (markdownContent) {
+            metadata.markdownContent = markdownContent;
+          }
 
           const fileRecord = await fileService.createFile({
             original_name: originalName,
@@ -260,8 +286,10 @@ router.post(
             category,
             conversation_id: conversationId || undefined,
             uploader_id: uploaderId || undefined,
-            metadata,
+            metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
           });
+
+          // markdownContent已经在上面提取并存储在metadata中，直接使用
 
           return {
             id: fileRecord.file_id,
@@ -272,6 +300,7 @@ router.post(
             size: fileRecord.file_size,
             category: fileRecord.category,
             createdAt: fileRecord.created_at,
+            markdownContent, // 包含markdown内容
           };
         })
       );

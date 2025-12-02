@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Search, Check } from "lucide-react";
+import { X, Search, Check, RefreshCw } from "lucide-react";
 import { techPointService } from "../../services/techPointService";
 import { TechPoint } from "../../types/techPoint";
 
@@ -14,8 +14,13 @@ const KnowledgeBaseBrowser: React.FC<KnowledgeBaseBrowserProps> = ({
 }) => {
   const [techPoints, setTechPoints] = useState<TechPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [techPointsWithAssociations, setTechPointsWithAssociations] = useState<Map<number, {
+    category?: { id: number; name: string };
+    carModels?: Array<{ id: number; name: string; brand?: { name: string } }>;
+  }>>(new Map());
 
   useEffect(() => {
     loadTechPoints();
@@ -24,17 +29,72 @@ const KnowledgeBaseBrowser: React.FC<KnowledgeBaseBrowserProps> = ({
   const loadTechPoints = async () => {
     setLoading(true);
     try {
+      // 从 todify3 数据库加载技术点
       const response = await techPointService.getTechPoints({
         page: 1,
         pageSize: 100,
       });
       if (response.success && response.data) {
-        setTechPoints(response.data.data || []);
+        const points = response.data.data || [];
+        setTechPoints(points);
+        
+        // 加载关联信息（技术领域和车型）
+        await loadAssociations(points);
       }
     } catch (error) {
       console.error("加载技术点失败:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAssociations = async (points: TechPoint[]) => {
+    const associations = new Map();
+    
+    // 批量加载关联信息
+    for (const point of points) {
+      try {
+        // 加载车型关联
+        const carModelsResponse = await techPointService.getTechPointAssociatedCarModels(point.id);
+        const carModels = carModelsResponse.success && carModelsResponse.data ? carModelsResponse.data : [];
+        
+        associations.set(point.id, {
+          category: point.category,
+          carModels: carModels.map((cm: any) => ({
+            id: cm.id,
+            name: cm.name,
+            brand: cm.brand,
+          })),
+        });
+      } catch (error) {
+        console.error(`加载技术点 ${point.id} 关联信息失败:`, error);
+        associations.set(point.id, {
+          category: point.category,
+          carModels: [],
+        });
+      }
+    }
+    
+    setTechPointsWithAssociations(associations);
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const response = await techPointService.syncFromTPD();
+      if (response.success && response.data) {
+        // 同步成功后重新加载数据
+        await loadTechPoints();
+        const stats = response.data;
+        alert(`同步成功！总计 ${stats.total} 条，新增 ${stats.created} 条，更新 ${stats.updated} 条，错误 ${stats.errors} 条`);
+      } else {
+        alert(`同步失败：${response.error || '未知错误'}`);
+      }
+    } catch (error) {
+      console.error("同步失败:", error);
+      alert("同步失败，请稍后重试");
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -141,11 +201,31 @@ const KnowledgeBaseBrowser: React.FC<KnowledgeBaseBrowserProps> = ({
                         {tp.description}
                       </p>
                     )}
-                    {tp.category && (
-                      <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
-                        {tp.category.name}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {(() => {
+                        const associations = techPointsWithAssociations.get(tp.id);
+                        const category = associations?.category || tp.category;
+                        const carModels = associations?.carModels || [];
+                        
+                        return (
+                          <>
+                            {category && (
+                              <span className="inline-block px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                技术领域: {category.name}
+                              </span>
+                            )}
+                            {carModels.length > 0 && (
+                              <span className="inline-block px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                                车型: {carModels.slice(0, 3).map((cm) => 
+                                  cm.brand?.name ? `${cm.brand.name} ${cm.name}` : cm.name
+                                ).join(', ')}
+                                {carModels.length > 3 && ` 等${carModels.length}款`}
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -155,8 +235,18 @@ const KnowledgeBaseBrowser: React.FC<KnowledgeBaseBrowserProps> = ({
 
         {/* 底部按钮 */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
-            已选择 {selectedItems.size} 项
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSync}
+              disabled={syncing || loading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? '同步中...' : '知识库更新'}
+            </button>
+            <div className="text-sm text-gray-600">
+              已选择 {selectedItems.size} 项
+            </div>
           </div>
           <div className="flex gap-3">
             <button

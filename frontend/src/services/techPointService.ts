@@ -282,6 +282,25 @@ export const techPointService = {
         error: '移除技术点车型关联失败'
       };
     }
+  },
+
+  // 同步 TPD2 技术点数据
+  async syncFromTPD(): Promise<ApiResponse<{
+    total: number;
+    created: number;
+    updated: number;
+    errors: number;
+  }>> {
+    try {
+      const response = await api.post(`${TECH_POINT_BASE_URL}/sync`);
+      return response.data;
+    } catch (error) {
+      console.error('同步技术点数据失败:', error);
+      return {
+        success: false,
+        error: '同步技术点数据失败'
+      };
+    }
   }
 };
 

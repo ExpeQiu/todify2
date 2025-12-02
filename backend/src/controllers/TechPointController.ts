@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { techPointModel } from '../models';
 import { CreateTechPointDTO, UpdateTechPointDTO } from '../types/database';
+import { tpdSyncService } from '../services/tpdSyncService';
 
 export class TechPointController {
   /**
@@ -523,6 +524,38 @@ export class TechPointController {
       res.status(500).json({
         success: false,
         message: '更新关联信息失败'
+      });
+    }
+  }
+
+  /**
+   * 同步 TPD2 技术点数据
+   * POST /api/v1/tech-points/sync
+   */
+  async syncFromTPD(req: Request, res: Response) {
+    try {
+      console.log('开始同步 TPD2 技术点数据...');
+      
+      const result = await tpdSyncService.syncTechPoints();
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: result.message,
+          data: result.stats
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message,
+          data: result.stats
+        });
+      }
+    } catch (error) {
+      console.error('同步 TPD2 技术点数据失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '同步失败'
       });
     }
   }

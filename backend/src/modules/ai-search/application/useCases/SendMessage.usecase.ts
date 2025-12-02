@@ -1,5 +1,6 @@
 import { agentWorkflowService } from '@/services/AgentWorkflowService';
 import { AiSearchService, FieldMappingService } from '@/services/AiSearchService';
+import { fileService } from '@/services/FileService';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
 
@@ -71,7 +72,7 @@ export class SendMessageUseCase {
           });
         }
 
-        const conversationData = this.buildConversationData({
+        const conversationData = await this.buildConversationData({
           conversation: conversationRecord,
           content: params.content,
           sources: params.sources,
@@ -123,8 +124,9 @@ export class SendMessageUseCase {
         // 如果还没有找到，尝试从 extractedOutput 中提取
         const extractedOutput = extractWorkflowOutput(workflowResult, mappingConfig.outputMappings);
         if (!newDifyConversationId && extractedOutput && typeof extractedOutput === 'object') {
-          if (extractedOutput.conversation_id && typeof extractedOutput.conversation_id === 'string') {
-            newDifyConversationId = extractedOutput.conversation_id;
+          const outputObj = extractedOutput as any;
+          if (outputObj.conversation_id && typeof outputObj.conversation_id === 'string') {
+            newDifyConversationId = outputObj.conversation_id;
           }
         }
 
@@ -293,7 +295,7 @@ export class SendMessageUseCase {
     return labelMap[featureType] || '子Agent分析';
   }
 
-  private buildConversationData(
+  private async buildConversationData(
     params: {
       conversation: any | null;
       content: string;
@@ -322,60 +324,93 @@ export class SendMessageUseCase {
       ? params.knowledgeBaseNames.split(',').map((name) => name.trim()).filter((name) => name.length > 0)
       : [];
 
+    // 从上传的文件中提取markdown内容
+    let fileMarkdownContents: string[] = [];
+    if (params.files && params.files.length > 0) {
+      try {
+        // 通过文件名查找文件记录，获取markdown内容
+        for (const file of params.files) {
+          try {
+            // 通过原始文件名查找文件记录
+            const allFiles = await fileService.getAllFiles({
+              status: 'active',
+            });
+            const fileRecord = allFiles.find(
+              (f) => f.original_name === file.originalname || f.stored_name === file.filename
+            );
+            
+            if (fileRecord && fileRecord.metadata) {
+              const metadata = typeof fileRecord.metadata === 'string' 
+                ? JSON.parse(fileRecord.metadata) 
+                : fileRecord.metadata;
+              
+              if (metadata.markdownContent) {
+                fileMarkdownContents.push(`【${fileRecord.original_name}】\n${metadata.markdownContent}`);
+                logger.info('从文件记录中提取markdown内容', {
+                  fileName: fileRecord.original_name,
+                  markdownLength: metadata.markdownContent.length,
+                });
+              }
+            }
+          } catch (error) {
+            logger.warn('提取文件markdown内容失败', {
+              fileName: file.originalname,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+      } catch (error) {
+        logger.warn('批量提取文件markdown内容失败', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
     // 判断是否是第一次对话（对话不存在或没有历史消息）
     const isFirstMessage = !params.conversation || 
                           !params.conversation.messages || 
                           params.conversation.messages.length === 0;
     
-    // 只在第一次对话时，提取外部来源的文本内容（description）作为附加信息
+    // 提取附加信息：外部来源的文本内容和文件的markdown内容
     let additionalContext = '';
+    
+    const textContents: string[] = [];
+    
+    // 只在第一次对话时，提取外部来源的文本内容（description）
     if (isFirstMessage) {
       const externalTextSources = effectiveSources.filter((s: any) => 
         s.type === 'external' && s.description && s.description.trim()
       );
       
-      if (externalTextSources.length > 0) {
-        const textContents: string[] = [];
-        externalTextSources.forEach((source: any) => {
-          if (source.description && source.description.trim()) {
-            const title = source.title || '附加信息';
-            textContents.push(`【${title}】\n${source.description.trim()}`);
-          }
-        });
-        
-        if (textContents.length > 0) {
-          additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
-          logger.info('提取外部来源文本内容作为附加信息（仅第一次对话）', {
-            isFirstMessage: true,
-            sourcesCount: externalTextSources.length,
-            totalTextLength: additionalContext.length,
-            sources: externalTextSources.map((s: any) => ({
-              id: s.id,
-              title: s.title,
-              descriptionLength: s.description?.length || 0,
-            })),
-          });
+      externalTextSources.forEach((source: any) => {
+        if (source.description && source.description.trim()) {
+          const title = source.title || '附加信息';
+          textContents.push(`【${title}】\n${source.description.trim()}`);
         }
-      }
-    } else {
-      // 后续对话时，记录日志但不添加附加信息
-      const externalTextSources = effectiveSources.filter((s: any) => 
-        s.type === 'external' && s.description && s.description.trim()
-      );
-      if (externalTextSources.length > 0) {
-        logger.info('检测到外部来源文本，但非第一次对话，跳过附加信息', {
-          isFirstMessage: false,
-          messageCount: params.conversation?.messages?.length || 0,
-          sourcesCount: externalTextSources.length,
-        });
-      }
+      });
+    }
+    
+    // 文件的markdown内容总是添加（无论是否第一次对话）
+    if (fileMarkdownContents.length > 0) {
+      textContents.push(...fileMarkdownContents);
+    }
+    
+    if (textContents.length > 0) {
+      additionalContext = '\n\n=== 附加信息（文件内容） ===\n' + textContents.join('\n\n---\n\n');
+      logger.info('提取附加信息（外部来源和文件markdown）', {
+        isFirstMessage,
+        filesCount: fileMarkdownContents.length,
+        totalTextLength: additionalContext.length,
+      });
     }
 
-    // 将附加信息合并到 query 中（仅在第一次对话时）
+    // 将附加信息合并到 query 中
+    // 文件的markdown内容总是添加，外部来源的文本内容仅在第一次对话时添加
     let finalQuery = params.content;
     if (additionalContext) {
       finalQuery = params.content + additionalContext;
       logger.info('合并附加信息到查询内容', {
+        isFirstMessage,
         originalLength: params.content.length,
         additionalLength: additionalContext.length,
         finalLength: finalQuery.length,

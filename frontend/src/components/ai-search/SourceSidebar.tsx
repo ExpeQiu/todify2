@@ -105,10 +105,14 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   const handleAddTextSource = (newSource: Omit<Source, "id">) => {
     const source: Source = {
       ...newSource,
-      id: `text_${Date.now()}`,
+      id: `text_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 确保ID唯一
     };
     if (onSourcesChange) {
       onSourcesChange([...sources, source]);
+    }
+    // 默认选中新添加的来源
+    if (onSelectionChange) {
+      onSelectionChange([...selectedSources, source.id]);
     }
     setShowTextModal(false);
   };
@@ -214,6 +218,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <AddTextModal
           onClose={() => setShowTextModal(false)}
           onAddTextSource={handleAddTextSource}
+          pageType={pageType}
         />
       )}
 
