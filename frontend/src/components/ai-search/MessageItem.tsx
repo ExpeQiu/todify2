@@ -2,6 +2,9 @@ import React from "react";
 import { Bot, User, Copy, Save, Check, File, FileText, LayoutGrid } from "lucide-react";
 import { Message } from "../../types/aiSearch";
 import StructuredContentView from "./result-renderers/StructuredContentView";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface MessageItemProps {
   message: Message;
@@ -138,12 +141,9 @@ const MessageItem: React.FC<MessageItemProps> = ({
   }, [message.outputs]);
 
   React.useEffect(() => {
-    if (structuredContent) {
-      setViewMode("structured");
-    } else {
-      setViewMode("text");
-    }
-  }, [structuredContent, message.id]);
+    // 默认始终显示文本视图
+    setViewMode("text");
+  }, [message.id]);
 
   return (
     <div className={`flex gap-4 mb-6 ${isUser ? "flex-row-reverse" : ""}`}>
@@ -176,9 +176,132 @@ const MessageItem: React.FC<MessageItemProps> = ({
               <StructuredContentView data={structuredContent} title={featureLabel || "结构化结果"} />
             </div>
           ) : (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </p>
+            <div className={`text-sm leading-relaxed prose prose-sm max-w-none ${
+              isUser 
+                ? "prose-invert [&>*]:text-white [&_strong]:text-white [&_em]:text-white [&_li]:text-white [&_td]:text-white [&_th]:text-white" 
+                : "prose-gray"
+            }`}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  // 自定义代码块样式
+                  code: ({ node, inline, className, children, ...props }) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    return !inline && match ? (
+                      <pre className={`rounded-md p-3 overflow-x-auto my-2 ${
+                        isUser 
+                          ? "bg-gray-800 text-gray-100" 
+                          : "bg-gray-800 text-gray-100"
+                      }`}>
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      </pre>
+                    ) : (
+                      <code className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                        isUser 
+                          ? "bg-gray-800 text-gray-100" 
+                          : "bg-gray-200 text-gray-900"
+                      }`} {...props}>
+                        {children}
+                      </code>
+                    );
+                  },
+                  // 自定义段落样式
+                  p: ({ children }) => (
+                    <p className={`mb-2 last:mb-0 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </p>
+                  ),
+                  // 自定义列表样式
+                  ul: ({ children }) => (
+                    <ul className={`list-disc list-inside mb-2 space-y-1 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className={`list-decimal list-inside mb-2 space-y-1 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className={isUser ? "text-white" : "text-gray-900"}>
+                      {children}
+                    </li>
+                  ),
+                  // 自定义标题样式
+                  h1: ({ children }) => (
+                    <h1 className={`text-xl font-bold mb-2 mt-3 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className={`text-lg font-bold mb-2 mt-3 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className={`text-base font-bold mb-2 mt-2 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}`}>
+                      {children}
+                    </h3>
+                  ),
+                  // 自定义链接样式
+                  a: ({ children, href }) => (
+                    <a 
+                      href={href} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={`underline ${
+                        isUser 
+                          ? "text-blue-200 hover:text-blue-100" 
+                          : "text-blue-600 hover:text-blue-700"
+                      }`}
+                    >
+                      {children}
+                    </a>
+                  ),
+                  // 自定义引用样式
+                  blockquote: ({ children }) => (
+                    <blockquote className={`border-l-4 pl-4 my-2 italic ${
+                      isUser 
+                        ? "border-gray-300 text-gray-200" 
+                        : "border-gray-400 text-gray-600"
+                    }`}>
+                      {children}
+                    </blockquote>
+                  ),
+                  // 自定义表格样式
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto my-2">
+                      <table className="min-w-full border-collapse">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  th: ({ children }) => (
+                    <th className={`border border-gray-300 px-3 py-2 text-left font-semibold ${
+                      isUser 
+                        ? "bg-gray-700 text-white border-gray-600" 
+                        : "bg-gray-200 text-gray-900"
+                    }`}>
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className={`border border-gray-300 px-3 py-2 ${
+                      isUser 
+                        ? "text-white border-gray-600" 
+                        : "text-gray-900"
+                    }`}>
+                      {children}
+                    </td>
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
 
           {!isUser && structuredContent && (
