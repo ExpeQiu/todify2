@@ -6,6 +6,11 @@ import { AgentWorkflowModel, WorkflowExecutionModel, WorkflowTemplateModel } fro
 import { AIRoleModel } from './AIRole';
 import { PublicPageConfigModel } from './PublicPageConfig';
 import { PageToolConfigModel } from './PageToolConfig';
+import { ProjectModel } from './Project';
+import { PublicKnowledgeModel } from './PublicKnowledge';
+import { TechPackagingMaterialModel } from './TechPackagingMaterial';
+import { TechPromotionStrategyModel } from './TechPromotionStrategy';
+import { TechPressReleaseModel } from './TechPressRelease';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例
@@ -18,6 +23,11 @@ export const workflowTemplateModel = new WorkflowTemplateModel(db);
 export const aiRoleModel = new AIRoleModel(db);
 export const publicPageConfigModel = new PublicPageConfigModel(db);
 export const pageToolConfigModel = new PageToolConfigModel(db);
+export const projectModel = new ProjectModel(db);
+export const publicKnowledgeModel = new PublicKnowledgeModel(db);
+export const techPackagingMaterialModel = new TechPackagingMaterialModel(db);
+export const techPromotionStrategyModel = new TechPromotionStrategyModel(db);
+export const techPressReleaseModel = new TechPressReleaseModel(db);
 
 // 导出模型类
 export { TechCategoryModel } from './TechCategory';
@@ -27,6 +37,11 @@ export { AgentWorkflowModel, WorkflowExecutionModel, WorkflowTemplateModel } fro
 export { AIRoleModel } from './AIRole';
 export { PublicPageConfigModel } from './PublicPageConfig';
 export { PageToolConfigModel } from './PageToolConfig';
+export { ProjectModel } from './Project';
+export { PublicKnowledgeModel } from './PublicKnowledge';
+export { TechPackagingMaterialModel } from './TechPackagingMaterial';
+export { TechPromotionStrategyModel } from './TechPromotionStrategy';
+export { TechPressReleaseModel } from './TechPressRelease';
 
 // 导出数据库管理器
 export { DatabaseManager } from '../config/database';

@@ -324,6 +324,40 @@ export class AiSearchService {
   }
 
   /**
+   * 获取对话的第一条用户消息（用于显示标题）
+   */
+  async getFirstUserMessage(conversationId: string): Promise<MessageRecord | null> {
+    try {
+      const rows = await db.query(
+        `SELECT * FROM ai_search_messages 
+         WHERE conversation_id = ? AND role = 'user' 
+         ORDER BY created_at ASC 
+         LIMIT 1`,
+        [conversationId]
+      ) as any[];
+
+      if (rows.length === 0) {
+        return null;
+      }
+
+      const row = rows[0];
+
+      return {
+        id: row.id,
+        conversation_id: row.conversation_id,
+        role: row.role,
+        content: row.content,
+        sources: row.sources,
+        outputs: row.outputs,
+        created_at: row.created_at,
+      };
+    } catch (error) {
+      logger.error('获取第一条用户消息失败', { error, conversationId });
+      return null;
+    }
+  }
+
+  /**
    * 发送消息
    */
   async sendMessage(

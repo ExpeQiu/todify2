@@ -33,6 +33,7 @@ import { AIRoleConfig, DifyInputField, DirectAgentConfig, PromptVariable, ToolCo
 import migrationService from '../services/migrationService';
 import { useNavigate } from 'react-router-dom';
 import AIRoleChat from '../components/AIRoleChat';
+import AIRoleConfigInfoBox from '../components/AIRoleConfigInfoBox';
 
 // 为 Trash2 创建别名以避免冲突
 const TrashIcon = Trash2;
@@ -718,6 +719,11 @@ const AIRoleManagementPage: React.FC = () => {
               <span>新建角色</span>
             </button>
           </div>
+        </div>
+
+        {/* AI角色配置信息框 */}
+        <div className="mb-6">
+          <AIRoleConfigInfoBox roles={roles} onRefresh={loadRoles} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -136,18 +136,18 @@ Directory: **/Volumes/Lexar/git/03T/todify3** (1 file)
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -3,4 +3,7 @@
-  import { Message } from &quot;../../types/aiSearch&quot;;
-  import StructuredContentView from &quot;./result-renderers/StructuredContentView&quot;;
-+ import ReactMarkdown from &quot;react-markdown&quot;;
-+ import remarkGfm from &quot;remark-gfm&quot;;
-+ import rehypeHighlight from &quot;rehype-highlight&quot;;
+  import { Message } from "../../types/aiSearch";
+  import StructuredContentView from "./result-renderers/StructuredContentView";
++ import ReactMarkdown from "react-markdown";
++ import remarkGfm from "remark-gfm";
++ import rehypeHighlight from "rehype-highlight";
   
   interface MessageItemProps {
 ```
@@ -160,7 +160,7 @@ Lines added: 3, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
 
 **Chunk 1**
 Lines added: 83, lines removed: 3
@@ -169,13 +169,13 @@ Lines added: 83, lines removed: 3
 @@ -180,7 +180,87 @@
               &lt;/div&gt;
             ) : (
--             &lt;p className=&quot;text-sm leading-relaxed whitespace-pre-wrap&quot;&gt;
+-             &lt;p className="text-sm leading-relaxed whitespace-pre-wrap"&gt;
 -               {message.content}
 -             &lt;/p&gt;
 +             &lt;div className={&#96;text-sm leading-relaxed prose prose-sm max-w-none ${
 +               isUser 
-+                 ? &quot;prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-code:text-white prose-pre:bg-gray-800 prose-pre:text-white&quot; 
-+                 : &quot;prose-gray prose-headings:text-gray-900 prose-p:text-gray-900&quot;
++                 ? "prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-code:text-white prose-pre:bg-gray-800 prose-pre:text-white" 
++                 : "prose-gray prose-headings:text-gray-900 prose-p:text-gray-900"
 +             }&#96;}&gt;
 +               &lt;ReactMarkdown
 +                 remarkPlugins={[remarkGfm]}
@@ -183,12 +183,12 @@ Lines added: 83, lines removed: 3
 +                 components={{
 +                   // 自定义代码块样式
 +                   code: ({ node, inline, className, children, ...props }) =&gt; {
-+                     const match = /language-(\w+)/.exec(className || &#39;&#39;);
++                     const match = /language-(\w+)/.exec(className || '');
 +                     return !inline &amp;&amp; match ? (
 +                       &lt;pre className={&#96;rounded-md p-3 overflow-x-auto ${
 +                         isUser 
-+                           ? &quot;bg-gray-800 text-white&quot; 
-+                           : &quot;bg-gray-800 text-gray-100&quot;
++                           ? "bg-gray-800 text-white" 
++                           : "bg-gray-800 text-gray-100"
 +                       }&#96;}&gt;
 +                         &lt;code className={className} {...props}&gt;
 +                           {children}
@@ -197,8 +197,8 @@ Lines added: 83, lines removed: 3
 +                     ) : (
 +                       &lt;code className={&#96;px-1 py-0.5 rounded ${
 +                         isUser 
-+                           ? &quot;bg-gray-800 text-white&quot; 
-+                           : &quot;bg-gray-200 text-gray-900&quot;
++                           ? "bg-gray-800 text-white" 
++                           : "bg-gray-200 text-gray-900"
 +                       }&#96;} {...props}&gt;
 +                         {children}
 +                       &lt;/code&gt;
@@ -206,35 +206,35 @@ Lines added: 83, lines removed: 3
 +                   },
 +                   // 自定义段落样式
 +                   p: ({ children }) =&gt; (
-+                     &lt;p className=&quot;mb-2 last:mb-0&quot;&gt;{children}&lt;/p&gt;
++                     &lt;p className="mb-2 last:mb-0"&gt;{children}&lt;/p&gt;
 +                   ),
 +                   // 自定义列表样式
 +                   ul: ({ children }) =&gt; (
-+                     &lt;ul className=&quot;list-disc list-inside mb-2 space-y-1&quot;&gt;{children}&lt;/ul&gt;
++                     &lt;ul className="list-disc list-inside mb-2 space-y-1"&gt;{children}&lt;/ul&gt;
 +                   ),
 +                   ol: ({ children }) =&gt; (
-+                     &lt;ol className=&quot;list-decimal list-inside mb-2 space-y-1&quot;&gt;{children}&lt;/ol&gt;
++                     &lt;ol className="list-decimal list-inside mb-2 space-y-1"&gt;{children}&lt;/ol&gt;
 +                   ),
 +                   // 自定义标题样式
 +                   h1: ({ children }) =&gt; (
-+                     &lt;h1 className=&quot;text-xl font-bold mb-2 mt-3 first:mt-0&quot;&gt;{children}&lt;/h1&gt;
++                     &lt;h1 className="text-xl font-bold mb-2 mt-3 first:mt-0"&gt;{children}&lt;/h1&gt;
 +                   ),
 +                   h2: ({ children }) =&gt; (
-+                     &lt;h2 className=&quot;text-lg font-bold mb-2 mt-3 first:mt-0&quot;&gt;{children}&lt;/h2&gt;
++                     &lt;h2 className="text-lg font-bold mb-2 mt-3 first:mt-0"&gt;{children}&lt;/h2&gt;
 +                   ),
 +                   h3: ({ children }) =&gt; (
-+                     &lt;h3 className=&quot;text-base font-bold mb-2 mt-2 first:mt-0&quot;&gt;{children}&lt;/h3&gt;
++                     &lt;h3 className="text-base font-bold mb-2 mt-2 first:mt-0"&gt;{children}&lt;/h3&gt;
 +                   ),
 +                   // 自定义链接样式
 +                   a: ({ children, href }) =&gt; (
 +                     &lt;a 
 +                       href={href} 
-+                       target=&quot;_blank&quot; 
-+                       rel=&quot;noopener noreferrer&quot;
++                       target="_blank" 
++                       rel="noopener noreferrer"
 +                       className={&#96;underline ${
 +                         isUser 
-+                           ? &quot;text-blue-200 hover:text-blue-100&quot; 
-+                           : &quot;text-blue-600 hover:text-blue-700&quot;
++                           ? "text-blue-200 hover:text-blue-100" 
++                           : "text-blue-600 hover:text-blue-700"
 +                       }&#96;}
 +                     &gt;
 +                       {children}
@@ -244,8 +244,8 @@ Lines added: 83, lines removed: 3
 +                   blockquote: ({ children }) =&gt; (
 +                     &lt;blockquote className={&#96;border-l-4 pl-4 my-2 italic ${
 +                       isUser 
-+                         ? &quot;border-gray-400 text-gray-200&quot; 
-+                         : &quot;border-gray-400 text-gray-600&quot;
++                         ? "border-gray-400 text-gray-200" 
++                         : "border-gray-400 text-gray-600"
 +                     }&#96;}&gt;
 +                       {children}
 +                     &lt;/blockquote&gt;
@@ -366,7 +366,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -375,10 +375,10 @@ Lines added: 2, lines removed: 2
 @@ -182,6 +182,6 @@
               &lt;div className={&#96;text-sm leading-relaxed prose prose-sm max-w-none ${
                 isUser 
--                 ? &quot;prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-code:text-white prose-pre:bg-gray-800 prose-pre:text-white&quot; 
--                 : &quot;prose-gray prose-headings:text-gray-900 prose-p:text-gray-900&quot;
-+                 ? &quot;prose-invert [&amp;&gt;*]:text-white [&amp;_strong]:text-white [&amp;_em]:text-white [&amp;_li]:text-white [&amp;_td]:text-white [&amp;_th]:text-white&quot; 
-+                 : &quot;prose-gray&quot;
+-                 ? "prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-code:text-white prose-pre:bg-gray-800 prose-pre:text-white" 
+-                 : "prose-gray prose-headings:text-gray-900 prose-p:text-gray-900"
++                 ? "prose-invert [&amp;&gt;*]:text-white [&amp;_strong]:text-white [&amp;_em]:text-white [&amp;_li]:text-white [&amp;_td]:text-white [&amp;_th]:text-white" 
++                 : "prose-gray"
               }&#96;}&gt;
                 &lt;ReactMarkdown
 ```
@@ -388,14 +388,14 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -193,7 +193,7 @@
-                      const match = /language-(\w+)/.exec(className || &#39;&#39;);
+                      const match = /language-(\w+)/.exec(className || '');
                       return !inline &amp;&amp; match ? (
 -                       &lt;pre className={&#96;rounded-md p-3 overflow-x-auto ${
 +                       &lt;pre className={&#96;rounded-md p-3 overflow-x-auto my-2 ${
                           isUser 
--                           ? &quot;bg-gray-800 text-white&quot; 
-+                           ? &quot;bg-gray-800 text-gray-100&quot; 
-                            : &quot;bg-gray-800 text-gray-100&quot;
+-                           ? "bg-gray-800 text-white" 
++                           ? "bg-gray-800 text-gray-100" 
+                            : "bg-gray-800 text-gray-100"
                         }&#96;}&gt;
 ```
 
@@ -409,9 +409,9 @@ Lines added: 2, lines removed: 2
 -                       &lt;code className={&#96;px-1 py-0.5 rounded ${
 +                       &lt;code className={&#96;px-1.5 py-0.5 rounded text-xs font-mono ${
                           isUser 
--                           ? &quot;bg-gray-800 text-white&quot; 
-+                           ? &quot;bg-gray-800 text-gray-100&quot; 
-                            : &quot;bg-gray-200 text-gray-900&quot;
+-                           ? "bg-gray-800 text-white" 
++                           ? "bg-gray-800 text-gray-100" 
+                            : "bg-gray-200 text-gray-900"
                         }&#96;} {...props}&gt;
 ```
 
@@ -422,45 +422,45 @@ Lines added: 23, lines removed: 6
 @@ -214,22 +214,39 @@
                     // 自定义段落样式
                     p: ({ children }) =&gt; (
--                     &lt;p className=&quot;mb-2 last:mb-0&quot;&gt;{children}&lt;/p&gt;
-+                     &lt;p className={&#96;mb-2 last:mb-0 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;p className="mb-2 last:mb-0"&gt;{children}&lt;/p&gt;
++                     &lt;p className={&#96;mb-2 last:mb-0 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/p&gt;
                     ),
                     // 自定义列表样式
                     ul: ({ children }) =&gt; (
--                     &lt;ul className=&quot;list-disc list-inside mb-2 space-y-1&quot;&gt;{children}&lt;/ul&gt;
-+                     &lt;ul className={&#96;list-disc list-inside mb-2 space-y-1 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;ul className="list-disc list-inside mb-2 space-y-1"&gt;{children}&lt;/ul&gt;
++                     &lt;ul className={&#96;list-disc list-inside mb-2 space-y-1 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/ul&gt;
                     ),
                     ol: ({ children }) =&gt; (
--                     &lt;ol className=&quot;list-decimal list-inside mb-2 space-y-1&quot;&gt;{children}&lt;/ol&gt;
-+                     &lt;ol className={&#96;list-decimal list-inside mb-2 space-y-1 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;ol className="list-decimal list-inside mb-2 space-y-1"&gt;{children}&lt;/ol&gt;
++                     &lt;ol className={&#96;list-decimal list-inside mb-2 space-y-1 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/ol&gt;
 +                   ),
 +                   li: ({ children }) =&gt; (
-+                     &lt;li className={isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&gt;
++                     &lt;li className={isUser ? "text-white" : "text-gray-900"}&gt;
 +                       {children}
 +                     &lt;/li&gt;
                     ),
                     // 自定义标题样式
                     h1: ({ children }) =&gt; (
--                     &lt;h1 className=&quot;text-xl font-bold mb-2 mt-3 first:mt-0&quot;&gt;{children}&lt;/h1&gt;
-+                     &lt;h1 className={&#96;text-xl font-bold mb-2 mt-3 first:mt-0 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;h1 className="text-xl font-bold mb-2 mt-3 first:mt-0"&gt;{children}&lt;/h1&gt;
++                     &lt;h1 className={&#96;text-xl font-bold mb-2 mt-3 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/h1&gt;
                     ),
                     h2: ({ children }) =&gt; (
--                     &lt;h2 className=&quot;text-lg font-bold mb-2 mt-3 first:mt-0&quot;&gt;{children}&lt;/h2&gt;
-+                     &lt;h2 className={&#96;text-lg font-bold mb-2 mt-3 first:mt-0 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;h2 className="text-lg font-bold mb-2 mt-3 first:mt-0"&gt;{children}&lt;/h2&gt;
++                     &lt;h2 className={&#96;text-lg font-bold mb-2 mt-3 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/h2&gt;
                     ),
                     h3: ({ children }) =&gt; (
--                     &lt;h3 className=&quot;text-base font-bold mb-2 mt-2 first:mt-0&quot;&gt;{children}&lt;/h3&gt;
-+                     &lt;h3 className={&#96;text-base font-bold mb-2 mt-2 first:mt-0 ${isUser ? &quot;text-white&quot; : &quot;text-gray-900&quot;}&#96;}&gt;
+-                     &lt;h3 className="text-base font-bold mb-2 mt-2 first:mt-0"&gt;{children}&lt;/h3&gt;
++                     &lt;h3 className={&#96;text-base font-bold mb-2 mt-2 first:mt-0 ${isUser ? "text-white" : "text-gray-900"}&#96;}&gt;
 +                       {children}
 +                     &lt;/h3&gt;
                     ),
@@ -474,17 +474,17 @@ Lines added: 27, lines removed: 1
 @@ -252,10 +269,36 @@
                       &lt;blockquote className={&#96;border-l-4 pl-4 my-2 italic ${
                         isUser 
--                         ? &quot;border-gray-400 text-gray-200&quot; 
-+                         ? &quot;border-gray-300 text-gray-200&quot; 
-                          : &quot;border-gray-400 text-gray-600&quot;
+-                         ? "border-gray-400 text-gray-200" 
++                         ? "border-gray-300 text-gray-200" 
+                          : "border-gray-400 text-gray-600"
                       }&#96;}&gt;
                         {children}
                       &lt;/blockquote&gt;
                     ),
 +                   // 自定义表格样式
 +                   table: ({ children }) =&gt; (
-+                     &lt;div className=&quot;overflow-x-auto my-2&quot;&gt;
-+                       &lt;table className=&quot;min-w-full border-collapse&quot;&gt;
++                     &lt;div className="overflow-x-auto my-2"&gt;
++                       &lt;table className="min-w-full border-collapse"&gt;
 +                         {children}
 +                       &lt;/table&gt;
 +                     &lt;/div&gt;
@@ -492,8 +492,8 @@ Lines added: 27, lines removed: 1
 +                   th: ({ children }) =&gt; (
 +                     &lt;th className={&#96;border border-gray-300 px-3 py-2 text-left font-semibold ${
 +                       isUser 
-+                         ? &quot;bg-gray-700 text-white border-gray-600&quot; 
-+                         : &quot;bg-gray-200 text-gray-900&quot;
++                         ? "bg-gray-700 text-white border-gray-600" 
++                         : "bg-gray-200 text-gray-900"
 +                     }&#96;}&gt;
 +                       {children}
 +                     &lt;/th&gt;
@@ -501,8 +501,8 @@ Lines added: 27, lines removed: 1
 +                   td: ({ children }) =&gt; (
 +                     &lt;td className={&#96;border border-gray-300 px-3 py-2 ${
 +                       isUser 
-+                         ? &quot;text-white border-gray-600&quot; 
-+                         : &quot;text-gray-900&quot;
++                         ? "text-white border-gray-600" 
++                         : "text-gray-900"
 +                     }&#96;}&gt;
 +                       {children}
 +                     &lt;/td&gt;
@@ -621,7 +621,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/MessageItem.tsx</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 6
@@ -631,13 +631,13 @@ Lines added: 3, lines removed: 6
   
     React.useEffect(() =&gt; {
 -     if (structuredContent) {
--       setViewMode(&quot;structured&quot;);
+-       setViewMode("structured");
 -     } else {
--       setViewMode(&quot;text&quot;);
+-       setViewMode("text");
 -     }
 -   }, [structuredContent, message.id]);
 +     // 默认始终显示文本视图
-+     setViewMode(&quot;text&quot;);
++     setViewMode("text");
 +   }, [message.id]);
   
     return (

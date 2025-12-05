@@ -3,7 +3,7 @@
  * 用于区分不同页面的配置和行为
  */
 
-export type PageType = 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
+export type PageType = 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article' | 'ai-qa';
 
 export interface ToolItemConfig {
   id: string;
@@ -124,6 +124,36 @@ export const techArticleConfig: PageConfig = {
   ],
 };
 
+// AI问答页面配置（独立页面，复用tech-package系统但可定制化）
+export const aiQaConfig: PageConfig = {
+  pageType: 'ai-qa',
+  pageTitle: 'AI问答',
+  dialogueTitle: 'AI问答助手',
+  studioTitle: '更多工具箱',
+  workflowSelectionKey: 'ai-search.workflows.selection.ai-qa',
+  featureLabelMap: {
+    "five-view-analysis": "五看",
+    "three-fix-analysis": "三定",
+    "tech-matrix": "技术矩阵",
+    "propagation-strategy": "传播",
+    "exhibition-video": "展具与视频",
+    translation: "翻译",
+    "ppt-outline": "技术讲稿",
+    script: "脚本",
+  },
+  // AI问答页面保留所有工具，可根据需要定制
+  enabledToolIds: [
+    'five-view-analysis',
+    'three-fix-analysis',
+    'tech-matrix',
+    'propagation-strategy',
+    'exhibition-video',
+    'translation',
+    'ppt-outline',
+    'script',
+  ],
+};
+
 // 根据页面类型获取配置
 export const getPageConfig = (pageType: PageType): PageConfig => {
   switch (pageType) {
@@ -133,6 +163,8 @@ export const getPageConfig = (pageType: PageType): PageConfig => {
       return techStrategyConfig;
     case 'tech-article':
       return techArticleConfig;
+    case 'ai-qa':
+      return aiQaConfig;
     case 'tech-package':
     default:
       return techPackageConfig;

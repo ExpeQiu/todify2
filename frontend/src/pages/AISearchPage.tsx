@@ -623,8 +623,8 @@ const AISearchPage: React.FC = () => {
   };
 
   const handleSaveToNotes = (content: string) => {
-    // TODO: 实现保存到笔记功能
-    console.log("保存到笔记:", content);
+    // TODO: 实现保存到项目功能
+    console.log("保存到项目:", content);
   };
 
   const handleTriggerFeature = async (featureType: string) => {

@@ -211,6 +211,7 @@ export interface TechPointCarModel extends BaseEntity {
 // 技术包装材料接口
 export interface TechPackagingMaterial extends BaseEntity {
   tech_point_id: number;
+  project_id?: number;
   title: string;
   content: string;
   material_type: MaterialType;
@@ -227,6 +228,7 @@ export interface TechPackagingMaterial extends BaseEntity {
 export interface TechPromotionStrategy extends BaseEntity {
   title: string;
   content: string;
+  project_id?: number;
   strategy_type: StrategyType;
   target_market?: string;
   timeline?: Record<string, any>;
@@ -245,6 +247,7 @@ export interface TechPressRelease extends BaseEntity {
   subtitle?: string;
   content: string;
   summary?: string;
+  project_id?: number;
   release_type: ReleaseType;
   target_media?: string[];
   publication_date?: Date;
@@ -366,3 +369,128 @@ export interface SourceInformation extends BaseEntity {
 
 export type CreateSourceInformationDTO = Omit<SourceInformation, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateSourceInformationDTO = Partial<CreateSourceInformationDTO>;
+
+// 项目类型枚举
+export enum ProjectType {
+  NORMAL = 'normal',
+  FEATURED = 'featured'
+}
+
+// 项目状态枚举
+export enum ProjectStatus {
+  ACTIVE = 'active',
+  ARCHIVED = 'archived',
+  DELETED = 'deleted'
+}
+
+// 项目来源类型枚举
+export enum ProjectSourceType {
+  FILE = 'file',
+  URL = 'url',
+  TEXT = 'text',
+  TECH_POINT = 'tech_point',
+  KNOWLEDGE_POINT = 'knowledge_point'
+}
+
+// 项目接口
+export interface Project extends BaseEntity {
+  name: string;
+  description?: string;
+  cover_image?: string;
+  icon?: string;
+  type: ProjectType;
+  status: ProjectStatus;
+  created_by?: string;
+  last_opened_at?: Date;
+}
+
+// 项目来源接口
+export interface ProjectSource extends BaseEntity {
+  project_id: number;
+  source_type: ProjectSourceType;
+  source_content: string;
+  source_title?: string;
+  source_description?: string;
+  metadata?: Record<string, any>;
+}
+
+// 项目创建/更新DTO
+export type CreateProjectDTO = Omit<Project, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateProjectDTO = Partial<CreateProjectDTO>;
+
+// 项目来源创建/更新DTO
+export type CreateProjectSourceDTO = Omit<ProjectSource, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateProjectSourceDTO = Partial<CreateProjectSourceDTO>;
+
+// 项目关联表接口
+export interface ProjectTechPoint extends BaseEntity {
+  project_id: number;
+  tech_point_id: number;
+  notes?: string;
+}
+
+export interface ProjectKnowledgePoint extends BaseEntity {
+  project_id: number;
+  knowledge_point_id: number;
+  notes?: string;
+}
+
+export interface ProjectFile extends BaseEntity {
+  project_id: number;
+  file_id: string;
+  notes?: string;
+}
+
+export interface ProjectSourceInformation extends BaseEntity {
+  project_id: number;
+  source_information_id: number;
+  notes?: string;
+}
+
+// 生成内容关联表接口
+export interface TechPackagingConversation extends BaseEntity {
+  packaging_id: number;
+  conversation_id: string;
+  notes?: string;
+}
+
+export interface TechPackagingSource extends BaseEntity {
+  packaging_id: number;
+  source_id: number;
+  notes?: string;
+}
+
+export interface TechPromotionConversation extends BaseEntity {
+  promotion_id: number;
+  conversation_id: string;
+  notes?: string;
+}
+
+export interface TechPromotionSource extends BaseEntity {
+  promotion_id: number;
+  source_id: number;
+  notes?: string;
+}
+
+export interface TechPressConversation extends BaseEntity {
+  press_release_id: number;
+  conversation_id: string;
+  notes?: string;
+}
+
+export interface TechPressSource extends BaseEntity {
+  press_release_id: number;
+  source_id: number;
+  notes?: string;
+}
+
+// 项目详情接口（包含关联数据）
+export interface ProjectDetails extends Project {
+  techPoints?: TechPoint[];
+  knowledgePoints?: KnowledgePoint[];
+  files?: any[]; // File 类型需要从 files 表获取
+  sourceInformations?: SourceInformation[];
+  packagingMaterials?: TechPackagingMaterial[];
+  promotionStrategies?: TechPromotionStrategy[];
+  pressReleases?: TechPressRelease[];
+}

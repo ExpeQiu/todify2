@@ -1,11 +1,20 @@
 import api from "./api";
 
+export type SourceCategory = 
+  | "technical-translation"      // 技术转译信息
+  | "ai-qa-summary"              // AI问答总结信息（通用，从项目资源页面）
+  | "tech-package-qa"            // 技术包装问答总结信息
+  | "tech-strategy-qa"           // 技术策略问答总结信息
+  | "tech-article-qa"            // 技术通稿问答总结
+  | "external";                  // 外部添加信息（默认）
+
 export interface Source {
   id: string;
   title: string;
   type: "knowledge_base" | "external";
   url?: string;
   description?: string;
+  category?: SourceCategory;     // 来源类别标识
 }
 
 export interface SourceInformation {
@@ -35,6 +44,38 @@ export interface KnowledgeBaseItem {
   techPoint?: string;
   description?: string;
 }
+
+// 从 metadata 中解析 category 的辅助函数
+const parseCategoryFromMetadata = (metadata: any): SourceCategory => {
+  if (!metadata) return 'external';
+  
+  if (typeof metadata === 'object') {
+    return metadata.category || metadata.sourceCategory || 'external';
+  } else if (typeof metadata === 'string') {
+    try {
+      const parsed = JSON.parse(metadata);
+      return parsed.category || parsed.sourceCategory || 'external';
+    } catch (e) {
+      return 'external';
+    }
+  }
+  
+  return 'external';
+};
+
+// 将 SourceInformation 转换为 Source 的辅助函数
+const convertToSource = (item: SourceInformation): Source => {
+  const category = parseCategoryFromMetadata(item.metadata);
+  
+  return {
+    id: item.source_id,
+    title: item.title,
+    type: item.type,
+    url: item.url,
+    description: item.description,
+    category: category,
+  };
+};
 
 const sourceService = {
   /**
@@ -173,6 +214,12 @@ const sourceService = {
     error?: string;
   }> {
     try {
+      // 构建 metadata，包含 category
+      const metadata: Record<string, any> = {};
+      if (source.category) {
+        metadata.category = source.category;
+      }
+      
       const sourceInfo: Partial<SourceInformation> = {
         source_id: source.id,
         title: source.title,
@@ -182,6 +229,7 @@ const sourceService = {
         page_type: pageType as any,
         conversation_id: conversationId,
         status: "active",
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       };
 
       const response = await api.post("/source-information", sourceInfo);
@@ -212,16 +260,25 @@ const sourceService = {
     error?: string;
   }> {
     try {
-      const sourceInfoList: Partial<SourceInformation>[] = sources.map((source) => ({
-        source_id: source.id,
-        title: source.title,
-        type: source.type,
-        url: source.url,
-        description: source.description,
-        page_type: pageType as any,
-        conversation_id: conversationId,
-        status: "active",
-      }));
+      const sourceInfoList: Partial<SourceInformation>[] = sources.map((source) => {
+        // 构建 metadata，包含 category
+        const metadata: Record<string, any> = {};
+        if (source.category) {
+          metadata.category = source.category;
+        }
+        
+        return {
+          source_id: source.id,
+          title: source.title,
+          type: source.type,
+          url: source.url,
+          description: source.description,
+          page_type: pageType as any,
+          conversation_id: conversationId,
+          status: "active",
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        };
+      });
 
       console.log('[SourceService] 批量保存来源信息:', {
         count: sourceInfoList.length,
@@ -270,13 +327,7 @@ const sourceService = {
       const response = await api.get(`/source-information/conversation/${conversationId}`);
       if (response.data.success && response.data.data) {
         // 将数据库格式转换为前端Source格式
-        const sources: Source[] = response.data.data.map((item: SourceInformation) => ({
-          id: item.source_id,
-          title: item.title,
-          type: item.type,
-          url: item.url,
-          description: item.description,
-        }));
+        const sources: Source[] = response.data.data.map(convertToSource);
         return {
           success: true,
           data: sources,
@@ -317,14 +368,8 @@ const sourceService = {
       
       if (response.data.success && response.data.data) {
         // 将数据库格式转换为前端Source格式
-        const sources: Source[] = response.data.data.map((item: SourceInformation) => ({
-          id: item.source_id,
-          title: item.title,
-          type: item.type,
-          url: item.url,
-          description: item.description,
-        }));
-        console.log('[SourceService] 转换后的来源:', sources.map(s => ({ id: s.id, title: s.title })));
+        const sources: Source[] = response.data.data.map(convertToSource);
+        console.log('[SourceService] 转换后的来源:', sources.map(s => ({ id: s.id, title: s.title, category: s.category })));
         return {
           success: true,
           data: sources,

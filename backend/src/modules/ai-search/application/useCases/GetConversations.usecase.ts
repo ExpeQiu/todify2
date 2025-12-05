@@ -11,14 +11,22 @@ export class GetConversationsUseCase {
     try {
       const conversations = await this.aiSearchService.getConversations(pageType);
 
-      const formatted = conversations.map((conv) => ({
-        id: conv.id,
-        title: conv.title,
-        sources: JSON.parse(conv.sources || '[]'),
-        messages: [],
-        createdAt: new Date(conv.created_at),
-        updatedAt: new Date(conv.updated_at),
-      }));
+      // 为每个对话获取第一条用户消息（用于显示标题）
+      const formatted = await Promise.all(
+        conversations.map(async (conv) => {
+          // 获取第一条用户消息
+          const firstUserMessage = await this.aiSearchService.getFirstUserMessage(conv.id);
+          
+          return {
+            id: conv.id,
+            title: conv.title,
+            sources: JSON.parse(conv.sources || '[]'),
+            messages: firstUserMessage ? [firstUserMessage] : [],
+            createdAt: new Date(conv.created_at),
+            updatedAt: new Date(conv.updated_at),
+          };
+        })
+      );
 
       return success(formatted);
     } catch (error) {

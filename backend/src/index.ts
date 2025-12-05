@@ -135,10 +135,22 @@ app.get('/api/v1/public-by-address/:address', async (req, res) => {
       const { agentWorkflowModel } = await import('./models');
       const workflow = await agentWorkflowModel.getById(config.workflowId);
       if (workflow) {
-        const workflowNodes = JSON.parse(workflow.nodes);
-        const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-        const allRoles = await aiRoleModel.getAll();
-        roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
+        try {
+          const workflowNodes = typeof workflow.nodes === 'string' 
+            ? JSON.parse(workflow.nodes) 
+            : workflow.nodes;
+          if (Array.isArray(workflowNodes)) {
+            const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
+            const allRoles = await aiRoleModel.getAll();
+            roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
+          }
+        } catch (parseError) {
+          logger.warn('解析工作流节点失败', { 
+            workflowId: config.workflowId, 
+            error: parseError 
+          });
+          // 解析失败时返回空角色列表，不抛出错误
+        }
       }
     } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
       const allRoles = await aiRoleModel.getAll();
@@ -184,10 +196,22 @@ app.get('/api/v1/public-config/:configId', async (req, res) => {
       const { agentWorkflowModel } = await import('./models');
       const workflow = await agentWorkflowModel.getById(config.workflowId);
       if (workflow) {
-        const workflowNodes = JSON.parse(workflow.nodes);
-        const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-        const allRoles = await aiRoleModel.getAll();
-        roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
+        try {
+          const workflowNodes = typeof workflow.nodes === 'string' 
+            ? JSON.parse(workflow.nodes) 
+            : workflow.nodes;
+          if (Array.isArray(workflowNodes)) {
+            const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
+            const allRoles = await aiRoleModel.getAll();
+            roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
+          }
+        } catch (parseError) {
+          logger.warn('解析工作流节点失败', { 
+            workflowId: config.workflowId, 
+            error: parseError 
+          });
+          // 解析失败时返回空角色列表，不抛出错误
+        }
       }
     } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
       const allRoles = await aiRoleModel.getAll();
@@ -252,6 +276,14 @@ app.get('/metrics', async (req, res) => {
   }
 });
 
+// 公共知识库文件服务
+const publicKnowledgeUploadDir = path.join(__dirname, '../uploads/public-knowledge');
+app.use('/api/v1/public-knowledge/files', express.static(publicKnowledgeUploadDir, {
+  maxAge: 86400000, // 1 day
+  etag: true,
+  lastModified: true,
+}));
+
 // 生产环境静态文件服务：直接从 frontend/dist 提供资源
 // 注意：必须在 API 路由之后，否则会拦截 API 请求
 // 仅在非开发环境或明确需要时才启用静态文件服务
@@ -271,29 +303,54 @@ if (!isDev) {
 }
 
 // 全局错误处理中间件
+// 注意：这个中间件必须放在所有路由之后，且必须有4个参数 (err, req, res, next)
 app.use((err: any, req: any, res: any, next: any) => {
-    errorTracking.captureException(err instanceof Error ? err : new Error(String(err)), {
+  // 如果响应已经发送，则委托给默认的 Express 错误处理
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  // 记录错误详情
+  logger.error('全局错误处理', {
+    error: err,
+    stack: err?.stack,
+    requestUrl: req.url,
+    originalUrl: req.originalUrl,
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    params: req.params,
+    query: req.query,
+  });
+
+  // 发送到错误追踪
+  errorTracking.captureException(
+    err instanceof Error ? err : new Error(String(err)),
+    {
       context: {
         metadata: {
           method: req.method,
           path: req.path,
           body: req.body,
+          params: req.params,
+          query: req.query,
         },
       },
-    });
+    }
+  );
 
-  logger.error('全局错误处理', {
-    error: err,
-    stack: err?.stack,
-    requestUrl: req.url,
-    method: req.method,
-    body: req.body,
-  });
-  
-  res.status(500).json({
+  // 根据错误类型返回不同的状态码
+  const statusCode = err.statusCode || err.status || 500;
+  const errorMessage =
+    process.env.NODE_ENV === 'production'
+      ? '服务器内部错误'
+      : err.message || 'Unknown error';
+
+  res.status(statusCode).json({
     success: false,
     message: 'Internal server error',
-    error: process.env.NODE_ENV === 'production' ? '服务器内部错误' : (err.message || 'Unknown error')
+    error: errorMessage,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err?.stack }),
   });
 });
 
@@ -344,6 +401,16 @@ async function startServer() {
       logger.info('来源信息数据库表初始化成功');
     } catch (error) {
       logger.warn('来源信息数据库表初始化警告', { error });
+      // 不阻止服务器启动，表会在首次使用时自动创建
+    }
+    
+    // 初始化公共知识库数据库表
+    try {
+      const { publicKnowledgeModel } = await import('./models');
+      await publicKnowledgeModel.initializeTable();
+      logger.info('公共知识库数据库表初始化成功');
+    } catch (error) {
+      logger.warn('公共知识库数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     

@@ -25,6 +25,108 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * 预览配置（获取角色列表）
+ * GET /api/v1/public-page-configs/:id/preview
+ * 注意：这个路由必须在 /:id 之前定义，因为 Express 按顺序匹配路由
+ */
+router.get('/:id/preview', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const config = await publicPageConfigModel.getById(id);
+    
+    if (!config) {
+      return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
+    }
+
+    let roles: any[] = [];
+    
+    if (config.displayMode === 'all') {
+      // 获取所有启用的角色
+      const allRoles = await aiRoleModel.getAll();
+      roles = allRoles.filter(r => r.enabled);
+    } else if (config.displayMode === 'workflow' && config.workflowId) {
+      // 从工作流中提取角色
+      const workflow = await agentWorkflowModel.getById(config.workflowId);
+      if (workflow) {
+        try {
+          const workflowNodes = typeof workflow.nodes === 'string' 
+            ? JSON.parse(workflow.nodes) 
+            : workflow.nodes;
+          if (Array.isArray(workflowNodes)) {
+            const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
+            const allRoles = await aiRoleModel.getAll();
+            roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
+          }
+        } catch (parseError) {
+          console.error('解析工作流节点失败', { 
+            workflowId: config.workflowId, 
+            error: parseError 
+          });
+          // 解析失败时返回空角色列表，不抛出错误
+        }
+      }
+    } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
+      // 获取指定的角色
+      const allRoles = await aiRoleModel.getAll();
+      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
+    }
+    
+    res.json(formatApiResponse(true, { roles, config }, '获取配置预览成功'));
+  } catch (error) {
+    console.error('获取配置预览失败:', error);
+    res.status(500).json(formatApiResponse(
+      false,
+      null,
+      '获取配置预览失败',
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
+/**
+ * 切换配置启用状态
+ * PATCH /api/v1/public-page-configs/:id/toggle
+ * 注意：这个路由必须在 /:id 之前定义，因为 Express 按顺序匹配路由
+ */
+router.patch('/:id/toggle', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    console.log(`[API] 切换配置状态请求: id=${id}, isActive=${isActive}, body=`, req.body);
+
+    // 检查配置是否存在
+    const existingConfig = await publicPageConfigModel.getById(id);
+    if (!existingConfig) {
+      console.log(`[API] 配置不存在: id=${id}`);
+      return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
+    }
+
+    console.log(`[API] 当前配置状态: isActive=${existingConfig.isActive}`);
+
+    const updateData: UpdatePublicPageConfigDTO = {
+      isActive: typeof isActive === 'boolean' ? isActive : !existingConfig.isActive,
+    };
+
+    console.log(`[API] 更新数据: isActive=${updateData.isActive}`);
+
+    const updatedConfig = await publicPageConfigModel.update(id, updateData);
+
+    console.log(`[API] 配置状态已更新: id=${id}, isActive=${updatedConfig.isActive}`);
+
+    res.json(formatApiResponse(true, updatedConfig, '切换状态成功'));
+  } catch (error) {
+    console.error('[API] 切换状态失败:', error);
+    res.status(500).json(formatApiResponse(
+      false,
+      null,
+      '切换状态失败',
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
+/**
  * 获取单个配置
  * GET /api/v1/public-page-configs/:id
  */
@@ -198,51 +300,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-/**
- * 预览配置（获取角色列表）
- * GET /api/v1/public-page-configs/:id/preview
- */
-router.get('/:id/preview', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const config = await publicPageConfigModel.getById(id);
-    
-    if (!config) {
-      return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
-    }
-
-    let roles: any[] = [];
-    
-    if (config.displayMode === 'all') {
-      // 获取所有启用的角色
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => r.enabled);
-    } else if (config.displayMode === 'workflow' && config.workflowId) {
-      // 从工作流中提取角色
-      const workflow = await agentWorkflowModel.getById(config.workflowId);
-      if (workflow) {
-        const workflowNodes = JSON.parse(workflow.nodes);
-        const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-        const allRoles = await aiRoleModel.getAll();
-        roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
-      }
-    } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
-      // 获取指定的角色
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
-    }
-    
-    res.json(formatApiResponse(true, { roles, config }, '获取配置预览成功'));
-  } catch (error) {
-    console.error('获取配置预览失败:', error);
-    res.status(500).json(formatApiResponse(
-      false,
-      null,
-      '获取配置预览失败',
-      error instanceof Error ? error.message : '未知错误'
-    ));
-  }
-});
 
 /**
  * 导入独立页面配置
@@ -386,38 +443,6 @@ router.get('/by-address/:address', async (req, res) => {
   }
 });
 
-/**
- * 切换配置启用状态
- * PATCH /api/v1/public-page-configs/:id/toggle
- */
-router.patch('/:id/toggle', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { isActive } = req.body;
-
-    // 检查配置是否存在
-    const existingConfig = await publicPageConfigModel.getById(id);
-    if (!existingConfig) {
-      return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
-    }
-
-    const updateData: UpdatePublicPageConfigDTO = {
-      isActive: typeof isActive === 'boolean' ? isActive : !existingConfig.isActive,
-    };
-
-    const updatedConfig = await publicPageConfigModel.update(id, updateData);
-
-    res.json(formatApiResponse(true, updatedConfig, '切换状态成功'));
-  } catch (error) {
-    console.error('切换状态失败:', error);
-    res.status(500).json(formatApiResponse(
-      false,
-      null,
-      '切换状态失败',
-      error instanceof Error ? error.message : '未知错误'
-    ));
-  }
-});
 
 export default router;
 

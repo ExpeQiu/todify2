@@ -20,6 +20,11 @@ import workflowTemplateRouter from './workflowTemplate';
 import publicPageConfigRouter from './publicPageConfig';
 import pageToolConfigRouter from './pageToolConfig';
 import sourceInformationRouter from './sourceInformationRoutes';
+import projectsRouter from './projects';
+import publicKnowledgeRouter from './publicKnowledge';
+import techPackagingRouter from './techPackaging';
+import techPromotionRouter from './techPromotion';
+import techPressRouter from './techPress';
 
 const router = Router();
 
@@ -55,6 +60,11 @@ router.use('/workflow-templates', workflowTemplateRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
 router.use('/page-tool-configs', pageToolConfigRouter);
 router.use('/source-information', sourceInformationRouter);
+router.use('/projects', projectsRouter);
+router.use('/public-knowledge', publicKnowledgeRouter);
+router.use('/tech-packaging', techPackagingRouter);
+router.use('/tech-promotion', techPromotionRouter);
+router.use('/tech-press', techPressRouter);
 router.use('/ai-search', aiSearchModuleRouter);
 
 // 健康检查

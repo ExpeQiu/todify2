@@ -25,6 +25,10 @@ import TechPackagePage from "./pages/TechPackagePage";
 import TechStrategyPage from "./pages/TechStrategyPage";
 import TechArticlePage from "./pages/TechArticlePage";
 import PressReleasePage from "./pages/PressReleasePage";
+import AIQAPage from "./pages/AIQAPage";
+import HomePage from "./pages/HomePage";
+import PublicKnowledgePage from "./pages/PublicKnowledge";
+import ProjectResourcesPage from "./pages/ProjectResourcesPage";
 
 function App() {
   return (
@@ -39,8 +43,13 @@ function App() {
         <Routes data-oid="otdlif7">
           <Route
             path="/"
-            element={<WorkflowPage data-oid="afw3qx7" />}
+            element={<HomePage />}
             data-oid="rudq804"
+          />
+
+          <Route
+            path="/ai-qa"
+            element={<AIQAPage />}
           />
 
           <Route
@@ -183,6 +192,16 @@ function App() {
           <Route
             path="/field-mapping-management"
             element={<FieldMappingManagementPage />}
+          />
+
+          <Route
+            path="/public-knowledge"
+            element={<PublicKnowledgePage />}
+          />
+
+          <Route
+            path="/project/:projectId/resources"
+            element={<ProjectResourcesPage />}
           />
 
           {/* 根据地址配置的动态路由（需要放在具体路由之后） */}

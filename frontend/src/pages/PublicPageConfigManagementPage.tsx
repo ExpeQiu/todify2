@@ -615,6 +615,7 @@ const PublicPageConfigManagementPage: React.FC = () => {
       await publicPageConfigService.ensureDefaultPageConfigs(TEMPLATES);
       // 然后加载所有配置
       const data = await publicPageConfigService.getAllConfigs();
+      console.log('[ConfigPage] loadConfigs 加载的配置列表:', data.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
       setConfigs(data);
     } catch (error) {
       console.error('加载配置失败:', error);
@@ -762,11 +763,24 @@ const PublicPageConfigManagementPage: React.FC = () => {
   };
 
   const handleToggle = async (config: PublicPageConfig) => {
+    // 防止重复点击
+    if (togglingId === config.id) {
+      console.log('[ConfigPage] 切换操作正在进行中，忽略重复点击');
+      return;
+    }
+
+    console.log('[ConfigPage] 开始切换配置状态:', config.id, '当前状态:', config.isActive);
     setTogglingId(config.id);
+    
     try {
-      console.log('[ConfigPage] 切换配置状态:', config.id, '当前状态:', config.isActive);
-      await publicPageConfigService.toggleConfig(config.id);
-      loadConfigs();
+      const result = await publicPageConfigService.toggleConfig(config.id);
+      console.log('[ConfigPage] API 调用成功，返回结果:', result);
+      console.log('[ConfigPage] 返回结果中的 isActive 值:', result.isActive);
+      console.log('[ConfigPage] 切换前状态:', config.isActive, '切换后状态:', result.isActive);
+      
+      // 等待配置列表重新加载
+      await loadConfigs();
+      console.log('[ConfigPage] 配置列表已重新加载');
       
       // 触发配置更新事件，通知导航栏更新
       console.log('[ConfigPage] 触发配置更新事件');
@@ -787,11 +801,13 @@ const PublicPageConfigManagementPage: React.FC = () => {
       }));
       
       console.log('[ConfigPage] 配置状态已切换，事件已触发');
-    } catch (error) {
-      console.error('切换状态失败:', error);
-      alert('切换状态失败');
+    } catch (error: any) {
+      console.error('[ConfigPage] 切换状态失败:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || '切换状态失败，请检查网络连接或稍后重试';
+      alert(`切换状态失败: ${errorMessage}`);
     } finally {
       setTogglingId(null);
+      console.log('[ConfigPage] 切换操作完成，清除 togglingId');
     }
   };
 
@@ -912,7 +928,12 @@ const PublicPageConfigManagementPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleToggle(config)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('[ConfigPage] 按钮被点击，config:', config.id, 'isActive:', config.isActive);
+                            handleToggle(config);
+                          }}
                           disabled={togglingId === config.id}
                           className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors ${
                             config.isActive
@@ -920,6 +941,7 @@ const PublicPageConfigManagementPage: React.FC = () => {
                               : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                           } disabled:opacity-50 disabled:cursor-not-allowed`}
                           title={config.isActive ? '点击关闭' : '点击开启'}
+                          type="button"
                         >
                           {togglingId === config.id ? (
                             <Loader size={14} className="animate-spin" />

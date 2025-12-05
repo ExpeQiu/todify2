@@ -477,18 +477,18 @@ _No matches found_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -1,4 +1,4 @@
-  import React, { useState, useRef, useEffect } from &#39;react&#39;;
-- import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown } from &#39;lucide-react&#39;;
-+ import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown, Paperclip, X } from &#39;lucide-react&#39;;
-  import aiRoleService from &#39;../services/aiRoleService&#39;;
-  import { AIRoleConfig, ConversationMessage } from &#39;../types/aiRole&#39;;
+  import React, { useState, useRef, useEffect } from 'react';
+- import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown } from 'lucide-react';
++ import { Send, Bot, User, Loader2, Copy, RotateCcw, ThumbsUp, ThumbsDown, Paperclip, X } from 'lucide-react';
+  import aiRoleService from '../services/aiRoleService';
+  import { AIRoleConfig, ConversationMessage } from '../types/aiRole';
 ```
 
 </details>
@@ -499,7 +499,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -525,7 +525,7 @@ Lines added: 3, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 5
@@ -540,8 +540,8 @@ Lines added: 13, lines removed: 5
       const userMessage: ConversationMessage = {
         id: Date.now().toString(),
 -       content: inputMessage.trim(),
-+       content: inputMessage.trim() || (attachedFiles.length &gt; 0 ? &#96;[已上传 ${attachedFiles.length} 个文件]&#96; : &#39;&#39;),
-        role: &#39;user&#39;,
++       content: inputMessage.trim() || (attachedFiles.length &gt; 0 ? &#96;[已上传 ${attachedFiles.length} 个文件]&#96; : ''),
+        role: 'user',
 -       timestamp: new Date()
 +       timestamp: new Date(),
 +       attachments: attachedFiles.map(file =&gt; ({
@@ -554,7 +554,7 @@ Lines added: 13, lines removed: 5
       setMessages(prev =&gt; [...prev, userMessage]);
       const currentInput = inputMessage.trim();
 +     const currentFiles = [...attachedFiles];
-      setInputMessage(&#39;&#39;);
+      setInputMessage('');
 +     setAttachedFiles([]);
       setIsLoading(true);
   
@@ -579,7 +579,7 @@ Lines added: 13, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 23, lines removed: undefined
@@ -596,7 +596,7 @@ Lines added: 23, lines removed: undefined
 +     }
 +     // 清空input，允许重复选择同一文件
 +     if (fileInputRef.current) {
-+       fileInputRef.current.value = &#39;&#39;;
++       fileInputRef.current.value = '';
 +     }
 +   };
 + 
@@ -605,11 +605,11 @@ Lines added: 23, lines removed: undefined
 +   };
 + 
 +   const formatFileSize = (bytes: number): string =&gt; {
-+     if (bytes === 0) return &#39;0 B&#39;;
++     if (bytes === 0) return '0 B';
 +     const k = 1024;
-+     const sizes = [&#39;B&#39;, &#39;KB&#39;, &#39;MB&#39;, &#39;GB&#39;];
++     const sizes = ['B', 'KB', 'MB', 'GB'];
 +     const i = Math.floor(Math.log(bytes) / Math.log(k));
-+     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + &#39; &#39; + sizes[i];
++     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 +   };
   
     return (
@@ -623,7 +623,7 @@ Lines added: 23, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: undefined
@@ -633,22 +633,22 @@ Lines added: 16, lines removed: undefined
                           {message.content}
                         &lt;/p&gt;
 +                       {message.attachments &amp;&amp; message.attachments.length &gt; 0 &amp;&amp; (
-+                         &lt;div className=&quot;mt-2 space-y-1&quot;&gt;
++                         &lt;div className="mt-2 space-y-1"&gt;
 +                           {message.attachments.map((attachment, idx) =&gt; (
 +                             &lt;div
 +                               key={idx}
 +                               className={&#96;text-xs flex items-center gap-1 ${
-+                                 message.role === &#39;user&#39; ? &#39;text-blue-100&#39; : &#39;text-gray-500&#39;
++                                 message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
 +                               }&#96;}
 +                             &gt;
-+                               &lt;Paperclip className=&quot;w-3 h-3&quot; /&gt;
-+                               &lt;span className=&quot;truncate&quot;&gt;{attachment.name}&lt;/span&gt;
++                               &lt;Paperclip className="w-3 h-3" /&gt;
++                               &lt;span className="truncate"&gt;{attachment.name}&lt;/span&gt;
 +                               &lt;span&gt;({formatFileSize(attachment.size)})&lt;/span&gt;
 +                             &lt;/div&gt;
 +                           ))}
 +                         &lt;/div&gt;
 +                       )}
-                        &lt;div className=&quot;flex items-center justify-between mt-1&quot;&gt;
+                        &lt;div className="flex items-center justify-between mt-1"&gt;
                           &lt;p
 ```
 
@@ -660,7 +660,7 @@ Lines added: 16, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 40, lines removed: undefined
@@ -668,47 +668,47 @@ Lines added: 40, lines removed: undefined
 ```diff
 @@ -355,5 +355,45 @@
         {/* 输入区域 */}
-        &lt;div className=&quot;border-t border-gray-200 p-4&quot;&gt;
+        &lt;div className="border-t border-gray-200 p-4"&gt;
 +         {/* 附件预览 */}
 +         {attachedFiles.length &gt; 0 &amp;&amp; (
-+           &lt;div className=&quot;mb-2 space-y-1&quot;&gt;
++           &lt;div className="mb-2 space-y-1"&gt;
 +             {attachedFiles.map((file, index) =&gt; (
 +               &lt;div
 +                 key={index}
-+                 className=&quot;flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm&quot;
++                 className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm"
 +               &gt;
-+                 &lt;Paperclip className=&quot;w-4 h-4 text-gray-500 flex-shrink-0&quot; /&gt;
-+                 &lt;span className=&quot;flex-1 truncate text-gray-700&quot;&gt;{file.name}&lt;/span&gt;
-+                 &lt;span className=&quot;text-xs text-gray-500 flex-shrink-0&quot;&gt;
++                 &lt;Paperclip className="w-4 h-4 text-gray-500 flex-shrink-0" /&gt;
++                 &lt;span className="flex-1 truncate text-gray-700"&gt;{file.name}&lt;/span&gt;
++                 &lt;span className="text-xs text-gray-500 flex-shrink-0"&gt;
 +                   {formatFileSize(file.size)}
 +                 &lt;/span&gt;
 +                 &lt;button
 +                   onClick={() =&gt; handleRemoveFile(index)}
-+                   className=&quot;p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0&quot;
++                   className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0"
 +                   disabled={isLoading}
 +                 &gt;
-+                   &lt;X className=&quot;w-4 h-4 text-gray-500&quot; /&gt;
++                   &lt;X className="w-4 h-4 text-gray-500" /&gt;
 +                 &lt;/button&gt;
 +               &lt;/div&gt;
 +             ))}
 +           &lt;/div&gt;
 +         )}
-          &lt;div className=&quot;flex items-center gap-2&quot;&gt;
+          &lt;div className="flex items-center gap-2"&gt;
 +           &lt;input
 +             ref={fileInputRef}
-+             type=&quot;file&quot;
++             type="file"
 +             multiple
-+             className=&quot;hidden&quot;
++             className="hidden"
 +             onChange={handleFileSelect}
 +             disabled={isLoading || isUploadingFiles}
 +           /&gt;
 +           &lt;button
 +             onClick={() =&gt; fileInputRef.current?.click()}
 +             disabled={isLoading || isUploadingFiles || attachedFiles.length &gt;= 10}
-+             className=&quot;p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed&quot;
-+             title=&quot;上传附件&quot;
++             className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
++             title="上传附件"
 +           &gt;
-+             &lt;Paperclip className=&quot;w-5 h-5&quot; /&gt;
++             &lt;Paperclip className="w-5 h-5" /&gt;
 +           &lt;/button&gt;
             &lt;input
               ref={inputRef}
@@ -719,8 +719,8 @@ Lines added: 3, lines removed: 3
 
 ```diff
 @@ -364,12 +404,12 @@
-              placeholder=&quot;输入消息...&quot;
-              className=&quot;flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent&quot;
+              placeholder="输入消息..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 -             disabled={isLoading}
 +             disabled={isLoading || isUploadingFiles}
             /&gt;
@@ -728,11 +728,11 @@ Lines added: 3, lines removed: 3
               onClick={handleSendMessage}
 -             disabled={!inputMessage.trim() || isLoading}
 +             disabled={(!inputMessage.trim() &amp;&amp; attachedFiles.length === 0) || isLoading || isUploadingFiles}
-              className=&quot;p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors&quot;
+              className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             &gt;
 -             {isLoading ? (
 +             {isLoading || isUploadingFiles ? (
-                &lt;Loader2 className=&quot;w-5 h-5 animate-spin&quot; /&gt;
+                &lt;Loader2 className="w-5 h-5 animate-spin" /&gt;
               ) : (
 ```
 
@@ -790,7 +790,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/types/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/types/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -817,7 +817,7 @@ Lines added: 6, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/services/aiRoleService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/services/aiRoleService.ts</summary>
 
 **Chunk 1**
 Lines added: 35, lines removed: 10
@@ -845,21 +845,21 @@ Lines added: 35, lines removed: 10
 +       // 如果有文件，使用 FormData 上传
 +       if (files &amp;&amp; files.length &gt; 0) {
 +         const formData = new FormData();
-+         formData.append(&#39;query&#39;, query || &#39;&#39;);
-+         formData.append(&#39;inputs&#39;, JSON.stringify(inputs));
++         formData.append('query', query || '');
++         formData.append('inputs', JSON.stringify(inputs));
 +         if (conversationId) {
-+           formData.append(&#39;conversationId&#39;, conversationId);
++           formData.append('conversationId', conversationId);
 +         }
 +         
 +         // 添加所有文件
 +         files.forEach((file) =&gt; {
-+           formData.append(&#39;files&#39;, file);
++           formData.append('files', file);
 +         });
 + 
 +         const response = await api.post(&#96;/ai-roles/${roleId}/chat&#96;, formData, {
 +           timeout: 420_000, // AI对话请求使用7分钟超时（独立Agent可能需要多轮工具调用，留出缓冲）
 +           headers: {
-+             &#39;Content-Type&#39;: &#39;multipart/form-data&#39;,
++             'Content-Type': 'multipart/form-data',
 +           },
 +         });
 +         return response.data;
@@ -875,7 +875,7 @@ Lines added: 35, lines removed: 10
 +         return response.data;
 +       }
       } catch (error) {
-        console.error(&#39;AI角色对话失败:&#39;, error);
+        console.error('AI角色对话失败:', error);
 ```
 
 </details>
@@ -962,19 +962,19 @@ Lines added: 35, lines removed: 10
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -1,3 +1,6 @@
-  import express from &#39;express&#39;;
-+ import multer from &#39;multer&#39;;
-+ import path from &#39;path&#39;;
-+ import fs from &#39;fs&#39;;
-  import DifyClient from &#39;../services/DifyClient&#39;;
-  import { formatApiResponse, formatValidationErrorResponse } from &#39;../utils/validation&#39;;
+  import express from 'express';
++ import multer from 'multer';
++ import path from 'path';
++ import fs from 'fs';
+  import DifyClient from '../services/DifyClient';
+  import { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';
 ```
 
 **Chunk 2**
@@ -982,16 +982,16 @@ Lines added: 50, lines removed: undefined
 
 ```diff
 @@ -7,6 +10,56 @@
-  import { ChatMessage } from &#39;../services/llm/types&#39;;
-  import { AgentOrchestrator } from &#39;../services/agent/AgentOrchestrator&#39;;
-+ import { FileService } from &#39;../services/FileService&#39;;
+  import { ChatMessage } from '../services/llm/types';
+  import { AgentOrchestrator } from '../services/agent/AgentOrchestrator';
++ import { FileService } from '../services/FileService';
   
   const router = express.Router();
 + 
 + // 配置multer用于文件上传
 + const storage = multer.diskStorage({
 +   destination: (req, file, cb) =&gt; {
-+     const uploadDir = &#39;uploads/ai-roles/&#39;;
++     const uploadDir = 'uploads/ai-roles/';
 +     if (!fs.existsSync(uploadDir)) {
 +       fs.mkdirSync(uploadDir, { recursive: true });
 +     }
@@ -999,7 +999,7 @@ Lines added: 50, lines removed: undefined
 +   },
 +   filename: (req, file, cb) =&gt; {
 +     // 生成唯一文件名，但保留原始扩展名
-+     const uniqueSuffix = Date.now() + &#39;-&#39; + Math.round(Math.random() * 1E9);
++     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
 +     const ext = path.extname(file.originalname);
 +     cb(null, &#96;${uniqueSuffix}${ext}&#96;);
 +   },
@@ -1013,19 +1013,19 @@ Lines added: 50, lines removed: undefined
 +   fileFilter: (req, file, cb) =&gt; {
 +     // 允许的文件类型
 +     const allowedTypes = [
-+       &#39;image/jpeg&#39;,
-+       &#39;image/png&#39;,
-+       &#39;image/gif&#39;,
-+       &#39;image/webp&#39;,
-+       &#39;image/svg+xml&#39;,
-+       &#39;application/pdf&#39;,
-+       &#39;application/msword&#39;,
-+       &#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;,
-+       &#39;application/vnd.ms-excel&#39;,
-+       &#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;,
-+       &#39;text/plain&#39;,
-+       &#39;text/markdown&#39;,
-+       &#39;application/json&#39;,
++       'image/jpeg',
++       'image/png',
++       'image/gif',
++       'image/webp',
++       'image/svg+xml',
++       'application/pdf',
++       'application/msword',
++       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
++       'application/vnd.ms-excel',
++       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
++       'text/plain',
++       'text/markdown',
++       'application/json',
 +     ];
 +     if (allowedTypes.includes(file.mimetype)) {
 +       cb(null, true);
@@ -1048,7 +1048,7 @@ Lines added: 50, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 77, lines removed: 2
@@ -1060,11 +1060,11 @@ Lines added: 77, lines removed: 2
 +  * 支持multipart/form-data（带文件）和application/json（不带文件）
    * 注意：必须在 /:id 路由之前定义，否则会被当作 id 处理
    */
-- router.post(&#39;/:id/chat&#39;, async (req, res) =&gt; {
-+ router.post(&#39;/:id/chat&#39;, upload.array(&#39;files&#39;, 10), async (req, res) =&gt; {
+- router.post('/:id/chat', async (req, res) =&gt; {
++ router.post('/:id/chat', upload.array('files', 10), async (req, res) =&gt; {
     try {
       const { id } = req.params;
--     const { query, inputs = {}, conversationId = &#39;&#39; } = req.body;
+-     const { query, inputs = {}, conversationId = '' } = req.body;
 +     
 +     // 处理文件上传
 +     const uploadedFiles = req.files as Express.Multer.File[];
@@ -1077,14 +1077,14 @@ Lines added: 77, lines removed: 2
 +         const fileUrl = &#96;/uploads/ai-roles/${file.filename}&#96;;
 +         
 +         // 确定文件分类
-+         let category = &#39;general&#39;;
-+         if (file.mimetype.startsWith(&#39;image/&#39;)) {
-+           category = &#39;image&#39;;
-+         } else if (file.mimetype.startsWith(&#39;application/pdf&#39;) || 
-+                    file.mimetype.includes(&#39;document&#39;) || 
-+                    file.mimetype.includes(&#39;word&#39;) ||
-+                    file.mimetype.includes(&#39;text&#39;)) {
-+           category = &#39;document&#39;;
++         let category = 'general';
++         if (file.mimetype.startsWith('image/')) {
++           category = 'image';
++         } else if (file.mimetype.startsWith('application/pdf') || 
++                    file.mimetype.includes('document') || 
++                    file.mimetype.includes('word') ||
++                    file.mimetype.includes('text')) {
++           category = 'document';
 +         }
 + 
 +         // 处理文件名编码
@@ -1092,8 +1092,8 @@ Lines added: 77, lines removed: 2
 +         try {
 +           const hasGarbledChars = /ã€|ç¥|æ|Ã|â€|â€|â€/.test(originalName);
 +           if (hasGarbledChars) {
-+             const buffer = Buffer.from(originalName, &#39;latin1&#39;);
-+             const decoded = buffer.toString(&#39;utf8&#39;);
++             const buffer = Buffer.from(originalName, 'latin1');
++             const decoded = buffer.toString('utf8');
 +             if (/[\u4e00-\u9fa5]/.test(decoded)) {
 +               originalName = decoded;
 +             }
@@ -1121,24 +1121,24 @@ Lines added: 77, lines removed: 2
 +     }
 +     
 +     // 获取请求参数（支持JSON和FormData）
-+     let query: string = &#39;&#39;;
++     let query: string = '';
 +     let inputs: any = {};
-+     let conversationId: string = &#39;&#39;;
++     let conversationId: string = '';
 +     
-+     if (req.headers[&#39;content-type&#39;]?.includes(&#39;multipart/form-data&#39;)) {
++     if (req.headers['content-type']?.includes('multipart/form-data')) {
 +       // FormData格式
-+       query = req.body.query || &#39;&#39;;
++       query = req.body.query || '';
 +       try {
-+         inputs = typeof req.body.inputs === &#39;string&#39; ? JSON.parse(req.body.inputs) : (req.body.inputs || {});
++         inputs = typeof req.body.inputs === 'string' ? JSON.parse(req.body.inputs) : (req.body.inputs || {});
 +       } catch (e) {
 +         inputs = req.body.inputs || {};
 +       }
-+       conversationId = req.body.conversationId || &#39;&#39;;
++       conversationId = req.body.conversationId || '';
 +     } else {
 +       // JSON格式
-+       query = req.body.query || &#39;&#39;;
++       query = req.body.query || '';
 +       inputs = req.body.inputs || {};
-+       conversationId = req.body.conversationId || &#39;&#39;;
++       conversationId = req.body.conversationId || '';
 +     }
       
       // 获取角色配置
@@ -1152,29 +1152,29 @@ Lines added: 77, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 1
 
 ```diff
 @@ -496,9 +496,16 @@
-        if (connectionType === &#39;chatflow&#39;) {
+        if (connectionType === 'chatflow') {
           // 使用聊天流模式，使用角色配置的API信息
--         console.log(&#39;准备调用 Dify chatflow，参数:&#39;, { query, conversationId, inputs, userId: &#39;ai-role-user&#39; });
-+         console.log(&#39;准备调用 Dify chatflow，参数:&#39;, { 
+-         console.log('准备调用 Dify chatflow，参数:', { query, conversationId, inputs, userId: 'ai-role-user' });
++         console.log('准备调用 Dify chatflow，参数:', { 
 +           query, 
 +           conversationId, 
 +           inputs, 
 +           files: fileUrls.length,
-+           userId: &#39;ai-role-user&#39; 
++           userId: 'ai-role-user' 
 +         });
           const chatResult = await gateway.executeChat({
             query,
             conversationId,
             inputs,
 +           files: fileUrls.length &gt; 0 ? fileUrls : undefined,
-            userId: &#39;ai-role-user&#39;,
+            userId: 'ai-role-user',
           });
 ```
 
@@ -1257,14 +1257,14 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 4
 
 ```diff
 @@ -496,16 +496,22 @@
-        if (connectionType === &#39;chatflow&#39;) {
+        if (connectionType === 'chatflow') {
           // 使用聊天流模式，使用角色配置的API信息
 +         // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理
 +         const inputsWithFiles = { ...inputs };
@@ -1272,23 +1272,23 @@ Lines added: 10, lines removed: 4
 +           inputsWithFiles.files = fileUrls;
 +         }
 +         
-          console.log(&#39;准备调用 Dify chatflow，参数:&#39;, { 
+          console.log('准备调用 Dify chatflow，参数:', { 
             query, 
             conversationId, 
 -           inputs, 
 +           inputsKeys: Object.keys(inputsWithFiles),
             files: fileUrls.length,
 +           fileUrls,
-            userId: &#39;ai-role-user&#39; 
+            userId: 'ai-role-user' 
           });
           const chatResult = await gateway.executeChat({
 -           query,
-+           query: query || &#39;&#39;,
++           query: query || '',
             conversationId,
 -           inputs,
 -           files: fileUrls.length &gt; 0 ? fileUrls : undefined,
 +           inputs: inputsWithFiles,
-            userId: &#39;ai-role-user&#39;,
+            userId: 'ai-role-user',
           });
 ```
 
@@ -1358,7 +1358,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/aiRole.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -1368,13 +1368,13 @@ Lines added: 3, lines removed: 3
       }
       
 -     // 验证查询参数
--     if (!query || query.trim() === &#39;&#39;) {
+-     if (!query || query.trim() === '') {
 +     // 验证查询参数：如果没有查询内容，至少要有文件上传
-+     if ((!query || query.trim() === &#39;&#39;) &amp;&amp; fileUrls.length === 0) {
++     if ((!query || query.trim() === '') &amp;&amp; fileUrls.length === 0) {
         return res.status(400).json(formatValidationErrorResponse([{
-          field: &#39;query&#39;,
--         message: &#39;查询内容不能为空&#39;
-+         message: &#39;查询内容或文件至少需要提供一个&#39;
+          field: 'query',
+-         message: '查询内容不能为空'
++         message: '查询内容或文件至少需要提供一个'
         }]));
       }
 ```
@@ -1410,7 +1410,7 @@ Lines added: 3, lines removed: 3
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/AIRoleChat.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1594,7 +1594,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/guide/workflow/DIFY_FILE_UPLOAD_ANALYSIS.md</summary>
+<details><summary>Tool use: **write** • Edit file: /Volumes/Lexar/git/03T/todify3/guide/workflow/DIFY_FILE_UPLOAD_ANALYSIS.md</summary>
 
 **Chunk 1**
 Lines added: 165, lines removed: 1
@@ -1619,13 +1619,13 @@ Lines added: 165, lines removed: 1
 + **响应格式：**
 + &#96;&#96;&#96;json
 + {
-+   &quot;id&quot;: &quot;72fa9618-8f89-4a37-9b33-7e1178a24a67&quot;,
-+   &quot;name&quot;: &quot;example.png&quot;,
-+   &quot;size&quot;: 1024,
-+   &quot;extension&quot;: &quot;png&quot;,
-+   &quot;mime_type&quot;: &quot;image/png&quot;,
-+   &quot;created_by&quot;: 123,
-+   &quot;created_at&quot;: 1577836800
++   "id": "72fa9618-8f89-4a37-9b33-7e1178a24a67",
++   "name": "example.png",
++   "size": 1024,
++   "extension": "png",
++   "mime_type": "image/png",
++   "created_by": 123,
++   "created_at": 1577836800
 + }
 + &#96;&#96;&#96;
 + 
@@ -1654,21 +1654,21 @@ Lines added: 165, lines removed: 1
 + **示例请求：**
 + &#96;&#96;&#96;json
 + {
-+   &quot;query&quot;: &quot;What are the specs of the iPhone 13 Pro Max?&quot;,
-+   &quot;inputs&quot;: {},
-+   &quot;response_mode&quot;: &quot;blocking&quot;,
-+   &quot;conversation_id&quot;: &quot;&quot;,
-+   &quot;user&quot;: &quot;abc-123&quot;,
-+   &quot;files&quot;: [
++   "query": "What are the specs of the iPhone 13 Pro Max?",
++   "inputs": {},
++   "response_mode": "blocking",
++   "conversation_id": "",
++   "user": "abc-123",
++   "files": [
 +     {
-+       &quot;type&quot;: &quot;image&quot;,
-+       &quot;transfer_method&quot;: &quot;remote_url&quot;,
-+       &quot;url&quot;: &quot;https://cloud.dify.ai/logo/logo-site.png&quot;
++       "type": "image",
++       "transfer_method": "remote_url",
++       "url": "https://cloud.dify.ai/logo/logo-site.png"
 +     },
 +     {
-+       &quot;type&quot;: &quot;document&quot;,
-+       &quot;transfer_method&quot;: &quot;local_file&quot;,
-+       &quot;upload_file_id&quot;: &quot;72fa9618-8f89-4a37-9b33-7e1178a24a67&quot;
++       "type": "document",
++       "transfer_method": "local_file",
++       "upload_file_id": "72fa9618-8f89-4a37-9b33-7e1178a24a67"
 +     }
 +   ]
 + }
@@ -1699,7 +1699,7 @@ Lines added: 165, lines removed: 1
 + &#96;&#96;&#96;typescript
 + files: fileIds.length &gt; 0 ? fileIds.map(fileId =&gt; ({
 +   type: detectFileType(fileId),      // 需要根据文件 ID 或文件信息判断类型
-+   transfer_method: &#39;local_file&#39;,
++   transfer_method: 'local_file',
 +   upload_file_id: fileId
 + })) : undefined  // ✅ 正确：传递文件对象数组
 + &#96;&#96;&#96;
@@ -1712,16 +1712,16 @@ Lines added: 165, lines removed: 1
 + 
 + &#96;&#96;&#96;typescript
 + function detectFileTypeFromMime(mimeType: string): string {
-+   if (mimeType.startsWith(&#39;image/&#39;)) return &#39;image&#39;;
-+   if (mimeType.startsWith(&#39;audio/&#39;)) return &#39;audio&#39;;
-+   if (mimeType.startsWith(&#39;video/&#39;)) return &#39;video&#39;;
-+   if (mimeType.includes(&#39;pdf&#39;) || 
-+       mimeType.includes(&#39;document&#39;) || 
-+       mimeType.includes(&#39;word&#39;) ||
-+       mimeType.includes(&#39;excel&#39;) ||
-+       mimeType.includes(&#39;text&#39;) ||
-+       mimeType.includes(&#39;markdown&#39;)) return &#39;document&#39;;
-+   return &#39;custom&#39;;
++   if (mimeType.startsWith('image/')) return 'image';
++   if (mimeType.startsWith('audio/')) return 'audio';
++   if (mimeType.startsWith('video/')) return 'video';
++   if (mimeType.includes('pdf') || 
++       mimeType.includes('document') || 
++       mimeType.includes('word') ||
++       mimeType.includes('excel') ||
++       mimeType.includes('text') ||
++       mimeType.includes('markdown')) return 'document';
++   return 'custom';
 + }
 + &#96;&#96;&#96;
 + 
@@ -1739,7 +1739,7 @@ Lines added: 165, lines removed: 1
 +   const fileInfo = uploadedFileInfos[index]; // 需要保存上传时的文件信息
 +   return {
 +     type: detectFileTypeFromMime(fileInfo.mimeType),
-+     transfer_method: &#39;local_file&#39;,
++     transfer_method: 'local_file',
 +     upload_file_id: fileId
 +   };
 + });
@@ -1748,7 +1748,7 @@ Lines added: 165, lines removed: 1
 +   query: input.query,
 +   conversation_id: input.conversationId,
 +   inputs: cleanInputs,
-+   response_mode: &#39;blocking&#39;,
++   response_mode: 'blocking',
 +   user: userId,
 +   files: fileObjects.length &gt; 0 ? fileObjects : undefined,
 + };
@@ -1809,7 +1809,7 @@ The string to replace was not found in the file.
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 1
@@ -1825,7 +1825,7 @@ Lines added: 5, lines removed: 1
 +         fileName,
 +       };
       } catch (error) {
-        logger.error(&#39;上传文件到 Dify 失败&#39;, {
+        logger.error('上传文件到 Dify 失败', {
 ```
 
 **Chunk 2**
@@ -1839,28 +1839,28 @@ Lines added: 27, lines removed: undefined
 +   /**
 +    * 根据 MIME 类型检测文件类型
 +    */
-+   private detectFileTypeFromMime(mimeType: string): &#39;document&#39; | &#39;image&#39; | &#39;audio&#39; | &#39;video&#39; | &#39;custom&#39; {
-+     if (mimeType.startsWith(&#39;image/&#39;)) return &#39;image&#39;;
-+     if (mimeType.startsWith(&#39;audio/&#39;)) return &#39;audio&#39;;
-+     if (mimeType.startsWith(&#39;video/&#39;)) return &#39;video&#39;;
++   private detectFileTypeFromMime(mimeType: string): 'document' | 'image' | 'audio' | 'video' | 'custom' {
++     if (mimeType.startsWith('image/')) return 'image';
++     if (mimeType.startsWith('audio/')) return 'audio';
++     if (mimeType.startsWith('video/')) return 'video';
 +     if (
-+       mimeType.includes(&#39;pdf&#39;) ||
-+       mimeType.includes(&#39;document&#39;) ||
-+       mimeType.includes(&#39;word&#39;) ||
-+       mimeType.includes(&#39;excel&#39;) ||
-+       mimeType.includes(&#39;spreadsheet&#39;) ||
-+       mimeType.includes(&#39;text&#39;) ||
-+       mimeType.includes(&#39;markdown&#39;) ||
-+       mimeType.includes(&#39;html&#39;) ||
-+       mimeType.includes(&#39;xml&#39;) ||
-+       mimeType.includes(&#39;csv&#39;) ||
-+       mimeType.includes(&#39;presentation&#39;) ||
-+       mimeType.includes(&#39;powerpoint&#39;) ||
-+       mimeType.includes(&#39;epub&#39;)
++       mimeType.includes('pdf') ||
++       mimeType.includes('document') ||
++       mimeType.includes('word') ||
++       mimeType.includes('excel') ||
++       mimeType.includes('spreadsheet') ||
++       mimeType.includes('text') ||
++       mimeType.includes('markdown') ||
++       mimeType.includes('html') ||
++       mimeType.includes('xml') ||
++       mimeType.includes('csv') ||
++       mimeType.includes('presentation') ||
++       mimeType.includes('powerpoint') ||
++       mimeType.includes('epub')
 +     ) {
-+       return &#39;document&#39;;
++       return 'document';
 +     }
-+     return &#39;custom&#39;;
++     return 'custom';
 +   }
   
     async executeChat(input: ChatInput): Promise&lt;Result&lt;ChatOutput&gt;&gt; {
@@ -1874,7 +1874,7 @@ Lines added: 27, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: 10
@@ -1886,15 +1886,15 @@ Lines added: 12, lines removed: 10
 -           // 如果已经是文件 ID（格式检查），直接使用
 +           // 如果已经是文件 ID（格式检查），需要从文件 ID 获取文件信息
             // Dify 文件 ID 通常是 UUID 格式
-            if (fileUrl &amp;&amp; !fileUrl.startsWith(&#39;http://&#39;) &amp;&amp; !fileUrl.startsWith(&#39;https://&#39;) &amp;&amp; !fileUrl.startsWith(&#39;/&#39;)) {
+            if (fileUrl &amp;&amp; !fileUrl.startsWith('http://') &amp;&amp; !fileUrl.startsWith('https://') &amp;&amp; !fileUrl.startsWith('/')) {
 -             // 可能是文件 ID，直接使用
 +             // 如果是文件 ID，我们无法直接获取文件信息，需要假设是 document 类型
-              logger.info(&#39;检测到可能是文件 ID，直接使用&#39;, { fileUrl });
+              logger.info('检测到可能是文件 ID，直接使用', { fileUrl });
 -             return fileUrl;
 +             return {
 +               fileId: fileUrl,
-+               mimeType: &#39;application/octet-stream&#39;, // 未知类型，默认使用 custom
-+               fileName: &#39;file&#39;,
++               mimeType: 'application/octet-stream', // 未知类型，默认使用 custom
++               fileName: 'file',
 +             };
             }
   
@@ -1904,7 +1904,7 @@ Lines added: 12, lines removed: 10
 +           // 上传文件获取文件信息
 +           const fileInfo = await this.uploadFileToDify(fileUrl, userId);
 +           if (!fileInfo) {
-              logger.warn(&#39;文件上传失败，跳过该文件&#39;, { fileUrl });
+              logger.warn('文件上传失败，跳过该文件', { fileUrl });
               return null;
             }
 -           return fileId;
@@ -1917,7 +1917,7 @@ Lines added: 12, lines removed: 10
 -         fileIds.push(...validFileIds);
 +         const validFileInfos = uploadResults.filter((info): info is FileUploadResult =&gt; info !== null);
   
-          logger.info(&#39;文件上传完成&#39;, {
+          logger.info('文件上传完成', {
 ```
 
 </details>
@@ -1928,14 +1928,14 @@ Lines added: 12, lines removed: 10
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: 5
 
 ```diff
 @@ -494,9 +494,19 @@
-          logger.info(&#39;文件上传完成&#39;, {
+          logger.info('文件上传完成', {
             totalFiles: files.length,
 -           successCount: validFileIds.length,
 -           failedCount: files.length - validFileIds.length,
@@ -1953,7 +1953,7 @@ Lines added: 15, lines removed: 5
 +         const fileType = this.detectFileTypeFromMime(fileInfo.mimeType);
 +         return {
 +           type: fileType,
-+           transfer_method: &#39;local_file&#39; as const,
++           transfer_method: 'local_file' as const,
 +           upload_file_id: fileInfo.fileId,
 +         };
 +       });
@@ -1966,7 +1966,7 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -506,5 +516,5 @@
-          response_mode: &#39;blocking&#39;,
+          response_mode: 'blocking',
           user: userId,
 -         files: fileIds.length &gt; 0 ? fileIds : undefined, // 传递文件 ID 列表，而不是 URL
 +         files: fileObjects.length &gt; 0 ? fileObjects : undefined, // 传递文件对象数组，符合 Dify API 规范
@@ -1982,7 +1982,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -1991,8 +1991,8 @@ Lines added: 3, lines removed: 3
 @@ -519,13 +519,13 @@
         };
   
--       logger.info(&#39;Dify executeChat 请求体（使用文件 ID）&#39;, {
-+       logger.info(&#39;Dify executeChat 请求体（使用文件对象数组）&#39;, {
+-       logger.info('Dify executeChat 请求体（使用文件 ID）', {
++       logger.info('Dify executeChat 请求体（使用文件对象数组）', {
           query: requestBody.query?.substring(0, 100),
           hasConversationId: !!requestBody.conversation_id,
           inputsKeys: Object.keys(requestBody.inputs || {}),
@@ -2023,7 +2023,7 @@ Lines added: 3, lines removed: 3
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -2038,7 +2038,7 @@ Lines added: 3, lines removed: 3
 +       // 根据 Dify API 文档：需要先上传文件获取文件 ID，然后构造文件对象数组传递
 +       // 将文件 URL 转换为文件信息（包含 ID、类型等）
 +       const validFileInfos: FileUploadResult[] = [];
-        const userId = input.userId ?? &#39;todify-user&#39;;
+        const userId = input.userId ?? 'todify-user';
   
 ```
 
@@ -2095,14 +2095,14 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 1
 
 ```diff
 @@ -140,10 +140,20 @@
-      attachLogging(this.workflowClient, &#39;workflow&#39;);
+      attachLogging(this.workflowClient, 'workflow');
     }
 + 
 +   /**
@@ -2119,10 +2119,10 @@ Lines added: 11, lines removed: 1
      * 根据 Dify API 文档：需要先上传文件获取文件 ID，然后在发送消息时传递文件 ID
 +    * @returns 文件信息（包含 ID、MIME 类型、文件名）或 null
      */
--   private async uploadFileToDify(fileUrl: string, userId: string = &#39;todify-user&#39;): Promise&lt;string | null&gt; {
-+   private async uploadFileToDify(fileUrl: string, userId: string = &#39;todify-user&#39;): Promise&lt;FileUploadResult | null&gt; {
+-   private async uploadFileToDify(fileUrl: string, userId: string = 'todify-user'): Promise&lt;string | null&gt; {
++   private async uploadFileToDify(fileUrl: string, userId: string = 'todify-user'): Promise&lt;FileUploadResult | null&gt; {
       try {
-        logger.info(&#39;开始上传文件到 Dify&#39;, {
+        logger.info('开始上传文件到 Dify', {
 ```
 
 </details>
@@ -2211,7 +2211,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -2241,14 +2241,14 @@ Lines added: 9, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 9
 
 ```diff
 @@ -149,13 +149,4 @@
-      attachLogging(this.workflowClient, &#39;workflow&#39;);
+      attachLogging(this.workflowClient, 'workflow');
     }
 - 
 -   /**

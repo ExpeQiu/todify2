@@ -459,14 +459,14 @@ class PublicPageConfigService {
 
   /**
    * 初始化/更新默认页面配置
-   * 确保技术包装、技术策略、技术通稿、发布会稿这4个页面使用正确的模板并处于开启状态
+   * 确保技术包装、技术策略、技术通稿这3个页面使用正确的模板并处于开启状态
    * @param templates 模板HTML映射对象，用于获取模板HTML内容
    */
   async ensureDefaultPageConfigs(templates?: Record<string, string>): Promise<PublicPageConfig[]> {
     const existingConfigs = await this.getAllConfigs();
     const updatedConfigs: PublicPageConfig[] = [];
 
-    // 定义需要确保的4个页面配置
+    // 定义需要确保的3个页面配置
     const defaultPageConfigs = [
       {
         name: '技术包装',
@@ -484,12 +484,6 @@ class PublicPageConfigService {
         name: '技术通稿',
         description: '核心内容生成工作流公开页面',
         address: 'tech-article',
-        templateType: 'ai-chat-source-tools' as const,
-      },
-      {
-        name: '发布会稿',
-        description: '技术发布内容生成工作流公开页面',
-        address: 'press-release',
         templateType: 'ai-chat-source-tools' as const,
       },
     ];

@@ -1,11 +1,13 @@
-import React from "react";
-import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings } from "lucide-react";
+import React, { useState } from "react";
+import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings, MessageSquare, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
-import { OutputContent } from "../../types/aiSearch";
+import { OutputContent, Conversation, Message } from "../../types/aiSearch";
+import ConversationDetailModal from "./ConversationDetailModal";
 
 interface StudioSidebarProps {
   outputs?: OutputContent[];
+  conversations?: Conversation[]; // 对话记录列表
   onShowConversationList?: () => void;
   onTriggerFeature: (featureType: string) => void;
   executingFeatureId?: string | null;
@@ -15,10 +17,12 @@ interface StudioSidebarProps {
   featureLabelMap?: Record<string, string>;
   enabledToolIds?: string[]; // 启用的工具ID列表
   pageType?: string; // 当前页面类型，用于跳转到字段映射管理页面时过滤
+  onDeleteConversation?: (id: string) => void; // 删除对话的回调
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
   outputs = [],
+  conversations = [],
   onShowConversationList,
   onTriggerFeature,
   executingFeatureId,
@@ -28,17 +32,55 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   featureLabelMap = {},
   enabledToolIds,
   pageType,
+  onDeleteConversation,
 }) => {
   const navigate = useNavigate();
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
   const formatDaysAgo = (date: Date) => {
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const d = date instanceof Date ? date : new Date(date);
+    const diff = now.getTime() - d.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
     if (days < 1) return "今天";
     if (days < 30) return `${days}天前`;
     if (days < 365) return `${Math.floor(days / 30)}个月前`;
     return `${Math.floor(days / 365)}年前`;
+  };
+
+  // 获取对话的首个问题作为标题
+  const getFirstQuestion = (conversation: Conversation): string => {
+    // 优先从消息中获取首个用户问题
+    if (conversation.messages && conversation.messages.length > 0) {
+      const firstUserMsg = conversation.messages.find((msg) => msg.role === "user");
+      if (firstUserMsg && firstUserMsg.content) {
+        // 截取前50个字符作为标题
+        const content = firstUserMsg.content.trim();
+        if (content) {
+          return content.length > 50 ? content.substring(0, 50) + "..." : content;
+        }
+      }
+    }
+    // 如果没有用户消息，尝试从标题中提取（如果标题不是默认的时间戳格式）
+    if (conversation.title && !conversation.title.startsWith("对话 ")) {
+      return conversation.title;
+    }
+    // 最后的后备方案
+    return "新对话";
+  };
+
+  const handleConversationClick = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    setShowDetailModal(true);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation(); // 阻止触发对话点击事件
+    if (window.confirm("确定要删除此对话吗？")) {
+      onDeleteConversation?.(conversationId);
+    }
   };
 
   const getOutputIcon = (type: string) => {
@@ -161,37 +203,59 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
         />
       </div>
 
-      {/* 相关内容 */}
+      {/* 对话记录 */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">相关内容</h3>
-          {outputs.length === 0 ? (
+          <h3 className="text-sm font-medium text-gray-700 mb-3">对话记录</h3>
+          {conversations.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
-              暂无相关内容
+              暂无对话记录
             </div>
           ) : (
-            <div className="space-y-3">
-              {outputs.map((output) => (
-                <div
-                  key={output.id}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-                >
-                  {getOutputIcon(output.type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 truncate">{output.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {getOutputTypeLabel(output.type)} · {formatDaysAgo(output.createdAt)}
-                    </p>
+            <div className="space-y-2">
+              {conversations.map((conversation) => {
+                const firstQuestion = getFirstQuestion(conversation);
+                const messageCount = conversation.messages?.length || 0;
+                return (
+                  <div
+                    key={conversation.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                    onClick={() => handleConversationClick(conversation)}
+                  >
+                    <MessageSquare className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 truncate">{firstQuestion}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {messageCount} 条消息 · {formatDaysAgo(conversation.updatedAt)}
+                      </p>
+                    </div>
+                    {onDeleteConversation && (
+                      <button
+                        onClick={(e) => handleDeleteClick(e, conversation.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 rounded transition-all flex-shrink-0"
+                        title="删除对话"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    )}
                   </div>
-                  <button className="p-1 hover:bg-gray-200 rounded transition-colors opacity-0 group-hover:opacity-100">
-                    <MoreVertical className="w-4 h-4 text-gray-600" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+
+      {/* 对话详情弹窗 */}
+      {showDetailModal && selectedConversation && (
+        <ConversationDetailModal
+          conversation={selectedConversation}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedConversation(null);
+          }}
+        />
+      )}
     </div>
   );
 };

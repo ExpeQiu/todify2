@@ -410,7 +410,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             <button
               onClick={handleSave}
               className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
-              title="保存到笔记"
+              title="保存到项目"
             >
               {saved ? (
                 <>

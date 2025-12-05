@@ -170,7 +170,7 @@ export interface FeatureObjectConfig {
   workflowId: string; // 关联的工作流ID
   inputMappings: FieldMappingRule[]; // 输入字段映射规则
   outputMappings: OutputMappingRule[]; // 输出字段映射规则
-  pageType?: 'tech-package' | 'tech-strategy' | 'tech-article' | 'press-release';
+  pageType?: 'tech-package' | 'tech-strategy' | 'tech-article' | 'press-release' | 'ai-qa';
   label?: string; // 自定义显示名称（可选）
   agentId?: string; // 关联的AI角色ID（可选）
 }

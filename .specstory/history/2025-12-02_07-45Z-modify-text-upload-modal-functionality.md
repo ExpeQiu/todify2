@@ -214,39 +214,39 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 296, lines removed: 45
 
 ```diff
 @@ -1,76 +1,327 @@
-- import React, { useState } from &quot;react&quot;;
-- import { ArrowLeft } from &quot;lucide-react&quot;;
-+ import React, { useState, useRef, useCallback } from &quot;react&quot;;
-+ import { ArrowLeft, Upload, FileText, Search, X, Trash2 } from &quot;lucide-react&quot;;
-  import { Source } from &quot;./SourceSidebar&quot;;
-+ import { aiSearchService } from &quot;../../services/aiSearchService&quot;;
+- import React, { useState } from "react";
+- import { ArrowLeft } from "lucide-react";
++ import React, { useState, useRef, useCallback } from "react";
++ import { ArrowLeft, Upload, FileText, Search, X, Trash2 } from "lucide-react";
+  import { Source } from "./SourceSidebar";
++ import { aiSearchService } from "../../services/aiSearchService";
   
   interface AddTextModalProps {
     onClose: () =&gt; void;
-    onAddTextSource: (source: Omit&lt;Source, &quot;id&quot;&gt;) =&gt; void;
-+   pageType?: &#39;tech-package&#39; | &#39;press-release&#39; | &#39;tech-strategy&#39; | &#39;tech-article&#39;;
+    onAddTextSource: (source: Omit&lt;Source, "id"&gt;) =&gt; void;
++   pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
   }
 + 
-+ type SourceMode = &quot;upload&quot; | &quot;text&quot; | &quot;search&quot;;
++ type SourceMode = "upload" | "text" | "search";
   
   const AddTextModal: React.FC&lt;AddTextModalProps&gt; = ({
     onClose,
     onAddTextSource,
 +   pageType,
   }) =&gt; {
-+   const [mode, setMode] = useState&lt;SourceMode&gt;(&quot;text&quot;);
-    const [text, setText] = useState(&quot;&quot;);
++   const [mode, setMode] = useState&lt;SourceMode&gt;("text");
+    const [text, setText] = useState("");
 - 
 -   const handleSubmit = (e: React.FormEvent) =&gt; {
 +   const [files, setFiles] = useState&lt;File[]&gt;([]);
-+   const [searchQuery, setSearchQuery] = useState(&quot;&quot;);
++   const [searchQuery, setSearchQuery] = useState("");
 +   const [isUploading, setIsUploading] = useState(false);
 +   const [isDragging, setIsDragging] = useState(false);
 +   const fileInputRef = useRef&lt;HTMLInputElement&gt;(null);
@@ -255,41 +255,41 @@ Lines added: 296, lines removed: 45
 +   const handleSubmit = async (e: React.FormEvent) =&gt; {
       e.preventDefault();
 -     if (!text.trim()) {
--       alert(&quot;请输入文字内容&quot;);
+-       alert("请输入文字内容");
 -       return;
 -     }
 -     
 -     // 创建来源，使用文本的前50个字符作为标题
--     const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? &quot;...&quot; : &quot;&quot;);
+-     const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? "..." : "");
 -     onAddTextSource({
 -       title,
--       type: &quot;external&quot;,
+-       type: "external",
 -       description: text.trim(),
 -     });
 -     
--     setText(&quot;&quot;);
+-     setText("");
 -     onClose();
 -   };
 +     
-+     if (mode === &quot;text&quot;) {
++     if (mode === "text") {
 +       if (!text.trim()) {
-+         alert(&quot;请输入文字内容&quot;);
++         alert("请输入文字内容");
 +         return;
 +       }
 +       
 +       // 创建来源，使用文本的前50个字符作为标题
-+       const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? &quot;...&quot; : &quot;&quot;);
++       const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? "..." : "");
 +       onAddTextSource({
 +         title,
-+         type: &quot;external&quot;,
++         type: "external",
 +         description: text.trim(),
 +       });
 +       
-+       setText(&quot;&quot;);
++       setText("");
 +       onClose();
-+     } else if (mode === &quot;upload&quot;) {
++     } else if (mode === "upload") {
 +       if (files.length === 0) {
-+         alert(&quot;请选择文件&quot;);
++         alert("请选择文件");
 +         return;
 +       }
 +       
@@ -300,27 +300,27 @@ Lines added: 296, lines removed: 45
 +         setFiles([]);
 +         onClose();
 +         // 触发文件列表刷新
-+         window.dispatchEvent(new CustomEvent(&#39;filesUploaded&#39;));
++         window.dispatchEvent(new CustomEvent('filesUploaded'));
 +       } catch (error) {
-+         console.error(&#39;文件上传失败:&#39;, error);
-+         alert(&#39;文件上传失败，请重试&#39;);
++         console.error('文件上传失败:', error);
++         alert('文件上传失败，请重试');
 +       } finally {
 +         setIsUploading(false);
 +       }
-+     } else if (mode === &quot;search&quot;) {
++     } else if (mode === "search") {
 +       if (!searchQuery.trim()) {
-+         alert(&quot;请输入检索信息&quot;);
++         alert("请输入检索信息");
 +         return;
 +       }
 +       
 +       // 创建检索信息来源，说明需要AI检索补充信息
 +       onAddTextSource({
-+         title: &#96;检索信息: ${searchQuery.trim().slice(0, 30)}${searchQuery.trim().length &gt; 30 ? &quot;...&quot; : &quot;&quot;}&#96;,
-+         type: &quot;external&quot;,
++         title: &#96;检索信息: ${searchQuery.trim().slice(0, 30)}${searchQuery.trim().length &gt; 30 ? "..." : ""}&#96;,
++         type: "external",
 +         description: &#96;[检索信息] ${searchQuery.trim()}\n\n说明：此来源需要AI检索补充相关信息。&#96;,
 +       });
 +       
-+       setSearchQuery(&quot;&quot;);
++       setSearchQuery("");
 +       onClose();
 +     }
 +   };
@@ -353,121 +353,121 @@ Lines added: 296, lines removed: 45
 +     e.stopPropagation();
 +     setIsDragging(false);
 +     
-+     if (mode === &quot;upload&quot; &amp;&amp; e.dataTransfer.files) {
++     if (mode === "upload" &amp;&amp; e.dataTransfer.files) {
 +       const newFiles = Array.from(e.dataTransfer.files);
 +       setFiles([...files, ...newFiles]);
 +     }
 +   }, [mode, files]);
 + 
 +   const formatFileSize = (bytes: number): string =&gt; {
-+     if (bytes &lt; 1024) return bytes + &quot; B&quot;;
-+     if (bytes &lt; 1024 * 1024) return (bytes / 1024).toFixed(1) + &quot; KB&quot;;
-+     return (bytes / (1024 * 1024)).toFixed(1) + &quot; MB&quot;;
++     if (bytes &lt; 1024) return bytes + " B";
++     if (bytes &lt; 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
++     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 +   };
 + 
-+   const supportedFileTypes = &quot;PDF, .txt, Markdown, 音频(例如 mp3), .avif, .bmp, .gif, .ico, .jp2, .png, .webp, .tif, .tiff, .heic, .heif, .jpeg, .jpg, .jpe&quot;;
++   const supportedFileTypes = "PDF, .txt, Markdown, 音频(例如 mp3), .avif, .bmp, .gif, .ico, .jp2, .png, .webp, .tif, .tiff, .heic, .heif, .jpeg, .jpg, .jpe";
   
     return (
-      &lt;div className=&quot;fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50&quot;&gt;
--       &lt;div className=&quot;bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
-+       &lt;div className=&quot;bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
+      &lt;div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"&gt;
+-       &lt;div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]"&gt;
++       &lt;div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 flex flex-col max-h-[90vh]"&gt;
           {/* 头部 */}
--         &lt;div className=&quot;flex items-center gap-4 p-6 border-b border-gray-200&quot;&gt;
+-         &lt;div className="flex items-center gap-4 p-6 border-b border-gray-200"&gt;
 -           &lt;button
 -             onClick={onClose}
--             className=&quot;p-2 hover:bg-gray-100 rounded-lg transition-colors&quot;
+-             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
 -           &gt;
--             &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-600&quot; /&gt;
+-             &lt;ArrowLeft className="w-5 h-5 text-gray-600" /&gt;
 -           &lt;/button&gt;
--           &lt;h2 className=&quot;text-xl font-semibold text-gray-900&quot;&gt;粘贴已复制的文字&lt;/h2&gt;
-+         &lt;div className=&quot;flex items-center justify-between p-6 border-b border-gray-200&quot;&gt;
-+           &lt;div className=&quot;flex items-center gap-4&quot;&gt;
+-           &lt;h2 className="text-xl font-semibold text-gray-900"&gt;粘贴已复制的文字&lt;/h2&gt;
++         &lt;div className="flex items-center justify-between p-6 border-b border-gray-200"&gt;
++           &lt;div className="flex items-center gap-4"&gt;
 +             &lt;button
 +               onClick={onClose}
-+               className=&quot;p-2 hover:bg-gray-100 rounded-lg transition-colors&quot;
++               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
 +             &gt;
-+               &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-600&quot; /&gt;
++               &lt;ArrowLeft className="w-5 h-5 text-gray-600" /&gt;
 +             &lt;/button&gt;
-+             &lt;h2 className=&quot;text-xl font-semibold text-gray-900&quot;&gt;添加来源&lt;/h2&gt;
++             &lt;h2 className="text-xl font-semibold text-gray-900"&gt;添加来源&lt;/h2&gt;
 +           &lt;/div&gt;
           &lt;/div&gt;
   
           {/* 说明文字 */}
-          &lt;div className=&quot;px-6 pt-4&quot;&gt;
-            &lt;p className=&quot;text-sm text-gray-600&quot;&gt;
+          &lt;div className="px-6 pt-4"&gt;
+            &lt;p className="text-sm text-gray-600"&gt;
 -             将复制的文字粘贴到下方,以便在 对话中 中作为来源上传
 +             添加来源后，系统能够基于这些对您最重要的信息提供回答。（示例：营销方案、课程阅读材料、研究笔记、会议转写内容、销售文档等）
             &lt;/p&gt;
           &lt;/div&gt;
   
 -         {/* 内容 */}
--         &lt;form onSubmit={handleSubmit} className=&quot;flex-1 flex flex-col p-6&quot;&gt;
--           &lt;div className=&quot;flex-1 flex flex-col mb-4&quot;&gt;
+-         &lt;form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6"&gt;
+-           &lt;div className="flex-1 flex flex-col mb-4"&gt;
 -             &lt;textarea
 -               value={text}
 -               onChange={(e) =&gt; setText(e.target.value)}
--               placeholder=&quot;在此处粘贴文字*&quot;
--               className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400&quot;
+-               placeholder="在此处粘贴文字*"
+-               className="flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400"
 -               required
 -             /&gt;
 -           &lt;/div&gt;
 +         {/* 模式选择 */}
-+         &lt;div className=&quot;px-6 pt-4 flex gap-2&quot;&gt;
++         &lt;div className="px-6 pt-4 flex gap-2"&gt;
 +           &lt;button
-+             type=&quot;button&quot;
++             type="button"
 +             onClick={() =&gt; {
-+               setMode(&quot;upload&quot;);
-+               setText(&quot;&quot;);
-+               setSearchQuery(&quot;&quot;);
++               setMode("upload");
++               setText("");
++               setSearchQuery("");
 +             }}
 +             className={&#96;flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-+               mode === &quot;upload&quot;
-+                 ? &quot;bg-blue-600 text-white&quot;
-+                 : &quot;bg-gray-100 text-gray-700 hover:bg-gray-200&quot;
++               mode === "upload"
++                 ? "bg-blue-600 text-white"
++                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
 +             }&#96;}
 +           &gt;
-+             &lt;Upload className=&quot;w-4 h-4&quot; /&gt;
++             &lt;Upload className="w-4 h-4" /&gt;
 +             上传文件
 +           &lt;/button&gt;
 +           &lt;button
-+             type=&quot;button&quot;
++             type="button"
 +             onClick={() =&gt; {
-+               setMode(&quot;text&quot;);
++               setMode("text");
 +               setFiles([]);
-+               setSearchQuery(&quot;&quot;);
++               setSearchQuery("");
 +             }}
 +             className={&#96;flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-+               mode === &quot;text&quot;
-+                 ? &quot;bg-blue-600 text-white&quot;
-+                 : &quot;bg-gray-100 text-gray-700 hover:bg-gray-200&quot;
++               mode === "text"
++                 ? "bg-blue-600 text-white"
++                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
 +             }&#96;}
 +           &gt;
-+             &lt;FileText className=&quot;w-4 h-4&quot; /&gt;
++             &lt;FileText className="w-4 h-4" /&gt;
 +             粘贴文字
 +           &lt;/button&gt;
 +           &lt;button
-+             type=&quot;button&quot;
++             type="button"
 +             onClick={() =&gt; {
-+               setMode(&quot;search&quot;);
-+               setText(&quot;&quot;);
++               setMode("search");
++               setText("");
 +               setFiles([]);
 +             }}
 +             className={&#96;flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-+               mode === &quot;search&quot;
-+                 ? &quot;bg-blue-600 text-white&quot;
-+                 : &quot;bg-gray-100 text-gray-700 hover:bg-gray-200&quot;
++               mode === "search"
++                 ? "bg-blue-600 text-white"
++                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
 +             }&#96;}
 +           &gt;
-+             &lt;Search className=&quot;w-4 h-4&quot; /&gt;
++             &lt;Search className="w-4 h-4" /&gt;
 +             检索信息
 +           &lt;/button&gt;
 +         &lt;/div&gt;
 + 
 +         {/* 内容区域 */}
-+         &lt;form onSubmit={handleSubmit} className=&quot;flex-1 flex flex-col p-6 overflow-y-auto&quot;&gt;
++         &lt;form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 overflow-y-auto"&gt;
 +           {/* 上传文件模式 */}
-+           {mode === &quot;upload&quot; &amp;&amp; (
-+             &lt;div className=&quot;flex-1 flex flex-col&quot;&gt;
++           {mode === "upload" &amp;&amp; (
++             &lt;div className="flex-1 flex flex-col"&gt;
 +               &lt;div
 +                 ref={dropZoneRef}
 +                 onDragOver={handleDragOver}
@@ -475,18 +475,18 @@ Lines added: 296, lines removed: 45
 +                 onDrop={handleDrop}
 +                 className={&#96;flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 mb-4 transition-colors ${
 +                   isDragging
-+                     ? &quot;border-blue-500 bg-blue-50&quot;
-+                     : &quot;border-gray-300 hover:border-gray-400&quot;
++                     ? "border-blue-500 bg-blue-50"
++                     : "border-gray-300 hover:border-gray-400"
 +                 }&#96;}
 +               &gt;
-+                 &lt;Upload className=&quot;w-12 h-12 text-gray-400 mb-4&quot; /&gt;
-+                 &lt;p className=&quot;text-lg font-medium text-gray-700 mb-2&quot;&gt;上传来源&lt;/p&gt;
-+                 &lt;p className=&quot;text-sm text-gray-500 mb-4&quot;&gt;
++                 &lt;Upload className="w-12 h-12 text-gray-400 mb-4" /&gt;
++                 &lt;p className="text-lg font-medium text-gray-700 mb-2"&gt;上传来源&lt;/p&gt;
++                 &lt;p className="text-sm text-gray-500 mb-4"&gt;
 +                   拖放或
 +                   &lt;button
-+                     type=&quot;button&quot;
++                     type="button"
 +                     onClick={() =&gt; fileInputRef.current?.click()}
-+                     className=&quot;text-blue-600 hover:text-blue-700 underline mx-1&quot;
++                     className="text-blue-600 hover:text-blue-700 underline mx-1"
 +                   &gt;
 +                     选择文件
 +                   &lt;/button&gt;
@@ -494,39 +494,39 @@ Lines added: 296, lines removed: 45
 +                 &lt;/p&gt;
 +                 &lt;input
 +                   ref={fileInputRef}
-+                   type=&quot;file&quot;
++                   type="file"
 +                   onChange={handleFileChange}
 +                   multiple
-+                   className=&quot;hidden&quot;
-+                   accept=&quot;.pdf,.txt,.md,.mp3,.avif,.bmp,.gif,.ico,.jp2,.png,.webp,.tif,.tiff,.heic,.heif,.jpeg,.jpg,.jpe&quot;
++                   className="hidden"
++                   accept=".pdf,.txt,.md,.mp3,.avif,.bmp,.gif,.ico,.jp2,.png,.webp,.tif,.tiff,.heic,.heif,.jpeg,.jpg,.jpe"
 +                 /&gt;
-+                 &lt;p className=&quot;text-xs text-gray-400 mt-4 text-center&quot;&gt;
++                 &lt;p className="text-xs text-gray-400 mt-4 text-center"&gt;
 +                   支持的文件类型：{supportedFileTypes}
 +                 &lt;/p&gt;
 +               &lt;/div&gt;
 + 
 +               {/* 已选择的文件列表 */}
 +               {files.length &gt; 0 &amp;&amp; (
-+                 &lt;div className=&quot;space-y-2 mb-4&quot;&gt;
++                 &lt;div className="space-y-2 mb-4"&gt;
 +                   {files.map((file, index) =&gt; (
 +                     &lt;div
 +                       key={index}
-+                       className=&quot;flex items-center justify-between p-3 bg-gray-50 rounded-lg&quot;
++                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
 +                     &gt;
-+                       &lt;div className=&quot;flex-1 min-w-0&quot;&gt;
-+                         &lt;p className=&quot;text-sm text-gray-900 truncate&quot;&gt;
++                       &lt;div className="flex-1 min-w-0"&gt;
++                         &lt;p className="text-sm text-gray-900 truncate"&gt;
 +                           {file.name}
 +                         &lt;/p&gt;
-+                         &lt;p className=&quot;text-xs text-gray-500&quot;&gt;
++                         &lt;p className="text-xs text-gray-500"&gt;
 +                           {formatFileSize(file.size)}
 +                         &lt;/p&gt;
 +                       &lt;/div&gt;
 +                       &lt;button
-+                         type=&quot;button&quot;
++                         type="button"
 +                         onClick={() =&gt; handleRemoveFile(index)}
-+                         className=&quot;ml-2 p-1 hover:bg-gray-200 rounded transition-colors&quot;
++                         className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors"
 +                       &gt;
-+                         &lt;Trash2 className=&quot;w-4 h-4 text-gray-500&quot; /&gt;
++                         &lt;Trash2 className="w-4 h-4 text-gray-500" /&gt;
 +                       &lt;/button&gt;
 +                     &lt;/div&gt;
 +                   ))}
@@ -536,38 +536,38 @@ Lines added: 296, lines removed: 45
 +           )}
 + 
 +           {/* 粘贴文字模式 */}
-+           {mode === &quot;text&quot; &amp;&amp; (
-+             &lt;div className=&quot;flex-1 flex flex-col&quot;&gt;
-+               &lt;p className=&quot;text-sm text-gray-600 mb-3&quot;&gt;
++           {mode === "text" &amp;&amp; (
++             &lt;div className="flex-1 flex flex-col"&gt;
++               &lt;p className="text-sm text-gray-600 mb-3"&gt;
 +                 将复制的文字粘贴到下方，以便在对话中作为来源上传
 +               &lt;/p&gt;
 +               &lt;textarea
 +                 value={text}
 +                 onChange={(e) =&gt; setText(e.target.value)}
-+                 placeholder=&quot;在此处粘贴文字*&quot;
-+                 className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400&quot;
-+                 required={mode === &quot;text&quot;}
++                 placeholder="在此处粘贴文字*"
++                 className="flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400"
++                 required={mode === "text"}
 +               /&gt;
 +             &lt;/div&gt;
 +           )}
   
 -           {/* 按钮 - 右下角 */}
--           &lt;div className=&quot;flex justify-end&quot;&gt;
+-           &lt;div className="flex justify-end"&gt;
 +           {/* 检索信息模式 */}
-+           {mode === &quot;search&quot; &amp;&amp; (
-+             &lt;div className=&quot;flex-1 flex flex-col&quot;&gt;
-+               &lt;p className=&quot;text-sm text-gray-600 mb-3&quot;&gt;
++           {mode === "search" &amp;&amp; (
++             &lt;div className="flex-1 flex flex-col"&gt;
++               &lt;p className="text-sm text-gray-600 mb-3"&gt;
 +                 输入需要检索的信息，AI将自动检索并补充相关信息作为来源
 +               &lt;/p&gt;
 +               &lt;textarea
 +                 value={searchQuery}
 +                 onChange={(e) =&gt; setSearchQuery(e.target.value)}
-+                 placeholder=&quot;请输入需要检索的信息，例如：iPhone 15 Pro Max 技术规格、最新市场趋势等*&quot;
-+                 className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400&quot;
-+                 required={mode === &quot;search&quot;}
++                 placeholder="请输入需要检索的信息，例如：iPhone 15 Pro Max 技术规格、最新市场趋势等*"
++                 className="flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400"
++                 required={mode === "search"}
 +               /&gt;
-+               &lt;div className=&quot;mt-3 p-3 bg-blue-50 rounded-lg&quot;&gt;
-+                 &lt;p className=&quot;text-xs text-blue-800&quot;&gt;
++               &lt;div className="mt-3 p-3 bg-blue-50 rounded-lg"&gt;
++                 &lt;p className="text-xs text-blue-800"&gt;
 +                   &lt;strong&gt;说明：&lt;/strong&gt;此功能将创建一个检索信息来源，AI会在对话时自动检索并补充相关信息。
 +                 &lt;/p&gt;
 +               &lt;/div&gt;
@@ -575,22 +575,22 @@ Lines added: 296, lines removed: 45
 +           )}
 + 
 +           {/* 按钮 */}
-+           &lt;div className=&quot;flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4&quot;&gt;
++           &lt;div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4"&gt;
 +             &lt;button
-+               type=&quot;button&quot;
++               type="button"
 +               onClick={onClose}
-+               className=&quot;px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors&quot;
++               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
 +             &gt;
 +               取消
 +             &lt;/button&gt;
               &lt;button
-                type=&quot;submit&quot;
--               className=&quot;px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors&quot;
+                type="submit"
+-               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 +               disabled={isUploading}
-+               className=&quot;px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed&quot;
++               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               &gt;
 -               插入
-+               {isUploading ? &quot;上传中...&quot; : &quot;插入&quot;}
++               {isUploading ? "上传中..." : "插入"}
               &lt;/button&gt;
             &lt;/div&gt;
 ```
@@ -648,7 +648,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -759,18 +759,18 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -1,4 +1,4 @@
-  import React, { useState, useRef, useCallback } from &quot;react&quot;;
-- import { ArrowLeft, Upload, FileText, Search, X, Trash2 } from &quot;lucide-react&quot;;
-+ import { ArrowLeft, Upload, FileText, Search, Trash2 } from &quot;lucide-react&quot;;
-  import { Source } from &quot;./SourceSidebar&quot;;
-  import { aiSearchService } from &quot;../../services/aiSearchService&quot;;
+  import React, { useState, useRef, useCallback } from "react";
+- import { ArrowLeft, Upload, FileText, Search, X, Trash2 } from "lucide-react";
++ import { ArrowLeft, Upload, FileText, Search, Trash2 } from "lucide-react";
+  import { Source } from "./SourceSidebar";
+  import { aiSearchService } from "../../services/aiSearchService";
 ```
 
 </details>
@@ -1024,7 +1024,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1033,8 +1033,8 @@ Lines added: 1, lines removed: 1
 @@ -123,5 +123,5 @@
     };
   
--   const supportedFileTypes = &quot;PDF, .txt, Markdown, 音频(例如 mp3), .avif, .bmp, .gif, .ico, .jp2, .png, .webp, .tif, .tiff, .heic, .heif, .jpeg, .jpg, .jpe&quot;;
-+   const supportedFileTypes = &quot;PDF, PPT, .txt, Markdown, Word (.doc, .docx)&quot;;
+-   const supportedFileTypes = "PDF, .txt, Markdown, 音频(例如 mp3), .avif, .bmp, .gif, .ico, .jp2, .png, .webp, .tif, .tiff, .heic, .heif, .jpeg, .jpg, .jpe";
++   const supportedFileTypes = "PDF, PPT, .txt, Markdown, Word (.doc, .docx)";
   
     return (
 ```
@@ -1047,7 +1047,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1055,11 +1055,11 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -235,5 +235,5 @@
                     multiple
-                    className=&quot;hidden&quot;
--                   accept=&quot;.pdf,.txt,.md,.mp3,.avif,.bmp,.gif,.ico,.jp2,.png,.webp,.tif,.tiff,.heic,.heif,.jpeg,.jpg,.jpe&quot;
-+                   accept=&quot;.pdf,.ppt,.pptx,.txt,.md,.markdown,.doc,.docx&quot;
+                    className="hidden"
+-                   accept=".pdf,.txt,.md,.mp3,.avif,.bmp,.gif,.ico,.jp2,.png,.webp,.tif,.tiff,.heic,.heif,.jpeg,.jpg,.jpe"
++                   accept=".pdf,.ppt,.pptx,.txt,.md,.markdown,.doc,.docx"
                   /&gt;
-                  &lt;p className=&quot;text-xs text-gray-400 mt-4 text-center&quot;&gt;
+                  &lt;p className="text-xs text-gray-400 mt-4 text-center"&gt;
 ```
 
 </details>
@@ -1080,7 +1080,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 9
@@ -1092,29 +1092,29 @@ Lines added: 11, lines removed: 9
 -     // 允许的文件类型
 +     // 允许的文件类型：PDF, PPT, txt, markdown, word
       const allowedTypes = [
--       &#39;image/jpeg&#39;,
--       &#39;image/png&#39;,
--       &#39;image/gif&#39;,
--       &#39;image/webp&#39;,
-        &#39;application/pdf&#39;,
--       &#39;application/msword&#39;,
--       &#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;,
-+       &#39;application/vnd.ms-powerpoint&#39;, // .ppt
-+       &#39;application/vnd.openxmlformats-officedocument.presentationml.presentation&#39;, // .pptx
-+       &#39;application/msword&#39;, // .doc
-+       &#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;, // .docx
-        &#39;text/plain&#39;,
-        &#39;text/markdown&#39;,
+-       'image/jpeg',
+-       'image/png',
+-       'image/gif',
+-       'image/webp',
+        'application/pdf',
+-       'application/msword',
+-       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
++       'application/vnd.ms-powerpoint', // .ppt
++       'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
++       'application/msword', // .doc
++       'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+        'text/plain',
+        'text/markdown',
       ];
 -     if (allowedTypes.includes(file.mimetype)) {
 +     // 也允许通过扩展名判断
-+     const allowedExtensions = [&#39;.pdf&#39;, &#39;.ppt&#39;, &#39;.pptx&#39;, &#39;.doc&#39;, &#39;.docx&#39;, &#39;.txt&#39;, &#39;.md&#39;, &#39;.markdown&#39;];
-+     const fileExtension = require(&#39;path&#39;).extname(file.originalname).toLowerCase();
++     const allowedExtensions = ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.txt', '.md', '.markdown'];
++     const fileExtension = require('path').extname(file.originalname).toLowerCase();
 +     
 +     if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
         cb(null, true);
       } else {
--       cb(new Error(&#39;不支持的文件类型&#39;));
+-       cb(new Error('不支持的文件类型'));
 +       cb(new Error(&#96;不支持的文件类型: ${file.mimetype}。支持的类型：PDF, PPT, txt, markdown, word&#96;));
       }
     },
@@ -1146,7 +1146,7 @@ Lines added: 11, lines removed: 9
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
+<details><summary>Tool use: **write** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
 
 **Chunk 1**
 Lines added: 171, lines removed: 1
@@ -1154,9 +1154,9 @@ Lines added: 171, lines removed: 1
 ```diff
 @@ -1,1 +1,171 @@
 - 
-+ import fs from &#39;fs&#39;;
-+ import path from &#39;path&#39;;
-+ import { logger } from &#39;@/shared/lib/logger&#39;;
++ import fs from 'fs';
++ import path from 'path';
++ import { logger } from '@/shared/lib/logger';
 + 
 + /**
 +  * 文件转Markdown服务
@@ -1179,36 +1179,36 @@ Lines added: 171, lines removed: 1
 +       const fileExtension = path.extname(originalName).toLowerCase();
 +       
 +       // 根据文件类型选择转换方法
-+       if (mimeType === &#39;application/pdf&#39; || fileExtension === &#39;.pdf&#39;) {
++       if (mimeType === 'application/pdf' || fileExtension === '.pdf') {
 +         return await this.convertPdfToMarkdown(filePath, originalName);
 +       } else if (
-+         mimeType === &#39;application/msword&#39; ||
-+         mimeType === &#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39; ||
-+         fileExtension === &#39;.doc&#39; ||
-+         fileExtension === &#39;.docx&#39;
++         mimeType === 'application/msword' ||
++         mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
++         fileExtension === '.doc' ||
++         fileExtension === '.docx'
 +       ) {
 +         return await this.convertWordToMarkdown(filePath, originalName);
 +       } else if (
-+         mimeType === &#39;application/vnd.ms-powerpoint&#39; ||
-+         mimeType === &#39;application/vnd.openxmlformats-officedocument.presentationml.presentation&#39; ||
-+         fileExtension === &#39;.ppt&#39; ||
-+         fileExtension === &#39;.pptx&#39;
++         mimeType === 'application/vnd.ms-powerpoint' ||
++         mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
++         fileExtension === '.ppt' ||
++         fileExtension === '.pptx'
 +       ) {
 +         return await this.convertPptToMarkdown(filePath, originalName);
 +       } else if (
-+         mimeType === &#39;text/plain&#39; ||
-+         mimeType === &#39;text/markdown&#39; ||
-+         fileExtension === &#39;.txt&#39; ||
-+         fileExtension === &#39;.md&#39; ||
-+         fileExtension === &#39;.markdown&#39;
++         mimeType === 'text/plain' ||
++         mimeType === 'text/markdown' ||
++         fileExtension === '.txt' ||
++         fileExtension === '.md' ||
++         fileExtension === '.markdown'
 +       ) {
 +         return await this.convertTextToMarkdown(filePath, originalName);
 +       } else {
-+         logger.warn(&#39;不支持的文件类型，返回空内容&#39;, { mimeType, fileExtension, originalName });
++         logger.warn('不支持的文件类型，返回空内容', { mimeType, fileExtension, originalName });
 +         return &#96;# ${originalName}\n\n不支持的文件类型: ${mimeType}&#96;;
 +       }
 +     } catch (error) {
-+       logger.error(&#39;文件转Markdown失败&#39;, {
++       logger.error('文件转Markdown失败', {
 +         filePath,
 +         mimeType,
 +         originalName,
@@ -1226,9 +1226,9 @@ Lines added: 171, lines removed: 1
 +       // 尝试使用pdf-parse库
 +       let pdfParse: any;
 +       try {
-+         pdfParse = require(&#39;pdf-parse&#39;);
++         pdfParse = require('pdf-parse');
 +       } catch (e) {
-+         logger.warn(&#39;pdf-parse库未安装，使用基础文本提取&#39;, { originalName });
++         logger.warn('pdf-parse库未安装，使用基础文本提取', { originalName });
 +         return &#96;# ${originalName}\n\nPDF文件内容提取需要安装pdf-parse库。\n请运行: npm install pdf-parse&#96;;
 +       }
 + 
@@ -1236,10 +1236,10 @@ Lines added: 171, lines removed: 1
 +       const data = await pdfParse(dataBuffer);
 +       
 +       const markdown = &#96;# ${originalName}\n\n${data.text}&#96;;
-+       logger.info(&#39;PDF转Markdown成功&#39;, { originalName, textLength: data.text.length });
++       logger.info('PDF转Markdown成功', { originalName, textLength: data.text.length });
 +       return markdown;
 +     } catch (error) {
-+       logger.error(&#39;PDF转Markdown失败&#39;, {
++       logger.error('PDF转Markdown失败', {
 +         filePath,
 +         originalName,
 +         error: error instanceof Error ? error.message : String(error),
@@ -1256,18 +1256,18 @@ Lines added: 171, lines removed: 1
 +       // 尝试使用mammoth库
 +       let mammoth: any;
 +       try {
-+         mammoth = require(&#39;mammoth&#39;);
++         mammoth = require('mammoth');
 +       } catch (e) {
-+         logger.warn(&#39;mammoth库未安装，使用基础文本提取&#39;, { originalName });
++         logger.warn('mammoth库未安装，使用基础文本提取', { originalName });
 +         return &#96;# ${originalName}\n\nWord文件内容提取需要安装mammoth库。\n请运行: npm install mammoth&#96;;
 +       }
 + 
 +       const result = await mammoth.extractRawText({ path: filePath });
 +       const markdown = &#96;# ${originalName}\n\n${result.value}&#96;;
-+       logger.info(&#39;Word转Markdown成功&#39;, { originalName, textLength: result.value.length });
++       logger.info('Word转Markdown成功', { originalName, textLength: result.value.length });
 +       return markdown;
 +     } catch (error) {
-+       logger.error(&#39;Word转Markdown失败&#39;, {
++       logger.error('Word转Markdown失败', {
 +         filePath,
 +         originalName,
 +         error: error instanceof Error ? error.message : String(error),
@@ -1283,10 +1283,10 @@ Lines added: 171, lines removed: 1
 +     try {
 +       // PPT转换比较复杂，可以使用officegen或其他库
 +       // 这里先返回一个占位符，提示需要安装相应库
-+       logger.warn(&#39;PPT转Markdown功能需要额外库支持&#39;, { originalName });
++       logger.warn('PPT转Markdown功能需要额外库支持', { originalName });
 +       return &#96;# ${originalName}\n\nPPT文件内容提取功能正在开发中。\n当前版本暂不支持PPT文件的文本提取。&#96;;
 +     } catch (error) {
-+       logger.error(&#39;PPT转Markdown失败&#39;, {
++       logger.error('PPT转Markdown失败', {
 +         filePath,
 +         originalName,
 +         error: error instanceof Error ? error.message : String(error),
@@ -1300,20 +1300,20 @@ Lines added: 171, lines removed: 1
 +    */
 +   private async convertTextToMarkdown(filePath: string, originalName: string): Promise&lt;string&gt; {
 +     try {
-+       const content = fs.readFileSync(filePath, &#39;utf-8&#39;);
++       const content = fs.readFileSync(filePath, 'utf-8');
 +       const fileExtension = path.extname(originalName).toLowerCase();
 +       
 +       // 如果已经是markdown文件，直接返回
-+       if (fileExtension === &#39;.md&#39; || fileExtension === &#39;.markdown&#39;) {
++       if (fileExtension === '.md' || fileExtension === '.markdown') {
 +         return content;
 +       }
 +       
 +       // 普通文本文件，添加标题
 +       const markdown = &#96;# ${originalName}\n\n${content}&#96;;
-+       logger.info(&#39;文本转Markdown成功&#39;, { originalName, textLength: content.length });
++       logger.info('文本转Markdown成功', { originalName, textLength: content.length });
 +       return markdown;
 +     } catch (error) {
-+       logger.error(&#39;文本转Markdown失败&#39;, {
++       logger.error('文本转Markdown失败', {
 +         filePath,
 +         originalName,
 +         error: error instanceof Error ? error.message : String(error),
@@ -1402,18 +1402,18 @@ Lines added: 171, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -9,4 +9,5 @@
-  import { AiSearchService, FieldMappingService } from &#39;@/services/AiSearchService&#39;;
-  import { fileService } from &#39;@/services/FileService&#39;;
-+ import { fileToMarkdownService } from &#39;@/services/FileToMarkdownService&#39;;
-  import { fieldMappingEngine } from &#39;@/utils/fieldMapping&#39;;
-  import { FeatureObjectMapping } from &#39;@/types/aiSearch&#39;;
+  import { AiSearchService, FieldMappingService } from '@/services/AiSearchService';
+  import { fileService } from '@/services/FileService';
++ import { fileToMarkdownService } from '@/services/FileToMarkdownService';
+  import { fieldMappingEngine } from '@/utils/fieldMapping';
+  import { FeatureObjectMapping } from '@/types/aiSearch';
 ```
 
 </details>
@@ -1424,7 +1424,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
 
 **Chunk 1**
 Lines added: 25, lines removed: 2
@@ -1443,12 +1443,12 @@ Lines added: 25, lines removed: 2
 +               file.mimetype,
 +               originalName
 +             );
-+             logger.info(&#39;文件转Markdown成功&#39;, {
++             logger.info('文件转Markdown成功', {
 +               originalName,
 +               markdownLength: markdownContent.length,
 +             });
 +           } catch (error) {
-+             logger.warn(&#39;文件转Markdown失败，继续上传文件&#39;, {
++             logger.warn('文件转Markdown失败，继续上传文件', {
 +               originalName,
 +               error: error instanceof Error ? error.message : String(error),
 +             });
@@ -1560,18 +1560,18 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -1,4 +1,5 @@
-  import { agentWorkflowService } from &#39;@/services/AgentWorkflowService&#39;;
-  import { AiSearchService, FieldMappingService } from &#39;@/services/AiSearchService&#39;;
-+ import { fileService } from &#39;@/services/FileService&#39;;
-  import { logger } from &#39;@/shared/lib/logger&#39;;
-  import { Result, failure, success } from &#39;@/shared/lib/result&#39;;
+  import { agentWorkflowService } from '@/services/AgentWorkflowService';
+  import { AiSearchService, FieldMappingService } from '@/services/AiSearchService';
++ import { fileService } from '@/services/FileService';
+  import { logger } from '@/shared/lib/logger';
+  import { Result, failure, success } from '@/shared/lib/result';
 ```
 
 </details>
@@ -1582,7 +1582,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1613,34 +1613,34 @@ Lines added: 42, lines removed: undefined
 +           try {
 +             // 通过原始文件名查找文件记录
 +             const allFiles = await fileService.getAllFiles({
-+               status: &#39;active&#39;,
++               status: 'active',
 +             });
 +             const fileRecord = allFiles.find(
 +               (f) =&gt; f.original_name === file.originalname || f.stored_name === file.filename
 +             );
 +             
 +             if (fileRecord &amp;&amp; fileRecord.metadata) {
-+               const metadata = typeof fileRecord.metadata === &#39;string&#39; 
++               const metadata = typeof fileRecord.metadata === 'string' 
 +                 ? JSON.parse(fileRecord.metadata) 
 +                 : fileRecord.metadata;
 +               
 +               if (metadata.markdownContent) {
 +                 fileMarkdownContents.push(&#96;【${fileRecord.original_name}】\n${metadata.markdownContent}&#96;);
-+                 logger.info(&#39;从文件记录中提取markdown内容&#39;, {
++                 logger.info('从文件记录中提取markdown内容', {
 +                   fileName: fileRecord.original_name,
 +                   markdownLength: metadata.markdownContent.length,
 +                 });
 +               }
 +             }
 +           } catch (error) {
-+             logger.warn(&#39;提取文件markdown内容失败&#39;, {
++             logger.warn('提取文件markdown内容失败', {
 +               fileName: file.originalname,
 +               error: error instanceof Error ? error.message : String(error),
 +             });
 +           }
 +         }
 +       } catch (error) {
-+         logger.warn(&#39;批量提取文件markdown内容失败&#39;, {
++         logger.warn('批量提取文件markdown内容失败', {
 +           error: error instanceof Error ? error.message : String(error),
 +         });
 +       }
@@ -1658,7 +1658,7 @@ Lines added: 42, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 30, lines removed: 41
@@ -1669,24 +1669,24 @@ Lines added: 30, lines removed: 41
       
 -     // 只在第一次对话时，提取外部来源的文本内容（description）作为附加信息
 +     // 提取附加信息：外部来源的文本内容和文件的markdown内容
-      let additionalContext = &#39;&#39;;
+      let additionalContext = '';
 -     if (isFirstMessage) {
 -       const externalTextSources = effectiveSources.filter((s: any) =&gt; 
--         s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+-         s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 -       );
 -       
 -       if (externalTextSources.length &gt; 0) {
 -         const textContents: string[] = [];
 -         externalTextSources.forEach((source: any) =&gt; {
 -           if (source.description &amp;&amp; source.description.trim()) {
--             const title = source.title || &#39;附加信息&#39;;
+-             const title = source.title || '附加信息';
 -             textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 -           }
 -         });
 -         
 -         if (textContents.length &gt; 0) {
--           additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
--           logger.info(&#39;提取外部来源文本内容作为附加信息（仅第一次对话）&#39;, {
+-           additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
+-           logger.info('提取外部来源文本内容作为附加信息（仅第一次对话）', {
 -             isFirstMessage: true,
 -             sourcesCount: externalTextSources.length,
 -             totalTextLength: additionalContext.length,
@@ -1701,10 +1701,10 @@ Lines added: 30, lines removed: 41
 -     } else {
 -       // 后续对话时，记录日志但不添加附加信息
 -       const externalTextSources = effectiveSources.filter((s: any) =&gt; 
--         s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+-         s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 -       );
 -       if (externalTextSources.length &gt; 0) {
--         logger.info(&#39;检测到外部来源文本，但非第一次对话，跳过附加信息&#39;, {
+-         logger.info('检测到外部来源文本，但非第一次对话，跳过附加信息', {
 -           isFirstMessage: false,
 -           messageCount: params.conversation?.messages?.length || 0,
 -           sourcesCount: externalTextSources.length,
@@ -1713,7 +1713,7 @@ Lines added: 30, lines removed: 41
 +     
 +     // 提取外部来源的文本内容（description）
 +     const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+       s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++       s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +     );
 +     
 +     const textContents: string[] = [];
@@ -1721,7 +1721,7 @@ Lines added: 30, lines removed: 41
 +     // 添加外部来源的文本内容
 +     externalTextSources.forEach((source: any) =&gt; {
 +       if (source.description &amp;&amp; source.description.trim()) {
-+         const title = source.title || &#39;附加信息&#39;;
++         const title = source.title || '附加信息';
 +         textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +       }
 +     });
@@ -1732,8 +1732,8 @@ Lines added: 30, lines removed: 41
 +     }
 +     
 +     if (textContents.length &gt; 0) {
-+       additionalContext = &#39;\n\n=== 附加信息（文件内容） ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
-+       logger.info(&#39;提取附加信息（外部来源和文件markdown）&#39;, {
++       additionalContext = '\n\n=== 附加信息（文件内容） ===\n' + textContents.join('\n\n---\n\n');
++       logger.info('提取附加信息（外部来源和文件markdown）', {
 +         isFirstMessage,
 +         sourcesCount: externalTextSources.length,
 +         filesCount: fileMarkdownContents.length,
@@ -1751,7 +1751,7 @@ Lines added: 30, lines removed: 41
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1847,7 +1847,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1875,7 +1875,7 @@ Lines added: 13, lines removed: 7
       let finalQuery = params.content;
       if (additionalContext) {
 -       finalQuery = params.content + additionalContext;
--       logger.info(&#39;合并附加信息到查询内容&#39;, {
+-       logger.info('合并附加信息到查询内容', {
 -         originalLength: params.content.length,
 -         additionalLength: additionalContext.length,
 -         finalLength: finalQuery.length,
@@ -1884,7 +1884,7 @@ Lines added: 13, lines removed: 7
 +       // 如果不是第一次对话，只添加文件内容
 +       if (isFirstMessage || fileMarkdownContents.length &gt; 0) {
 +         finalQuery = params.content + additionalContext;
-+         logger.info(&#39;合并附加信息到查询内容&#39;, {
++         logger.info('合并附加信息到查询内容', {
 +           isFirstMessage,
 +           originalLength: params.content.length,
 +           additionalLength: additionalContext.length,
@@ -1993,18 +1993,18 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: 15
 
 ```diff
 @@ -374,20 +374,21 @@
-      let additionalContext = &#39;&#39;;
+      let additionalContext = '';
       
 -     // 提取外部来源的文本内容（description）
 -     const externalTextSources = effectiveSources.filter((s: any) =&gt; 
--       s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+-       s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 -     );
 -     
 -     const textContents: string[] = [];
@@ -2012,7 +2012,7 @@ Lines added: 16, lines removed: 15
 -     // 添加外部来源的文本内容
 -     externalTextSources.forEach((source: any) =&gt; {
 -       if (source.description &amp;&amp; source.description.trim()) {
--         const title = source.title || &#39;附加信息&#39;;
+-         const title = source.title || '附加信息';
 -         textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 -       }
 -     });
@@ -2021,12 +2021,12 @@ Lines added: 16, lines removed: 15
 +     // 只在第一次对话时，提取外部来源的文本内容（description）
 +     if (isFirstMessage) {
 +       const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+         s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++         s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +       );
 +       
 +       externalTextSources.forEach((source: any) =&gt; {
 +         if (source.description &amp;&amp; source.description.trim()) {
-+           const title = source.title || &#39;附加信息&#39;;
++           const title = source.title || '附加信息';
 +           textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +         }
 +       });
@@ -2043,7 +2043,7 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -398,5 +399,4 @@
-        logger.info(&#39;提取附加信息（外部来源和文件markdown）&#39;, {
+        logger.info('提取附加信息（外部来源和文件markdown）', {
           isFirstMessage,
 -         sourcesCount: externalTextSources.length,
           filesCount: fileMarkdownContents.length,
@@ -2061,7 +2061,7 @@ Lines added: 7, lines removed: 11
 -       // 如果不是第一次对话，只添加文件内容
 -       if (isFirstMessage || fileMarkdownContents.length &gt; 0) {
 -         finalQuery = params.content + additionalContext;
--         logger.info(&#39;合并附加信息到查询内容&#39;, {
+-         logger.info('合并附加信息到查询内容', {
 -           isFirstMessage,
 -           originalLength: params.content.length,
 -           additionalLength: additionalContext.length,
@@ -2069,7 +2069,7 @@ Lines added: 7, lines removed: 11
 -         });
 -       }
 +       finalQuery = params.content + additionalContext;
-+       logger.info(&#39;合并附加信息到查询内容&#39;, {
++       logger.info('合并附加信息到查询内容', {
 +         isFirstMessage,
 +         originalLength: params.content.length,
 +         additionalLength: additionalContext.length,
@@ -2114,7 +2114,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: guide/docs/FILE_TO_MARKDOWN_SETUP.md</summary>
+<details><summary>Tool use: **write** • Edit file: guide/docs/FILE_TO_MARKDOWN_SETUP.md</summary>
 
 **Chunk 1**
 Lines added: 119, lines removed: 1
@@ -2174,7 +2174,7 @@ Lines added: 119, lines removed: 1
 + 
 + ### 前端使用
 + 
-+ 1. 在&quot;添加来源&quot;弹窗中选择&quot;上传文件&quot;模式
++ 1. 在"添加来源"弹窗中选择"上传文件"模式
 + 2. 拖放或选择文件（支持PDF、PPT、Word、TXT、Markdown）
 + 3. 文件上传后会自动提取文本内容
 + 
@@ -2442,7 +2442,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: undefined
@@ -2456,7 +2456,7 @@ Lines added: 13, lines removed: undefined
 +           let markdownContent: string | undefined;
 +           if (fileRecord.metadata) {
 +             try {
-+               const metadata = typeof fileRecord.metadata === &#39;string&#39; 
++               const metadata = typeof fileRecord.metadata === 'string' 
 +                 ? JSON.parse(fileRecord.metadata) 
 +                 : fileRecord.metadata;
 +               markdownContent = metadata.markdownContent;
@@ -2496,7 +2496,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/types/aiSearch.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/types/aiSearch.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2518,7 +2518,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: 1
@@ -2534,12 +2534,12 @@ Lines added: 17, lines removed: 1
 +         uploadedFiles.forEach((uploadedFile) =&gt; {
 +           // 使用markdown内容的前200个字符作为描述预览
 +           const descriptionPreview = uploadedFile.markdownContent 
-+             ? uploadedFile.markdownContent.slice(0, 200) + (uploadedFile.markdownContent.length &gt; 200 ? &quot;...&quot; : &quot;&quot;)
++             ? uploadedFile.markdownContent.slice(0, 200) + (uploadedFile.markdownContent.length &gt; 200 ? "..." : "")
 +             : &#96;文件大小: ${formatFileSize(uploadedFile.size)}&#96;;
 +           
 +           onAddTextSource({
 +             title: uploadedFile.name,
-+             type: &quot;external&quot;,
++             type: "external",
 +             url: uploadedFile.url,
 +             description: uploadedFile.markdownContent || descriptionPreview,
 +           });
@@ -2624,7 +2624,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 1
@@ -2768,7 +2768,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 3
@@ -2779,7 +2779,7 @@ Lines added: 4, lines removed: 3
           uploadedFiles.forEach((uploadedFile) =&gt; {
 -           // 使用markdown内容的前200个字符作为描述预览
 -           const descriptionPreview = uploadedFile.markdownContent 
--             ? uploadedFile.markdownContent.slice(0, 200) + (uploadedFile.markdownContent.length &gt; 200 ? &quot;...&quot; : &quot;&quot;)
+-             ? uploadedFile.markdownContent.slice(0, 200) + (uploadedFile.markdownContent.length &gt; 200 ? "..." : "")
 +           // description字段包含完整的markdown内容，用于传递给Agent
 +           // 如果没有markdown内容，则使用文件大小作为描述
 +           const description = uploadedFile.markdownContent 
@@ -2793,7 +2793,7 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -67,5 +68,5 @@
-              type: &quot;external&quot;,
+              type: "external",
               url: uploadedFile.url,
 -             description: uploadedFile.markdownContent || descriptionPreview,
 +             description: description,
@@ -4916,7 +4916,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/api/aiSearch.routes.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 12
@@ -4929,7 +4929,7 @@ Lines added: 1, lines removed: 12
 -           let markdownContent: string | undefined;
 -           if (fileRecord.metadata) {
 -             try {
--               const metadata = typeof fileRecord.metadata === &#39;string&#39; 
+-               const metadata = typeof fileRecord.metadata === 'string' 
 -                 ? JSON.parse(fileRecord.metadata) 
 -                 : fileRecord.metadata;
 -               markdownContent = metadata.markdownContent;
@@ -5039,7 +5039,7 @@ Output mode: content
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm run build 2>&1 | head -50</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm run build 2>&1 | head -50</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && npm run build 2>&1 | head -50
@@ -5050,27 +5050,27 @@ cd /Volumes/Lexar/git/03T/todify3/backend && npm run build 2>&1 | head -50
 &gt; todify3@1.0.0 build
 &gt; tsc &amp;&amp; tsc-alias
 
-src/modules/ai-search/application/useCases/SendMessage.usecase.ts(127,31): error TS2339: Property &#39;conversation_id&#39; does not exist on type &#39;ExtractedOutputFields | { content: any; metadata: any; }&#39;.
-  Property &#39;conversation_id&#39; does not exist on type &#39;{ content: any; metadata: any; }&#39;.
-src/modules/ai-search/application/useCases/SendMessage.usecase.ts(127,73): error TS2339: Property &#39;conversation_id&#39; does not exist on type &#39;ExtractedOutputFields | { content: any; metadata: any; }&#39;.
-  Property &#39;conversation_id&#39; does not exist on type &#39;{ content: any; metadata: any; }&#39;.
-src/modules/ai-search/application/useCases/SendMessage.usecase.ts(128,53): error TS2339: Property &#39;conversation_id&#39; does not exist on type &#39;ExtractedOutputFields | { content: any; metadata: any; }&#39;.
-  Property &#39;conversation_id&#39; does not exist on type &#39;{ content: any; metadata: any; }&#39;.
-src/services/AgentWorkflowService.ts(612,40): error TS7006: Parameter &#39;n&#39; implicitly has an &#39;any&#39; type.
-src/services/AgentWorkflowService.ts(702,74): error TS2339: Property &#39;answer&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(702,102): error TS2339: Property &#39;answer&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(702,136): error TS2339: Property &#39;answer&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(703,36): error TS2339: Property &#39;answer&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(709,81): error TS2339: Property &#39;result&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(709,109): error TS2339: Property &#39;result&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(709,143): error TS2339: Property &#39;result&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(711,36): error TS2339: Property &#39;result&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(746,72): error TS2339: Property &#39;conversation_id&#39; does not exist on type &#39;object&#39;.
-src/services/AgentWorkflowService.ts(747,39): error TS2339: Property &#39;conversation_id&#39; does not exist on type &#39;object&#39;.
-src/services/sourceInformationService.ts(79,7): error TS2322: Type &#39;SourceInformation | null&#39; is not assignable to type &#39;SourceInformation&#39;.
-  Type &#39;null&#39; is not assignable to type &#39;SourceInformation&#39;.
-src/services/tpdSyncService.ts(169,9): error TS2322: Type &#39;TechPoint | undefined&#39; is not assignable to type &#39;TechPoint | null&#39;.
-  Type &#39;undefined&#39; is not assignable to type &#39;TechPoint | null&#39;.
+src/modules/ai-search/application/useCases/SendMessage.usecase.ts(127,31): error TS2339: Property 'conversation_id' does not exist on type 'ExtractedOutputFields | { content: any; metadata: any; }'.
+  Property 'conversation_id' does not exist on type '{ content: any; metadata: any; }'.
+src/modules/ai-search/application/useCases/SendMessage.usecase.ts(127,73): error TS2339: Property 'conversation_id' does not exist on type 'ExtractedOutputFields | { content: any; metadata: any; }'.
+  Property 'conversation_id' does not exist on type '{ content: any; metadata: any; }'.
+src/modules/ai-search/application/useCases/SendMessage.usecase.ts(128,53): error TS2339: Property 'conversation_id' does not exist on type 'ExtractedOutputFields | { content: any; metadata: any; }'.
+  Property 'conversation_id' does not exist on type '{ content: any; metadata: any; }'.
+src/services/AgentWorkflowService.ts(612,40): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/services/AgentWorkflowService.ts(702,74): error TS2339: Property 'answer' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(702,102): error TS2339: Property 'answer' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(702,136): error TS2339: Property 'answer' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(703,36): error TS2339: Property 'answer' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(709,81): error TS2339: Property 'result' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(709,109): error TS2339: Property 'result' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(709,143): error TS2339: Property 'result' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(711,36): error TS2339: Property 'result' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(746,72): error TS2339: Property 'conversation_id' does not exist on type 'object'.
+src/services/AgentWorkflowService.ts(747,39): error TS2339: Property 'conversation_id' does not exist on type 'object'.
+src/services/sourceInformationService.ts(79,7): error TS2322: Type 'SourceInformation | null' is not assignable to type 'SourceInformation'.
+  Type 'null' is not assignable to type 'SourceInformation'.
+src/services/tpdSyncService.ts(169,9): error TS2322: Type 'TechPoint | undefined' is not assignable to type 'TechPoint | null'.
+  Type 'undefined' is not assignable to type 'TechPoint | null'.
 
 ```
 </details>
@@ -5133,7 +5133,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 2
@@ -5141,11 +5141,11 @@ Lines added: 3, lines removed: 2
 ```diff
 @@ -125,6 +125,7 @@
           const extractedOutput = extractWorkflowOutput(workflowResult, mappingConfig.outputMappings);
-          if (!newDifyConversationId &amp;&amp; extractedOutput &amp;&amp; typeof extractedOutput === &#39;object&#39;) {
--           if (extractedOutput.conversation_id &amp;&amp; typeof extractedOutput.conversation_id === &#39;string&#39;) {
+          if (!newDifyConversationId &amp;&amp; extractedOutput &amp;&amp; typeof extractedOutput === 'object') {
+-           if (extractedOutput.conversation_id &amp;&amp; typeof extractedOutput.conversation_id === 'string') {
 -             newDifyConversationId = extractedOutput.conversation_id;
 +           const outputObj = extractedOutput as any;
-+           if (outputObj.conversation_id &amp;&amp; typeof outputObj.conversation_id === &#39;string&#39;) {
++           if (outputObj.conversation_id &amp;&amp; typeof outputObj.conversation_id === 'string') {
 +             newDifyConversationId = outputObj.conversation_id;
             }
           }
@@ -5185,7 +5185,7 @@ Lint results
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && ps aux | grep -E "node|ts-node" | grep -v grep | head -5</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && ps aux | grep -E "node|ts-node" | grep -v grep | head -5</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && ps aux | grep -E "node|ts-node" | grep -v grep | head -5
@@ -5292,7 +5292,7 @@ Output mode: content
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm list pdf-parse 2>&1 | head -5</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm list pdf-parse 2>&1 | head -5</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && npm list pdf-parse 2>&1 | head -5
@@ -5329,7 +5329,7 @@ todify3@1.0.0 /Volumes/Lexar/git/03T/todify3/backend
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: 2
@@ -5338,18 +5338,18 @@ Lines added: 9, lines removed: 2
 @@ -71,7 +71,14 @@
         let pdfParse: any;
         try {
--         pdfParse = require(&#39;pdf-parse&#39;);
-+         const pdfParseModule = require(&#39;pdf-parse&#39;);
+-         pdfParse = require('pdf-parse');
++         const pdfParseModule = require('pdf-parse');
 +         // pdf-parse可能是默认导出或命名导出
 +         pdfParse = pdfParseModule.default || pdfParseModule;
 +         
 +         // 检查是否是函数
-+         if (typeof pdfParse !== &#39;function&#39;) {
-+           throw new Error(&#39;pdf-parse 不是一个函数&#39;);
++         if (typeof pdfParse !== 'function') {
++           throw new Error('pdf-parse 不是一个函数');
 +         }
         } catch (e) {
--         logger.warn(&#39;pdf-parse库未安装，使用基础文本提取&#39;, { originalName });
-+         logger.warn(&#39;pdf-parse库未安装或导入失败&#39;, { originalName, error: e });
+-         logger.warn('pdf-parse库未安装，使用基础文本提取', { originalName });
++         logger.warn('pdf-parse库未安装或导入失败', { originalName, error: e });
           return &#96;# ${originalName}\n\nPDF文件内容提取需要安装pdf-parse库。\n请运行: npm install pdf-parse&#96;;
         }
 ```
@@ -5362,9 +5362,9 @@ Lines added: 2, lines removed: 2
         const data = await pdfParse(dataBuffer);
         
 -       const markdown = &#96;# ${originalName}\n\n${data.text}&#96;;
--       logger.info(&#39;PDF转Markdown成功&#39;, { originalName, textLength: data.text.length });
-+       const markdown = &#96;# ${originalName}\n\n${data.text || &#39;&#39;}&#96;;
-+       logger.info(&#39;PDF转Markdown成功&#39;, { originalName, textLength: data.text?.length || 0 });
+-       logger.info('PDF转Markdown成功', { originalName, textLength: data.text.length });
++       const markdown = &#96;# ${originalName}\n\n${data.text || ''}&#96;;
++       logger.info('PDF转Markdown成功', { originalName, textLength: data.text?.length || 0 });
         return markdown;
       } catch (error) {
 ```
@@ -5385,7 +5385,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 4
@@ -5394,26 +5394,26 @@ Lines added: 11, lines removed: 4
 @@ -108,13 +108,20 @@
         let mammoth: any;
         try {
--         mammoth = require(&#39;mammoth&#39;);
-+         const mammothModule = require(&#39;mammoth&#39;);
+-         mammoth = require('mammoth');
++         const mammothModule = require('mammoth');
 +         // mammoth可能是默认导出或命名导出
 +         mammoth = mammothModule.default || mammothModule;
 +         
 +         // 检查是否有extractRawText方法
-+         if (!mammoth || typeof mammoth.extractRawText !== &#39;function&#39;) {
-+           throw new Error(&#39;mammoth.extractRawText 不是一个函数&#39;);
++         if (!mammoth || typeof mammoth.extractRawText !== 'function') {
++           throw new Error('mammoth.extractRawText 不是一个函数');
 +         }
         } catch (e) {
--         logger.warn(&#39;mammoth库未安装，使用基础文本提取&#39;, { originalName });
-+         logger.warn(&#39;mammoth库未安装或导入失败&#39;, { originalName, error: e });
+-         logger.warn('mammoth库未安装，使用基础文本提取', { originalName });
++         logger.warn('mammoth库未安装或导入失败', { originalName, error: e });
           return &#96;# ${originalName}\n\nWord文件内容提取需要安装mammoth库。\n请运行: npm install mammoth&#96;;
         }
   
         const result = await mammoth.extractRawText({ path: filePath });
 -       const markdown = &#96;# ${originalName}\n\n${result.value}&#96;;
--       logger.info(&#39;Word转Markdown成功&#39;, { originalName, textLength: result.value.length });
-+       const markdown = &#96;# ${originalName}\n\n${result.value || &#39;&#39;}&#96;;
-+       logger.info(&#39;Word转Markdown成功&#39;, { originalName, textLength: result.value?.length || 0 });
+-       logger.info('Word转Markdown成功', { originalName, textLength: result.value.length });
++       const markdown = &#96;# ${originalName}\n\n${result.value || ''}&#96;;
++       logger.info('Word转Markdown成功', { originalName, textLength: result.value?.length || 0 });
         return markdown;
       } catch (error) {
 ```
@@ -5452,7 +5452,7 @@ Lint results
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Type:', typeof pdfParse); console.log('Is function:', typeof pdfParse === 'function'); console.log('Has default:', typeof pdfParse.default === 'function');"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Type:', typeof pdfParse); console.log('Is function:', typeof pdfParse === 'function'); console.log('Has default:', typeof pdfParse.default === 'function');"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Type:', typeof pdfParse); console.log('Is function:', typeof pdfParse === 'function'); console.log('Has default:', typeof pdfParse.default === 'function');"
@@ -5480,7 +5480,7 @@ Has default: false
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Keys:', Object.keys(pdfParse)); console.log('Constructor:', pdfParse.constructor.name);"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Keys:', Object.keys(pdfParse)); console.log('Constructor:', pdfParse.constructor.name);"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Keys:', Object.keys(pdfParse)); console.log('Constructor:', pdfParse.constructor.name);"
@@ -5488,22 +5488,22 @@ cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('
 
 ```
 Keys: [
-  &#39;AbortException&#39;,
-  &#39;FormatError&#39;,
-  &#39;InvalidPDFException&#39;,
-  &#39;Line&#39;,
-  &#39;LineDirection&#39;,
-  &#39;LineStore&#39;,
-  &#39;PDFParse&#39;,
-  &#39;PasswordException&#39;,
-  &#39;Point&#39;,
-  &#39;Rectangle&#39;,
-  &#39;ResponseException&#39;,
-  &#39;Shape&#39;,
-  &#39;Table&#39;,
-  &#39;UnknownErrorException&#39;,
-  &#39;VerbosityLevel&#39;,
-  &#39;getException&#39;
+  'AbortException',
+  'FormatError',
+  'InvalidPDFException',
+  'Line',
+  'LineDirection',
+  'LineStore',
+  'PDFParse',
+  'PasswordException',
+  'Point',
+  'Rectangle',
+  'ResponseException',
+  'Shape',
+  'Table',
+  'UnknownErrorException',
+  'VerbosityLevel',
+  'getException'
 ]
 Constructor: Object
 
@@ -5532,7 +5532,7 @@ Constructor: Object
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('PDFParse:', typeof pdfParse.PDFParse); console.log('All keys:', Object.keys(pdfParse).slice(0, 5));"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('PDFParse:', typeof pdfParse.PDFParse); console.log('All keys:', Object.keys(pdfParse).slice(0, 5));"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('PDFParse:', typeof pdfParse.PDFParse); console.log('All keys:', Object.keys(pdfParse).slice(0, 5));"
@@ -5541,11 +5541,11 @@ cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('
 ```
 PDFParse: function
 All keys: [
-  &#39;AbortException&#39;,
-  &#39;FormatError&#39;,
-  &#39;InvalidPDFException&#39;,
-  &#39;Line&#39;,
-  &#39;LineDirection&#39;
+  'AbortException',
+  'FormatError',
+  'InvalidPDFException',
+  'Line',
+  'LineDirection'
 ]
 
 ```
@@ -5573,7 +5573,7 @@ All keys: [
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Function type:', typeof func); console.log('Is callable:', typeof func === 'function');"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Function type:', typeof func); console.log('Is callable:', typeof func === 'function');"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Function type:', typeof func); console.log('Is callable:', typeof func === 'function');"
@@ -5615,7 +5615,7 @@ _No matches found_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: 2
@@ -5623,7 +5623,7 @@ Lines added: 9, lines removed: 2
 ```diff
 @@ -72,9 +72,16 @@
         try {
-          const pdfParseModule = require(&#39;pdf-parse&#39;);
+          const pdfParseModule = require('pdf-parse');
 -         // pdf-parse可能是默认导出或命名导出
 -         pdfParse = pdfParseModule.default || pdfParseModule;
 +         // pdf-parse 2.x版本返回对象，函数在default属性中
@@ -5631,14 +5631,14 @@ Lines added: 9, lines removed: 2
 +         pdfParse = pdfParseModule.default || pdfParseModule.PDFParse || pdfParseModule;
           
           // 检查是否是函数
-          if (typeof pdfParse !== &#39;function&#39;) {
-+           logger.error(&#39;pdf-parse导入失败：不是函数&#39;, { 
+          if (typeof pdfParse !== 'function') {
++           logger.error('pdf-parse导入失败：不是函数', { 
 +             type: typeof pdfParse,
 +             hasDefault: !!pdfParseModule.default,
 +             hasPDFParse: !!pdfParseModule.PDFParse,
 +             keys: Object.keys(pdfParseModule).slice(0, 5)
 +           });
-            throw new Error(&#39;pdf-parse 不是一个函数&#39;);
+            throw new Error('pdf-parse 不是一个函数');
           }
 ```
 
@@ -5711,7 +5711,7 @@ _**Agent (model default, mode Agent)**_
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Is class:', func.toString().includes('class')); console.log('Prototype:', Object.getPrototypeOf(func)); console.log('Try call:', typeof func);"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Is class:', func.toString().includes('class')); console.log('Prototype:', Object.getPrototypeOf(func)); console.log('Try call:', typeof func);"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; console.log('Is class:', func.toString().includes('class')); console.log('Prototype:', Object.getPrototypeOf(func)); console.log('Try call:', typeof func);"
@@ -5729,14 +5729,14 @@ Try call: function
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; try { const instance = new func(); console.log('New instance:', typeof instance); } catch(e) { console.log('New error:', e.message); }"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; try { const instance = new func(); console.log('New instance:', typeof instance); } catch(e) { console.log('New error:', e.message); }"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); const func = pdfParse.default || pdfParse.PDFParse || pdfParse; try { const instance = new func(); console.log('New instance:', typeof instance); } catch(e) { console.log('New error:', e.message); }"
 ```
 
 ```
-New error: Cannot read properties of undefined (reading &#39;verbosity&#39;)
+New error: Cannot read properties of undefined (reading 'verbosity')
 
 ```
 </details>
@@ -5768,7 +5768,7 @@ New error: Cannot read properties of undefined (reading &#39;verbosity&#39;)
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Module:', Object.keys(pdfParse)); const PDFParse = pdfParse.default || pdfParse.PDFParse; console.log('PDFParse type:', typeof PDFParse); console.log('PDFParse name:', PDFParse.name);"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Module:', Object.keys(pdfParse)); const PDFParse = pdfParse.default || pdfParse.PDFParse; console.log('PDFParse type:', typeof PDFParse); console.log('PDFParse name:', PDFParse.name);"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('pdf-parse'); console.log('Module:', Object.keys(pdfParse)); const PDFParse = pdfParse.default || pdfParse.PDFParse; console.log('PDFParse type:', typeof PDFParse); console.log('PDFParse name:', PDFParse.name);"
@@ -5776,22 +5776,22 @@ cd /Volumes/Lexar/git/03T/todify3/backend && node -e "const pdfParse = require('
 
 ```
 Module: [
-  &#39;AbortException&#39;,
-  &#39;FormatError&#39;,
-  &#39;InvalidPDFException&#39;,
-  &#39;Line&#39;,
-  &#39;LineDirection&#39;,
-  &#39;LineStore&#39;,
-  &#39;PDFParse&#39;,
-  &#39;PasswordException&#39;,
-  &#39;Point&#39;,
-  &#39;Rectangle&#39;,
-  &#39;ResponseException&#39;,
-  &#39;Shape&#39;,
-  &#39;Table&#39;,
-  &#39;UnknownErrorException&#39;,
-  &#39;VerbosityLevel&#39;,
-  &#39;getException&#39;
+  'AbortException',
+  'FormatError',
+  'InvalidPDFException',
+  'Line',
+  'LineDirection',
+  'LineStore',
+  'PDFParse',
+  'PasswordException',
+  'Point',
+  'Rectangle',
+  'ResponseException',
+  'Shape',
+  'Table',
+  'UnknownErrorException',
+  'VerbosityLevel',
+  'getException'
 ]
 PDFParse type: function
 PDFParse name: 
@@ -5885,7 +5885,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/FileToMarkdownService.ts</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 11
@@ -5901,7 +5901,7 @@ Lines added: 11, lines removed: 11
 +       // 尝试使用pdf-parse库 (v2.x版本)
 +       let PDFParse: any;
         try {
-          const pdfParseModule = require(&#39;pdf-parse&#39;);
+          const pdfParseModule = require('pdf-parse');
 -         // pdf-parse 2.x版本返回对象，函数在default属性中
 -         // 也可能在PDFParse属性中，或者直接是函数
 -         pdfParse = pdfParseModule.default || pdfParseModule.PDFParse || pdfParseModule;
@@ -5909,20 +5909,20 @@ Lines added: 11, lines removed: 11
 +         PDFParse = pdfParseModule.PDFParse || pdfParseModule.default;
           
 -         // 检查是否是函数
--         if (typeof pdfParse !== &#39;function&#39;) {
--           logger.error(&#39;pdf-parse导入失败：不是函数&#39;, { 
+-         if (typeof pdfParse !== 'function') {
+-           logger.error('pdf-parse导入失败：不是函数', { 
 -             type: typeof pdfParse,
 -             hasDefault: !!pdfParseModule.default,
 +         // 检查是否是类/函数
-+         if (typeof PDFParse !== &#39;function&#39;) {
-+           logger.error(&#39;pdf-parse导入失败：PDFParse不是函数&#39;, { 
++         if (typeof PDFParse !== 'function') {
++           logger.error('pdf-parse导入失败：PDFParse不是函数', { 
 +             type: typeof PDFParse,
               hasPDFParse: !!pdfParseModule.PDFParse,
 +             hasDefault: !!pdfParseModule.default,
               keys: Object.keys(pdfParseModule).slice(0, 5)
             });
--           throw new Error(&#39;pdf-parse 不是一个函数&#39;);
-+           throw new Error(&#39;PDFParse 不是一个函数&#39;);
+-           throw new Error('pdf-parse 不是一个函数');
++           throw new Error('PDFParse 不是一个函数');
           }
         } catch (e) {
 ```
@@ -5943,26 +5943,26 @@ Lines added: 21, lines removed: 3
 +       const result = await parser.getText();
 +       
 +       // 清理资源
-+       if (parser &amp;&amp; typeof parser.destroy === &#39;function&#39;) {
++       if (parser &amp;&amp; typeof parser.destroy === 'function') {
 +         await parser.destroy();
 +       }
         
--       const markdown = &#96;# ${originalName}\n\n${data.text || &#39;&#39;}&#96;;
--       logger.info(&#39;PDF转Markdown成功&#39;, { originalName, textLength: data.text?.length || 0 });
-+       const markdown = &#96;# ${originalName}\n\n${result.text || &#39;&#39;}&#96;;
-+       logger.info(&#39;PDF转Markdown成功&#39;, { originalName, textLength: result.text?.length || 0 });
+-       const markdown = &#96;# ${originalName}\n\n${data.text || ''}&#96;;
+-       logger.info('PDF转Markdown成功', { originalName, textLength: data.text?.length || 0 });
++       const markdown = &#96;# ${originalName}\n\n${result.text || ''}&#96;;
++       logger.info('PDF转Markdown成功', { originalName, textLength: result.text?.length || 0 });
         return markdown;
       } catch (error) {
 +       // 确保清理资源
-+       if (parser &amp;&amp; typeof parser.destroy === &#39;function&#39;) {
++       if (parser &amp;&amp; typeof parser.destroy === 'function') {
 +         try {
 +           await parser.destroy();
 +         } catch (destroyError) {
-+           logger.warn(&#39;清理PDF解析器资源失败&#39;, { error: destroyError });
++           logger.warn('清理PDF解析器资源失败', { error: destroyError });
 +         }
 +       }
 +       
-        logger.error(&#39;PDF转Markdown失败&#39;, {
+        logger.error('PDF转Markdown失败', {
           filePath,
 ```
 

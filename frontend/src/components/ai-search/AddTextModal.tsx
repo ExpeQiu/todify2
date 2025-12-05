@@ -160,7 +160,7 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
         {/* 说明文字 */}
         <div className="px-6 pt-4">
           <p className="text-sm text-gray-600">
-            添加来源后，系统能够基于这些对您最重要的信息提供回答。（示例：营销方案、课程阅读材料、研究笔记、会议转写内容、销售文档等）
+            添加来源后，系统能够基于这些对您最重要的信息提供回答。（示例：营销方案、课程阅读材料、研究项目、会议转写内容、销售文档等）
           </p>
         </div>
 

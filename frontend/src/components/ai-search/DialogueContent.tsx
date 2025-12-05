@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, History } from "lucide-react";
-import { Message, Source, Conversation } from "../../types/aiSearch";
+import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus } from "lucide-react";
+import { Message, Conversation } from "../../types/aiSearch";
+import { Source } from "./SourceSidebar";
 import { aiSearchService } from "../../services/aiSearchService";
 import MessageItem from "./MessageItem";
 
@@ -19,12 +20,12 @@ interface DialogueContentProps {
   onSaveToNotes?: (content: string) => void;
   onEnsureConversation?: () => Promise<Conversation | null>;
   onCreateNewConversation?: () => Promise<void>;
-  onShowHistory?: () => void;
   availableWorkflows?: Array<{ id: string; name: string }>;
   selectedWorkflowId?: string | null;
   onWorkflowChange?: (workflowId: string) => void;
   isWorkflowLoading?: boolean;
   dialogueTitle?: string;
+  pageType?: string;
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -42,12 +43,12 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   onSaveToNotes,
   onEnsureConversation,
   onCreateNewConversation,
-  onShowHistory,
   availableWorkflows = [],
   selectedWorkflowId,
   onWorkflowChange,
   isWorkflowLoading = false,
   dialogueTitle = "AI内容助手",
+  pageType,
 }) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -316,17 +317,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
             <Plus className="w-4 h-4" />
             提出一个新问题
           </button>
-          <button
-            onClick={() => {
-              if (onShowHistory) {
-                onShowHistory();
-              }
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <History className="w-4 h-4" />
-            查看历史对话
-          </button>
         </div>
       </div>
 
@@ -456,24 +446,26 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         )}
 
         {/* 输入框和按钮 */}
-        <div className="flex items-end gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-            title="添加文件"
-          >
-            <Paperclip className="w-5 h-5" />
-          </button>
-          
-          <div className="flex-1 flex flex-col">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
+            />
+            {pageType !== 'tech-package' && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                title="添加文件"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+            )}
+            
             <textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -488,43 +480,44 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
               className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               disabled={isLoading}
             />
-            <div className="mt-1 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                <span>{sources.length}个来源</span>
-                <label className="flex items-center gap-1">
-                  <span>上下文窗口:</span>
-                  <select
-                    value={contextWindowSize}
-                    onChange={(event) => {
-                      const value = parseInt(event.target.value, 10);
-                      onContextWindowSizeChange?.(value);
-                    }}
-                    className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    disabled={isLoading}
-                  >
-                    <option value={5}>最近5条</option>
-                    <option value={10}>最近10条</option>
-                    <option value={20}>最近20条</option>
-                    <option value={0}>全部历史</option>
-                  </select>
-                </label>
-              </div>
-              <span className="text-xs text-gray-400">Enter发送，Shift+Enter换行</span>
-            </div>
-          </div>
 
-          <button
-            onClick={handleSend}
-            disabled={isLoading || (!query.trim() && selectedFiles.length === 0)}
-            className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="发送"
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </button>
+            <button
+              onClick={() => handleSend()}
+              disabled={isLoading || (!query.trim() && selectedFiles.length === 0)}
+              className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="发送"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span>{sources.length}个来源</span>
+              <label className="flex items-center gap-1">
+                <span>上下文窗口:</span>
+                <select
+                  value={contextWindowSize}
+                  onChange={(event) => {
+                    const value = parseInt(event.target.value, 10);
+                    onContextWindowSizeChange?.(value);
+                  }}
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  disabled={isLoading}
+                >
+                  <option value={5}>最近5条</option>
+                  <option value={10}>最近10条</option>
+                  <option value={20}>最近20条</option>
+                  <option value={0}>全部历史</option>
+                </select>
+              </label>
+            </div>
+            <span className="text-xs text-gray-400">Enter发送，Shift+Enter换行</span>
+          </div>
         </div>
       </div>
     </div>

@@ -6,10 +6,9 @@ import {
   FileText,
   Mic,
   Home,
-  Bot,
-  Workflow,
-  MessageSquare,
-  Layers,
+  Settings,
+  User,
+  ChevronDown,
 } from "lucide-react";
 import publicPageConfigService from "../services/publicPageConfigService";
 import { PublicPageConfig } from "../types/publicPageConfig";
@@ -30,19 +29,24 @@ interface NavigationItem {
 
 // 主要功能的固定顺序和映射
 const MAIN_NAV_ORDER = [
-  { name: 'AI问答', icon: Home, path: '/', address: null },
+  { name: '项目管理', icon: Home, path: '/', address: null },
   { name: '技术包装', icon: MessageCircle, path: '/tech-package', address: 'tech-package' },
   { name: '技术策略', icon: Target, path: '/tech-strategy', address: 'tech-strategy' },
   { name: '技术通稿', icon: FileText, path: '/tech-article', address: 'tech-article' },
-  { name: '发布会稿', icon: Mic, path: '/press-release', address: 'press-release' },
 ];
 
-// 管理功能的固定顺序和映射
+// 管理功能的固定顺序和映射（合并为Agent配置）
 const MANAGEMENT_NAV_ORDER = [
-  { name: 'AI角色', icon: Bot, path: '/ai-roles' },
-  { name: 'Agent工作流', icon: Workflow, path: '/agent-workflow' },
-  { name: '多角色对话', icon: MessageSquare, path: '/ai-chat-multi' },
-  { name: '页面配置', icon: Layers, path: '/public-page-configs' },
+  { name: 'Agent配置', icon: Settings, path: '/ai-management' },
+];
+
+// Agent配置相关的子页面路径
+const AGENT_CONFIG_PATHS = [
+  '/ai-roles',
+  '/agent-workflow',
+  '/ai-chat-multi',
+  '/public-page-configs',
+  '/ai-management',
 ];
 
 
@@ -51,16 +55,71 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
   const location = useLocation();
   const [activeConfigs, setActiveConfigs] = useState<PublicPageConfig[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState<string>('用户');
+  
+  // 获取当前登录用户名
+  const getCurrentUsername = (): string => {
+    try {
+      // 尝试从 localStorage 获取用户名（支持多种可能的键名）
+      const username = localStorage.getItem('username') || 
+                       localStorage.getItem('user_name') || 
+                       localStorage.getItem('currentUser') ||
+                       localStorage.getItem('userName');
+      if (username) {
+        // 如果是 JSON 字符串，尝试解析
+        try {
+          const parsed = JSON.parse(username);
+          return parsed.name || parsed.username || parsed.userName || username;
+        } catch {
+          return username;
+        }
+      }
+    } catch (error) {
+      console.warn('获取用户名失败:', error);
+    }
+    // 默认返回"用户"
+    return '用户';
+  };
+  
+  // 初始化用户名
+  useEffect(() => {
+    setCurrentUsername(getCurrentUsername());
+    
+    // 监听 localStorage 变化（跨标签页同步）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'username' || e.key === 'user_name' || e.key === 'currentUser' || e.key === 'userName') {
+        setCurrentUsername(getCurrentUsername());
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 监听自定义事件（同标签页更新）
+    const handleUserUpdate = () => {
+      setCurrentUsername(getCurrentUsername());
+    };
+    
+    window.addEventListener('userUpdated', handleUserUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userUpdated', handleUserUpdate);
+    };
+  }, []);
 
   // 加载启用的公共页面配置
   const loadActiveConfigs = async () => {
     try {
+      console.log('[TopNavigation] 开始加载配置...');
       setLoading(true);
       const configs = await publicPageConfigService.getAllConfigs();
+      console.log('[TopNavigation] 获取到所有配置:', configs.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
       // 过滤出已启用且有地址的配置
       const enabled = configs.filter(
         (config) => config.isActive && config.address
       );
+      console.log('[TopNavigation] 过滤后的启用配置:', enabled.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
       setActiveConfigs(enabled);
     } catch (error: any) {
       // 对于后端未运行的情况，静默处理
@@ -80,7 +139,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
     loadActiveConfigs();
 
     // 监听配置更新事件
-    const handleConfigUpdate = () => {
+    const handleConfigUpdate = (event?: Event) => {
+      console.log('[TopNavigation] 收到配置更新事件:', event);
       loadActiveConfigs();
     };
 
@@ -95,7 +155,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
     window.addEventListener('storage', handleStorageChange);
     
     // 监听自定义刷新事件（同标签页触发）
-    const handleCustomRefresh = () => {
+    const handleCustomRefresh = (event?: Event) => {
+      console.log('[TopNavigation] 收到自定义刷新事件:', event);
       loadActiveConfigs();
     };
     window.addEventListener('publicPageConfigsRefresh', handleCustomRefresh);
@@ -109,12 +170,13 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
 
   // 动态生成主要功能导航项
   const mainItems: NavigationItem[] = useMemo(() => {
+    console.log('[TopNavigation] 重新计算 mainItems，activeConfigs:', activeConfigs.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
     const items: NavigationItem[] = [];
 
     // 按照固定顺序生成主要功能项
     MAIN_NAV_ORDER.forEach((navItem) => {
-      // 如果是AI问答，直接添加
-      if (navItem.name === 'AI问答') {
+      // 如果是项目管理，直接添加
+      if (navItem.name === '项目管理') {
         items.push({
           id: 'home',
           label: navItem.name,
@@ -132,6 +194,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
       );
 
       if (config) {
+        console.log(`[TopNavigation] 找到配置 ${navItem.name}:`, config);
         items.push({
           id: config.id,
           label: config.name,
@@ -142,6 +205,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
           configId: config.id,
         });
       } else {
+        console.log(`[TopNavigation] 未找到配置 ${navItem.name}，将显示为禁用状态`);
         // 如果配置不存在，仍然显示但禁用
         items.push({
           id: `placeholder-${navItem.address}`,
@@ -154,6 +218,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
       }
     });
 
+    console.log('[TopNavigation] 生成的 mainItems:', items.map(i => ({ id: i.id, label: i.label, disabled: i.disabled })));
     return items;
   }, [activeConfigs]);
 
@@ -169,17 +234,29 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
     }));
   }, []);
 
-  const handleNavigation = (path: string, disabled?: boolean) => {
+  const handleNavigation = (path: string, disabled?: boolean, itemId?: string) => {
     if (disabled) {
       return;
     }
-    navigate(path);
+    // 如果是项目管理（首页），添加 tab=all 参数
+    if (path === '/' && itemId === 'home') {
+      navigate('/?tab=all');
+    } else {
+      navigate(path);
+    }
   };
 
   const isCurrentPath = (path: string) => {
     // 首页特殊处理
     if (path === '/') {
+      // 检查是否是首页路径（忽略查询参数）
       return location.pathname === '/' || location.pathname === '/tech-package';
+    }
+    // Agent配置特殊处理：如果当前路径是Agent配置的子页面，也认为是当前路径
+    if (path === '/ai-management') {
+      return AGENT_CONFIG_PATHS.some(agentPath => 
+        location.pathname === agentPath || location.pathname.startsWith(agentPath + '/')
+      );
     }
     // 精确匹配
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -196,7 +273,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
           return (
             <React.Fragment key={item.id}>
               <button
-                onClick={() => handleNavigation(item.path, item.disabled)}
+                onClick={() => handleNavigation(item.path, item.disabled, item.id)}
                 disabled={item.disabled}
                 className={`
                   relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium
@@ -228,48 +305,90 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
 
   return (
     <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16">
-          {/* 第一组：AI问答 */}
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16 justify-between">
+          {/* 左侧导航项 */}
           <div className="flex items-center">
-            {renderNavGroup([mainItems[0]], 0)}
-          </div>
-          
-          {/* 分隔符 */}
-          <span className="mx-3 text-gray-300">｜</span>
-
-          {/* 第二组：技术包装、技术策略、技术通稿、发布会稿 */}
-          <div className="flex items-center">
-            {renderNavGroup(mainItems.slice(1), 1)}
-          </div>
-
-          {/* 分隔符 */}
-          <span className="mx-3 text-gray-300">｜</span>
-
-          {/* 第三组：AI角色、Agent工作流、多角色对话、页面配置 */}
-          <div className="flex items-center">
-            {renderNavGroup(managementItems, 2)}
-          </div>
-
-          {/* 分隔符 */}
-          {currentPageTitle && (
-            <>
-              <span className="mx-3 text-gray-300">｜</span>
-              {/* 当前页面标题 */}
-              <div className="flex items-center">
-                <h1 className="text-base font-semibold text-gray-900">
-                  {currentPageTitle}
-                </h1>
-              </div>
-            </>
-          )}
-
-          {/* 加载状态指示器 */}
-          {loading && (
-            <div className="ml-4 flex items-center">
-              <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            {/* 第一组：项目管理 */}
+            <div className="flex items-center">
+              {renderNavGroup([mainItems[0]], 0)}
             </div>
-          )}
+            
+            {/* 分隔符 */}
+            <span className="mx-3 text-gray-300">｜</span>
+
+            {/* 第二组：技术包装、技术策略、技术通稿 */}
+            <div className="flex items-center">
+              {renderNavGroup(mainItems.slice(1), 1)}
+            </div>
+
+          </div>
+
+          {/* 右侧：加载状态和用户标识 */}
+          <div className="flex items-center gap-4">
+            {/* 加载状态指示器 */}
+            {loading && (
+              <div className="flex items-center">
+                <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* 用户标识和下拉菜单 */}
+            <div className="relative flex items-center">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-all duration-200"
+                title={currentUsername}
+              >
+                <User className="w-4 h-4" />
+                <span>{currentUsername}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${userMenuOpen ? 'transform rotate-180' : ''}`} />
+              </button>
+
+              {/* 下拉菜单 */}
+              {userMenuOpen && (
+                <>
+                  {/* 背景遮罩，点击关闭菜单 */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  {/* 下拉菜单内容 */}
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    {managementItems.map((item) => {
+                      const Icon = item.icon;
+                      const isCurrent = isCurrentPath(item.path);
+                      
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            handleNavigation(item.path, item.disabled, item.id);
+                            setUserMenuOpen(false);
+                          }}
+                          disabled={item.disabled}
+                          className={`
+                            w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium
+                            transition-colors duration-200
+                            ${
+                              item.disabled
+                                ? "text-gray-400 cursor-not-allowed opacity-50"
+                                : isCurrent
+                                  ? "text-blue-600 bg-blue-50"
+                                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                            }
+                          `}
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -177,7 +177,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **write** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 91, lines removed: 1
@@ -185,85 +185,85 @@ Lines added: 91, lines removed: 1
 ```diff
 @@ -1,1 +1,91 @@
 - 
-+ import React, { useState } from &quot;react&quot;;
-+ import { X, ArrowLeft } from &quot;lucide-react&quot;;
-+ import { Source } from &quot;./SourceSidebar&quot;;
++ import React, { useState } from "react";
++ import { X, ArrowLeft } from "lucide-react";
++ import { Source } from "./SourceSidebar";
 + 
 + interface AddTextModalProps {
 +   onClose: () =&gt; void;
-+   onAddTextSource: (source: Omit&lt;Source, &quot;id&quot;&gt;) =&gt; void;
++   onAddTextSource: (source: Omit&lt;Source, "id"&gt;) =&gt; void;
 + }
 + 
 + const AddTextModal: React.FC&lt;AddTextModalProps&gt; = ({
 +   onClose,
 +   onAddTextSource,
 + }) =&gt; {
-+   const [text, setText] = useState(&quot;&quot;);
++   const [text, setText] = useState("");
 + 
 +   const handleSubmit = (e: React.FormEvent) =&gt; {
 +     e.preventDefault();
 +     if (!text.trim()) {
-+       alert(&quot;请输入文字内容&quot;);
++       alert("请输入文字内容");
 +       return;
 +     }
 +     
 +     // 创建来源，使用文本的前50个字符作为标题
-+     const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? &quot;...&quot; : &quot;&quot;);
++     const title = text.trim().slice(0, 50) + (text.trim().length &gt; 50 ? "..." : "");
 +     onAddTextSource({
 +       title,
-+       type: &quot;external&quot;,
++       type: "external",
 +       description: text.trim(),
 +     });
 +     
-+     setText(&quot;&quot;);
++     setText("");
 +     onClose();
 +   };
 + 
 +   return (
-+     &lt;div className=&quot;fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50&quot;&gt;
-+       &lt;div className=&quot;bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
++     &lt;div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"&gt;
++       &lt;div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]"&gt;
 +         {/* 头部 */}
-+         &lt;div className=&quot;flex items-center gap-4 p-6 border-b border-gray-700&quot;&gt;
++         &lt;div className="flex items-center gap-4 p-6 border-b border-gray-700"&gt;
 +           &lt;button
 +             onClick={onClose}
-+             className=&quot;p-2 hover:bg-gray-800 rounded-lg transition-colors&quot;
++             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
 +           &gt;
-+             &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-300&quot; /&gt;
++             &lt;ArrowLeft className="w-5 h-5 text-gray-300" /&gt;
 +           &lt;/button&gt;
-+           &lt;h2 className=&quot;text-xl font-semibold text-white&quot;&gt;粘贴已复制的文字&lt;/h2&gt;
++           &lt;h2 className="text-xl font-semibold text-white"&gt;粘贴已复制的文字&lt;/h2&gt;
 +         &lt;/div&gt;
 + 
 +         {/* 说明文字 */}
-+         &lt;div className=&quot;px-6 pt-4&quot;&gt;
-+           &lt;p className=&quot;text-sm text-gray-400&quot;&gt;
++         &lt;div className="px-6 pt-4"&gt;
++           &lt;p className="text-sm text-gray-400"&gt;
 +             将复制的文字粘贴到下方,以便在 NotebookLM 中作为来源上传
 +           &lt;/p&gt;
 +         &lt;/div&gt;
 + 
 +         {/* 内容 */}
-+         &lt;form onSubmit={handleSubmit} className=&quot;flex-1 flex flex-col p-6&quot;&gt;
-+           &lt;div className=&quot;flex-1 flex flex-col&quot;&gt;
++         &lt;form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6"&gt;
++           &lt;div className="flex-1 flex flex-col"&gt;
 +             &lt;textarea
 +               value={text}
 +               onChange={(e) =&gt; setText(e.target.value)}
-+               placeholder=&quot;在此处粘贴文字*&quot;
-+               className=&quot;flex-1 w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500&quot;
++               placeholder="在此处粘贴文字*"
++               className="flex-1 w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500"
 +               required
 +             /&gt;
 +           &lt;/div&gt;
 + 
 +           {/* 按钮 */}
-+           &lt;div className=&quot;flex justify-end gap-3 pt-4 mt-4&quot;&gt;
++           &lt;div className="flex justify-end gap-3 pt-4 mt-4"&gt;
 +             &lt;button
-+               type=&quot;button&quot;
++               type="button"
 +               onClick={onClose}
-+               className=&quot;px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors&quot;
++               className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
 +             &gt;
 +               取消
 +             &lt;/button&gt;
 +             &lt;button
-+               type=&quot;submit&quot;
-+               className=&quot;px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors&quot;
++               type="submit"
++               className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
 +             &gt;
 +               插入
 +             &lt;/button&gt;
@@ -286,17 +286,17 @@ Lines added: 91, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -2,4 +2,5 @@
-  import { Plus, Search, FileText, X, Edit } from &quot;lucide-react&quot;;
-  import AddSourceModal from &quot;./AddSourceModal&quot;;
-+ import AddTextModal from &quot;./AddTextModal&quot;;
-  import KnowledgeBaseBrowser from &quot;./KnowledgeBaseBrowser&quot;;
+  import { Plus, Search, FileText, X, Edit } from "lucide-react";
+  import AddSourceModal from "./AddSourceModal";
++ import AddTextModal from "./AddTextModal";
+  import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
   
 ```
 
@@ -308,7 +308,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -330,7 +330,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -353,7 +353,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -363,7 +363,7 @@ Lines added: 11, lines removed: undefined
       setShowAddModal(false);
     };
 + 
-+   const handleAddTextSource = (newSource: Omit&lt;Source, &quot;id&quot;&gt;) =&gt; {
++   const handleAddTextSource = (newSource: Omit&lt;Source, "id"&gt;) =&gt; {
 +     const source: Source = {
 +       ...newSource,
 +       id: &#96;text_${Date.now()}&#96;,
@@ -385,7 +385,7 @@ Lines added: 11, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -393,7 +393,7 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -121,5 +121,5 @@
             &gt;
-              &lt;Plus className=&quot;w-4 h-4&quot; /&gt;
+              &lt;Plus className="w-4 h-4" /&gt;
 -             添加文件
 +             添加信息
             &lt;/button&gt;
@@ -408,7 +408,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -416,9 +416,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -150,5 +150,5 @@
           {sources.length === 0 ? (
-            &lt;div className=&quot;p-4 text-center text-gray-500 text-sm&quot;&gt;
--             暂无来源，点击&quot;添加文件&quot;或&quot;知识库选择&quot;添加来源
-+             暂无来源，点击&quot;添加信息&quot;或&quot;知识库选择&quot;添加来源
+            &lt;div className="p-4 text-center text-gray-500 text-sm"&gt;
+-             暂无来源，点击"添加文件"或"知识库选择"添加来源
++             暂无来源，点击"添加信息"或"知识库选择"添加来源
             &lt;/div&gt;
           ) : (
 ```
@@ -431,7 +431,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
@@ -537,7 +537,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 11
@@ -545,32 +545,32 @@ Lines added: 4, lines removed: 11
 ```diff
 @@ -56,23 +56,16 @@
           {/* 内容 */}
-          &lt;form onSubmit={handleSubmit} className=&quot;flex-1 flex flex-col p-6&quot;&gt;
--           &lt;div className=&quot;flex-1 flex flex-col&quot;&gt;
-+           &lt;div className=&quot;flex-1 flex flex-col mb-4&quot;&gt;
+          &lt;form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6"&gt;
+-           &lt;div className="flex-1 flex flex-col"&gt;
++           &lt;div className="flex-1 flex flex-col mb-4"&gt;
               &lt;textarea
                 value={text}
                 onChange={(e) =&gt; setText(e.target.value)}
-                placeholder=&quot;在此处粘贴文字*&quot;
--               className=&quot;flex-1 w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500&quot;
-+               className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500&quot;
+                placeholder="在此处粘贴文字*"
+-               className="flex-1 w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500"
++               className="flex-1 w-full min-h-[300px] px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500"
                 required
               /&gt;
             &lt;/div&gt;
   
 -           {/* 按钮 */}
--           &lt;div className=&quot;flex justify-end gap-3 pt-4 mt-4&quot;&gt;
+-           &lt;div className="flex justify-end gap-3 pt-4 mt-4"&gt;
 -             &lt;button
--               type=&quot;button&quot;
+-               type="button"
 -               onClick={onClose}
--               className=&quot;px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors&quot;
+-               className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
 -             &gt;
 -               取消
 -             &lt;/button&gt;
 +           {/* 按钮 - 右下角 */}
-+           &lt;div className=&quot;flex justify-end&quot;&gt;
++           &lt;div className="flex justify-end"&gt;
               &lt;button
-                type=&quot;submit&quot;
+                type="submit"
 ```
 
 </details>
@@ -677,7 +677,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 6
@@ -685,28 +685,28 @@ Lines added: 6, lines removed: 6
 ```diff
 @@ -35,19 +35,19 @@
     return (
-      &lt;div className=&quot;fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50&quot;&gt;
--       &lt;div className=&quot;bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
-+       &lt;div className=&quot;bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
+      &lt;div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"&gt;
+-       &lt;div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]"&gt;
++       &lt;div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]"&gt;
           {/* 头部 */}
--         &lt;div className=&quot;flex items-center gap-4 p-6 border-b border-gray-700&quot;&gt;
-+         &lt;div className=&quot;flex items-center gap-4 p-6 border-b border-gray-200&quot;&gt;
+-         &lt;div className="flex items-center gap-4 p-6 border-b border-gray-700"&gt;
++         &lt;div className="flex items-center gap-4 p-6 border-b border-gray-200"&gt;
             &lt;button
               onClick={onClose}
--             className=&quot;p-2 hover:bg-gray-800 rounded-lg transition-colors&quot;
-+             className=&quot;p-2 hover:bg-gray-100 rounded-lg transition-colors&quot;
+-             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
++             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             &gt;
--             &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-300&quot; /&gt;
-+             &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-600&quot; /&gt;
+-             &lt;ArrowLeft className="w-5 h-5 text-gray-300" /&gt;
++             &lt;ArrowLeft className="w-5 h-5 text-gray-600" /&gt;
             &lt;/button&gt;
--           &lt;h2 className=&quot;text-xl font-semibold text-white&quot;&gt;粘贴已复制的文字&lt;/h2&gt;
-+           &lt;h2 className=&quot;text-xl font-semibold text-gray-900&quot;&gt;粘贴已复制的文字&lt;/h2&gt;
+-           &lt;h2 className="text-xl font-semibold text-white"&gt;粘贴已复制的文字&lt;/h2&gt;
++           &lt;h2 className="text-xl font-semibold text-gray-900"&gt;粘贴已复制的文字&lt;/h2&gt;
           &lt;/div&gt;
   
           {/* 说明文字 */}
-          &lt;div className=&quot;px-6 pt-4&quot;&gt;
--           &lt;p className=&quot;text-sm text-gray-400&quot;&gt;
-+           &lt;p className=&quot;text-sm text-gray-600&quot;&gt;
+          &lt;div className="px-6 pt-4"&gt;
+-           &lt;p className="text-sm text-gray-400"&gt;
++           &lt;p className="text-sm text-gray-600"&gt;
               将复制的文字粘贴到下方,以便在 对话中 中作为来源上传
             &lt;/p&gt;
 ```
@@ -717,9 +717,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -61,5 +61,5 @@
                 onChange={(e) =&gt; setText(e.target.value)}
-                placeholder=&quot;在此处粘贴文字*&quot;
--               className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500&quot;
-+               className=&quot;flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400&quot;
+                placeholder="在此处粘贴文字*"
+-               className="flex-1 w-full min-h-[300px] px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-500"
++               className="flex-1 w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400"
                 required
               /&gt;
 ```
@@ -730,9 +730,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -70,5 +70,5 @@
               &lt;button
-                type=&quot;submit&quot;
--               className=&quot;px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors&quot;
-+               className=&quot;px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors&quot;
+                type="submit"
+-               className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
++               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               &gt;
                 插入
 ```
@@ -788,17 +788,17 @@ Lint errors for `frontend/src/components/ai-search/AddTextModal.tsx`
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/AddTextModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -1,4 +1,4 @@
-  import React, { useState } from &quot;react&quot;;
-- import { X, ArrowLeft } from &quot;lucide-react&quot;;
-+ import { ArrowLeft } from &quot;lucide-react&quot;;
-  import { Source } from &quot;./SourceSidebar&quot;;
+  import React, { useState } from "react";
+- import { X, ArrowLeft } from "lucide-react";
++ import { ArrowLeft } from "lucide-react";
+  import { Source } from "./SourceSidebar";
   
 ```
 
@@ -920,7 +920,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/EditSourceModal.tsx</summary>
+<details><summary>Tool use: **write** • Edit file: frontend/src/components/ai-search/EditSourceModal.tsx</summary>
 
 **Chunk 1**
 Lines added: 138, lines removed: 1
@@ -928,9 +928,9 @@ Lines added: 138, lines removed: 1
 ```diff
 @@ -1,1 +1,138 @@
 - 
-+ import React, { useState, useEffect } from &quot;react&quot;;
-+ import { X, ArrowLeft } from &quot;lucide-react&quot;;
-+ import { Source } from &quot;./SourceSidebar&quot;;
++ import React, { useState, useEffect } from "react";
++ import { X, ArrowLeft } from "lucide-react";
++ import { Source } from "./SourceSidebar";
 + 
 + interface EditSourceModalProps {
 +   source: Source;
@@ -944,19 +944,19 @@ Lines added: 138, lines removed: 1
 +   onUpdate,
 + }) =&gt; {
 +   const [title, setTitle] = useState(source.title);
-+   const [description, setDescription] = useState(source.description || &quot;&quot;);
-+   const [url, setUrl] = useState(source.url || &quot;&quot;);
++   const [description, setDescription] = useState(source.description || "");
++   const [url, setUrl] = useState(source.url || "");
 + 
 +   useEffect(() =&gt; {
 +     setTitle(source.title);
-+     setDescription(source.description || &quot;&quot;);
-+     setUrl(source.url || &quot;&quot;);
++     setDescription(source.description || "");
++     setUrl(source.url || "");
 +   }, [source]);
 + 
 +   const handleSubmit = (e: React.FormEvent) =&gt; {
 +     e.preventDefault();
 +     if (!title.trim()) {
-+       alert(&quot;请输入标题&quot;);
++       alert("请输入标题");
 +       return;
 +     }
 + 
@@ -972,88 +972,88 @@ Lines added: 138, lines removed: 1
 +   };
 + 
 +   return (
-+     &lt;div className=&quot;fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50&quot;&gt;
-+       &lt;div className=&quot;bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]&quot;&gt;
++     &lt;div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"&gt;
++       &lt;div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]"&gt;
 +         {/* 头部 */}
-+         &lt;div className=&quot;flex items-center gap-4 p-6 border-b border-gray-200&quot;&gt;
++         &lt;div className="flex items-center gap-4 p-6 border-b border-gray-200"&gt;
 +           &lt;button
 +             onClick={onClose}
-+             className=&quot;p-2 hover:bg-gray-100 rounded-lg transition-colors&quot;
++             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
 +           &gt;
-+             &lt;ArrowLeft className=&quot;w-5 h-5 text-gray-600&quot; /&gt;
++             &lt;ArrowLeft className="w-5 h-5 text-gray-600" /&gt;
 +           &lt;/button&gt;
-+           &lt;h2 className=&quot;text-xl font-semibold text-gray-900&quot;&gt;查看/编辑来源&lt;/h2&gt;
++           &lt;h2 className="text-xl font-semibold text-gray-900"&gt;查看/编辑来源&lt;/h2&gt;
 +         &lt;/div&gt;
 + 
 +         {/* 内容 */}
-+         &lt;form onSubmit={handleSubmit} className=&quot;flex-1 flex flex-col p-6 overflow-y-auto&quot;&gt;
++         &lt;form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 overflow-y-auto"&gt;
 +           {/* 来源类型 */}
-+           &lt;div className=&quot;mb-4&quot;&gt;
-+             &lt;label className=&quot;block text-sm font-medium text-gray-700 mb-2&quot;&gt;
++           &lt;div className="mb-4"&gt;
++             &lt;label className="block text-sm font-medium text-gray-700 mb-2"&gt;
 +               来源类型
 +             &lt;/label&gt;
-+             &lt;div className=&quot;px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600&quot;&gt;
-+               {source.type === &quot;knowledge_base&quot; ? &quot;知识库&quot; : &quot;外部来源&quot;}
++             &lt;div className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600"&gt;
++               {source.type === "knowledge_base" ? "知识库" : "外部来源"}
 +             &lt;/div&gt;
 +           &lt;/div&gt;
 + 
 +           {/* URL（仅外部来源显示） */}
-+           {source.type === &quot;external&quot; &amp;&amp; (
-+             &lt;div className=&quot;mb-4&quot;&gt;
-+               &lt;label className=&quot;block text-sm font-medium text-gray-700 mb-2&quot;&gt;
++           {source.type === "external" &amp;&amp; (
++             &lt;div className="mb-4"&gt;
++               &lt;label className="block text-sm font-medium text-gray-700 mb-2"&gt;
 +                 URL地址
 +               &lt;/label&gt;
 +               &lt;input
-+                 type=&quot;url&quot;
++                 type="url"
 +                 value={url}
 +                 onChange={(e) =&gt; setUrl(e.target.value)}
-+                 placeholder=&quot;https://example.com&quot;
-+                 className=&quot;w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent&quot;
++                 placeholder="https://example.com"
++                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 +               /&gt;
 +             &lt;/div&gt;
 +           )}
 + 
 +           {/* 标题 */}
-+           &lt;div className=&quot;mb-4&quot;&gt;
-+             &lt;label className=&quot;block text-sm font-medium text-gray-700 mb-2&quot;&gt;
++           &lt;div className="mb-4"&gt;
++             &lt;label className="block text-sm font-medium text-gray-700 mb-2"&gt;
 +               标题 *
 +             &lt;/label&gt;
 +             &lt;input
-+               type=&quot;text&quot;
++               type="text"
 +               value={title}
 +               onChange={(e) =&gt; setTitle(e.target.value)}
-+               placeholder=&quot;输入来源标题&quot;
-+               className=&quot;w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent&quot;
++               placeholder="输入来源标题"
++               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 +               required
 +             /&gt;
 +           &lt;/div&gt;
 + 
 +           {/* 描述 */}
-+           &lt;div className=&quot;mb-4 flex-1&quot;&gt;
-+             &lt;label className=&quot;block text-sm font-medium text-gray-700 mb-2&quot;&gt;
++           &lt;div className="mb-4 flex-1"&gt;
++             &lt;label className="block text-sm font-medium text-gray-700 mb-2"&gt;
 +               描述
 +             &lt;/label&gt;
 +             &lt;textarea
 +               value={description}
 +               onChange={(e) =&gt; setDescription(e.target.value)}
-+               placeholder=&quot;输入来源描述&quot;
++               placeholder="输入来源描述"
 +               rows={10}
-+               className=&quot;w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none&quot;
++               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
 +             /&gt;
 +           &lt;/div&gt;
 + 
 +           {/* 按钮 */}
-+           &lt;div className=&quot;flex justify-end gap-3 pt-4 border-t border-gray-200&quot;&gt;
++           &lt;div className="flex justify-end gap-3 pt-4 border-t border-gray-200"&gt;
 +             &lt;button
-+               type=&quot;button&quot;
++               type="button"
 +               onClick={onClose}
-+               className=&quot;px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors&quot;
++               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
 +             &gt;
 +               取消
 +             &lt;/button&gt;
 +             &lt;button
-+               type=&quot;submit&quot;
-+               className=&quot;px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors&quot;
++               type="submit"
++               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 +             &gt;
 +               保存
 +             &lt;/button&gt;
@@ -1076,17 +1076,17 @@ Lines added: 138, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -3,4 +3,5 @@
-  import AddSourceModal from &quot;./AddSourceModal&quot;;
-  import AddTextModal from &quot;./AddTextModal&quot;;
-+ import EditSourceModal from &quot;./EditSourceModal&quot;;
-  import KnowledgeBaseBrowser from &quot;./KnowledgeBaseBrowser&quot;;
+  import AddSourceModal from "./AddSourceModal";
+  import AddTextModal from "./AddTextModal";
++ import EditSourceModal from "./EditSourceModal";
+  import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
   
 ```
 
@@ -1098,7 +1098,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -1120,7 +1120,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -1169,7 +1169,7 @@ Lines added: 14, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -1193,7 +1193,7 @@ Lines added: 2, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
@@ -1202,17 +1202,17 @@ Lines added: 4, lines removed: 2
 @@ -175,10 +175,12 @@
                 &lt;div
                   key={source.id}
--                 className=&quot;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group&quot;
+-                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
 +                 onClick={() =&gt; handleSourceClick(source)}
-+                 className=&quot;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer&quot;
++                 className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
                 &gt;
                   &lt;input
-                    type=&quot;checkbox&quot;
+                    type="checkbox"
                     checked={selectedSources.includes(source.id)}
 -                   onChange={() =&gt; handleSourceToggle(source.id)}
 +                   onChange={(e) =&gt; handleSourceToggle(source.id, e)}
 +                   onClick={(e) =&gt; e.stopPropagation()}
-                    className=&quot;w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1&quot;
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
                   /&gt;
 ```
 
@@ -1221,12 +1221,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -196,5 +198,5 @@
-                  &lt;div className=&quot;flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity&quot;&gt;
+                  &lt;div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"&gt;
                     &lt;button
 -                     onClick={() =&gt; handleDeleteSource(source.id)}
 +                     onClick={(e) =&gt; handleDeleteSource(source.id, e)}
-                      className=&quot;p-1 hover:bg-gray-200 rounded transition-colors&quot;
-                      title=&quot;删除&quot;
+                      className="p-1 hover:bg-gray-200 rounded transition-colors"
+                      title="删除"
 ```
 
 </details>
@@ -1237,7 +1237,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -1343,18 +1343,18 @@ Lint errors for `frontend/src/components/ai-search/SourceSidebar.tsx`
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -1,4 +1,4 @@
-  import React, { useState } from &quot;react&quot;;
-- import { Plus, Search, FileText, X, Edit } from &quot;lucide-react&quot;;
-+ import { Plus, Search, FileText, X } from &quot;lucide-react&quot;;
-  import AddSourceModal from &quot;./AddSourceModal&quot;;
-  import AddTextModal from &quot;./AddTextModal&quot;;
+  import React, { useState } from "react";
+- import { Plus, Search, FileText, X, Edit } from "lucide-react";
++ import { Plus, Search, FileText, X } from "lucide-react";
+  import AddSourceModal from "./AddSourceModal";
+  import AddTextModal from "./AddTextModal";
 ```
 
 </details>
@@ -1365,7 +1365,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
@@ -1407,19 +1407,19 @@ Lines added: 1, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/components/ai-search/SourceSidebar.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -180,5 +180,5 @@
-                    type=&quot;checkbox&quot;
+                    type="checkbox"
                     checked={selectedSources.includes(source.id)}
 -                   onChange={(e) =&gt; handleSourceToggle(source.id, e)}
 +                   onChange={() =&gt; handleSourceToggle(source.id)}
                     onClick={(e) =&gt; e.stopPropagation()}
-                    className=&quot;w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1&quot;
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
 ```
 
 </details>

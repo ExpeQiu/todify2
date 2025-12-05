@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Plus, Search, FileText, X } from "lucide-react";
+import { Plus, FileText, X, MessageSquare, FileCode, Brain, Package, Target, Newspaper } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
 import EditSourceModal from "./EditSourceModal";
 import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
+import { Source as SourceType, SourceCategory } from "../../services/sourceService";
 
 export interface Source {
   id: string;
@@ -11,6 +13,7 @@ export interface Source {
   type: "knowledge_base" | "external";
   url?: string;
   description?: string;
+  category?: SourceCategory;
 }
 
 interface SourceSidebarProps {
@@ -21,6 +24,55 @@ interface SourceSidebarProps {
   pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
 }
 
+// 获取来源类别的显示信息
+const getCategoryInfo = (category?: SourceCategory) => {
+  switch (category) {
+    case 'technical-translation':
+      return {
+        label: '技术转译',
+        icon: FileCode,
+        color: 'bg-blue-100 text-blue-700',
+        iconColor: 'text-blue-600',
+      };
+    case 'ai-qa-summary':
+      return {
+        label: 'AI问答总结',
+        icon: Brain,
+        color: 'bg-purple-100 text-purple-700',
+        iconColor: 'text-purple-600',
+      };
+    case 'tech-package-qa':
+      return {
+        label: '技术包装问答',
+        icon: Package,
+        color: 'bg-orange-100 text-orange-700',
+        iconColor: 'text-orange-600',
+      };
+    case 'tech-strategy-qa':
+      return {
+        label: '技术策略问答',
+        icon: Target,
+        color: 'bg-green-100 text-green-700',
+        iconColor: 'text-green-600',
+      };
+    case 'tech-article-qa':
+      return {
+        label: '技术通稿问答',
+        icon: Newspaper,
+        color: 'bg-indigo-100 text-indigo-700',
+        iconColor: 'text-indigo-600',
+      };
+    case 'external':
+    default:
+      return {
+        label: '外部来源',
+        icon: FileText,
+        color: 'bg-gray-100 text-gray-700',
+        iconColor: 'text-gray-600',
+      };
+  }
+};
+
 const SourceSidebar: React.FC<SourceSidebarProps> = ({
   sources = [],
   selectedSources = [],
@@ -28,6 +80,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   onSelectionChange,
   pageType,
 }) => {
+  const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTextModal, setShowTextModal] = useState(false);
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
@@ -95,6 +148,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     const source: Source = {
       ...newSource,
       id: `external_${Date.now()}`,
+      category: newSource.category || 'external', // 确保有 category
     };
     if (onSourcesChange) {
       onSourcesChange([...sources, source]);
@@ -106,6 +160,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     const source: Source = {
       ...newSource,
       id: `text_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 确保ID唯一
+      category: newSource.category || 'external', // 确保有 category
     };
     if (onSourcesChange) {
       onSourcesChange([...sources, source]);
@@ -143,13 +198,6 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
             <Plus className="w-4 h-4" />
             添加信息
           </button>
-          <button
-            onClick={handleExplore}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-          >
-            <Search className="w-4 h-4" />
-            知识库选择
-          </button>
         </div>
       </div>
 
@@ -170,48 +218,147 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
       <div className="flex-1 overflow-y-auto">
         {sources.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
-            暂无来源，点击"添加信息"或"知识库选择"添加来源
-          </div>
-        ) : (
-          <div className="p-2">
-            {sources.map((source) => (
-              <div
-                key={source.id}
-                onClick={() => handleSourceClick(source)}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedSources.includes(source.id)}
-                  onChange={() => handleSourceToggle(source.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
-                />
-                <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 truncate">
-                    {source.title}
-                  </p>
-                  {source.type === "external" && (
-                    <span className="text-xs text-gray-500">
-                      外部来源
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            暂无来源，点击"添加信息"添加来源
+            {/* tech-strategy 页面的跳转入口 */}
+            {pageType === 'tech-strategy' && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex flex-col gap-2">
                   <button
-                    onClick={(e) => handleDeleteSource(source.id, e)}
-                    className="p-1 hover:bg-gray-200 rounded transition-colors"
-                    title="删除"
+                    onClick={() => navigate('/tech-package')}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                   >
-                    <X className="w-4 h-4 text-gray-500" />
+                    技术包装
+                  </button>
+                  <button
+                    onClick={() => navigate('/tech-article')}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                  >
+                    技术通稿
                   </button>
                 </div>
               </div>
-            ))}
+            )}
+            {/* tech-article 页面的跳转入口 */}
+            {pageType === 'tech-article' && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => navigate('/tech-package')}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                  >
+                    技术包装
+                  </button>
+                  <button
+                    onClick={() => navigate('/tech-strategy')}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                  >
+                    技术策略
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-2">
+            {sources.map((source) => {
+              const categoryInfo = getCategoryInfo(source.category);
+              const IconComponent = categoryInfo.icon;
+              
+              return (
+                <div
+                  key={source.id}
+                  onClick={() => handleSourceClick(source)}
+                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSources.includes(source.id)}
+                    onChange={() => handleSourceToggle(source.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
+                  />
+                  <IconComponent className={`w-5 h-5 ${categoryInfo.iconColor} flex-shrink-0 mt-0.5`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-900 truncate">
+                      {source.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${categoryInfo.color}`}>
+                        {categoryInfo.label}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => handleDeleteSource(source.id, e)}
+                      className="p-1 hover:bg-gray-200 rounded transition-colors"
+                      title="删除"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* 跳转链接区域 - 固定在底部 */}
+      {pageType === 'tech-package' && (
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => navigate('/tech-strategy')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术策略
+            </button>
+            <button
+              onClick={() => navigate('/tech-article')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术通稿
+            </button>
+          </div>
+        </div>
+      )}
+      {pageType === 'tech-strategy' && (
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => navigate('/tech-package')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术包装
+            </button>
+            <button
+              onClick={() => navigate('/tech-article')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术通稿
+            </button>
+          </div>
+        </div>
+      )}
+      {pageType === 'tech-article' && (
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => navigate('/tech-package')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术包装
+            </button>
+            <button
+              onClick={() => navigate('/tech-strategy')}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              技术策略
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 添加文本来源弹窗 */}
       {showTextModal && (

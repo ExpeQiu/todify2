@@ -615,7 +615,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/AI_DIALOGUE_ATTACHMENT_FLOW_ANALYSIS.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/AI_DIALOGUE_ATTACHMENT_FLOW_ANALYSIS.md</summary>
 
 **Chunk 1**
 Lines added: 517, lines removed: 1
@@ -631,7 +631,7 @@ Lines added: 517, lines removed: 1
 + 
 + **示例场景**：
 + &#96;&#96;&#96;html
-+ &lt;MessageItem message=&quot;[Object]&quot; onCopy=&quot;[Function]&quot; onSave=&quot;[Function]&quot;&gt;
++ &lt;MessageItem message="[Object]" onCopy="[Function]" onSave="[Function]"&gt;
 +   来源: 【final】2025上海车展一页纸核心信息.pdf
 + &lt;/MessageItem&gt;
 + &#96;&#96;&#96;
@@ -647,8 +647,8 @@ Lines added: 517, lines removed: 1
 + &#96;&#96;&#96;260:265:frontend/src/components/ai-search/MessageItem.tsx
 +         {/* 来源信息 */}
 +         {message.sources &amp;&amp; message.sources.length &gt; 0 &amp;&amp; (
-+           &lt;div className=&quot;mt-2 text-xs text-gray-500&quot;&gt;
-+             来源: {message.sources.map((s) =&gt; s.title).join(&quot;, &quot;)}
++           &lt;div className="mt-2 text-xs text-gray-500"&gt;
++             来源: {message.sources.map((s) =&gt; s.title).join(", ")}
 +           &lt;/div&gt;
 +         )}
 + &#96;&#96;&#96;
@@ -656,7 +656,7 @@ Lines added: 517, lines removed: 1
 + **说明**：
 + - MessageItem 组件仅用于**显示**消息的来源信息
 + - &#96;message.sources&#96; 是消息对象中存储的来源数组
-+ - 显示的是 &#96;sources[].title&#96;，例如：&quot;【final】2025上海车展一页纸核心信息.pdf&quot;
++ - 显示的是 &#96;sources[].title&#96;，例如："【final】2025上海车展一页纸核心信息.pdf"
 + - **注意**：这里的 &#96;sources&#96; 是消息的元数据，用于显示，不是传递给API的数据
 + 
 + ### 2. 前端发送消息层
@@ -679,7 +679,7 @@ Lines added: 517, lines removed: 1
 + 
 + **关键点**：
 + - &#96;sources&#96; 参数来自组件的 props，是当前选中的来源列表
-+ - 包含外部来源（PDF文件）时，&#96;sources&#96; 数组中会有 &#96;type: &#39;external&#39;&#96; 且包含 &#96;url&#96; 字段的项
++ - 包含外部来源（PDF文件）时，&#96;sources&#96; 数组中会有 &#96;type: 'external'&#96; 且包含 &#96;url&#96; 字段的项
 + - 这些 &#96;sources&#96; 会被传递到后端API
 + 
 + #### 2.2 aiSearchService.sendMessage
@@ -688,26 +688,26 @@ Lines added: 517, lines removed: 1
 + **处理逻辑**：
 + &#96;&#96;&#96;383:404:frontend/src/services/aiSearchService.ts
 +       const formData = new FormData();
-+       formData.append(&#39;content&#39;, request.content);
++       formData.append('content', request.content);
 +       if (request.sources) {
-+         formData.append(&#39;sources&#39;, JSON.stringify(request.sources));
++         formData.append('sources', JSON.stringify(request.sources));
 +       }
 +       if (request.files) {
 +         request.files.forEach((file) =&gt; {
-+           formData.append(&#39;files&#39;, file);
++           formData.append('files', file);
 +         });
 +       }
 +       if (request.workflowId) {
-+         formData.append(&#39;workflowId&#39;, request.workflowId);
++         formData.append('workflowId', request.workflowId);
 +       }
-+       if (typeof request.contextWindowSize === &#39;number&#39;) {
-+         formData.append(&#39;contextWindowSize&#39;, String(request.contextWindowSize));
++       if (typeof request.contextWindowSize === 'number') {
++         formData.append('contextWindowSize', String(request.contextWindowSize));
 +       }
 +       if (request.fileList) {
-+         formData.append(&#39;fileList&#39;, request.fileList);
++         formData.append('fileList', request.fileList);
 +       }
 +       if (request.knowledgeBaseNames) {
-+         formData.append(&#39;knowledgeBaseNames&#39;, request.knowledgeBaseNames);
++         formData.append('knowledgeBaseNames', request.knowledgeBaseNames);
 +       }
 + &#96;&#96;&#96;
 + 
@@ -723,7 +723,7 @@ Lines added: 517, lines removed: 1
 + **处理逻辑**（根据文档分析）：
 + &#96;&#96;&#96;typescript
 + let sourcesValue = req.body.sources;
-+ if (typeof sourcesValue === &#39;string&#39;) {
++ if (typeof sourcesValue === 'string') {
 +   sourcesValue = JSON.parse(sourcesValue);
 + }
 + &#96;&#96;&#96;
@@ -760,10 +760,10 @@ Lines added: 517, lines removed: 1
 + 
 +     // 解析文件列表和知识库名称（从逗号分隔的字符串转换为数组）
 +     const fileListArray = params.fileList
-+       ? params.fileList.split(&#39;,&#39;).map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
++       ? params.fileList.split(',').map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
 +       : [];
 +     const knowledgeBaseNamesArray = params.knowledgeBaseNames
-+       ? params.knowledgeBaseNames.split(&#39;,&#39;).map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
++       ? params.knowledgeBaseNames.split(',').map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
 +       : [];
 + 
 +     return {
@@ -827,7 +827,7 @@ Lines added: 517, lines removed: 1
 + 
 + **executeAgentNode 方法中的日志**：
 + &#96;&#96;&#96;973:996:backend/src/services/AgentWorkflowService.ts
-+     logger.info(&#39;准备执行Agent节点&#39;, {
++     logger.info('准备执行Agent节点', {
 +       nodeId: node.id,
 +       agentId,
 +       connectionType,
@@ -873,14 +873,14 @@ Lines added: 517, lines removed: 1
 +       // 辅助函数：将相对路径转换为绝对路径
 +       const convertToAbsoluteUrl = (url: string): string =&gt; {
 +         if (!url) return url;
-+         if (url.startsWith(&#39;http://&#39;) || url.startsWith(&#39;https://&#39;)) {
++         if (url.startsWith('http://') || url.startsWith('https://')) {
 +           return url; // 已经是绝对路径
 +         }
-+         if (url.startsWith(&#39;/&#39;)) {
++         if (url.startsWith('/')) {
 +           // 相对路径，转换为绝对路径
 +           const serverBaseUrl = process.env.SERVER_BASE_URL || 
 +                                 process.env.API_BASE_URL || 
-+                                 &#39;http://localhost:3001&#39;;
++                                 'http://localhost:3001';
 +           return &#96;${serverBaseUrl}${url}&#96;;
 +         }
 +         return url;
@@ -890,16 +890,16 @@ Lines added: 517, lines removed: 1
 +       const extractFilesFromSources = (sources: any[]): string[] =&gt; {
 +         if (!Array.isArray(sources)) return [];
 +         return sources
-+           .filter((s: any) =&gt; s.type === &#39;external&#39; &amp;&amp; s.url)
++           .filter((s: any) =&gt; s.type === 'external' &amp;&amp; s.url)
 +           .map((s: any) =&gt; {
 +             let fileUrl = s.url;
 +             // 如果是相对路径，转换为绝对路径
-+             if (fileUrl &amp;&amp; fileUrl.startsWith(&#39;/&#39;)) {
++             if (fileUrl &amp;&amp; fileUrl.startsWith('/')) {
 +               const serverBaseUrl = process.env.SERVER_BASE_URL || 
 +                                     process.env.API_BASE_URL || 
-+                                     &#39;http://localhost:3001&#39;;
++                                     'http://localhost:3001';
 +               fileUrl = &#96;${serverBaseUrl}${fileUrl}&#96;;
-+               logger.info(&#39;将相对路径转换为绝对路径&#39;, {
++               logger.info('将相对路径转换为绝对路径', {
 +                 original: s.url,
 +                 converted: fileUrl,
 +               });
@@ -912,10 +912,10 @@ Lines added: 517, lines removed: 1
 +       if (inputs.files &amp;&amp; Array.isArray(inputs.files)) {
 +         files = inputs.files.map((f: any) =&gt; {
 +           // 如果 files 是对象数组，提取 url 字段；如果是字符串数组，直接使用
-+           const url = typeof f === &#39;string&#39; ? f : (f.url || f);
++           const url = typeof f === 'string' ? f : (f.url || f);
 +           return convertToAbsoluteUrl(url);
 +         });
-+         logger.info(&#39;从 inputs 中提取 files&#39;, {
++         logger.info('从 inputs 中提取 files', {
 +           filesCount: files.length,
 +           files: files,
 +         });
@@ -924,11 +924,11 @@ Lines added: 517, lines removed: 1
 +       // 2. 如果 inputs 中有 fileList 字段（文件列表数组），也添加到 files 中
 +       if (inputs.fileList &amp;&amp; Array.isArray(inputs.fileList)) {
 +         const fileListUrls = inputs.fileList.map((f: any) =&gt; {
-+           const url = typeof f === &#39;string&#39; ? f : (f.url || f);
++           const url = typeof f === 'string' ? f : (f.url || f);
 +           return convertToAbsoluteUrl(url);
 +         });
 +         files = [...files, ...fileListUrls];
-+         logger.info(&#39;从 inputs.fileList 中提取文件&#39;, {
++         logger.info('从 inputs.fileList 中提取文件', {
 +           fileListCount: inputs.fileList.length,
 +           fileList: fileListUrls,
 +         });
@@ -939,7 +939,7 @@ Lines added: 517, lines removed: 1
 +         const sourceFiles = extractFilesFromSources(inputs.sources);
 +         if (sourceFiles.length &gt; 0) {
 +           files = [...files, ...sourceFiles];
-+           logger.info(&#39;从 inputs.sources 中提取文件 URL&#39;, {
++           logger.info('从 inputs.sources 中提取文件 URL', {
 +             sourceFilesCount: sourceFiles.length,
 +             sourceFiles: sourceFiles,
 +           });
@@ -947,7 +947,7 @@ Lines added: 517, lines removed: 1
 +       }
 +       
 +       // 4. 如果 inputs 中有 workflowInput 字段，尝试从中提取 sources 和 files
-+       if (inputs.workflowInput &amp;&amp; typeof inputs.workflowInput === &#39;object&#39;) {
++       if (inputs.workflowInput &amp;&amp; typeof inputs.workflowInput === 'object') {
 +         const workflowInput = inputs.workflowInput as any;
 +         
 +         // 从 workflowInput.sources 中提取文件
@@ -955,7 +955,7 @@ Lines added: 517, lines removed: 1
 +           const workflowSourceFiles = extractFilesFromSources(workflowInput.sources);
 +           if (workflowSourceFiles.length &gt; 0) {
 +             files = [...files, ...workflowSourceFiles];
-+             logger.info(&#39;从 inputs.workflowInput.sources 中提取文件 URL&#39;, {
++             logger.info('从 inputs.workflowInput.sources 中提取文件 URL', {
 +               sourceFilesCount: workflowSourceFiles.length,
 +               sourceFiles: workflowSourceFiles,
 +             });
@@ -965,12 +965,12 @@ Lines added: 517, lines removed: 1
 +         // 从 workflowInput.files 中提取文件
 +         if (workflowInput.files &amp;&amp; Array.isArray(workflowInput.files)) {
 +           const workflowFiles = workflowInput.files.map((f: any) =&gt; {
-+             const url = typeof f === &#39;string&#39; ? f : (f.url || f);
++             const url = typeof f === 'string' ? f : (f.url || f);
 +             return convertToAbsoluteUrl(url);
 +           });
 +           if (workflowFiles.length &gt; 0) {
 +             files = [...files, ...workflowFiles];
-+             logger.info(&#39;从 inputs.workflowInput.files 中提取文件&#39;, {
++             logger.info('从 inputs.workflowInput.files 中提取文件', {
 +               filesCount: workflowFiles.length,
 +               files: workflowFiles,
 +             });
@@ -980,12 +980,12 @@ Lines added: 517, lines removed: 1
 +         // 从 workflowInput.fileList 中提取文件
 +         if (workflowInput.fileList &amp;&amp; Array.isArray(workflowInput.fileList)) {
 +           const workflowFileList = workflowInput.fileList.map((f: any) =&gt; {
-+             const url = typeof f === &#39;string&#39; ? f : (f.url || f);
++             const url = typeof f === 'string' ? f : (f.url || f);
 +             return convertToAbsoluteUrl(url);
 +           });
 +           if (workflowFileList.length &gt; 0) {
 +             files = [...files, ...workflowFileList];
-+             logger.info(&#39;从 inputs.workflowInput.fileList 中提取文件&#39;, {
++             logger.info('从 inputs.workflowInput.fileList 中提取文件', {
 +               fileListCount: workflowFileList.length,
 +               fileList: workflowFileList,
 +             });
@@ -999,7 +999,7 @@ Lines added: 517, lines removed: 1
 +       delete cleanInputs.fileList;
 +       delete cleanInputs.sources;
 +       
-+       logger.info(&#39;准备调用 Dify executeChat&#39;, {
++       logger.info('准备调用 Dify executeChat', {
 +         queryLength: input.query?.length || 0,
 +         hasConversationId: !!input.conversationId,
 +         inputsKeys: Object.keys(cleanInputs),
@@ -1008,12 +1008,12 @@ Lines added: 517, lines removed: 1
 +       });
 + 
 +       const response = await this.retry(() =&gt;
-+         this.chatClient.post(&#39;/chat-messages&#39;, {
++         this.chatClient.post('/chat-messages', {
 +           query: input.query,
 +           conversation_id: input.conversationId,
 +           inputs: cleanInputs,
-+           response_mode: &#39;blocking&#39;,
-+           user: input.userId ?? &#39;todify-user&#39;,
++           response_mode: 'blocking',
++           user: input.userId ?? 'todify-user',
 +           files: files,
 +         })
 +       );
@@ -1021,7 +1021,7 @@ Lines added: 517, lines removed: 1
 + 
 + **关键逻辑**：
 + 1. **从 &#96;inputs.sources&#96; 中提取文件 URL**：
-+    - 筛选 &#96;type === &#39;external&#39;&#96; 且包含 &#96;url&#96; 的项
++    - 筛选 &#96;type === 'external'&#96; 且包含 &#96;url&#96; 的项
 +    - 将相对路径转换为绝对路径（如 &#96;/uploads/ai-search/xxx.pdf&#96; → &#96;http://localhost:3001/uploads/ai-search/xxx.pdf&#96;）
 + 
 + 2. **合并所有文件来源**：
@@ -1061,17 +1061,17 @@ Lines added: 517, lines removed: 1
 + **前端 sources 格式**：
 + &#96;&#96;&#96;typescript
 + {
-+   id: &quot;file_xxx&quot;,
-+   title: &quot;【final】2025上海车展一页纸核心信息.pdf&quot;,
-+   type: &quot;external&quot;,
-+   url: &quot;/uploads/ai-search/xxx.pdf&quot;  // 相对路径
++   id: "file_xxx",
++   title: "【final】2025上海车展一页纸核心信息.pdf",
++   type: "external",
++   url: "/uploads/ai-search/xxx.pdf"  // 相对路径
 + }
 + &#96;&#96;&#96;
 + 
 + **传递给 Dify API 的 files 格式**：
 + &#96;&#96;&#96;typescript
 + [
-+   &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;  // 绝对路径
++   "http://localhost:3001/uploads/ai-search/xxx.pdf"  // 绝对路径
 + ]
 + &#96;&#96;&#96;
 + 
@@ -1382,7 +1382,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/utils/workflow.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/utils/workflow.ts</summary>
 
 **Chunk 1**
 Lines added: 41, lines removed: undefined
@@ -1396,7 +1396,7 @@ Lines added: 41, lines removed: undefined
 +     // 这些字段对于附件传递至关重要
 +     if (data.sources &amp;&amp; Array.isArray(data.sources)) {
 +       mapped.sources = data.sources;
-+       logger.info(&#39;mapWorkflowInput: 保留 sources 字段&#39;, {
++       logger.info('mapWorkflowInput: 保留 sources 字段', {
 +         sourcesCount: data.sources.length,
 +         sources: data.sources.map((s: any) =&gt; ({
 +           id: s.id,
@@ -1409,13 +1409,13 @@ Lines added: 41, lines removed: undefined
 +     }
 +     if (data.files &amp;&amp; Array.isArray(data.files)) {
 +       mapped.files = data.files;
-+       logger.info(&#39;mapWorkflowInput: 保留 files 字段&#39;, {
++       logger.info('mapWorkflowInput: 保留 files 字段', {
 +         filesCount: data.files.length,
 +       });
 +     }
 +     if (data.fileList &amp;&amp; Array.isArray(data.fileList)) {
 +       mapped.fileList = data.fileList;
-+       logger.info(&#39;mapWorkflowInput: 保留 fileList 字段&#39;, {
++       logger.info('mapWorkflowInput: 保留 fileList 字段', {
 +         fileListCount: data.fileList.length,
 +       });
 +     }
@@ -1425,7 +1425,7 @@ Lines added: 41, lines removed: undefined
         mapped.query = data.query;
       }
 +     
-+     logger.info(&#39;mapWorkflowInput: 映射完成&#39;, {
++     logger.info('mapWorkflowInput: 映射完成', {
 +       hasInputMappings: true,
 +       mappedKeys: Object.keys(mapped),
 +       hasSources: !!mapped.sources,
@@ -1448,7 +1448,7 @@ Lines added: 10, lines removed: undefined
       result.query = data.query;
     }
 +   
-+   logger.info(&#39;mapWorkflowInput: 无映射配置，直接返回&#39;, {
++   logger.info('mapWorkflowInput: 无映射配置，直接返回', {
 +     hasInputMappings: false,
 +     resultKeys: Object.keys(result),
 +     hasSources: !!result.sources,
@@ -1495,7 +1495,7 @@ Lines added: 10, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: undefined
@@ -1529,7 +1529,7 @@ Lines added: 13, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: undefined
@@ -1545,10 +1545,10 @@ Lines added: 13, lines removed: undefined
 +           hasUrl: !!s.url,
 +           url: s.url,
 +         })),
-+         externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length,
++         externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length,
 +       });
 +     } else {
-+       logger.warn(&#39;输入节点：workflowInput 中没有 sources 字段&#39;, {
++       logger.warn('输入节点：workflowInput 中没有 sources 字段', {
 +         nodeId: node.id,
 +         workflowInputKeys: Object.keys(workflowInput),
         });
@@ -1580,7 +1580,7 @@ Lines added: 13, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 41, lines removed: undefined
@@ -1590,7 +1590,7 @@ Lines added: 41, lines removed: undefined
             knowledgeBaseNames: params.knowledgeBaseNames,
           });
 +         
-+         logger.info(&#39;SendMessageUseCase: conversationData 构建完成&#39;, {
++         logger.info('SendMessageUseCase: conversationData 构建完成', {
 +           hasSources: !!conversationData.sources,
 +           sourcesCount: Array.isArray(conversationData.sources) ? conversationData.sources.length : 0,
 +           sources: Array.isArray(conversationData.sources) ? conversationData.sources.map((s: any) =&gt; ({
@@ -1601,7 +1601,7 @@ Lines added: 41, lines removed: undefined
 +             url: s.url,
 +           })) : null,
 +           externalSourcesCount: Array.isArray(conversationData.sources) 
-+             ? conversationData.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++             ? conversationData.sources.filter((s: any) =&gt; s.type === 'external').length 
 +             : 0,
 +           hasFiles: !!conversationData.files,
 +           filesCount: Array.isArray(conversationData.files) ? conversationData.files.length : 0,
@@ -1612,7 +1612,7 @@ Lines added: 41, lines removed: undefined
 +         
           const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 +         
-+         logger.info(&#39;SendMessageUseCase: workflowInput 映射完成&#39;, {
++         logger.info('SendMessageUseCase: workflowInput 映射完成', {
 +           hasSources: !!workflowInput.sources,
 +           sourcesCount: Array.isArray(workflowInput.sources) ? workflowInput.sources.length : 0,
 +           sources: Array.isArray(workflowInput.sources) ? workflowInput.sources.map((s: any) =&gt; ({
@@ -1623,7 +1623,7 @@ Lines added: 41, lines removed: undefined
 +             url: s.url,
 +           })) : null,
 +           externalSourcesCount: Array.isArray(workflowInput.sources) 
-+             ? workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++             ? workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +             : 0,
 +           hasFiles: !!workflowInput.files,
 +           filesCount: Array.isArray(workflowInput.files) ? workflowInput.files.length : 0,
@@ -1704,7 +1704,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 24, lines removed: undefined
@@ -1715,7 +1715,7 @@ Lines added: 24, lines removed: undefined
       }
 + 
 +     // 记录关键字段的传递情况
-+     logger.info(&#39;prepareNodeInput: 准备节点输入&#39;, {
++     logger.info('prepareNodeInput: 准备节点输入', {
 +       nodeId: node.id,
 +       nodeType: node.type,
 +       sharedContextKeys: Object.keys(sharedContext),
@@ -1731,7 +1731,7 @@ Lines added: 24, lines removed: undefined
 +         url: s.url,
 +       })) : null,
 +       externalSourcesCount: Array.isArray(nodeInput.sources) 
-+         ? nodeInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++         ? nodeInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +         : 0,
 +       hasFilesInNodeInput: !!nodeInput.files,
 +       filesCountInNodeInput: Array.isArray(nodeInput.files) ? nodeInput.files.length : 0,
@@ -1790,7 +1790,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/ATTACHMENT_TRANSFER_DEBUGGING.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/ATTACHMENT_TRANSFER_DEBUGGING.md</summary>
 
 **Chunk 1**
 Lines added: 424, lines removed: 1
@@ -1802,7 +1802,7 @@ Lines added: 424, lines removed: 1
 + 
 + ## 🔍 问题描述
 + 
-+ 通过 Dify 后台查看，只传递了查询内容（如&quot;吉利台州宣言&quot;），但附件信息（PDF文件）并未传递到 Dify API。
++ 通过 Dify 后台查看，只传递了查询内容（如"吉利台州宣言"），但附件信息（PDF文件）并未传递到 Dify API。
 + 
 + ## 🐛 根本原因分析
 + 
@@ -1852,7 +1852,7 @@ Lines added: 424, lines removed: 1
 +     // ✅ 修复：确保关键字段始终被保留（即使映射配置中没有）
 +     if (data.sources &amp;&amp; Array.isArray(data.sources)) {
 +       mapped.sources = data.sources;
-+       logger.info(&#39;mapWorkflowInput: 保留 sources 字段&#39;, {
++       logger.info('mapWorkflowInput: 保留 sources 字段', {
 +         sourcesCount: data.sources.length,
 +         sources: data.sources.map((s: any) =&gt; ({
 +           id: s.id,
@@ -1885,7 +1885,7 @@ Lines added: 424, lines removed: 1
 + **关键改进**：
 + 1. ✅ 强制保留 &#96;sources&#96;、&#96;files&#96;、&#96;fileList&#96; 字段，即使映射配置中没有
 + 2. ✅ 添加详细日志，记录保留的字段信息
-+ 3. ✅ 记录外部来源（&#96;type === &#39;external&#39;&#96;）的数量和详情
++ 3. ✅ 记录外部来源（&#96;type === 'external'&#96;）的数量和详情
 + 
 + ### 修复 2: 增强输入节点日志
 + 
@@ -1893,7 +1893,7 @@ Lines added: 424, lines removed: 1
 + 
 + **修复内容**：
 + &#96;&#96;&#96;typescript
-+ logger.info(&#39;执行输入节点&#39;, {
++ logger.info('执行输入节点', {
 +   nodeId: node.id,
 +   // ... 其他字段
 +   hasSources: !!workflowInput.sources,
@@ -1906,14 +1906,14 @@ Lines added: 424, lines removed: 1
 +     url: s.url,
 +   })) : null,
 +   externalSourcesCount: Array.isArray(workflowInput.sources) 
-+     ? workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++     ? workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +     : 0,
 + });
 + 
 + // 如果 sources 不存在，记录警告
 + if (workflowInput.sources &amp;&amp; Array.isArray(workflowInput.sources)) {
 +   sharedContext.sources = workflowInput.sources;
-+   logger.info(&#39;输入节点：将 sources 传递到 sharedContext&#39;, {
++   logger.info('输入节点：将 sources 传递到 sharedContext', {
 +     nodeId: node.id,
 +     sourcesCount: workflowInput.sources.length,
 +     sources: workflowInput.sources.map((s: any) =&gt; ({
@@ -1923,10 +1923,10 @@ Lines added: 424, lines removed: 1
 +       hasUrl: !!s.url,
 +       url: s.url,
 +     })),
-+     externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length,
++     externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length,
 +   });
 + } else {
-+   logger.warn(&#39;输入节点：workflowInput 中没有 sources 字段&#39;, {
++   logger.warn('输入节点：workflowInput 中没有 sources 字段', {
 +     nodeId: node.id,
 +     workflowInputKeys: Object.keys(workflowInput),
 +   });
@@ -1939,7 +1939,7 @@ Lines added: 424, lines removed: 1
 + 
 + **修复内容**：
 + &#96;&#96;&#96;typescript
-+ logger.info(&#39;SendMessageUseCase: conversationData 构建完成&#39;, {
++ logger.info('SendMessageUseCase: conversationData 构建完成', {
 +   hasSources: !!conversationData.sources,
 +   sourcesCount: Array.isArray(conversationData.sources) ? conversationData.sources.length : 0,
 +   sources: Array.isArray(conversationData.sources) ? conversationData.sources.map((s: any) =&gt; ({
@@ -1950,14 +1950,14 @@ Lines added: 424, lines removed: 1
 +     url: s.url,
 +   })) : null,
 +   externalSourcesCount: Array.isArray(conversationData.sources) 
-+     ? conversationData.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++     ? conversationData.sources.filter((s: any) =&gt; s.type === 'external').length 
 +     : 0,
 +   // ... 其他字段
 + });
 + 
 + const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 + 
-+ logger.info(&#39;SendMessageUseCase: workflowInput 映射完成&#39;, {
++ logger.info('SendMessageUseCase: workflowInput 映射完成', {
 +   hasSources: !!workflowInput.sources,
 +   sourcesCount: Array.isArray(workflowInput.sources) ? workflowInput.sources.length : 0,
 +   sources: Array.isArray(workflowInput.sources) ? workflowInput.sources.map((s: any) =&gt; ({
@@ -1968,7 +1968,7 @@ Lines added: 424, lines removed: 1
 +     url: s.url,
 +   })) : null,
 +   externalSourcesCount: Array.isArray(workflowInput.sources) 
-+     ? workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++     ? workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +     : 0,
 +   // ... 其他字段
 + });
@@ -1980,7 +1980,7 @@ Lines added: 424, lines removed: 1
 + 
 + **修复内容**：
 + &#96;&#96;&#96;typescript
-+ logger.info(&#39;prepareNodeInput: 准备节点输入&#39;, {
++ logger.info('prepareNodeInput: 准备节点输入', {
 +   nodeId: node.id,
 +   nodeType: node.type,
 +   sharedContextKeys: Object.keys(sharedContext),
@@ -1996,7 +1996,7 @@ Lines added: 424, lines removed: 1
 +     url: s.url,
 +   })) : null,
 +   externalSourcesCount: Array.isArray(nodeInput.sources) 
-+     ? nodeInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++     ? nodeInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +     : 0,
 +   // ... 其他字段
 + });
@@ -2042,12 +2042,12 @@ Lines added: 424, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;sources&quot;: [
++   "sources": [
 +     {
-+       &quot;id&quot;: &quot;file_xxx&quot;,
-+       &quot;title&quot;: &quot;【final】2025上海车展一页纸核心信息.pdf&quot;,
-+       &quot;type&quot;: &quot;external&quot;,
-+       &quot;url&quot;: &quot;/uploads/ai-search/xxx.pdf&quot;
++       "id": "file_xxx",
++       "title": "【final】2025上海车展一页纸核心信息.pdf",
++       "type": "external",
++       "url": "/uploads/ai-search/xxx.pdf"
 +     }
 +   ]
 + }
@@ -2104,10 +2104,10 @@ Lines added: 424, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;query&quot;: &quot;吉利台州宣言&quot;,
-+   &quot;inputs&quot;: { ... },
-+   &quot;files&quot;: [
-+     &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;
++   "query": "吉利台州宣言",
++   "inputs": { ... },
++   "files": [
++     "http://localhost:3001/uploads/ai-search/xxx.pdf"
 +   ]
 + }
 + &#96;&#96;&#96;
@@ -2155,11 +2155,11 @@ Lines added: 424, lines removed: 1
 + 
 + **原因**: 
 + - &#96;inputs.sources&#96; 为空或格式不正确
-+ - 外部来源的 &#96;type !== &#39;external&#39;&#96; 或 &#96;url&#96; 不存在
++ - 外部来源的 &#96;type !== 'external'&#96; 或 &#96;url&#96; 不存在
 + 
 + **解决**: 
 + - 检查 &#96;inputs.sources&#96; 的结构
-+ - 确认外部来源的 &#96;type === &#39;external&#39;&#96; 且 &#96;url&#96; 存在
++ - 确认外部来源的 &#96;type === 'external'&#96; 且 &#96;url&#96; 存在
 + 
 + ### 问题 5: 文件 URL 格式问题
 + 
@@ -2184,7 +2184,7 @@ Lines added: 424, lines removed: 1
 +    - 勾选该外部来源
 + 
 + 2. **发送消息**:
-+    - 在对话中输入一个问题（如&quot;吉利台州宣言&quot;）
++    - 在对话中输入一个问题（如"吉利台州宣言"）
 +    - 点击发送
 + 
 + 3. **检查日志**:
@@ -2411,14 +2411,14 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -72,4 +72,5 @@
-      const attachLogging = (instance: AxiosInstance, service: &#39;chat&#39; | &#39;workflow&#39;) =&gt; {
+      const attachLogging = (instance: AxiosInstance, service: 'chat' | 'workflow') =&gt; {
         instance.interceptors.request.use((request) =&gt; {
 +         const requestData = request.data || {};
           const requestInfo = {
@@ -2434,8 +2434,8 @@ Lines added: 15, lines removed: 4
             fullUrl: request.baseURL ? &#96;${request.baseURL}${request.url}&#96; : request.url,
 -           data: request.data,
 -         };
--         logger.debug(&#39;Dify 请求&#39;, requestInfo);
--         console.log(&#39;Dify 请求详情:&#39;, JSON.stringify(requestInfo, null, 2));
+-         logger.debug('Dify 请求', requestInfo);
+-         console.log('Dify 请求详情:', JSON.stringify(requestInfo, null, 2));
 +           data: {
 +             ...requestData,
 +             // 特别记录 files 字段
@@ -2446,11 +2446,11 @@ Lines added: 15, lines removed: 4
 +             hasQuery: !!requestData.query,
 +             queryLength: requestData.query?.length || 0,
 +             hasInputs: !!requestData.inputs,
-+             inputsKeys: requestData.inputs &amp;&amp; typeof requestData.inputs === &#39;object&#39; ? Object.keys(requestData.inputs) : null,
++             inputsKeys: requestData.inputs &amp;&amp; typeof requestData.inputs === 'object' ? Object.keys(requestData.inputs) : null,
 +           },
 +         };
-+         logger.info(&#39;Dify 请求详情（包含文件信息）&#39;, requestInfo);
-+         console.log(&#39;Dify 请求详情（包含文件信息）:&#39;, JSON.stringify(requestInfo, null, 2));
++         logger.info('Dify 请求详情（包含文件信息）', requestInfo);
++         console.log('Dify 请求详情（包含文件信息）:', JSON.stringify(requestInfo, null, 2));
           return request;
         });
 ```
@@ -2463,7 +2463,7 @@ Lines added: 15, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 47, lines removed: 11
@@ -2475,12 +2475,12 @@ Lines added: 47, lines removed: 11
 -       });
 - 
 -       const response = await this.retry(() =&gt;
--         this.chatClient.post(&#39;/chat-messages&#39;, {
+-         this.chatClient.post('/chat-messages', {
 -           query: input.query,
 -           conversation_id: input.conversationId,
 -           inputs: cleanInputs,
--           response_mode: &#39;blocking&#39;,
--           user: input.userId ?? &#39;todify-user&#39;,
+-           response_mode: 'blocking',
+-           user: input.userId ?? 'todify-user',
 -           files: files,
 -         })
 +         // 详细记录每个文件的格式
@@ -2488,14 +2488,14 @@ Lines added: 47, lines removed: 11
 +           index,
 +           file: f,
 +           type: typeof f,
-+           isString: typeof f === &#39;string&#39;,
-+           isUrl: typeof f === &#39;string&#39; &amp;&amp; (f.startsWith(&#39;http://&#39;) || f.startsWith(&#39;https://&#39;) || f.startsWith(&#39;/&#39;)),
++           isString: typeof f === 'string',
++           isUrl: typeof f === 'string' &amp;&amp; (f.startsWith('http://') || f.startsWith('https://') || f.startsWith('/')),
 +         })),
 +       });
 + 
 +       // 如果 files 数组为空，记录警告
 +       if (files.length === 0) {
-+         logger.warn(&#39;⚠️ Dify executeChat: files 数组为空，附件可能未传递&#39;, {
++         logger.warn('⚠️ Dify executeChat: files 数组为空，附件可能未传递', {
 +           inputsKeys: Object.keys(inputs),
 +           hasSources: !!inputs.sources,
 +           sourcesType: typeof inputs.sources,
@@ -2514,12 +2514,12 @@ Lines added: 47, lines removed: 11
 +         query: input.query,
 +         conversation_id: input.conversationId,
 +         inputs: cleanInputs,
-+         response_mode: &#39;blocking&#39;,
-+         user: input.userId ?? &#39;todify-user&#39;,
++         response_mode: 'blocking',
++         user: input.userId ?? 'todify-user',
 +         files: files.length &gt; 0 ? files : undefined, // 如果 files 为空，不传递该字段
 +       };
 + 
-+       logger.info(&#39;Dify executeChat 请求体&#39;, {
++       logger.info('Dify executeChat 请求体', {
 +         query: requestBody.query?.substring(0, 100),
 +         hasConversationId: !!requestBody.conversation_id,
 +         inputsKeys: Object.keys(requestBody.inputs || {}),
@@ -2529,7 +2529,7 @@ Lines added: 47, lines removed: 11
 +       });
 + 
 +       const response = await this.retry(() =&gt;
-+         this.chatClient.post(&#39;/chat-messages&#39;, requestBody)
++         this.chatClient.post('/chat-messages', requestBody)
         );
   
 ```
@@ -2542,7 +2542,7 @@ Lines added: 47, lines removed: 11
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 1
@@ -2551,15 +2551,15 @@ Lines added: 7, lines removed: 1
 @@ -99,7 +99,13 @@
         instance.interceptors.response.use(
           (response) =&gt; {
--           logger.debug(&#39;Dify 响应&#39;, {
-+           logger.info(&#39;Dify 响应&#39;, {
+-           logger.debug('Dify 响应', {
++           logger.info('Dify 响应', {
               service,
               status: response.status,
 +             statusText: response.statusText,
 +             hasData: !!response.data,
-+             dataKeys: response.data &amp;&amp; typeof response.data === &#39;object&#39; ? Object.keys(response.data) : null,
++             dataKeys: response.data &amp;&amp; typeof response.data === 'object' ? Object.keys(response.data) : null,
 +             // 检查响应中是否包含文件相关信息
-+             hasFilesInResponse: !!(response.data &amp;&amp; typeof response.data === &#39;object&#39; &amp;&amp; response.data.files),
++             hasFilesInResponse: !!(response.data &amp;&amp; typeof response.data === 'object' &amp;&amp; response.data.files),
 +             responseData: response.data,
             });
             return response;
@@ -2638,7 +2638,7 @@ _No matches found_
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/DIFY_FILE_TRANSFER_DIAGNOSIS.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/DIFY_FILE_TRANSFER_DIAGNOSIS.md</summary>
 
 **Chunk 1**
 Lines added: 346, lines removed: 1
@@ -2650,7 +2650,7 @@ Lines added: 346, lines removed: 1
 + 
 + ## 🔍 问题现象
 + 
-+ 在 Dify 后台未查看到文件被传递，只看到查询内容（如&quot;吉利台州宣言&quot;）。
++ 在 Dify 后台未查看到文件被传递，只看到查询内容（如"吉利台州宣言"）。
 + 
 + ## 📋 诊断步骤
 + 
@@ -2665,14 +2665,14 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;hasSources&quot;: true,  // 应该是 true
-+   &quot;sourcesCount&quot;: 1,  // 应该 &gt; 0
-+   &quot;sources&quot;: [
++   "hasSources": true,  // 应该是 true
++   "sourcesCount": 1,  // 应该 &gt; 0
++   "sources": [
 +     {
-+       &quot;id&quot;: &quot;...&quot;,
-+       &quot;title&quot;: &quot;【final】2025上海车展一页纸核心信息.pdf&quot;,
-+       &quot;type&quot;: &quot;external&quot;,  // 必须是 &quot;external&quot;
-+       &quot;url&quot;: &quot;/uploads/ai-search/xxx.pdf&quot;  // 必须存在
++       "id": "...",
++       "title": "【final】2025上海车展一页纸核心信息.pdf",
++       "type": "external",  // 必须是 "external"
++       "url": "/uploads/ai-search/xxx.pdf"  // 必须存在
 +     }
 +   ]
 + }
@@ -2690,16 +2690,16 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;sourceFilesCount&quot;: 1,  // 应该 &gt; 0
-+   &quot;sourceFiles&quot;: [
-+     &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;  // 应该是绝对路径
++   "sourceFilesCount": 1,  // 应该 &gt; 0
++   "sourceFiles": [
++     "http://localhost:3001/uploads/ai-search/xxx.pdf"  // 应该是绝对路径
 +   ]
 + }
 + &#96;&#96;&#96;
 + 
 + **如果 sourceFilesCount 为 0**:
 + - 检查 &#96;inputs.sources&#96; 是否为空
-+ - 检查外部来源的 &#96;type&#96; 是否为 &#96;&#39;external&#39;&#96;
++ - 检查外部来源的 &#96;type&#96; 是否为 &#96;'external'&#96;
 + - 检查外部来源是否有 &#96;url&#96; 字段
 + 
 + #### 1.3 检查最终文件数组
@@ -2709,17 +2709,17 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;filesCount&quot;: 1,  // 应该 &gt; 0
-+   &quot;files&quot;: [
-+     &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;
++   "filesCount": 1,  // 应该 &gt; 0
++   "files": [
++     "http://localhost:3001/uploads/ai-search/xxx.pdf"
 +   ],
-+   &quot;filesDetails&quot;: [
++   "filesDetails": [
 +     {
-+       &quot;index&quot;: 0,
-+       &quot;file&quot;: &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;,
-+       &quot;type&quot;: &quot;string&quot;,
-+       &quot;isString&quot;: true,
-+       &quot;isUrl&quot;: true
++       "index": 0,
++       "file": "http://localhost:3001/uploads/ai-search/xxx.pdf",
++       "type": "string",
++       "isString": true,
++       "isUrl": true
 +     }
 +   ]
 + }
@@ -2736,16 +2736,16 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;service&quot;: &quot;chat&quot;,
-+   &quot;url&quot;: &quot;/chat-messages&quot;,
-+   &quot;data&quot;: {
-+     &quot;hasFiles&quot;: true,  // 应该是 true
-+     &quot;filesCount&quot;: 1,  // 应该 &gt; 0
-+     &quot;files&quot;: [
-+       &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;
++   "service": "chat",
++   "url": "/chat-messages",
++   "data": {
++     "hasFiles": true,  // 应该是 true
++     "filesCount": 1,  // 应该 &gt; 0
++     "files": [
++       "http://localhost:3001/uploads/ai-search/xxx.pdf"
 +     ],
-+     &quot;query&quot;: &quot;吉利台州宣言&quot;,
-+     &quot;inputs&quot;: { ... }
++     "query": "吉利台州宣言",
++     "inputs": { ... }
 +   }
 + }
 + &#96;&#96;&#96;
@@ -2761,9 +2761,9 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;status&quot;: 200,
-+   &quot;hasFilesInResponse&quot;: false,  // Dify 可能不在响应中返回 files
-+   &quot;responseData&quot;: { ... }
++   "status": 200,
++   "hasFilesInResponse": false,  // Dify 可能不在响应中返回 files
++   "responseData": { ... }
 + }
 + &#96;&#96;&#96;
 + 
@@ -2780,8 +2780,8 @@ Lines added: 346, lines removed: 1
 + **检查项**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;original&quot;: &quot;/uploads/ai-search/xxx.pdf&quot;,
-+   &quot;converted&quot;: &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;
++   "original": "/uploads/ai-search/xxx.pdf",
++   "converted": "http://localhost:3001/uploads/ai-search/xxx.pdf"
 + }
 + &#96;&#96;&#96;
 + 
@@ -2820,8 +2820,8 @@ Lines added: 346, lines removed: 1
 + **选项 A: 文件 URL 数组**
 + &#96;&#96;&#96;json
 + {
-+   &quot;files&quot;: [
-+     &quot;http://example.com/file.pdf&quot;
++   "files": [
++     "http://example.com/file.pdf"
 +   ]
 + }
 + &#96;&#96;&#96;
@@ -2829,8 +2829,8 @@ Lines added: 346, lines removed: 1
 + **选项 B: 文件 ID 数组（需要先上传文件）**
 + &#96;&#96;&#96;json
 + {
-+   &quot;files&quot;: [
-+     &quot;file-id-123&quot;
++   "files": [
++     "file-id-123"
 +   ]
 + }
 + &#96;&#96;&#96;
@@ -2891,13 +2891,13 @@ Lines added: 346, lines removed: 1
 + &#96;&#96;&#96;typescript
 + // 在 DifyGateway 中
 + const convertToAbsoluteUrl = (url: string): string =&gt; {
-+   if (url.startsWith(&#39;http://&#39;) || url.startsWith(&#39;https://&#39;)) {
++   if (url.startsWith('http://') || url.startsWith('https://')) {
 +     return url;
 +   }
 +   // 使用公网可访问的地址
 +   const serverBaseUrl = process.env.SERVER_BASE_URL || 
 +                         process.env.API_BASE_URL || 
-+                         &#39;http://your-public-ip:3001&#39;;
++                         'http://your-public-ip:3001';
 +   return &#96;${serverBaseUrl}${url}&#96;;
 + };
 + &#96;&#96;&#96;
@@ -2910,15 +2910,15 @@ Lines added: 346, lines removed: 1
 + // 在 DifyGateway 中添加文件上传方法
 + async uploadFile(fileUrl: string): Promise&lt;string&gt; {
 +   // 下载文件
-+   const fileResponse = await axios.get(fileUrl, { responseType: &#39;stream&#39; });
++   const fileResponse = await axios.get(fileUrl, { responseType: 'stream' });
 +   
 +   // 上传到 Dify
 +   const formData = new FormData();
-+   formData.append(&#39;file&#39;, fileResponse.data);
++   formData.append('file', fileResponse.data);
 +   
-+   const response = await this.chatClient.post(&#39;/files/upload&#39;, formData, {
++   const response = await this.chatClient.post('/files/upload', formData, {
 +     headers: {
-+       &#39;Content-Type&#39;: &#39;multipart/form-data&#39;,
++       'Content-Type': 'multipart/form-data',
 +     },
 +   });
 +   
@@ -2940,8 +2940,8 @@ Lines added: 346, lines removed: 1
 +     // 如果 Chatflow 的字段名是 file_list
 +     file_list: files.length &gt; 0 ? files : undefined,
 +   },
-+   response_mode: &#39;blocking&#39;,
-+   user: input.userId ?? &#39;todify-user&#39;,
++   response_mode: 'blocking',
++   user: input.userId ?? 'todify-user',
 +   // 可能不需要 files 参数，而是在 inputs 中
 +   // files: files,
 + };
@@ -2979,17 +2979,17 @@ Lines added: 346, lines removed: 1
 + 如果需要，可以使用以下命令收集相关日志：
 + 
 + &#96;&#96;&#96;bash
-+ # 查看包含 &quot;sources&quot; 的日志
-+ grep -i &quot;sources&quot; backend.log | tail -50
++ # 查看包含 "sources" 的日志
++ grep -i "sources" backend.log | tail -50
 + 
-+ # 查看包含 &quot;files&quot; 的日志
-+ grep -i &quot;files&quot; backend.log | tail -50
++ # 查看包含 "files" 的日志
++ grep -i "files" backend.log | tail -50
 + 
 + # 查看 Dify 请求日志
-+ grep -i &quot;Dify 请求&quot; backend.log | tail -20
++ grep -i "Dify 请求" backend.log | tail -20
 + 
 + # 查看 Dify 响应日志
-+ grep -i &quot;Dify 响应&quot; backend.log | tail -20
++ grep -i "Dify 响应" backend.log | tail -20
 + &#96;&#96;&#96;
 + 
 ```
@@ -3363,20 +3363,20 @@ _No matches found_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -1,3 +1,7 @@
-  import axios, { AxiosInstance } from &#39;axios&#39;;
-+ import FormData from &#39;form-data&#39;;
-+ import fs from &#39;fs&#39;;
-+ import path from &#39;path&#39;;
-+ import { Readable } from &#39;stream&#39;;
+  import axios, { AxiosInstance } from 'axios';
++ import FormData from 'form-data';
++ import fs from 'fs';
++ import path from 'path';
++ import { Readable } from 'stream';
   
-  import { logger } from &#39;@/shared/lib/logger&#39;;
+  import { logger } from '@/shared/lib/logger';
 ```
 
 </details>
@@ -3405,23 +3405,23 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 115, lines removed: undefined
 
 ```diff
 @@ -140,4 +140,119 @@
-      attachLogging(this.workflowClient, &#39;workflow&#39;);
+      attachLogging(this.workflowClient, 'workflow');
     }
 + 
 +   /**
 +    * 上传文件到 Dify
 +    * 根据 Dify API 文档：需要先上传文件获取文件 ID，然后在发送消息时传递文件 ID
 +    */
-+   private async uploadFileToDify(fileUrl: string, userId: string = &#39;todify-user&#39;): Promise&lt;string | null&gt; {
++   private async uploadFileToDify(fileUrl: string, userId: string = 'todify-user'): Promise&lt;string | null&gt; {
 +     try {
-+       logger.info(&#39;开始上传文件到 Dify&#39;, {
++       logger.info('开始上传文件到 Dify', {
 +         fileUrl,
 +         userId,
 +       });
@@ -3429,58 +3429,58 @@ Lines added: 115, lines removed: undefined
 +       // 下载文件
 +       let fileStream: Readable;
 +       let fileName: string;
-+       let mimeType: string = &#39;application/octet-stream&#39;;
++       let mimeType: string = 'application/octet-stream';
 + 
-+       if (fileUrl.startsWith(&#39;http://&#39;) || fileUrl.startsWith(&#39;https://&#39;)) {
++       if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
 +         // 远程 URL，下载文件
 +         const response = await axios.get(fileUrl, {
-+           responseType: &#39;stream&#39;,
++           responseType: 'stream',
 +           timeout: 30000,
 +         });
 +         fileStream = response.data;
 +         
 +         // 从 URL 中提取文件名
 +         const urlPath = new URL(fileUrl).pathname;
-+         fileName = path.basename(urlPath) || &#39;file&#39;;
++         fileName = path.basename(urlPath) || 'file';
 +         
 +         // 从响应头获取 MIME 类型
-+         mimeType = response.headers[&#39;content-type&#39;] || mimeType;
-+       } else if (fileUrl.startsWith(&#39;/&#39;)) {
++         mimeType = response.headers['content-type'] || mimeType;
++       } else if (fileUrl.startsWith('/')) {
 +         // 本地文件路径
 +         const serverBaseUrl = process.env.SERVER_BASE_URL || 
 +                               process.env.API_BASE_URL || 
-+                               &#39;http://localhost:3001&#39;;
++                               'http://localhost:3001';
 +         const fullUrl = &#96;${serverBaseUrl}${fileUrl}&#96;;
 +         
 +         // 尝试从本地文件系统读取
-+         const localPath = path.join(process.cwd(), &#39;uploads&#39;, fileUrl.replace(&#39;/uploads/&#39;, &#39;&#39;));
++         const localPath = path.join(process.cwd(), 'uploads', fileUrl.replace('/uploads/', ''));
 +         if (fs.existsSync(localPath)) {
 +           fileStream = fs.createReadStream(localPath);
 +           fileName = path.basename(localPath);
 +           // 根据文件扩展名推断 MIME 类型
 +           const ext = path.extname(fileName).toLowerCase();
 +           const mimeTypes: Record&lt;string, string&gt; = {
-+             &#39;.pdf&#39;: &#39;application/pdf&#39;,
-+             &#39;.doc&#39;: &#39;application/msword&#39;,
-+             &#39;.docx&#39;: &#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;,
-+             &#39;.txt&#39;: &#39;text/plain&#39;,
-+             &#39;.md&#39;: &#39;text/markdown&#39;,
-+             &#39;.jpg&#39;: &#39;image/jpeg&#39;,
-+             &#39;.jpeg&#39;: &#39;image/jpeg&#39;,
-+             &#39;.png&#39;: &#39;image/png&#39;,
-+             &#39;.gif&#39;: &#39;image/gif&#39;,
-+             &#39;.webp&#39;: &#39;image/webp&#39;,
++             '.pdf': 'application/pdf',
++             '.doc': 'application/msword',
++             '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
++             '.txt': 'text/plain',
++             '.md': 'text/markdown',
++             '.jpg': 'image/jpeg',
++             '.jpeg': 'image/jpeg',
++             '.png': 'image/png',
++             '.gif': 'image/gif',
++             '.webp': 'image/webp',
 +           };
 +           mimeType = mimeTypes[ext] || mimeType;
 +         } else {
 +           // 如果本地文件不存在，尝试通过 HTTP 下载
 +           const response = await axios.get(fullUrl, {
-+             responseType: &#39;stream&#39;,
++             responseType: 'stream',
 +             timeout: 30000,
 +           });
 +           fileStream = response.data;
 +           fileName = path.basename(fileUrl);
-+           mimeType = response.headers[&#39;content-type&#39;] || mimeType;
++           mimeType = response.headers['content-type'] || mimeType;
 +         }
 +       } else {
 +         throw new Error(&#96;不支持的文件 URL 格式: ${fileUrl}&#96;);
@@ -3488,15 +3488,15 @@ Lines added: 115, lines removed: undefined
 + 
 +       // 创建 FormData
 +       const formData = new FormData();
-+       formData.append(&#39;file&#39;, fileStream, {
++       formData.append('file', fileStream, {
 +         filename: fileName,
 +         contentType: mimeType,
 +       });
-+       formData.append(&#39;user&#39;, userId);
++       formData.append('user', userId);
 + 
 +       // 上传文件到 Dify
 +       const uploadResponse = await this.retry(() =&gt;
-+         this.chatClient.post(&#39;/files/upload&#39;, formData, {
++         this.chatClient.post('/files/upload', formData, {
 +           headers: {
 +             ...formData.getHeaders(),
 +           },
@@ -3506,13 +3506,13 @@ Lines added: 115, lines removed: undefined
 + 
 +       const fileId = uploadResponse.data?.id || uploadResponse.data?.file_id;
 +       if (!fileId) {
-+         logger.error(&#39;Dify 文件上传响应中未找到文件 ID&#39;, {
++         logger.error('Dify 文件上传响应中未找到文件 ID', {
 +           responseData: uploadResponse.data,
 +         });
 +         return null;
 +       }
 + 
-+       logger.info(&#39;文件上传到 Dify 成功&#39;, {
++       logger.info('文件上传到 Dify 成功', {
 +         fileUrl,
 +         fileName,
 +         fileId,
@@ -3521,7 +3521,7 @@ Lines added: 115, lines removed: undefined
 + 
 +       return fileId;
 +     } catch (error) {
-+       logger.error(&#39;上传文件到 Dify 失败&#39;, {
++       logger.error('上传文件到 Dify 失败', {
 +         fileUrl,
 +         error: error instanceof Error ? error.message : String(error),
 +         errorDetails: error,
@@ -3559,7 +3559,7 @@ Lines added: 115, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3568,8 +3568,8 @@ Lines added: 1, lines removed: 1
 @@ -391,5 +391,5 @@
         delete cleanInputs.sources;
         
--       logger.info(&#39;准备调用 Dify executeChat&#39;, {
-+       logger.info(&#39;准备上传文件到 Dify&#39;, {
+-       logger.info('准备调用 Dify executeChat', {
++       logger.info('准备上传文件到 Dify', {
           queryLength: input.query?.length || 0,
           hasConversationId: !!input.conversationId,
 ```
@@ -3585,10 +3585,10 @@ Lines added: 43, lines removed: undefined
 +       // 根据 Dify API 文档：需要先上传文件获取文件 ID，然后传递文件 ID
 +       // 将文件 URL 转换为文件 ID
 +       const fileIds: string[] = [];
-+       const userId = input.userId ?? &#39;todify-user&#39;;
++       const userId = input.userId ?? 'todify-user';
 + 
 +       if (files.length &gt; 0) {
-+         logger.info(&#39;开始批量上传文件到 Dify&#39;, {
++         logger.info('开始批量上传文件到 Dify', {
 +           filesCount: files.length,
 +           files: files,
 +         });
@@ -3597,16 +3597,16 @@ Lines added: 43, lines removed: undefined
 +         const uploadPromises = files.map(async (fileUrl) =&gt; {
 +           // 如果已经是文件 ID（格式检查），直接使用
 +           // Dify 文件 ID 通常是 UUID 格式
-+           if (fileUrl &amp;&amp; !fileUrl.startsWith(&#39;http://&#39;) &amp;&amp; !fileUrl.startsWith(&#39;https://&#39;) &amp;&amp; !fileUrl.startsWith(&#39;/&#39;)) {
++           if (fileUrl &amp;&amp; !fileUrl.startsWith('http://') &amp;&amp; !fileUrl.startsWith('https://') &amp;&amp; !fileUrl.startsWith('/')) {
 +             // 可能是文件 ID，直接使用
-+             logger.info(&#39;检测到可能是文件 ID，直接使用&#39;, { fileUrl });
++             logger.info('检测到可能是文件 ID，直接使用', { fileUrl });
 +             return fileUrl;
 +           }
 + 
 +           // 上传文件获取文件 ID
 +           const fileId = await this.uploadFileToDify(fileUrl, userId);
 +           if (!fileId) {
-+             logger.warn(&#39;文件上传失败，跳过该文件&#39;, { fileUrl });
++             logger.warn('文件上传失败，跳过该文件', { fileUrl });
 +             return null;
 +           }
 +           return fileId;
@@ -3617,7 +3617,7 @@ Lines added: 43, lines removed: undefined
 + 
 +         fileIds.push(...validFileIds);
 + 
-+         logger.info(&#39;文件上传完成&#39;, {
++         logger.info('文件上传完成', {
 +           totalFiles: files.length,
 +           successCount: validFileIds.length,
 +           failedCount: files.length - validFileIds.length,
@@ -3634,8 +3634,8 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -429,6 +472,6 @@
           inputs: cleanInputs,
-          response_mode: &#39;blocking&#39;,
--         user: input.userId ?? &#39;todify-user&#39;,
+          response_mode: 'blocking',
+-         user: input.userId ?? 'todify-user',
 -         files: files.length &gt; 0 ? files : undefined, // 如果 files 为空，不传递该字段
 +         user: userId,
 +         files: fileIds.length &gt; 0 ? fileIds : undefined, // 传递文件 ID 列表，而不是 URL
@@ -3700,7 +3700,7 @@ _No matches found_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
@@ -3709,8 +3709,8 @@ Lines added: 4, lines removed: 2
 @@ -476,11 +476,13 @@
         };
   
--       logger.info(&#39;Dify executeChat 请求体&#39;, {
-+       logger.info(&#39;Dify executeChat 请求体（使用文件 ID）&#39;, {
+-       logger.info('Dify executeChat 请求体', {
++       logger.info('Dify executeChat 请求体（使用文件 ID）', {
           query: requestBody.query?.substring(0, 100),
           hasConversationId: !!requestBody.conversation_id,
           inputsKeys: Object.keys(requestBody.inputs || {}),
@@ -3749,7 +3749,7 @@ Lines added: 4, lines removed: 2
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm list form-data 2>&1 | head -5</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && npm list form-data 2>&1 | head -5</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && npm list form-data 2>&1 | head -5
@@ -3769,7 +3769,7 @@ todify3@1.0.0 /Volumes/Lexar/git/03T/todify3/backend
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/DIFY_FILE_UPLOAD_FIX.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/DIFY_FILE_UPLOAD_FIX.md</summary>
 
 **Chunk 1**
 Lines added: 224, lines removed: 1
@@ -3803,7 +3803,7 @@ Lines added: 224, lines removed: 1
 + 
 + **实现逻辑**:
 + &#96;&#96;&#96;typescript
-+ private async uploadFileToDify(fileUrl: string, userId: string = &#39;todify-user&#39;): Promise&lt;string | null&gt; {
++ private async uploadFileToDify(fileUrl: string, userId: string = 'todify-user'): Promise&lt;string | null&gt; {
 +   // 1. 下载或读取文件
 +   // 2. 创建 FormData
 +   // 3. 上传到 Dify API
@@ -3837,7 +3837,7 @@ Lines added: 224, lines removed: 1
 +   query: input.query,
 +   conversation_id: input.conversationId,
 +   inputs: cleanInputs,
-+   response_mode: &#39;blocking&#39;,
++   response_mode: 'blocking',
 +   user: userId,
 +   files: fileIds.length &gt; 0 ? fileIds : undefined, // 文件 ID 列表
 + };
@@ -3982,10 +3982,10 @@ Lines added: 224, lines removed: 1
 + ### 成功的文件上传日志
 + 
 + &#96;&#96;&#96;
-+ [INFO] 开始上传文件到 Dify { fileUrl: &#39;http://localhost:3001/uploads/ai-search/xxx.pdf&#39;, userId: &#39;todify-user&#39; }
-+ [INFO] 文件上传到 Dify 成功 { fileUrl: &#39;http://localhost:3001/uploads/ai-search/xxx.pdf&#39;, fileName: &#39;xxx.pdf&#39;, fileId: &#39;file-123-456&#39;, mimeType: &#39;application/pdf&#39; }
-+ [INFO] 文件上传完成 { totalFiles: 1, successCount: 1, failedCount: 0, fileIds: [&#39;file-123-456&#39;] }
-+ [INFO] Dify executeChat 请求体（使用文件 ID） { fileIds: [&#39;file-123-456&#39;], originalFilesCount: 1, uploadedFilesCount: 1 }
++ [INFO] 开始上传文件到 Dify { fileUrl: 'http://localhost:3001/uploads/ai-search/xxx.pdf', userId: 'todify-user' }
++ [INFO] 文件上传到 Dify 成功 { fileUrl: 'http://localhost:3001/uploads/ai-search/xxx.pdf', fileName: 'xxx.pdf', fileId: 'file-123-456', mimeType: 'application/pdf' }
++ [INFO] 文件上传完成 { totalFiles: 1, successCount: 1, failedCount: 0, fileIds: ['file-123-456'] }
++ [INFO] Dify executeChat 请求体（使用文件 ID） { fileIds: ['file-123-456'], originalFilesCount: 1, uploadedFilesCount: 1 }
 + &#96;&#96;&#96;
 + 
 + ## 🎯 总结
@@ -4091,7 +4091,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/DIFY_FILE_FIX_SUMMARY.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/DIFY_FILE_FIX_SUMMARY.md</summary>
 
 **Chunk 1**
 Lines added: 191, lines removed: 1
@@ -4103,7 +4103,7 @@ Lines added: 191, lines removed: 1
 + 
 + ## 🎯 问题描述
 + 
-+ 在 Dify 后台未查看到文件被传递，只看到查询内容（如&quot;吉利台州宣言&quot;）。
++ 在 Dify 后台未查看到文件被传递，只看到查询内容（如"吉利台州宣言"）。
 + 
 + ## 🔍 根本原因
 + 
@@ -4152,7 +4152,7 @@ Lines added: 191, lines removed: 1
 + // 直接传递文件 URL
 + const requestBody = {
 +   query: input.query,
-+   files: [&#39;http://localhost:3001/uploads/ai-search/xxx.pdf&#39;], // URL
++   files: ['http://localhost:3001/uploads/ai-search/xxx.pdf'], // URL
 + };
 + &#96;&#96;&#96;
 + 
@@ -4167,7 +4167,7 @@ Lines added: 191, lines removed: 1
 + // 传递文件 ID
 + const requestBody = {
 +   query: input.query,
-+   files: [&#39;file-123-456&#39;], // 文件 ID
++   files: ['file-123-456'], // 文件 ID
 + };
 + &#96;&#96;&#96;
 + 
@@ -4198,11 +4198,11 @@ Lines added: 191, lines removed: 1
 + ### 成功的文件上传流程
 + 
 + &#96;&#96;&#96;
-+ [INFO] 开始上传文件到 Dify { fileUrl: &#39;http://localhost:3001/uploads/ai-search/xxx.pdf&#39;, userId: &#39;todify-user&#39; }
-+ [INFO] 文件上传到 Dify 成功 { fileUrl: &#39;...&#39;, fileName: &#39;xxx.pdf&#39;, fileId: &#39;file-123-456&#39;, mimeType: &#39;application/pdf&#39; }
-+ [INFO] 文件上传完成 { totalFiles: 1, successCount: 1, failedCount: 0, fileIds: [&#39;file-123-456&#39;] }
-+ [INFO] Dify executeChat 请求体（使用文件 ID） { fileIds: [&#39;file-123-456&#39;], originalFilesCount: 1, uploadedFilesCount: 1 }
-+ [INFO] Dify 请求详情（包含文件信息） { files: [&#39;file-123-456&#39;], filesCount: 1 }
++ [INFO] 开始上传文件到 Dify { fileUrl: 'http://localhost:3001/uploads/ai-search/xxx.pdf', userId: 'todify-user' }
++ [INFO] 文件上传到 Dify 成功 { fileUrl: '...', fileName: 'xxx.pdf', fileId: 'file-123-456', mimeType: 'application/pdf' }
++ [INFO] 文件上传完成 { totalFiles: 1, successCount: 1, failedCount: 0, fileIds: ['file-123-456'] }
++ [INFO] Dify executeChat 请求体（使用文件 ID） { fileIds: ['file-123-456'], originalFilesCount: 1, uploadedFilesCount: 1 }
++ [INFO] Dify 请求详情（包含文件信息） { files: ['file-123-456'], filesCount: 1 }
 + &#96;&#96;&#96;
 + 
 + ## ⚠️ 注意事项
@@ -4411,7 +4411,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/VERIFY_FILE_UPLOAD.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/VERIFY_FILE_UPLOAD.md</summary>
 
 **Chunk 1**
 Lines added: 205, lines removed: 1
@@ -4439,8 +4439,8 @@ Lines added: 205, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;sourceFilesCount&quot;: 1,
-+   &quot;sourceFiles&quot;: [&quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;]
++   "sourceFilesCount": 1,
++   "sourceFiles": ["http://localhost:3001/uploads/ai-search/xxx.pdf"]
 + }
 + &#96;&#96;&#96;
 + 
@@ -4455,8 +4455,8 @@ Lines added: 205, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;fileUrl&quot;: &quot;http://localhost:3001/uploads/ai-search/xxx.pdf&quot;,
-+   &quot;userId&quot;: &quot;todify-user&quot;
++   "fileUrl": "http://localhost:3001/uploads/ai-search/xxx.pdf",
++   "userId": "todify-user"
 + }
 + &#96;&#96;&#96;
 + 
@@ -4471,10 +4471,10 @@ Lines added: 205, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;fileUrl&quot;: &quot;...&quot;,
-+   &quot;fileName&quot;: &quot;xxx.pdf&quot;,
-+   &quot;fileId&quot;: &quot;file-123-456&quot;,
-+   &quot;mimeType&quot;: &quot;application/pdf&quot;
++   "fileUrl": "...",
++   "fileName": "xxx.pdf",
++   "fileId": "file-123-456",
++   "mimeType": "application/pdf"
 + }
 + &#96;&#96;&#96;
 + 
@@ -4489,11 +4489,11 @@ Lines added: 205, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;hasFiles&quot;: true,
-+   &quot;filesCount&quot;: 1,
-+   &quot;fileIds&quot;: [&quot;file-123-456&quot;],
-+   &quot;originalFilesCount&quot;: 1,
-+   &quot;uploadedFilesCount&quot;: 1
++   "hasFiles": true,
++   "filesCount": 1,
++   "fileIds": ["file-123-456"],
++   "originalFilesCount": 1,
++   "uploadedFilesCount": 1
 + }
 + &#96;&#96;&#96;
 + 
@@ -4508,10 +4508,10 @@ Lines added: 205, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;data&quot;: {
-+     &quot;hasFiles&quot;: true,
-+     &quot;filesCount&quot;: 1,
-+     &quot;files&quot;: [&quot;file-123-456&quot;]
++   "data": {
++     "hasFiles": true,
++     "filesCount": 1,
++     "files": ["file-123-456"]
 +   }
 + }
 + &#96;&#96;&#96;
@@ -4526,7 +4526,7 @@ Lines added: 205, lines removed: 1
 + 
 + **可能原因**:
 + 1. &#96;sources&#96; 没有传递到 DifyGateway
-+ 2. &#96;sources&#96; 中没有 &#96;type === &#39;external&#39;&#96; 的项
++ 2. &#96;sources&#96; 中没有 &#96;type === 'external'&#96; 的项
 + 3. &#96;sources&#96; 中的项没有 &#96;url&#96; 字段
 + 
 + **检查步骤**:
@@ -4576,31 +4576,31 @@ Lines added: 205, lines removed: 1
 + 1. [INFO] 准备执行Agent节点
 +    - hasSources: true
 +    - sourcesCount: 1
-+    - sources: [{ type: &#39;external&#39;, url: &#39;/uploads/...&#39; }]
++    - sources: [{ type: 'external', url: '/uploads/...' }]
 + 
 + 2. [INFO] 从 inputs.sources 中提取文件 URL
 +    - sourceFilesCount: 1
-+    - sourceFiles: [&#39;http://localhost:3001/uploads/...&#39;]
++    - sourceFiles: ['http://localhost:3001/uploads/...']
 + 
 + 3. [INFO] 开始上传文件到 Dify
-+    - fileUrl: &#39;http://localhost:3001/uploads/...&#39;
-+    - userId: &#39;todify-user&#39;
++    - fileUrl: 'http://localhost:3001/uploads/...'
++    - userId: 'todify-user'
 + 
 + 4. [INFO] 文件上传到 Dify 成功
-+    - fileId: &#39;file-123-456&#39;
-+    - fileName: &#39;xxx.pdf&#39;
++    - fileId: 'file-123-456'
++    - fileName: 'xxx.pdf'
 + 
 + 5. [INFO] 文件上传完成
 +    - totalFiles: 1
 +    - successCount: 1
-+    - fileIds: [&#39;file-123-456&#39;]
++    - fileIds: ['file-123-456']
 + 
 + 6. [INFO] Dify executeChat 请求体（使用文件 ID）
-+    - fileIds: [&#39;file-123-456&#39;]
++    - fileIds: ['file-123-456']
 +    - uploadedFilesCount: 1
 + 
 + 7. [INFO] Dify 请求详情（包含文件信息）
-+    - files: [&#39;file-123-456&#39;]
++    - files: ['file-123-456']
 +    - filesCount: 1
 + &#96;&#96;&#96;
 + 
@@ -4615,13 +4615,13 @@ Lines added: 205, lines removed: 1
 + 
 + &#96;&#96;&#96;bash
 + # 查看文件上传相关日志
-+ grep -E &quot;上传文件到 Dify|文件上传|fileId&quot; backend.log | tail -20
++ grep -E "上传文件到 Dify|文件上传|fileId" backend.log | tail -20
 + 
 + # 查看 Dify 请求日志
-+ grep &quot;Dify 请求详情&quot; backend.log | tail -5
++ grep "Dify 请求详情" backend.log | tail -5
 + 
 + # 查看 sources 相关日志
-+ grep &quot;sources&quot; backend.log | grep -E &quot;提取|上传|fileId&quot; | tail -10
++ grep "sources" backend.log | grep -E "提取|上传|fileId" | tail -10
 + &#96;&#96;&#96;
 + 
 ```
@@ -5098,7 +5098,7 @@ Output mode: content
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory undefined • **0** results</summary>
         
 No results found
 </details>
@@ -5107,7 +5107,7 @@ No results found
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && find . -name "*.log" -type f 2>/dev/null | head -10</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && find . -name "*.log" -type f 2>/dev/null | head -10</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && find . -name "*.log" -type f 2>/dev/null | head -10
@@ -5137,7 +5137,7 @@ cd /Volumes/Lexar/git/03T/todify3 && find . -name "*.log" -type f 2>/dev/null | 
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/HOW_TO_VIEW_LOGS.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/HOW_TO_VIEW_LOGS.md</summary>
 
 **Chunk 1**
 Lines added: 173, lines removed: 1
@@ -5190,7 +5190,7 @@ Lines added: 173, lines removed: 1
 + tail -f backend.log
 + 
 + # 查看包含特定关键词的日志
-+ tail -f backend.log | grep &quot;上传文件&quot;
++ tail -f backend.log | grep "上传文件"
 + 
 + # 查看最后 100 行
 + tail -n 100 backend.log
@@ -5202,16 +5202,16 @@ Lines added: 173, lines removed: 1
 + 
 + &#96;&#96;&#96;bash
 + # 查看文件上传相关日志
-+ grep -E &quot;上传文件到 Dify|文件上传|fileId&quot; backend.log | tail -20
++ grep -E "上传文件到 Dify|文件上传|fileId" backend.log | tail -20
 + 
 + # 查看 sources 相关日志
-+ grep -E &quot;sources|准备执行Agent节点&quot; backend.log | tail -10
++ grep -E "sources|准备执行Agent节点" backend.log | tail -10
 + 
 + # 查看 Dify 请求日志
-+ grep &quot;Dify 请求详情&quot; backend.log | tail -5
++ grep "Dify 请求详情" backend.log | tail -5
 + 
 + # 查看完整的文件传递流程
-+ grep -E &quot;提取文件|上传文件|fileId|Dify.*请求&quot; backend.log | tail -20
++ grep -E "提取文件|上传文件|fileId|Dify.*请求" backend.log | tail -20
 + &#96;&#96;&#96;
 + 
 + ### 如果日志在终端中
@@ -5234,7 +5234,7 @@ Lines added: 173, lines removed: 1
 + 然后在另一个终端中实时查看：
 + 
 + &#96;&#96;&#96;bash
-+ tail -f backend.log | grep -E &quot;上传文件|sources|fileId|Dify&quot;
++ tail -f backend.log | grep -E "上传文件|sources|fileId|Dify"
 + &#96;&#96;&#96;
 + 
 + ### 生产环境推荐
@@ -5246,7 +5246,7 @@ Lines added: 173, lines removed: 1
 + npm run start &gt; backend.log 2&gt;&amp;1
 + 
 + # 定期清理旧日志（保留最近 7 天）
-+ find . -name &quot;backend.log&quot; -mtime +7 -delete
++ find . -name "backend.log" -mtime +7 -delete
 + &#96;&#96;&#96;
 + 
 + ## 📊 关键日志关键词
@@ -5268,24 +5268,24 @@ Lines added: 173, lines removed: 1
 + &#96;&#96;&#96;bash
 + #!/bin/bash
 + 
-+ LOG_FILE=&quot;backend.log&quot;
++ LOG_FILE="backend.log"
 + 
-+ if [ ! -f &quot;$LOG_FILE&quot; ]; then
-+     echo &quot;❌ 日志文件不存在: $LOG_FILE&quot;
-+     echo &quot;请先运行: npm run dev 2&gt;&amp;1 | tee backend.log&quot;
++ if [ ! -f "$LOG_FILE" ]; then
++     echo "❌ 日志文件不存在: $LOG_FILE"
++     echo "请先运行: npm run dev 2&gt;&amp;1 | tee backend.log"
 +     exit 1
 + fi
 + 
-+ echo &quot;=== 文件上传相关日志 ===&quot;
-+ grep -E &quot;上传文件到 Dify|文件上传|fileId&quot; &quot;$LOG_FILE&quot; | tail -20
++ echo "=== 文件上传相关日志 ==="
++ grep -E "上传文件到 Dify|文件上传|fileId" "$LOG_FILE" | tail -20
 + 
-+ echo &quot;&quot;
-+ echo &quot;=== Sources 相关日志 ===&quot;
-+ grep -E &quot;sources|准备执行Agent节点&quot; &quot;$LOG_FILE&quot; | tail -10
++ echo ""
++ echo "=== Sources 相关日志 ==="
++ grep -E "sources|准备执行Agent节点" "$LOG_FILE" | tail -10
 + 
-+ echo &quot;&quot;
-+ echo &quot;=== Dify 请求日志 ===&quot;
-+ grep &quot;Dify 请求详情&quot; &quot;$LOG_FILE&quot; | tail -5
++ echo ""
++ echo "=== Dify 请求日志 ==="
++ grep "Dify 请求详情" "$LOG_FILE" | tail -5
 + &#96;&#96;&#96;
 + 
 + 使用方法：
@@ -5313,7 +5313,7 @@ Lines added: 173, lines removed: 1
 + 
 + 3. **查看日志文件**:
 +    &#96;&#96;&#96;bash
-+    grep -E &quot;上传文件|sources|fileId&quot; backend.log | tail -20
++    grep -E "上传文件|sources|fileId" backend.log | tail -20
 +    &#96;&#96;&#96;
 + 
 + 4. **将关键日志发给我**，我会帮您分析问题
@@ -5327,7 +5327,7 @@ Lines added: 173, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && ps aux | grep -E "ts-node|node.*index" | grep -v grep | head -3</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3/backend && ps aux | grep -E "ts-node|node.*index" | grep -v grep | head -3</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3/backend && ps aux | grep -E "ts-node|node.*index" | grep -v grep | head -3
@@ -5355,7 +5355,7 @@ expeqiu          43503   0.0  0.2 412022864  55536 s003  S+    4:41PM   0:01.83 
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: check-logs.sh</summary>
+<details><summary>Tool use: **write** • Edit file: check-logs.sh</summary>
 
 **Chunk 1**
 Lines added: 49, lines removed: 1
@@ -5368,49 +5368,49 @@ Lines added: 49, lines removed: 1
 + # 检查日志脚本
 + # 使用方法: ./check-logs.sh
 + 
-+ LOG_FILE=&quot;backend/backend.log&quot;
++ LOG_FILE="backend/backend.log"
 + 
-+ echo &quot;🔍 检查后端日志...&quot;
-+ echo &quot;&quot;
++ echo "🔍 检查后端日志..."
++ echo ""
 + 
 + # 检查日志文件是否存在
-+ if [ ! -f &quot;$LOG_FILE&quot; ]; then
-+     echo &quot;❌ 日志文件不存在: $LOG_FILE&quot;
-+     echo &quot;&quot;
-+     echo &quot;📝 请先运行以下命令将日志保存到文件:&quot;
-+     echo &quot;   cd backend&quot;
-+     echo &quot;   npm run dev 2&gt;&amp;1 | tee backend.log&quot;
-+     echo &quot;&quot;
-+     echo &quot;或者查看运行后端的终端窗口中的日志&quot;
++ if [ ! -f "$LOG_FILE" ]; then
++     echo "❌ 日志文件不存在: $LOG_FILE"
++     echo ""
++     echo "📝 请先运行以下命令将日志保存到文件:"
++     echo "   cd backend"
++     echo "   npm run dev 2&gt;&amp;1 | tee backend.log"
++     echo ""
++     echo "或者查看运行后端的终端窗口中的日志"
 +     exit 1
 + fi
 + 
-+ echo &quot;✅ 找到日志文件: $LOG_FILE&quot;
-+ echo &quot;&quot;
++ echo "✅ 找到日志文件: $LOG_FILE"
++ echo ""
 + 
 + # 检查文件上传相关日志
-+ echo &quot;=== 📤 文件上传相关日志 ===&quot;
-+ grep -E &quot;上传文件到 Dify|文件上传到 Dify 成功|文件上传完成|fileId&quot; &quot;$LOG_FILE&quot; | tail -20
-+ echo &quot;&quot;
++ echo "=== 📤 文件上传相关日志 ==="
++ grep -E "上传文件到 Dify|文件上传到 Dify 成功|文件上传完成|fileId" "$LOG_FILE" | tail -20
++ echo ""
 + 
 + # 检查 sources 相关日志
-+ echo &quot;=== 📎 Sources 相关日志 ===&quot;
-+ grep -E &quot;从 inputs.sources 中提取文件|准备执行Agent节点|sourcesCount&quot; &quot;$LOG_FILE&quot; | tail -15
-+ echo &quot;&quot;
++ echo "=== 📎 Sources 相关日志 ==="
++ grep -E "从 inputs.sources 中提取文件|准备执行Agent节点|sourcesCount" "$LOG_FILE" | tail -15
++ echo ""
 + 
 + # 检查 Dify 请求日志
-+ echo &quot;=== 🌐 Dify 请求日志 ===&quot;
-+ grep -E &quot;Dify 请求详情|Dify executeChat 请求体&quot; &quot;$LOG_FILE&quot; | tail -5
-+ echo &quot;&quot;
++ echo "=== 🌐 Dify 请求日志 ==="
++ grep -E "Dify 请求详情|Dify executeChat 请求体" "$LOG_FILE" | tail -5
++ echo ""
 + 
 + # 检查错误日志
-+ echo &quot;=== ❌ 错误日志 ===&quot;
-+ grep -E &quot;上传文件到 Dify 失败|文件上传失败|error|Error&quot; &quot;$LOG_FILE&quot; | tail -10
-+ echo &quot;&quot;
++ echo "=== ❌ 错误日志 ==="
++ grep -E "上传文件到 Dify 失败|文件上传失败|error|Error" "$LOG_FILE" | tail -10
++ echo ""
 + 
-+ echo &quot;✅ 日志检查完成&quot;
-+ echo &quot;&quot;
-+ echo &quot;💡 提示: 使用 &#39;tail -f $LOG_FILE&#39; 可以实时查看日志&quot;
++ echo "✅ 日志检查完成"
++ echo ""
++ echo "💡 提示: 使用 'tail -f $LOG_FILE' 可以实时查看日志"
 + 
 ```
 
@@ -5421,7 +5421,7 @@ Lines added: 49, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x /Volumes/Lexar/git/03T/todify3/check-logs.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x /Volumes/Lexar/git/03T/todify3/check-logs.sh</summary>
 
 ```bash
 chmod +x /Volumes/Lexar/git/03T/todify3/check-logs.sh
@@ -5521,7 +5521,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **write** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 553, lines removed: 1
@@ -5530,10 +5530,10 @@ Lines added: 553, lines removed: 1
 @@ -1,1 +1,553 @@
 - 
 + &lt;!DOCTYPE html&gt;
-+ &lt;html lang=&quot;zh-CN&quot;&gt;
++ &lt;html lang="zh-CN"&gt;
 + &lt;head&gt;
-+     &lt;meta charset=&quot;UTF-8&quot;&gt;
-+     &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
++     &lt;meta charset="UTF-8"&gt;
++     &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
 +     &lt;title&gt;Dify 文件上传测试&lt;/title&gt;
 +     &lt;style&gt;
 +         * {
@@ -5543,7 +5543,7 @@ Lines added: 553, lines removed: 1
 +         }
 + 
 +         body {
-+             font-family: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, &#39;Helvetica Neue&#39;, Arial, sans-serif;
++             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 +             background: #f5f5f5;
 +             padding: 20px;
 +         }
@@ -5588,8 +5588,8 @@ Lines added: 553, lines removed: 1
 +             font-size: 14px;
 +         }
 + 
-+         input[type=&quot;text&quot;],
-+         input[type=&quot;file&quot;],
++         input[type="text"],
++         input[type="file"],
 +         textarea {
 +             width: 100%;
 +             padding: 8px 12px;
@@ -5746,7 +5746,7 @@ Lines added: 553, lines removed: 1
 +             background: #1e1e1e;
 +             border-radius: 6px;
 +             color: #d4d4d4;
-+             font-family: &#39;Courier New&#39;, monospace;
++             font-family: 'Courier New', monospace;
 +             font-size: 12px;
 +             max-height: 300px;
 +             overflow-y: auto;
@@ -5779,69 +5779,69 @@ Lines added: 553, lines removed: 1
 +     &lt;/style&gt;
 + &lt;/head&gt;
 + &lt;body&gt;
-+     &lt;div class=&quot;container&quot;&gt;
++     &lt;div class="container"&gt;
 +         &lt;h1&gt;🔬 Dify 文件上传测试工具&lt;/h1&gt;
 + 
-+         &lt;div class=&quot;config-section&quot;&gt;
++         &lt;div class="config-section"&gt;
 +             &lt;h2&gt;配置&lt;/h2&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;Dify API Base URL:&lt;/label&gt;
-+                 &lt;input type=&quot;text&quot; id=&quot;difyBaseUrl&quot; value=&quot;http://47.113.225.93:9999/v1&quot; placeholder=&quot;http://47.113.225.93:9999/v1&quot;&gt;
++                 &lt;input type="text" id="difyBaseUrl" value="http://47.113.225.93:9999/v1" placeholder="http://47.113.225.93:9999/v1"&gt;
 +             &lt;/div&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;API Key:&lt;/label&gt;
-+                 &lt;input type=&quot;text&quot; id=&quot;apiKey&quot; placeholder=&quot;输入 Dify API Key&quot;&gt;
++                 &lt;input type="text" id="apiKey" placeholder="输入 Dify API Key"&gt;
 +             &lt;/div&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;App ID (Chatflow ID):&lt;/label&gt;
-+                 &lt;input type=&quot;text&quot; id=&quot;appId&quot; value=&quot;2c112aca-151b-418d-9c93-8c07160829e9&quot; placeholder=&quot;输入 App ID&quot;&gt;
++                 &lt;input type="text" id="appId" value="2c112aca-151b-418d-9c93-8c07160829e9" placeholder="输入 App ID"&gt;
 +             &lt;/div&gt;
 +         &lt;/div&gt;
 + 
-+         &lt;div class=&quot;config-section&quot;&gt;
++         &lt;div class="config-section"&gt;
 +             &lt;h2&gt;文件上传&lt;/h2&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;选择文件:&lt;/label&gt;
-+                 &lt;input type=&quot;file&quot; id=&quot;fileInput&quot; multiple accept=&quot;.pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png&quot;&gt;
-+                 &lt;div class=&quot;file-list&quot; id=&quot;fileList&quot;&gt;&lt;/div&gt;
++                 &lt;input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png"&gt;
++                 &lt;div class="file-list" id="fileList"&gt;&lt;/div&gt;
 +             &lt;/div&gt;
 +         &lt;/div&gt;
 + 
-+         &lt;div class=&quot;config-section&quot;&gt;
++         &lt;div class="config-section"&gt;
 +             &lt;h2&gt;发送消息&lt;/h2&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;消息内容:&lt;/label&gt;
-+                 &lt;textarea id=&quot;messageInput&quot; placeholder=&quot;输入您的问题...&quot;&gt;请分析这个文件的内容&lt;/textarea&gt;
++                 &lt;textarea id="messageInput" placeholder="输入您的问题..."&gt;请分析这个文件的内容&lt;/textarea&gt;
 +             &lt;/div&gt;
-+             &lt;button id=&quot;sendButton&quot; onclick=&quot;sendMessage()&quot;&gt;发送消息&lt;/button&gt;
-+             &lt;button onclick=&quot;clearMessages()&quot;&gt;清空消息&lt;/button&gt;
++             &lt;button id="sendButton" onclick="sendMessage()"&gt;发送消息&lt;/button&gt;
++             &lt;button onclick="clearMessages()"&gt;清空消息&lt;/button&gt;
 +         &lt;/div&gt;
 + 
-+         &lt;div id=&quot;errorContainer&quot;&gt;&lt;/div&gt;
++         &lt;div id="errorContainer"&gt;&lt;/div&gt;
 + 
-+         &lt;div class=&quot;chat-section&quot;&gt;
++         &lt;div class="chat-section"&gt;
 +             &lt;h2&gt;对话记录&lt;/h2&gt;
-+             &lt;div class=&quot;messages&quot; id=&quot;messages&quot;&gt;&lt;/div&gt;
++             &lt;div class="messages" id="messages"&gt;&lt;/div&gt;
 +         &lt;/div&gt;
 + 
-+         &lt;div class=&quot;log-section&quot;&gt;
-+             &lt;div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;&quot;&gt;
-+                 &lt;h2 style=&quot;color: #fff; margin: 0; font-size: 14px;&quot;&gt;📋 操作日志&lt;/h2&gt;
-+                 &lt;button class=&quot;clear-log&quot; onclick=&quot;clearLog()&quot; style=&quot;padding: 4px 8px; font-size: 12px;&quot;&gt;清空日志&lt;/button&gt;
++         &lt;div class="log-section"&gt;
++             &lt;div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"&gt;
++                 &lt;h2 style="color: #fff; margin: 0; font-size: 14px;"&gt;📋 操作日志&lt;/h2&gt;
++                 &lt;button class="clear-log" onclick="clearLog()" style="padding: 4px 8px; font-size: 12px;"&gt;清空日志&lt;/button&gt;
 +             &lt;/div&gt;
-+             &lt;div id=&quot;logContainer&quot;&gt;&lt;/div&gt;
++             &lt;div id="logContainer"&gt;&lt;/div&gt;
 +         &lt;/div&gt;
 +     &lt;/div&gt;
 + 
 +     &lt;script&gt;
 +         let selectedFiles = [];
 +         let uploadedFileIds = [];
-+         let conversationId = &#39;&#39;;
++         let conversationId = '';
 + 
 +         // 日志函数
-+         function log(message, type = &#39;info&#39;) {
-+             const logContainer = document.getElementById(&#39;logContainer&#39;);
-+             const entry = document.createElement(&#39;div&#39;);
++         function log(message, type = 'info') {
++             const logContainer = document.getElementById('logContainer');
++             const entry = document.createElement('div');
 +             entry.className = &#96;log-entry ${type}&#96;;
 +             const timestamp = new Date().toLocaleTimeString();
 +             entry.textContent = &#96;[${timestamp}] ${message}&#96;;
@@ -5851,25 +5851,25 @@ Lines added: 553, lines removed: 1
 +         }
 + 
 +         function clearLog() {
-+             document.getElementById(&#39;logContainer&#39;).innerHTML = &#39;&#39;;
++             document.getElementById('logContainer').innerHTML = '';
 +         }
 + 
 +         // 文件选择处理
-+         document.getElementById(&#39;fileInput&#39;).addEventListener(&#39;change&#39;, function(e) {
++         document.getElementById('fileInput').addEventListener('change', function(e) {
 +             selectedFiles = Array.from(e.target.files);
 +             updateFileList();
-+             log(&#96;选择了 ${selectedFiles.length} 个文件&#96;, &#39;info&#39;);
++             log(&#96;选择了 ${selectedFiles.length} 个文件&#96;, 'info');
 +         });
 + 
 +         function updateFileList() {
-+             const fileList = document.getElementById(&#39;fileList&#39;);
-+             fileList.innerHTML = &#39;&#39;;
++             const fileList = document.getElementById('fileList');
++             fileList.innerHTML = '';
 +             selectedFiles.forEach((file, index) =&gt; {
-+                 const item = document.createElement(&#39;div&#39;);
-+                 item.className = &#39;file-item&#39;;
++                 const item = document.createElement('div');
++                 item.className = 'file-item';
 +                 item.innerHTML = &#96;
-+                     &lt;span class=&quot;file-name&quot;&gt;${file.name} (${(file.size / 1024).toFixed(2)} KB)&lt;/span&gt;
-+                     &lt;button class=&quot;file-remove&quot; onclick=&quot;removeFile(${index})&quot;&gt;移除&lt;/button&gt;
++                     &lt;span class="file-name"&gt;${file.name} (${(file.size / 1024).toFixed(2)} KB)&lt;/span&gt;
++                     &lt;button class="file-remove" onclick="removeFile(${index})"&gt;移除&lt;/button&gt;
 +                 &#96;;
 +                 fileList.appendChild(item);
 +             });
@@ -5878,29 +5878,29 @@ Lines added: 553, lines removed: 1
 +         function removeFile(index) {
 +             selectedFiles.splice(index, 1);
 +             updateFileList();
-+             log(&#96;移除了文件&#96;, &#39;info&#39;);
++             log(&#96;移除了文件&#96;, 'info');
 +         }
 + 
 +         // 上传文件到 Dify
 +         async function uploadFileToDify(file) {
-+             const baseUrl = document.getElementById(&#39;difyBaseUrl&#39;).value;
-+             const apiKey = document.getElementById(&#39;apiKey&#39;).value;
++             const baseUrl = document.getElementById('difyBaseUrl').value;
++             const apiKey = document.getElementById('apiKey').value;
 + 
 +             if (!baseUrl || !apiKey) {
-+                 throw new Error(&#39;请先配置 Dify API Base URL 和 API Key&#39;);
++                 throw new Error('请先配置 Dify API Base URL 和 API Key');
 +             }
 + 
-+             log(&#96;开始上传文件: ${file.name}&#96;, &#39;info&#39;);
++             log(&#96;开始上传文件: ${file.name}&#96;, 'info');
 + 
 +             const formData = new FormData();
-+             formData.append(&#39;file&#39;, file);
-+             formData.append(&#39;user&#39;, &#39;test-user&#39;);
++             formData.append('file', file);
++             formData.append('user', 'test-user');
 + 
 +             try {
 +                 const response = await fetch(&#96;${baseUrl}/files/upload&#96;, {
-+                     method: &#39;POST&#39;,
++                     method: 'POST',
 +                     headers: {
-+                         &#39;Authorization&#39;: &#96;Bearer ${apiKey}&#96;,
++                         'Authorization': &#96;Bearer ${apiKey}&#96;,
 +                     },
 +                     body: formData,
 +                 });
@@ -5914,89 +5914,89 @@ Lines added: 553, lines removed: 1
 +                 const fileId = data.id || data.file_id;
 + 
 +                 if (!fileId) {
-+                     throw new Error(&#39;响应中未找到文件 ID: &#39; + JSON.stringify(data));
++                     throw new Error('响应中未找到文件 ID: ' + JSON.stringify(data));
 +                 }
 + 
-+                 log(&#96;文件上传成功: ${file.name} -&gt; ${fileId}&#96;, &#39;success&#39;);
++                 log(&#96;文件上传成功: ${file.name} -&gt; ${fileId}&#96;, 'success');
 +                 return fileId;
 +             } catch (error) {
-+                 log(&#96;文件上传失败: ${file.name} - ${error.message}&#96;, &#39;error&#39;);
++                 log(&#96;文件上传失败: ${file.name} - ${error.message}&#96;, 'error');
 +                 throw error;
 +             }
 +         }
 + 
 +         // 发送消息
 +         async function sendMessage() {
-+             const baseUrl = document.getElementById(&#39;difyBaseUrl&#39;).value;
-+             const apiKey = document.getElementById(&#39;apiKey&#39;).value;
-+             const appId = document.getElementById(&#39;appId&#39;).value;
-+             const message = document.getElementById(&#39;messageInput&#39;).value.trim();
++             const baseUrl = document.getElementById('difyBaseUrl').value;
++             const apiKey = document.getElementById('apiKey').value;
++             const appId = document.getElementById('appId').value;
++             const message = document.getElementById('messageInput').value.trim();
 + 
 +             if (!baseUrl || !apiKey || !appId) {
-+                 showError(&#39;请先配置 Dify API Base URL、API Key 和 App ID&#39;);
++                 showError('请先配置 Dify API Base URL、API Key 和 App ID');
 +                 return;
 +             }
 + 
 +             if (!message) {
-+                 showError(&#39;请输入消息内容&#39;);
++                 showError('请输入消息内容');
 +                 return;
 +             }
 + 
-+             const sendButton = document.getElementById(&#39;sendButton&#39;);
++             const sendButton = document.getElementById('sendButton');
 +             sendButton.disabled = true;
-+             sendButton.textContent = &#39;发送中...&#39;;
++             sendButton.textContent = '发送中...';
 + 
 +             try {
 +                 // 显示用户消息
-+                 addMessage(&#39;user&#39;, message, selectedFiles.map(f =&gt; f.name));
++                 addMessage('user', message, selectedFiles.map(f =&gt; f.name));
 + 
 +                 // 上传文件
 +                 uploadedFileIds = [];
 +                 if (selectedFiles.length &gt; 0) {
-+                     log(&#96;开始上传 ${selectedFiles.length} 个文件...&#96;, &#39;info&#39;);
++                     log(&#96;开始上传 ${selectedFiles.length} 个文件...&#96;, 'info');
 +                     for (const file of selectedFiles) {
 +                         try {
 +                             const fileId = await uploadFileToDify(file);
 +                             uploadedFileIds.push(fileId);
 +                         } catch (error) {
-+                             log(&#96;跳过文件 ${file.name}: ${error.message}&#96;, &#39;warn&#39;);
++                             log(&#96;跳过文件 ${file.name}: ${error.message}&#96;, 'warn');
 +                         }
 +                     }
 +                     log(&#96;文件上传完成: ${uploadedFileIds.length}/${selectedFiles.length} 成功&#96;, 
-+                         uploadedFileIds.length &gt; 0 ? &#39;success&#39; : &#39;error&#39;);
++                         uploadedFileIds.length &gt; 0 ? 'success' : 'error');
 +                 }
 + 
 +                 // 构建请求体
 +                 const requestBody = {
 +                     inputs: {},
 +                     query: message,
-+                     response_mode: &#39;blocking&#39;,
-+                     user: &#39;test-user&#39;,
++                     response_mode: 'blocking',
++                     user: 'test-user',
 +                 };
 + 
 +                 // 如果有文件 ID，添加到 files 字段
 +                 if (uploadedFileIds.length &gt; 0) {
 +                     requestBody.files = uploadedFileIds;
-+                     log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(&#39;, &#39;)}&#96;, &#39;info&#39;);
++                     log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(', ')}&#96;, 'info');
 +                 } else {
-+                     log(&#39;发送消息，不包含文件&#39;, &#39;info&#39;);
++                     log('发送消息，不包含文件', 'info');
 +                 }
 + 
 +                 // 如果有 conversationId，添加到请求中
 +                 if (conversationId) {
 +                     requestBody.conversation_id = conversationId;
-+                     log(&#96;使用已有对话 ID: ${conversationId}&#96;, &#39;info&#39;);
++                     log(&#96;使用已有对话 ID: ${conversationId}&#96;, 'info');
 +                 }
 + 
-+                 log(&#96;请求 URL: ${baseUrl}/chat-messages&#96;, &#39;info&#39;);
-+                 log(&#96;请求体: ${JSON.stringify(requestBody, null, 2)}&#96;, &#39;info&#39;);
++                 log(&#96;请求 URL: ${baseUrl}/chat-messages&#96;, 'info');
++                 log(&#96;请求体: ${JSON.stringify(requestBody, null, 2)}&#96;, 'info');
 + 
 +                 // 发送消息
 +                 const response = await fetch(&#96;${baseUrl}/chat-messages&#96;, {
-+                     method: &#39;POST&#39;,
++                     method: 'POST',
 +                     headers: {
-+                         &#39;Authorization&#39;: &#96;Bearer ${apiKey}&#96;,
-+                         &#39;Content-Type&#39;: &#39;application/json&#39;,
++                         'Authorization': &#96;Bearer ${apiKey}&#96;,
++                         'Content-Type': 'application/json',
 +                     },
 +                     body: JSON.stringify(requestBody),
 +                 });
@@ -6007,47 +6007,47 @@ Lines added: 553, lines removed: 1
 +                 }
 + 
 +                 const data = await response.json();
-+                 log(&#96;收到响应: ${JSON.stringify(data, null, 2)}&#96;, &#39;success&#39;);
++                 log(&#96;收到响应: ${JSON.stringify(data, null, 2)}&#96;, 'success');
 + 
 +                 // 保存 conversationId
 +                 if (data.conversation_id) {
 +                     conversationId = data.conversation_id;
-+                     log(&#96;保存对话 ID: ${conversationId}&#96;, &#39;info&#39;);
++                     log(&#96;保存对话 ID: ${conversationId}&#96;, 'info');
 +                 }
 + 
 +                 // 显示 AI 回复
-+                 const answer = data.answer || data.text || &#39;无回复内容&#39;;
-+                 addMessage(&#39;assistant&#39;, answer, uploadedFileIds);
++                 const answer = data.answer || data.text || '无回复内容';
++                 addMessage('assistant', answer, uploadedFileIds);
 + 
 +                 clearError();
 +             } catch (error) {
-+                 log(&#96;发送消息失败: ${error.message}&#96;, &#39;error&#39;);
++                 log(&#96;发送消息失败: ${error.message}&#96;, 'error');
 +                 showError(&#96;发送失败: ${error.message}&#96;);
-+                 addMessage(&#39;assistant&#39;, &#96;错误: ${error.message}&#96;, []);
++                 addMessage('assistant', &#96;错误: ${error.message}&#96;, []);
 +             } finally {
 +                 sendButton.disabled = false;
-+                 sendButton.textContent = &#39;发送消息&#39;;
++                 sendButton.textContent = '发送消息';
 +             }
 +         }
 + 
 +         // 添加消息到界面
 +         function addMessage(role, content, files) {
-+             const messages = document.getElementById(&#39;messages&#39;);
-+             const messageDiv = document.createElement(&#39;div&#39;);
++             const messages = document.getElementById('messages');
++             const messageDiv = document.createElement('div');
 +             messageDiv.className = &#96;message ${role}&#96;;
 +             
-+             let filesHtml = &#39;&#39;;
++             let filesHtml = '';
 +             if (files &amp;&amp; files.length &gt; 0) {
-+                 filesHtml = &#39;&lt;div class=&quot;message-files&quot;&gt;&#39;;
++                 filesHtml = '&lt;div class="message-files"&gt;';
 +                 files.forEach(file =&gt; {
-+                     filesHtml += &#96;&lt;span class=&quot;file-id&quot;&gt;${file}&lt;/span&gt;&#96;;
++                     filesHtml += &#96;&lt;span class="file-id"&gt;${file}&lt;/span&gt;&#96;;
 +                 });
-+                 filesHtml += &#39;&lt;/div&gt;&#39;;
++                 filesHtml += '&lt;/div&gt;';
 +             }
 + 
 +             messageDiv.innerHTML = &#96;
-+                 &lt;div class=&quot;message-header&quot;&gt;${role === &#39;user&#39; ? &#39;👤 用户&#39; : &#39;🤖 AI&#39;}&lt;/div&gt;
-+                 &lt;div class=&quot;message-content&quot;&gt;${escapeHtml(content)}&lt;/div&gt;
++                 &lt;div class="message-header"&gt;${role === 'user' ? '👤 用户' : '🤖 AI'}&lt;/div&gt;
++                 &lt;div class="message-content"&gt;${escapeHtml(content)}&lt;/div&gt;
 +                 ${filesHtml}
 +             &#96;;
 +             messages.appendChild(messageDiv);
@@ -6055,29 +6055,29 @@ Lines added: 553, lines removed: 1
 +         }
 + 
 +         function clearMessages() {
-+             document.getElementById(&#39;messages&#39;).innerHTML = &#39;&#39;;
-+             conversationId = &#39;&#39;;
++             document.getElementById('messages').innerHTML = '';
++             conversationId = '';
 +             uploadedFileIds = [];
-+             log(&#39;已清空消息记录&#39;, &#39;info&#39;);
++             log('已清空消息记录', 'info');
 +         }
 + 
 +         function showError(message) {
-+             const errorContainer = document.getElementById(&#39;errorContainer&#39;);
-+             errorContainer.innerHTML = &#96;&lt;div class=&quot;error&quot;&gt;${escapeHtml(message)}&lt;/div&gt;&#96;;
++             const errorContainer = document.getElementById('errorContainer');
++             errorContainer.innerHTML = &#96;&lt;div class="error"&gt;${escapeHtml(message)}&lt;/div&gt;&#96;;
 +         }
 + 
 +         function clearError() {
-+             document.getElementById(&#39;errorContainer&#39;).innerHTML = &#39;&#39;;
++             document.getElementById('errorContainer').innerHTML = '';
 +         }
 + 
 +         function escapeHtml(text) {
-+             const div = document.createElement(&#39;div&#39;);
++             const div = document.createElement('div');
 +             div.textContent = text;
 +             return div.innerHTML;
 +         }
 + 
 +         // 初始化
-+         log(&#39;页面加载完成，可以开始测试&#39;, &#39;info&#39;);
++         log('页面加载完成，可以开始测试', 'info');
 +     &lt;/script&gt;
 + &lt;/body&gt;
 + &lt;/html&gt;
@@ -6092,7 +6092,7 @@ Lines added: 553, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/DIFY_TEST_PAGE.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/DIFY_TEST_PAGE.md</summary>
 
 **Chunk 1**
 Lines added: 192, lines removed: 1
@@ -6129,15 +6129,15 @@ Lines added: 192, lines removed: 1
 + 
 + ### 3. 选择文件
 + 
-+ 1. 点击&quot;选择文件&quot;按钮
++ 1. 点击"选择文件"按钮
 + 2. 选择一个或多个文件（支持 PDF、DOC、DOCX、TXT、MD、图片等）
 + 3. 文件会显示在文件列表中
-+ 4. 可以点击&quot;移除&quot;按钮删除不需要的文件
++ 4. 可以点击"移除"按钮删除不需要的文件
 + 
 + ### 4. 发送消息
 + 
-+ 1. 在&quot;消息内容&quot;输入框中输入问题（默认：&#96;请分析这个文件的内容&#96;）
-+ 2. 点击&quot;发送消息&quot;按钮
++ 1. 在"消息内容"输入框中输入问题（默认：&#96;请分析这个文件的内容&#96;）
++ 2. 点击"发送消息"按钮
 + 3. 页面会：
 +    - 先上传所有文件到 Dify
 +    - 获取文件 ID
@@ -6146,7 +6146,7 @@ Lines added: 192, lines removed: 1
 + 
 + ### 5. 查看日志
 + 
-+ 页面底部有&quot;操作日志&quot;区域，会显示：
++ 页面底部有"操作日志"区域，会显示：
 + - 文件上传过程
 + - 请求详情
 + - 响应内容
@@ -6188,13 +6188,13 @@ Lines added: 192, lines removed: 1
 +    - 确认文件显示在列表中
 + 
 + 3. **发送消息**
-+    - 输入问题：&quot;请分析这个文件的内容&quot;
-+    - 点击&quot;发送消息&quot;
++    - 输入问题："请分析这个文件的内容"
++    - 点击"发送消息"
 + 
 + 4. **观察日志**
-+    - 查看&quot;开始上传文件&quot;日志
-+    - 查看&quot;文件上传成功&quot;日志（应该看到文件 ID）
-+    - 查看&quot;发送消息，包含 X 个文件 ID&quot;日志
++    - 查看"开始上传文件"日志
++    - 查看"文件上传成功"日志（应该看到文件 ID）
++    - 查看"发送消息，包含 X 个文件 ID"日志
 +    - 查看响应内容
 + 
 + 5. **验证结果**
@@ -6205,7 +6205,7 @@ Lines added: 192, lines removed: 1
 + 
 + ### 问题 1: 文件上传失败
 + 
-+ **症状**: 日志显示&quot;文件上传失败&quot;
++ **症状**: 日志显示"文件上传失败"
 + 
 + **可能原因**:
 + - API Key 不正确
@@ -6221,7 +6221,7 @@ Lines added: 192, lines removed: 1
 + 
 + ### 问题 2: 消息发送失败
 + 
-+ **症状**: 日志显示&quot;发送消息失败&quot;
++ **症状**: 日志显示"发送消息失败"
 + 
 + **可能原因**:
 + - API Key 不正确
@@ -6320,7 +6320,7 @@ Lines added: 192, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/QUICK_TEST_GUIDE.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/QUICK_TEST_GUIDE.md</summary>
 
 **Chunk 1**
 Lines added: 110, lines removed: 1
@@ -6358,15 +6358,15 @@ Lines added: 110, lines removed: 1
 + ### 4. 测试步骤
 + 
 + 1. **选择文件**
-+    - 点击&quot;选择文件&quot;按钮
++    - 点击"选择文件"按钮
 +    - 选择一个 PDF 文件（例如：&#96;【final】2025上海车展一页纸核心信息.pdf&#96;）
 + 
 + 2. **发送消息**
 +    - 在消息输入框中输入：&#96;请分析这个文件的内容&#96;
-+    - 点击&quot;发送消息&quot;按钮
++    - 点击"发送消息"按钮
 + 
 + 3. **观察日志**
-+    - 查看页面底部的&quot;操作日志&quot;区域
++    - 查看页面底部的"操作日志"区域
 +    - 应该看到：
 +      - ✅ &#96;开始上传文件: xxx.pdf&#96;
 +      - ✅ &#96;文件上传成功: xxx.pdf -&gt; file-xxx&#96;（包含文件 ID）
@@ -6607,7 +6607,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -6636,13 +6636,13 @@ Lines added: 11, lines removed: 1
 +                     
 +                     // 方式2: 也在 inputs 中传递（某些 Chatflow 可能需要）
 +                     // 检查是否有文件输入字段配置
-+                     const fileInputField = document.getElementById(&#39;fileInputField&#39;)?.value;
++                     const fileInputField = document.getElementById('fileInputField')?.value;
 +                     if (fileInputField) {
 +                         requestBody.inputs[fileInputField] = uploadedFileIds;
-+                         log(&#96;同时在 inputs.${fileInputField} 中传递文件 ID&#96;, &#39;info&#39;);
++                         log(&#96;同时在 inputs.${fileInputField} 中传递文件 ID&#96;, 'info');
 +                     }
 +                     
-                      log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(&#39;, &#39;)}&#96;, &#39;info&#39;);
+                      log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(', ')}&#96;, 'info');
                   } else {
 ```
 
@@ -6654,19 +6654,19 @@ Lines added: 11, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
 
 ```diff
 @@ -266,4 +266,9 @@
-                  &lt;input type=&quot;text&quot; id=&quot;appId&quot; value=&quot;2c112aca-151b-418d-9c93-8c07160829e9&quot; placeholder=&quot;输入 App ID&quot;&gt;
+                  &lt;input type="text" id="appId" value="2c112aca-151b-418d-9c93-8c07160829e9" placeholder="输入 App ID"&gt;
               &lt;/div&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;文件输入字段名（可选，如果 Chatflow 的文件输入字段名不是默认的）:&lt;/label&gt;
-+                 &lt;input type=&quot;text&quot; id=&quot;fileInputField&quot; placeholder=&quot;例如: file_list, files, attachments&quot;&gt;
-+                 &lt;small style=&quot;color: #666; font-size: 12px;&quot;&gt;如果 Chatflow 有自定义的文件输入字段名，请填写&lt;/small&gt;
++                 &lt;input type="text" id="fileInputField" placeholder="例如: file_list, files, attachments"&gt;
++                 &lt;small style="color: #666; font-size: 12px;"&gt;如果 Chatflow 有自定义的文件输入字段名，请填写&lt;/small&gt;
 +             &lt;/div&gt;
           &lt;/div&gt;
   
@@ -6680,7 +6680,7 @@ Lines added: 5, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 2
@@ -6689,20 +6689,20 @@ Lines added: 8, lines removed: 2
 @@ -474,9 +474,15 @@
                   }
   
--                 log(&#96;请求 URL: ${baseUrl}/chat-messages&#96;, &#39;info&#39;);
+-                 log(&#96;请求 URL: ${baseUrl}/chat-messages&#96;, 'info');
 +                 // 根据 App ID 构建正确的 URL
 +                 // 如果是 Chatflow，使用 /chat-messages
 +                 // 如果是 Completion，使用 /completion-messages
-+                 const apiEndpoint = document.getElementById(&#39;apiEndpoint&#39;)?.value || &#39;chat-messages&#39;;
++                 const apiEndpoint = document.getElementById('apiEndpoint')?.value || 'chat-messages';
 +                 const requestUrl = &#96;${baseUrl}/${apiEndpoint}&#96;;
 +                 
-+                 log(&#96;请求 URL: ${requestUrl}&#96;, &#39;info&#39;);
-                  log(&#96;请求体: ${JSON.stringify(requestBody, null, 2)}&#96;, &#39;info&#39;);
++                 log(&#96;请求 URL: ${requestUrl}&#96;, 'info');
+                  log(&#96;请求体: ${JSON.stringify(requestBody, null, 2)}&#96;, 'info');
   
                   // 发送消息
 -                 const response = await fetch(&#96;${baseUrl}/chat-messages&#96;, {
 +                 const response = await fetch(requestUrl, {
-                      method: &#39;POST&#39;,
+                      method: 'POST',
                       headers: {
 ```
 
@@ -6714,24 +6714,24 @@ Lines added: 8, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -266,4 +266,12 @@
-                  &lt;input type=&quot;text&quot; id=&quot;appId&quot; value=&quot;2c112aca-151b-418d-9c93-8c07160829e9&quot; placeholder=&quot;输入 App ID&quot;&gt;
+                  &lt;input type="text" id="appId" value="2c112aca-151b-418d-9c93-8c07160829e9" placeholder="输入 App ID"&gt;
               &lt;/div&gt;
-+             &lt;div class=&quot;form-group&quot;&gt;
++             &lt;div class="form-group"&gt;
 +                 &lt;label&gt;API 端点:&lt;/label&gt;
-+                 &lt;select id=&quot;apiEndpoint&quot;&gt;
-+                     &lt;option value=&quot;chat-messages&quot; selected&gt;chat-messages (Chatflow)&lt;/option&gt;
-+                     &lt;option value=&quot;completion-messages&quot;&gt;completion-messages (Completion)&lt;/option&gt;
++                 &lt;select id="apiEndpoint"&gt;
++                     &lt;option value="chat-messages" selected&gt;chat-messages (Chatflow)&lt;/option&gt;
++                     &lt;option value="completion-messages"&gt;completion-messages (Completion)&lt;/option&gt;
 +                 &lt;/select&gt;
-+                 &lt;small style=&quot;color: #666; font-size: 12px;&quot;&gt;根据您的应用类型选择&lt;/small&gt;
++                 &lt;small style="color: #666; font-size: 12px;"&gt;根据您的应用类型选择&lt;/small&gt;
 +             &lt;/div&gt;
-              &lt;div class=&quot;form-group&quot;&gt;
+              &lt;div class="form-group"&gt;
                   &lt;label&gt;文件输入字段名（可选，如果 Chatflow 的文件输入字段名不是默认的）:&lt;/label&gt;
 ```
 
@@ -6743,7 +6743,7 @@ Lines added: 8, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/DIFY_FILE_ISSUE_ANALYSIS.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/DIFY_FILE_ISSUE_ANALYSIS.md</summary>
 
 **Chunk 1**
 Lines added: 140, lines removed: 1
@@ -6764,7 +6764,7 @@ Lines added: 140, lines removed: 1
 +    - 上传流程正常
 + 
 + 2. **文件 ID 传递成功**
-+    - 请求体中包含: &#96;&quot;files&quot;: [&quot;0755e44c-a592-4805-8f21-85708c0cc0e1&quot;]&#96;
++    - 请求体中包含: &#96;"files": ["0755e44c-a592-4805-8f21-85708c0cc0e1"]&#96;
 +    - Dify API 接收到了文件 ID
 + 
 + 3. **API 响应正常**
@@ -6774,7 +6774,7 @@ Lines added: 140, lines removed: 1
 + 
 + ### ❌ 问题
 + 
-+ **AI 回复说&quot;我无法直接查看或分析文件内容&quot;**
++ **AI 回复说"我无法直接查看或分析文件内容"**
 + 
 + 这说明：
 + - 文件上传和传递流程是正确的 ✅
@@ -6798,7 +6798,7 @@ Lines added: 140, lines removed: 1
 + **问题**: Chatflow 的文件输入字段名可能不是 &#96;files&#96;，而是其他名称（如 &#96;file_list&#96;、&#96;attachments&#96; 等）。
 + 
 + **解决方法**:
-+ - 在测试页面中填写&quot;文件输入字段名&quot;
++ - 在测试页面中填写"文件输入字段名"
 + - 或者在 &#96;inputs&#96; 中传递文件 ID
 + 
 + ### 原因 3: Chatflow 提示词问题
@@ -6857,7 +6857,7 @@ Lines added: 140, lines removed: 1
 + 如果 Chatflow 的文件输入字段名不是 &#96;files&#96;，需要在 &#96;inputs&#96; 中传递：
 + 
 + &#96;&#96;&#96;javascript
-+ requestBody.inputs[&#39;file_list&#39;] = uploadedFileIds; // 根据实际字段名修改
++ requestBody.inputs['file_list'] = uploadedFileIds; // 根据实际字段名修改
 + &#96;&#96;&#96;
 + 
 + ## 📋 检查清单
@@ -7021,7 +7021,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -7029,18 +7029,18 @@ Lines added: 6, lines removed: undefined
 ```diff
 @@ -469,7 +469,13 @@
                           requestBody.inputs[fileInputField] = uploadedFileIds;
-                          log(&#96;同时在 inputs.${fileInputField} 中传递文件 ID&#96;, &#39;info&#39;);
+                          log(&#96;同时在 inputs.${fileInputField} 中传递文件 ID&#96;, 'info');
 +                     } else {
 +                         // 如果没有配置，尝试常见的字段名
-+                         const commonFieldNames = [&#39;file_list&#39;, &#39;files&#39;, &#39;attachments&#39;, &#39;file_ids&#39;];
-+                         log(&#96;未配置文件输入字段名，尝试在 inputs 中使用常见字段名&#96;, &#39;warn&#39;);
++                         const commonFieldNames = ['file_list', 'files', 'attachments', 'file_ids'];
++                         log(&#96;未配置文件输入字段名，尝试在 inputs 中使用常见字段名&#96;, 'warn');
 +                         // 只在 files 字段中传递，不在 inputs 中传递（避免混淆）
                       }
                       
-                      log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(&#39;, &#39;)}&#96;, &#39;info&#39;);
-+                     log(&#96;文件传递方式: files 字段 = ${JSON.stringify(uploadedFileIds)}&#96;, &#39;info&#39;);
+                      log(&#96;发送消息，包含 ${uploadedFileIds.length} 个文件 ID: ${uploadedFileIds.join(', ')}&#96;, 'info');
++                     log(&#96;文件传递方式: files 字段 = ${JSON.stringify(uploadedFileIds)}&#96;, 'info');
                   } else {
-                      log(&#39;发送消息，不包含文件&#39;, &#39;info&#39;);
+                      log('发送消息，不包含文件', 'info');
 ```
 
 </details>
@@ -7051,7 +7051,7 @@ Lines added: 6, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: frontend/public/dify-test.html</summary>
+<details><summary>Tool use: **search_replace** • Edit file: frontend/public/dify-test.html</summary>
 
 **Chunk 1**
 Lines added: 23, lines removed: undefined
@@ -7059,28 +7059,28 @@ Lines added: 23, lines removed: undefined
 ```diff
 @@ -514,4 +514,27 @@
                   const data = await response.json();
-                  log(&#96;收到响应: ${JSON.stringify(data, null, 2)}&#96;, &#39;success&#39;);
+                  log(&#96;收到响应: ${JSON.stringify(data, null, 2)}&#96;, 'success');
 + 
 +                 // 分析响应，检查文件是否被处理
 +                 if (data.metadata) {
 +                     const retrieverResources = data.metadata.retriever_resources || [];
 +                     const usage = data.metadata.usage || {};
 +                     
-+                     log(&#96;响应分析:&#96;, &#39;info&#39;);
-+                     log(&#96;  - 检索资源数量: ${retrieverResources.length}&#96;, retrieverResources.length &gt; 0 ? &#39;success&#39; : &#39;warn&#39;);
-+                     log(&#96;  - Token 使用: ${usage.total_tokens || 0}&#96;, usage.total_tokens &gt; 0 ? &#39;success&#39; : &#39;warn&#39;);
++                     log(&#96;响应分析:&#96;, 'info');
++                     log(&#96;  - 检索资源数量: ${retrieverResources.length}&#96;, retrieverResources.length &gt; 0 ? 'success' : 'warn');
++                     log(&#96;  - Token 使用: ${usage.total_tokens || 0}&#96;, usage.total_tokens &gt; 0 ? 'success' : 'warn');
 +                     
 +                     if (retrieverResources.length === 0 &amp;&amp; uploadedFileIds.length &gt; 0) {
-+                         log(&#96;⚠️ 警告: 文件已传递但未被检索到 (retriever_resources 为空)&#96;, &#39;warn&#39;);
-+                         log(&#96;可能原因:&#96;, &#39;warn&#39;);
-+                         log(&#96;  1. Chatflow 未配置文件输入字段&#96;, &#39;warn&#39;);
-+                         log(&#96;  2. Chatflow 的提示词未引用文件&#96;, &#39;warn&#39;);
-+                         log(&#96;  3. 文件输入字段名不匹配&#96;, &#39;warn&#39;);
-+                         log(&#96;  4. Chatflow 需要文件在 inputs 中传递&#96;, &#39;warn&#39;);
++                         log(&#96;⚠️ 警告: 文件已传递但未被检索到 (retriever_resources 为空)&#96;, 'warn');
++                         log(&#96;可能原因:&#96;, 'warn');
++                         log(&#96;  1. Chatflow 未配置文件输入字段&#96;, 'warn');
++                         log(&#96;  2. Chatflow 的提示词未引用文件&#96;, 'warn');
++                         log(&#96;  3. 文件输入字段名不匹配&#96;, 'warn');
++                         log(&#96;  4. Chatflow 需要文件在 inputs 中传递&#96;, 'warn');
 +                     }
 +                     
 +                     if (usage.total_tokens === 0) {
-+                         log(&#96;⚠️ 警告: Token 使用为 0，可能表示请求未真正处理&#96;, &#39;warn&#39;);
++                         log(&#96;⚠️ 警告: Token 使用为 0，可能表示请求未真正处理&#96;, 'warn');
 +                     }
 +                 }
   
@@ -7092,12 +7092,12 @@ Lines added: 5, lines removed: undefined
 
 ```diff
 @@ -524,4 +547,9 @@
-                  const answer = data.answer || data.text || &#39;无回复内容&#39;;
-                  addMessage(&#39;assistant&#39;, answer, uploadedFileIds);
+                  const answer = data.answer || data.text || '无回复内容';
+                  addMessage('assistant', answer, uploadedFileIds);
 +                 
 +                 // 如果 AI 回复说无法查看文件，显示提示
-+                 if (answer.includes(&#39;无法&#39;) || answer.includes(&#39;不能&#39;) || answer.includes(&#39;需要&#39;) &amp;&amp; uploadedFileIds.length &gt; 0) {
-+                     log(&#96;💡 提示: AI 回复表明未读取到文件，请检查 Chatflow 配置&#96;, &#39;warn&#39;);
++                 if (answer.includes('无法') || answer.includes('不能') || answer.includes('需要') &amp;&amp; uploadedFileIds.length &gt; 0) {
++                     log(&#96;💡 提示: AI 回复表明未读取到文件，请检查 Chatflow 配置&#96;, 'warn');
 +                 }
   
                   clearError();
@@ -7111,7 +7111,7 @@ Lines added: 5, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/CHATFLOW_FILE_CONFIG_GUIDE.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/CHATFLOW_FILE_CONFIG_GUIDE.md</summary>
 
 **Chunk 1**
 Lines added: 221, lines removed: 1
@@ -7191,13 +7191,13 @@ Lines added: 221, lines removed: 1
 + 如果 Chatflow 的文件输入字段名不是 &#96;files&#96;，需要在 &#96;inputs&#96; 中传递：
 + 
 + **在测试页面中**:
-+ 1. 填写&quot;文件输入字段名&quot;（例如：&#96;file_list&#96;）
++ 1. 填写"文件输入字段名"（例如：&#96;file_list&#96;）
 + 2. 重新测试
 + 
 + **在后端代码中**:
 + &#96;&#96;&#96;typescript
 + // 如果 Chatflow 的文件输入字段名是 file_list
-+ requestBody.inputs[&#39;file_list&#39;] = uploadedFileIds;
++ requestBody.inputs['file_list'] = uploadedFileIds;
 + &#96;&#96;&#96;
 + 
 + ### 方案 2: 修改 Chatflow 配置
@@ -7674,7 +7674,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 41, lines removed: 1
@@ -7685,22 +7685,22 @@ Lines added: 41, lines removed: 1
   
 +     // 提取外部来源的文本内容（description）作为附加信息
 +     const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+       s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++       s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +     );
 +     
-+     let additionalContext = &#39;&#39;;
++     let additionalContext = '';
 +     if (externalTextSources.length &gt; 0) {
 +       const textContents: string[] = [];
 +       externalTextSources.forEach((source: any) =&gt; {
 +         if (source.description &amp;&amp; source.description.trim()) {
-+           const title = source.title || &#39;附加信息&#39;;
++           const title = source.title || '附加信息';
 +           textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +         }
 +       });
 +       
 +       if (textContents.length &gt; 0) {
-+         additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
-+         logger.info(&#39;提取外部来源文本内容作为附加信息&#39;, {
++         additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
++         logger.info('提取外部来源文本内容作为附加信息', {
 +           sourcesCount: externalTextSources.length,
 +           totalTextLength: additionalContext.length,
 +           sources: externalTextSources.map((s: any) =&gt; ({
@@ -7716,7 +7716,7 @@ Lines added: 41, lines removed: 1
 +     let finalQuery = params.content;
 +     if (additionalContext) {
 +       finalQuery = params.content + additionalContext;
-+       logger.info(&#39;合并附加信息到查询内容&#39;, {
++       logger.info('合并附加信息到查询内容', {
 +         originalLength: params.content.length,
 +         additionalLength: additionalContext.length,
 +         finalLength: finalQuery.length,
@@ -7780,7 +7780,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_TEXT_INTEGRATION.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/EXTERNAL_SOURCE_TEXT_INTEGRATION.md</summary>
 
 **Chunk 1**
 Lines added: 237, lines removed: 1
@@ -7792,7 +7792,7 @@ Lines added: 237, lines removed: 1
 + 
 + ## 📋 功能说明
 + 
-+ 当在 SourceSidebar 中选择外部来源（特别是通过&quot;添加信息&quot;→&quot;粘贴已复制的文字&quot;添加的文本来源）时，这些文本内容会作为**附加信息**自动参与 AI 对话。
++ 当在 SourceSidebar 中选择外部来源（特别是通过"添加信息"→"粘贴已复制的文字"添加的文本来源）时，这些文本内容会作为**附加信息**自动参与 AI 对话。
 + 
 + ## 🔍 工作原理
 + 
@@ -7801,12 +7801,12 @@ Lines added: 237, lines removed: 1
 + 外部来源有两种类型：
 + 
 + #### 类型 A: 文本来源（通过 AddTextModal 添加）
-+ - **type**: &#96;&quot;external&quot;&#96;
++ - **type**: &#96;"external"&#96;
 + - **description**: 包含文本内容（用户粘贴的文字）
 + - **url**: 无
 + 
 + #### 类型 B: 文件来源（通过 AddSourceModal 添加）
-+ - **type**: &#96;&quot;external&quot;&#96;
++ - **type**: &#96;"external"&#96;
 + - **url**: 文件 URL（如 &#96;/uploads/ai-search/xxx.pdf&#96;）
 + - **description**: 可选描述
 + 
@@ -7819,7 +7819,7 @@ Lines added: 237, lines removed: 1
 + 1. **提取文本来源**:
 +    &#96;&#96;&#96;typescript
 +    const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+      s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++      s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +    );
 +    &#96;&#96;&#96;
 + 
@@ -7829,12 +7829,12 @@ Lines added: 237, lines removed: 1
 +      const textContents: string[] = [];
 +      externalTextSources.forEach((source: any) =&gt; {
 +        if (source.description &amp;&amp; s.description.trim()) {
-+          const title = source.title || &#39;附加信息&#39;;
++          const title = source.title || '附加信息';
 +          textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +        }
 +      });
 +      
-+      additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
++      additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
 +    }
 +    &#96;&#96;&#96;
 + 
@@ -7871,12 +7871,12 @@ Lines added: 237, lines removed: 1
 + 
 + ### 用户操作
 + 
-+ 1. 在 SourceSidebar 中点击&quot;添加信息&quot;
-+ 2. 选择&quot;粘贴已复制的文字&quot;
-+ 3. 粘贴文本：&quot;千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统...&quot;
-+ 4. 点击&quot;插入&quot;
++ 1. 在 SourceSidebar 中点击"添加信息"
++ 2. 选择"粘贴已复制的文字"
++ 3. 粘贴文本："千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统..."
++ 4. 点击"插入"
 + 5. 勾选该外部来源
-+ 6. 发送消息：&quot;请分析这个信息&quot;
++ 6. 发送消息："请分析这个信息"
 + 
 + ### 实际发送的 query
 + 
@@ -7908,13 +7908,13 @@ Lines added: 237, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;sourcesCount&quot;: 1,
-+   &quot;totalTextLength&quot;: 500,
-+   &quot;sources&quot;: [
++   "sourcesCount": 1,
++   "totalTextLength": 500,
++   "sources": [
 +     {
-+       &quot;id&quot;: &quot;text_xxx&quot;,
-+       &quot;title&quot;: &quot;千里浩瀚智能安全辅助驾驶系统...&quot;,
-+       &quot;descriptionLength&quot;: 500
++       "id": "text_xxx",
++       "title": "千里浩瀚智能安全辅助驾驶系统...",
++       "descriptionLength": 500
 +     }
 +   ]
 + }
@@ -7925,9 +7925,9 @@ Lines added: 237, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;originalLength&quot;: 10,
-+   &quot;additionalLength&quot;: 500,
-+   &quot;finalLength&quot;: 510
++   "originalLength": 10,
++   "additionalLength": 500,
++   "finalLength": 510
 + }
 + &#96;&#96;&#96;
 + 
@@ -7964,22 +7964,22 @@ Lines added: 237, lines removed: 1
 + ### 场景 1: 粘贴技术文档片段
 + 
 + 1. 复制技术文档中的关键段落
-+ 2. 通过&quot;添加信息&quot;→&quot;粘贴已复制的文字&quot;添加
++ 2. 通过"添加信息"→"粘贴已复制的文字"添加
 + 3. 选择该来源
-+ 4. 提问：&quot;请分析这段内容的核心技术点&quot;
++ 4. 提问："请分析这段内容的核心技术点"
 + 
 + ### 场景 2: 添加新闻摘要
 + 
 + 1. 复制新闻摘要
 + 2. 添加为外部来源
 + 3. 选择该来源
-+ 4. 提问：&quot;基于这个信息，生成技术包装内容&quot;
++ 4. 提问："基于这个信息，生成技术包装内容"
 + 
 + ### 场景 3: 组合多个信息源
 + 
 + 1. 添加多个文本类型的外部来源
 + 2. 全部选择
-+ 3. 提问：&quot;请综合分析这些信息&quot;
++ 3. 提问："请综合分析这些信息"
 + 
 + ## 🔧 技术实现
 + 
@@ -7994,10 +7994,10 @@ Lines added: 237, lines removed: 1
 + **外部来源（文本类型）**:
 + &#96;&#96;&#96;typescript
 + {
-+   id: &quot;text_xxx&quot;,
-+   title: &quot;千里浩瀚智能安全辅助驾驶系统...&quot;,
-+   type: &quot;external&quot;,
-+   description: &quot;千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统（简称...&quot;
++   id: "text_xxx",
++   title: "千里浩瀚智能安全辅助驾驶系统...",
++   type: "external",
++   description: "千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统（简称..."
 + }
 + &#96;&#96;&#96;
 + 
@@ -8023,7 +8023,7 @@ Lines added: 237, lines removed: 1
 + - ✅ AI 能够看到并分析这些内容
 + - ✅ 支持多个文本来源同时使用
 + 
-+ 这样，用户可以通过&quot;粘贴已复制的文字&quot;功能，快速将任何文本内容作为上下文信息参与 AI 对话。
++ 这样，用户可以通过"粘贴已复制的文字"功能，快速将任何文本内容作为上下文信息参与 AI 对话。
 + 
 ```
 
@@ -8299,7 +8299,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_VERIFICATION_GUIDE.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/EXTERNAL_SOURCE_VERIFICATION_GUIDE.md</summary>
 
 **Chunk 1**
 Lines added: 217, lines removed: 1
@@ -8317,12 +8317,12 @@ Lines added: 217, lines removed: 1
 + 
 + ### 步骤 1: 准备测试数据
 + 
-+ 1. 在 SourceSidebar 中点击&quot;添加信息&quot;
-+ 2. 选择&quot;粘贴已复制的文字&quot;
-+ 3. 粘贴文本：&quot;千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统（简称...&quot;
-+ 4. 点击&quot;插入&quot;
++ 1. 在 SourceSidebar 中点击"添加信息"
++ 2. 选择"粘贴已复制的文字"
++ 3. 粘贴文本："千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统（简称..."
++ 4. 点击"插入"
 + 5. 勾选该外部来源
-+ 6. 发送消息：&quot;请分析这个信息&quot;
++ 6. 发送消息："请分析这个信息"
 + 
 + ### 步骤 2: 查看后端日志
 + 
@@ -8333,13 +8333,13 @@ Lines added: 217, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;sourcesCount&quot;: 1,
-+   &quot;totalTextLength&quot;: 500,
-+   &quot;sources&quot;: [
++   "sourcesCount": 1,
++   "totalTextLength": 500,
++   "sources": [
 +     {
-+       &quot;id&quot;: &quot;text_xxx&quot;,
-+       &quot;title&quot;: &quot;千里浩瀚智能安全辅助驾驶系统...&quot;,
-+       &quot;descriptionLength&quot;: 500
++       "id": "text_xxx",
++       "title": "千里浩瀚智能安全辅助驾驶系统...",
++       "descriptionLength": 500
 +     }
 +   ]
 + }
@@ -8347,7 +8347,7 @@ Lines added: 217, lines removed: 1
 + 
 + **如果看不到此日志**:
 + - ❌ 外部来源的 &#96;description&#96; 字段为空或未传递
-+ - ❌ 外部来源的 &#96;type&#96; 不是 &#96;&#39;external&#39;&#96;
++ - ❌ 外部来源的 &#96;type&#96; 不是 &#96;'external'&#96;
 + - 检查前端 &#96;AddTextModal.tsx&#96; 是否正确设置 &#96;description&#96;
 + 
 + #### 2.2 检查查询合并日志
@@ -8357,9 +8357,9 @@ Lines added: 217, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;originalLength&quot;: 10,
-+   &quot;additionalLength&quot;: 500,
-+   &quot;finalLength&quot;: 510
++   "originalLength": 10,
++   "additionalLength": 500,
++   "finalLength": 510
 + }
 + &#96;&#96;&#96;
 + 
@@ -8374,10 +8374,10 @@ Lines added: 217, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;hasSources&quot;: true,
-+   &quot;sourcesCount&quot;: 1,
-+   &quot;externalSourcesCount&quot;: 1,
-+   &quot;workflowInputKeys&quot;: [&quot;query&quot;, &quot;sources&quot;, &quot;files&quot;, ...]
++   "hasSources": true,
++   "sourcesCount": 1,
++   "externalSourcesCount": 1,
++   "workflowInputKeys": ["query", "sources", "files", ...]
 + }
 + &#96;&#96;&#96;
 + 
@@ -8396,8 +8396,8 @@ Lines added: 217, lines removed: 1
 + **应该看到**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;queryLength&quot;: 510,
-+   &quot;query&quot;: &quot;请分析这个信息\n\n=== 附加信息 ===\n【千里浩瀚智能安全辅助驾驶系统...】\n千里浩瀚智能安全辅助驾驶系统 2025年3月3日...&quot;
++   "queryLength": 510,
++   "query": "请分析这个信息\n\n=== 附加信息 ===\n【千里浩瀚智能安全辅助驾驶系统...】\n千里浩瀚智能安全辅助驾驶系统 2025年3月3日..."
 + }
 + &#96;&#96;&#96;
 + 
@@ -8412,28 +8412,28 @@ Lines added: 217, lines removed: 1
 + 
 + **如果成功传递**:
 + - ✅ AI 回复应该能够引用附加信息中的内容
-+ - ✅ AI 回复应该包含&quot;千里浩瀚&quot;、&quot;吉利&quot;等关键词
++ - ✅ AI 回复应该包含"千里浩瀚"、"吉利"等关键词
 + - ✅ AI 回复应该基于附加信息进行分析
 + 
 + **如果未成功传递**:
-+ - ❌ AI 回复可能说&quot;无法查看文件&quot;或&quot;没有相关信息&quot;
++ - ❌ AI 回复可能说"无法查看文件"或"没有相关信息"
 + - ❌ AI 回复不包含附加信息中的关键词
 + 
 + #### 3.2 检查 MessageItem 显示
 + 
 + **前端显示**:
-+ - ✅ MessageItem 应该显示来源：&quot;千里浩瀚智能安全辅助驾驶系统...&quot;
++ - ✅ MessageItem 应该显示来源："千里浩瀚智能安全辅助驾驶系统..."
 + - ✅ 这表示 sources 已正确传递到前端
 + 
 + **注意**: 前端显示来源信息，不代表文本内容已传递给 Dify。需要检查后端日志确认。
 + 
 + ## 🔧 问题排查
 + 
-+ ### 问题 1: 看不到&quot;提取外部来源文本内容&quot;日志
++ ### 问题 1: 看不到"提取外部来源文本内容"日志
 + 
 + **可能原因**:
 + 1. 外部来源的 &#96;description&#96; 字段为空
-+ 2. 外部来源的 &#96;type&#96; 不是 &#96;&#39;external&#39;&#96;
++ 2. 外部来源的 &#96;type&#96; 不是 &#96;'external'&#96;
 + 3. &#96;sources&#96; 未正确传递到后端
 + 
 + **排查方法**:
@@ -8497,22 +8497,22 @@ Lines added: 217, lines removed: 1
 + 
 + &#96;&#96;&#96;bash
 + # 检查外部来源提取
-+ grep &quot;提取外部来源文本内容作为附加信息&quot; backend.log | tail -1
++ grep "提取外部来源文本内容作为附加信息" backend.log | tail -1
 + 
 + # 检查查询合并
-+ grep &quot;合并附加信息到查询内容&quot; backend.log | tail -1
++ grep "合并附加信息到查询内容" backend.log | tail -1
 + 
 + # 检查 workflowInput
-+ grep &quot;SendMessageUseCase: workflowInput 映射完成&quot; backend.log | tail -1 | jq &#39;.query&#39; | head -c 200
++ grep "SendMessageUseCase: workflowInput 映射完成" backend.log | tail -1 | jq '.query' | head -c 200
 + 
 + # 检查 Dify API 请求
-+ grep &quot;Dify.*请求&quot; backend.log | tail -1 | jq &#39;.query&#39; | head -c 200
++ grep "Dify.*请求" backend.log | tail -1 | jq '.query' | head -c 200
 + &#96;&#96;&#96;
 + 
 + ## ✅ 成功标准
 + 
-+ 1. ✅ 看到&quot;提取外部来源文本内容作为附加信息&quot;日志
-+ 2. ✅ 看到&quot;合并附加信息到查询内容&quot;日志，且 &#96;finalLength &gt; originalLength&#96;
++ 1. ✅ 看到"提取外部来源文本内容作为附加信息"日志
++ 2. ✅ 看到"合并附加信息到查询内容"日志，且 &#96;finalLength &gt; originalLength&#96;
 + 3. ✅ &#96;workflowInput.query&#96; 包含 &#96;=== 附加信息 ===&#96; 标记
 + 4. ✅ Dify API 请求中的 &#96;query&#96; 字段包含完整的附加信息
 + 5. ✅ AI 回复能够引用附加信息中的内容
@@ -8544,7 +8544,7 @@ Lines added: 217, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -8567,12 +8567,12 @@ Lines added: 8, lines removed: undefined
             hasFileList: !!workflowInput.fileList,
             fileListCount: Array.isArray(workflowInput.fileList) ? workflowInput.fileList.length : 0,
 +           hasQuery: !!workflowInput.query,
-+           queryLength: typeof workflowInput.query === &#39;string&#39; ? workflowInput.query.length : 0,
-+           queryPreview: typeof workflowInput.query === &#39;string&#39; 
++           queryLength: typeof workflowInput.query === 'string' ? workflowInput.query.length : 0,
++           queryPreview: typeof workflowInput.query === 'string' 
 +             ? workflowInput.query.substring(0, 200) 
 +             : undefined,
-+           hasAdditionalContext: typeof workflowInput.query === &#39;string&#39; 
-+             ? workflowInput.query.includes(&#39;=== 附加信息 ===&#39;) 
++           hasAdditionalContext: typeof workflowInput.query === 'string' 
++             ? workflowInput.query.includes('=== 附加信息 ===') 
 +             : false,
             workflowInputKeys: Object.keys(workflowInput),
           });
@@ -8586,7 +8586,7 @@ Lines added: 8, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -8594,12 +8594,12 @@ Lines added: 4, lines removed: 1
 ```diff
 @@ -530,5 +530,8 @@
   
-        logger.info(&#39;Dify executeChat 请求体（使用文件对象数组）&#39;, {
+        logger.info('Dify executeChat 请求体（使用文件对象数组）', {
 -         query: requestBody.query?.substring(0, 100),
 +         queryLength: requestBody.query?.length || 0,
 +         queryPreview: requestBody.query?.substring(0, 200),
 +         queryFull: requestBody.query, // 完整 query 内容，用于验证附加信息
-+         hasAdditionalContext: requestBody.query?.includes(&#39;=== 附加信息 ===&#39;) || false,
++         hasAdditionalContext: requestBody.query?.includes('=== 附加信息 ===') || false,
           hasConversationId: !!requestBody.conversation_id,
           inputsKeys: Object.keys(requestBody.inputs || {}),
 ```
@@ -8630,20 +8630,20 @@ Lines added: 4, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
 
 ```diff
 @@ -826,5 +826,8 @@
-          logger.info(&#39;输入节点：将query字段映射到input&#39;, {
+          logger.info('输入节点：将query字段映射到input', {
             nodeId: node.id,
--           queryValue: typeof value === &#39;string&#39; ? value.substring(0, 100) : value,
-+           queryLength: typeof value === &#39;string&#39; ? value.length : 0,
-+           queryPreview: typeof value === &#39;string&#39; ? value.substring(0, 200) : value,
-+           queryFull: typeof value === &#39;string&#39; ? value : undefined, // 完整 query 内容
-+           hasAdditionalContext: typeof value === &#39;string&#39; ? value.includes(&#39;=== 附加信息 ===&#39;) : false,
+-           queryValue: typeof value === 'string' ? value.substring(0, 100) : value,
++           queryLength: typeof value === 'string' ? value.length : 0,
++           queryPreview: typeof value === 'string' ? value.substring(0, 200) : value,
++           queryFull: typeof value === 'string' ? value : undefined, // 完整 query 内容
++           hasAdditionalContext: typeof value === 'string' ? value.includes('=== 附加信息 ===') : false,
           });
         }
 ```
@@ -8685,7 +8685,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: check-external-source-logs.sh</summary>
+<details><summary>Tool use: **write** • Edit file: check-external-source-logs.sh</summary>
 
 **Chunk 1**
 Lines added: 128, lines removed: 1
@@ -8698,128 +8698,128 @@ Lines added: 128, lines removed: 1
 + # 外部来源文本传递验证脚本
 + # 用于检查外部来源的文本内容是否成功传递给 Dify
 + 
-+ LOG_FILE=&quot;${1:-backend.log}&quot;
++ LOG_FILE="${1:-backend.log}"
 + 
-+ if [ ! -f &quot;$LOG_FILE&quot; ]; then
-+     echo &quot;❌ 日志文件不存在: $LOG_FILE&quot;
-+     echo &quot;使用方法: $0 [日志文件路径]&quot;
-+     echo &quot;示例: $0 backend.log&quot;
++ if [ ! -f "$LOG_FILE" ]; then
++     echo "❌ 日志文件不存在: $LOG_FILE"
++     echo "使用方法: $0 [日志文件路径]"
++     echo "示例: $0 backend.log"
 +     exit 1
 + fi
 + 
-+ echo &quot;🔍 检查外部来源文本传递情况...&quot;
-+ echo &quot;==========================================&quot;
-+ echo &quot;&quot;
++ echo "🔍 检查外部来源文本传递情况..."
++ echo "=========================================="
++ echo ""
 + 
 + # 1. 检查外部来源提取
-+ echo &quot;1️⃣ 检查外部来源文本提取:&quot;
-+ EXTRACT_LOG=$(grep &quot;提取外部来源文本内容作为附加信息&quot; &quot;$LOG_FILE&quot; | tail -1)
-+ if [ -z &quot;$EXTRACT_LOG&quot; ]; then
-+     echo &quot;   ❌ 未找到提取日志&quot;
-+     echo &quot;   可能原因:&quot;
-+     echo &quot;   - 外部来源的 description 字段为空&quot;
-+     echo &quot;   - 外部来源的 type 不是 &#39;external&#39;&quot;
-+     echo &quot;   - sources 未正确传递到后端&quot;
++ echo "1️⃣ 检查外部来源文本提取:"
++ EXTRACT_LOG=$(grep "提取外部来源文本内容作为附加信息" "$LOG_FILE" | tail -1)
++ if [ -z "$EXTRACT_LOG" ]; then
++     echo "   ❌ 未找到提取日志"
++     echo "   可能原因:"
++     echo "   - 外部来源的 description 字段为空"
++     echo "   - 外部来源的 type 不是 'external'"
++     echo "   - sources 未正确传递到后端"
 + else
-+     echo &quot;   ✅ 找到提取日志&quot;
-+     echo &quot;$EXTRACT_LOG&quot; | jq -r &#39;.sourcesCount, .totalTextLength&#39; 2&gt;/dev/null || echo &quot;$EXTRACT_LOG&quot;
++     echo "   ✅ 找到提取日志"
++     echo "$EXTRACT_LOG" | jq -r '.sourcesCount, .totalTextLength' 2&gt;/dev/null || echo "$EXTRACT_LOG"
 + fi
-+ echo &quot;&quot;
++ echo ""
 + 
 + # 2. 检查查询合并
-+ echo &quot;2️⃣ 检查查询内容合并:&quot;
-+ MERGE_LOG=$(grep &quot;合并附加信息到查询内容&quot; &quot;$LOG_FILE&quot; | tail -1)
-+ if [ -z &quot;$MERGE_LOG&quot; ]; then
-+     echo &quot;   ❌ 未找到合并日志&quot;
-+     echo &quot;   可能原因:&quot;
-+     echo &quot;   - 附加信息未合并到 query&quot;
-+     echo &quot;   - 合并逻辑未执行&quot;
++ echo "2️⃣ 检查查询内容合并:"
++ MERGE_LOG=$(grep "合并附加信息到查询内容" "$LOG_FILE" | tail -1)
++ if [ -z "$MERGE_LOG" ]; then
++     echo "   ❌ 未找到合并日志"
++     echo "   可能原因:"
++     echo "   - 附加信息未合并到 query"
++     echo "   - 合并逻辑未执行"
 + else
-+     echo &quot;   ✅ 找到合并日志&quot;
-+     echo &quot;$MERGE_LOG&quot; | jq -r &#39;.originalLength, .additionalLength, .finalLength&#39; 2&gt;/dev/null || echo &quot;$MERGE_LOG&quot;
++     echo "   ✅ 找到合并日志"
++     echo "$MERGE_LOG" | jq -r '.originalLength, .additionalLength, .finalLength' 2&gt;/dev/null || echo "$MERGE_LOG"
 + fi
-+ echo &quot;&quot;
++ echo ""
 + 
 + # 3. 检查 workflowInput
-+ echo &quot;3️⃣ 检查 workflowInput 映射:&quot;
-+ WORKFLOW_LOG=$(grep &quot;SendMessageUseCase: workflowInput 映射完成&quot; &quot;$LOG_FILE&quot; | tail -1)
-+ if [ -z &quot;$WORKFLOW_LOG&quot; ]; then
-+     echo &quot;   ❌ 未找到 workflowInput 日志&quot;
++ echo "3️⃣ 检查 workflowInput 映射:"
++ WORKFLOW_LOG=$(grep "SendMessageUseCase: workflowInput 映射完成" "$LOG_FILE" | tail -1)
++ if [ -z "$WORKFLOW_LOG" ]; then
++     echo "   ❌ 未找到 workflowInput 日志"
 + else
-+     echo &quot;   ✅ 找到 workflowInput 日志&quot;
-+     HAS_QUERY=$(echo &quot;$WORKFLOW_LOG&quot; | jq -r &#39;.hasQuery&#39; 2&gt;/dev/null)
-+     QUERY_LENGTH=$(echo &quot;$WORKFLOW_LOG&quot; | jq -r &#39;.queryLength&#39; 2&gt;/dev/null)
-+     HAS_ADDITIONAL=$(echo &quot;$WORKFLOW_LOG&quot; | jq -r &#39;.hasAdditionalContext&#39; 2&gt;/dev/null)
++     echo "   ✅ 找到 workflowInput 日志"
++     HAS_QUERY=$(echo "$WORKFLOW_LOG" | jq -r '.hasQuery' 2&gt;/dev/null)
++     QUERY_LENGTH=$(echo "$WORKFLOW_LOG" | jq -r '.queryLength' 2&gt;/dev/null)
++     HAS_ADDITIONAL=$(echo "$WORKFLOW_LOG" | jq -r '.hasAdditionalContext' 2&gt;/dev/null)
 +     
-+     if [ &quot;$HAS_QUERY&quot; = &quot;true&quot; ]; then
-+         echo &quot;   ✅ query 字段存在 (长度: $QUERY_LENGTH)&quot;
-+         if [ &quot;$HAS_ADDITIONAL&quot; = &quot;true&quot; ]; then
-+             echo &quot;   ✅ query 包含附加信息标记&quot;
++     if [ "$HAS_QUERY" = "true" ]; then
++         echo "   ✅ query 字段存在 (长度: $QUERY_LENGTH)"
++         if [ "$HAS_ADDITIONAL" = "true" ]; then
++             echo "   ✅ query 包含附加信息标记"
 +         else
-+             echo &quot;   ⚠️  query 不包含附加信息标记&quot;
++             echo "   ⚠️  query 不包含附加信息标记"
 +         fi
-+         echo &quot;   📄 query 预览:&quot;
-+         echo &quot;$WORKFLOW_LOG&quot; | jq -r &#39;.queryPreview&#39; 2&gt;/dev/null | head -c 200
-+         echo &quot;&quot;
++         echo "   📄 query 预览:"
++         echo "$WORKFLOW_LOG" | jq -r '.queryPreview' 2&gt;/dev/null | head -c 200
++         echo ""
 +     else
-+         echo &quot;   ❌ query 字段不存在&quot;
++         echo "   ❌ query 字段不存在"
 +     fi
 + fi
-+ echo &quot;&quot;
++ echo ""
 + 
 + # 4. 检查 Dify API 请求
-+ echo &quot;4️⃣ 检查 Dify API 请求:&quot;
-+ DIFY_LOG=$(grep &quot;Dify executeChat 请求体&quot; &quot;$LOG_FILE&quot; | tail -1)
-+ if [ -z &quot;$DIFY_LOG&quot; ]; then
-+     echo &quot;   ❌ 未找到 Dify API 请求日志&quot;
++ echo "4️⃣ 检查 Dify API 请求:"
++ DIFY_LOG=$(grep "Dify executeChat 请求体" "$LOG_FILE" | tail -1)
++ if [ -z "$DIFY_LOG" ]; then
++     echo "   ❌ 未找到 Dify API 请求日志"
 + else
-+     echo &quot;   ✅ 找到 Dify API 请求日志&quot;
-+     QUERY_LENGTH=$(echo &quot;$DIFY_LOG&quot; | jq -r &#39;.queryLength&#39; 2&gt;/dev/null)
-+     HAS_ADDITIONAL=$(echo &quot;$DIFY_LOG&quot; | jq -r &#39;.hasAdditionalContext&#39; 2&gt;/dev/null)
++     echo "   ✅ 找到 Dify API 请求日志"
++     QUERY_LENGTH=$(echo "$DIFY_LOG" | jq -r '.queryLength' 2&gt;/dev/null)
++     HAS_ADDITIONAL=$(echo "$DIFY_LOG" | jq -r '.hasAdditionalContext' 2&gt;/dev/null)
 +     
-+     echo &quot;   📏 query 长度: $QUERY_LENGTH&quot;
-+     if [ &quot;$HAS_ADDITIONAL&quot; = &quot;true&quot; ]; then
-+         echo &quot;   ✅ query 包含附加信息标记&quot;
++     echo "   📏 query 长度: $QUERY_LENGTH"
++     if [ "$HAS_ADDITIONAL" = "true" ]; then
++         echo "   ✅ query 包含附加信息标记"
 +     else
-+         echo &quot;   ⚠️  query 不包含附加信息标记&quot;
++         echo "   ⚠️  query 不包含附加信息标记"
 +     fi
-+     echo &quot;   📄 query 预览:&quot;
-+     echo &quot;$DIFY_LOG&quot; | jq -r &#39;.queryPreview&#39; 2&gt;/dev/null | head -c 200
-+     echo &quot;&quot;
-+     echo &quot;   📄 query 完整内容:&quot;
-+     echo &quot;$DIFY_LOG&quot; | jq -r &#39;.queryFull&#39; 2&gt;/dev/null | head -c 500
-+     echo &quot;&quot;
++     echo "   📄 query 预览:"
++     echo "$DIFY_LOG" | jq -r '.queryPreview' 2&gt;/dev/null | head -c 200
++     echo ""
++     echo "   📄 query 完整内容:"
++     echo "$DIFY_LOG" | jq -r '.queryFull' 2&gt;/dev/null | head -c 500
++     echo ""
 + fi
-+ echo &quot;&quot;
++ echo ""
 + 
 + # 5. 总结
-+ echo &quot;==========================================&quot;
-+ echo &quot;📊 验证总结:&quot;
-+ echo &quot;&quot;
++ echo "=========================================="
++ echo "📊 验证总结:"
++ echo ""
 + 
-+ EXTRACT_FOUND=$(grep -c &quot;提取外部来源文本内容作为附加信息&quot; &quot;$LOG_FILE&quot; 2&gt;/dev/null || echo &quot;0&quot;)
-+ MERGE_FOUND=$(grep -c &quot;合并附加信息到查询内容&quot; &quot;$LOG_FILE&quot; 2&gt;/dev/null || echo &quot;0&quot;)
-+ WORKFLOW_FOUND=$(grep -c &quot;SendMessageUseCase: workflowInput 映射完成&quot; &quot;$LOG_FILE&quot; 2&gt;/dev/null || echo &quot;0&quot;)
-+ DIFY_FOUND=$(grep -c &quot;Dify executeChat 请求体&quot; &quot;$LOG_FILE&quot; 2&gt;/dev/null || echo &quot;0&quot;)
++ EXTRACT_FOUND=$(grep -c "提取外部来源文本内容作为附加信息" "$LOG_FILE" 2&gt;/dev/null || echo "0")
++ MERGE_FOUND=$(grep -c "合并附加信息到查询内容" "$LOG_FILE" 2&gt;/dev/null || echo "0")
++ WORKFLOW_FOUND=$(grep -c "SendMessageUseCase: workflowInput 映射完成" "$LOG_FILE" 2&gt;/dev/null || echo "0")
++ DIFY_FOUND=$(grep -c "Dify executeChat 请求体" "$LOG_FILE" 2&gt;/dev/null || echo "0")
 + 
-+ if [ &quot;$EXTRACT_FOUND&quot; -gt 0 ] &amp;&amp; [ &quot;$MERGE_FOUND&quot; -gt 0 ] &amp;&amp; [ &quot;$WORKFLOW_FOUND&quot; -gt 0 ] &amp;&amp; [ &quot;$DIFY_FOUND&quot; -gt 0 ]; then
-+     echo &quot;✅ 所有关键日志都已找到&quot;
-+     echo &quot;&quot;
-+     echo &quot;下一步验证:&quot;
-+     echo &quot;1. 检查 query 是否包含 &#39;=== 附加信息 ===&#39; 标记&quot;
-+     echo &quot;2. 检查 query 是否包含完整的文本内容&quot;
-+     echo &quot;3. 检查 AI 回复是否引用了附加信息中的内容&quot;
++ if [ "$EXTRACT_FOUND" -gt 0 ] &amp;&amp; [ "$MERGE_FOUND" -gt 0 ] &amp;&amp; [ "$WORKFLOW_FOUND" -gt 0 ] &amp;&amp; [ "$DIFY_FOUND" -gt 0 ]; then
++     echo "✅ 所有关键日志都已找到"
++     echo ""
++     echo "下一步验证:"
++     echo "1. 检查 query 是否包含 '=== 附加信息 ===' 标记"
++     echo "2. 检查 query 是否包含完整的文本内容"
++     echo "3. 检查 AI 回复是否引用了附加信息中的内容"
 + else
-+     echo &quot;⚠️  部分日志缺失:&quot;
-+     [ &quot;$EXTRACT_FOUND&quot; -eq 0 ] &amp;&amp; echo &quot;   - 外部来源提取日志&quot;
-+     [ &quot;$MERGE_FOUND&quot; -eq 0 ] &amp;&amp; echo &quot;   - 查询合并日志&quot;
-+     [ &quot;$WORKFLOW_FOUND&quot; -eq 0 ] &amp;&amp; echo &quot;   - workflowInput 映射日志&quot;
-+     [ &quot;$DIFY_FOUND&quot; -eq 0 ] &amp;&amp; echo &quot;   - Dify API 请求日志&quot;
++     echo "⚠️  部分日志缺失:"
++     [ "$EXTRACT_FOUND" -eq 0 ] &amp;&amp; echo "   - 外部来源提取日志"
++     [ "$MERGE_FOUND" -eq 0 ] &amp;&amp; echo "   - 查询合并日志"
++     [ "$WORKFLOW_FOUND" -eq 0 ] &amp;&amp; echo "   - workflowInput 映射日志"
++     [ "$DIFY_FOUND" -eq 0 ] &amp;&amp; echo "   - Dify API 请求日志"
 + fi
 + 
-+ echo &quot;&quot;
-+ echo &quot;💡 提示: 如果日志文件不存在，请使用以下命令保存日志:&quot;
-+ echo &quot;   npm run dev 2&gt;&amp;1 | tee backend.log&quot;
++ echo ""
++ echo "💡 提示: 如果日志文件不存在，请使用以下命令保存日志:"
++ echo "   npm run dev 2&gt;&amp;1 | tee backend.log"
 + 
 ```
 
@@ -8830,7 +8830,7 @@ Lines added: 128, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x /Volumes/Lexar/git/03T/todify3/check-external-source-logs.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x /Volumes/Lexar/git/03T/todify3/check-external-source-logs.sh</summary>
 
 ```bash
 chmod +x /Volumes/Lexar/git/03T/todify3/check-external-source-logs.sh
@@ -9022,7 +9022,7 @@ _No matches found_
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline --grep="ce7aa1c3" | head -20</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline --grep="ce7aa1c3" | head -20</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline --grep="ce7aa1c3" | head -20
@@ -9033,7 +9033,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline --grep="ce7aa1c3" |
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline -50 | grep -i "ce7aa1c3\|775e-401a\|8506-4bb1600f8013"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline -50 | grep -i "ce7aa1c3\|775e-401a\|8506-4bb1600f8013"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline -50 | grep -i "ce7aa1c3\|775e-401a\|8506-4bb1600f8013"
@@ -9054,7 +9054,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git log --all --oneline -50 | grep -i "ce7a
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --oneline --all -30</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --oneline --all -30</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git log --oneline --all -30
@@ -9099,7 +9099,7 @@ b5f2d879 V5.3上云部署准备
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --grep="external\|source\|附加信息" --oneline -20</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git log --all --grep="external\|source\|附加信息" --oneline -20</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git log --all --grep="external\|source\|附加信息" --oneline -20
@@ -9110,7 +9110,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git log --all --grep="external\|source\|附
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git status
@@ -9118,14 +9118,14 @@ cd /Volumes/Lexar/git/03T/todify3 && git status
 
 ```
 On branch main
-Your branch is ahead of &#39;origin/main&#39; by 1 commit.
-  (use &quot;git push&quot; to publish your local commits)
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
 
 Changes not staged for commit:
-  (use &quot;git add/rm &lt;file&gt;...&quot; to update what will be committed)
-  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
-	deleted:    &quot;.specstory/history/.!84962!._2025-11-19_13-44Z-\346\233\264\346\226\260\351\241\271\347\233\256\345\220\215\347\247\260\344\270\272todify3.md&quot;
-	deleted:    &quot;.trae/documents/.!87238!._Agent Workflow \351\241\265\344\272\244\344\272\222\344\274\230\345\214\226\346\226\271\346\241\210.md&quot;
+  (use "git add/rm &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+	deleted:    ".specstory/history/.!84962!._2025-11-19_13-44Z-\346\233\264\346\226\260\351\241\271\347\233\256\345\220\215\347\247\260\344\270\272todify3.md"
+	deleted:    ".trae/documents/.!87238!._Agent Workflow \351\241\265\344\272\244\344\272\222\344\274\230\345\214\226\346\226\271\346\241\210.md"
 	deleted:    backend/create-stats-tables.js
 	modified:   backend/data/database.db
 	modified:   backend/data/todify2.db
@@ -9146,7 +9146,7 @@ Changes not staged for commit:
 	deleted:    docs/CURRENT_STATUS.md
 	deleted:    docs/DATABASE_OPTIMIZATION_SUMMARY.md
 	deleted:    docs/DEPLOYMENT_SUMMARY_REPORT.md
-	deleted:    &quot;docs/Dify API\351\205\215\347\275\256\344\277\256\345\244\215\346\212\245\345\221\212.md&quot;
+	deleted:    "docs/Dify API\351\205\215\347\275\256\344\277\256\345\244\215\346\212\245\345\221\212.md"
 	deleted:    docs/HOW_TO_CHECK_CONSOLE.md
 	deleted:    docs/INDEPENDENT_AGENT_TIMEOUT_FIX.md
 	deleted:    docs/MONITORING_DEPLOYMENT_SUMMARY.md
@@ -9166,128 +9166,128 @@ Changes not staged for commit:
 	modified:   frontend/src/services/pageToolConfigService.ts
 	modified:   frontend/src/services/sourceService.ts
 	modified:   frontend/src/types/aiRole.ts
-	deleted:    &quot;guide/.!83683!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md&quot;
-	deleted:    &quot;guide/.!83685!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!83686!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md&quot;
-	deleted:    &quot;guide/.!83689!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!83691!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!83692!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!83694!._\357\274\201R.md&quot;
-	deleted:    &quot;guide/.!83696!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md&quot;
-	deleted:    &quot;guide/.!83698!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!83700!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md&quot;
-	deleted:    &quot;guide/.!83702!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!83704!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md&quot;
-	deleted:    &quot;guide/.!83713!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87128!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md&quot;
-	deleted:    &quot;guide/.!87130!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87131!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md&quot;
-	deleted:    &quot;guide/.!87134!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87136!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!87137!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!87139!._\357\274\201R.md&quot;
-	deleted:    &quot;guide/.!87141!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md&quot;
-	deleted:    &quot;guide/.!87143!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87145!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md&quot;
-	deleted:    &quot;guide/.!87147!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87157!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md&quot;
-	deleted:    &quot;guide/.!87174!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87177!._.!83683!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md&quot;
-	deleted:    &quot;guide/.!87179!._.!83685!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87211!._.!83686!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md&quot;
-	deleted:    &quot;guide/.!87213!._.!83689!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87215!._.!83691!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!87217!._.!83692!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/.!87219!._.!83694!._\357\274\201R.md&quot;
-	deleted:    &quot;guide/.!87221!._.!83696!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md&quot;
-	deleted:    &quot;guide/.!87223!._.!83698!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87225!._.!83700!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md&quot;
-	deleted:    &quot;guide/.!87227!._.!83702!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/.!87229!._.!83704!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md&quot;
-	deleted:    &quot;guide/.!87233!._.!83713!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/architecture-guide/.!83727!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md&quot;
+	deleted:    "guide/.!83683!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md"
+	deleted:    "guide/.!83685!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md"
+	deleted:    "guide/.!83686!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md"
+	deleted:    "guide/.!83689!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md"
+	deleted:    "guide/.!83691!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!83692!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!83694!._\357\274\201R.md"
+	deleted:    "guide/.!83696!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md"
+	deleted:    "guide/.!83698!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md"
+	deleted:    "guide/.!83700!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md"
+	deleted:    "guide/.!83702!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md"
+	deleted:    "guide/.!83704!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md"
+	deleted:    "guide/.!83713!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87128!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md"
+	deleted:    "guide/.!87130!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87131!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md"
+	deleted:    "guide/.!87134!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87136!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!87137!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!87139!._\357\274\201R.md"
+	deleted:    "guide/.!87141!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md"
+	deleted:    "guide/.!87143!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87145!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md"
+	deleted:    "guide/.!87147!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87157!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md"
+	deleted:    "guide/.!87174!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87177!._.!83683!._\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md"
+	deleted:    "guide/.!87179!._.!83685!._\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87211!._.!83686!._\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md"
+	deleted:    "guide/.!87213!._.!83689!._\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87215!._.!83691!._\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!87217!._.!83692!._\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md"
+	deleted:    "guide/.!87219!._.!83694!._\357\274\201R.md"
+	deleted:    "guide/.!87221!._.!83696!._\351\241\271\347\233\256\346\226\207\344\273\266\347\273\223\346\236\204\350\257\246\350\247\243.md"
+	deleted:    "guide/.!87223!._.!83698!._502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87225!._.!83700!._\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md"
+	deleted:    "guide/.!87227!._.!83702!._AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md"
+	deleted:    "guide/.!87229!._.!83704!._\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md"
+	deleted:    "guide/.!87233!._.!83713!._\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md"
+	deleted:    "guide/502\351\224\231\350\257\257\344\277\256\345\244\215\346\212\245\345\221\212.md"
+	deleted:    "guide/AI\351\227\256\347\255\224\350\212\202\347\202\271\346\225\260\346\215\256\346\265\201\350\260\203\350\257\225\346\212\245\345\221\212.md"
+	deleted:    "guide/architecture-guide/.!83727!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md"
 	deleted:    guide/architecture-guide/.!83728!._data-flow-management.md
-	deleted:    &quot;guide/architecture-guide/.!83729!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md&quot;
+	deleted:    "guide/architecture-guide/.!83729!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md"
 	deleted:    guide/architecture-guide/.!83730!._system-architecture.md
 	deleted:    guide/architecture-guide/.!83731!._unified-monitoring-strategy.md
 	deleted:    guide/architecture-guide/.!83732!._ARCHITECTURE_OPTIMIZATION_REPORT.md
-	deleted:    &quot;guide/architecture-guide/.!83733!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md&quot;
-	deleted:    &quot;guide/architecture-guide/.!87187!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md&quot;
+	deleted:    "guide/architecture-guide/.!83733!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md"
+	deleted:    "guide/architecture-guide/.!87187!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md"
 	deleted:    guide/architecture-guide/.!87188!._data-flow-management.md
-	deleted:    &quot;guide/architecture-guide/.!87189!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md&quot;
+	deleted:    "guide/architecture-guide/.!87189!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md"
 	deleted:    guide/architecture-guide/.!87190!._system-architecture.md
 	deleted:    guide/architecture-guide/.!87191!._unified-monitoring-strategy.md
 	deleted:    guide/architecture-guide/.!87192!._ARCHITECTURE_OPTIMIZATION_REPORT.md
-	deleted:    &quot;guide/architecture-guide/.!87193!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md&quot;
-	deleted:    &quot;guide/architecture-guide/.!87195!._.!83727!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md&quot;
+	deleted:    "guide/architecture-guide/.!87193!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md"
+	deleted:    "guide/architecture-guide/.!87195!._.!83727!._Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md"
 	deleted:    guide/architecture-guide/.!87197!._.!83728!._data-flow-management.md
-	deleted:    &quot;guide/architecture-guide/.!87199!._.!83729!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md&quot;
+	deleted:    "guide/architecture-guide/.!87199!._.!83729!._\345\220\216\347\253\257\351\241\271\347\233\256\346\236\266\346\236\204\350\247\204\345\210\222.md"
 	deleted:    guide/architecture-guide/.!87201!._.!83730!._system-architecture.md
 	deleted:    guide/architecture-guide/.!87203!._.!83731!._unified-monitoring-strategy.md
 	deleted:    guide/architecture-guide/.!87205!._.!83732!._ARCHITECTURE_OPTIMIZATION_REPORT.md
-	deleted:    &quot;guide/architecture-guide/.!87209!._.!83733!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md&quot;
+	deleted:    "guide/architecture-guide/.!87209!._.!83733!._\344\270\211\345\244\247\346\250\241\345\235\227\346\230\240\345\260\204\345\205\263\347\263\273\345\210\206\346\236\220.md"
 	deleted:    guide/architecture-guide/ARCHITECTURE_OPTIMIZATION_REPORT.md
-	deleted:    &quot;guide/architecture-guide/Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md&quot;
+	deleted:    "guide/architecture-guide/Todify\345\271\263\345\217\260\346\225\260\346\215\256\345\205\263\347\263\273\345\222\214\344\270\200\350\207\264\346\200\247\350\257\204\344\274\260\346\212\245\345\221\212.md"
 	deleted:    guide/database/.!83677!._database-design.md
 	deleted:    guide/database/.!83679!._database-design-v2.md
 	deleted:    guide/database/.!83681!._DATABASE_MIGRATION_SUMMARY.md
-	deleted:    &quot;guide/database/.!83682!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md&quot;
+	deleted:    "guide/database/.!83682!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md"
 	deleted:    guide/database/.!87114!._database-design.md
 	deleted:    guide/database/.!87116!._database-design-v2.md
 	deleted:    guide/database/.!87118!._DATABASE_MIGRATION_SUMMARY.md
-	deleted:    &quot;guide/database/.!87119!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md&quot;
+	deleted:    "guide/database/.!87119!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md"
 	deleted:    guide/database/.!87121!._.!83677!._database-design.md
 	deleted:    guide/database/.!87123!._.!83679!._database-design-v2.md
 	deleted:    guide/database/.!87125!._.!83681!._DATABASE_MIGRATION_SUMMARY.md
-	deleted:    &quot;guide/database/.!87127!._.!83682!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md&quot;
+	deleted:    "guide/database/.!87127!._.!83682!._\346\225\260\346\215\256\345\272\223\344\274\230\345\214\226.md"
 	deleted:    guide/database/DATABASE_MIGRATION_SUMMARY.md
 	deleted:    guide/workflow/.!83710!._DIFY_INTEGRATION_PLAN.md
-	deleted:    &quot;guide/workflow/.!83711!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md&quot;
+	deleted:    "guide/workflow/.!83711!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md"
 	deleted:    guide/workflow/.!83712!._DIFY_FIELD_MAPPING.md
 	deleted:    guide/workflow/.!87165!._DIFY_INTEGRATION_PLAN.md
-	deleted:    &quot;guide/workflow/.!87166!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md&quot;
+	deleted:    "guide/workflow/.!87166!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md"
 	deleted:    guide/workflow/.!87167!._DIFY_FIELD_MAPPING.md
 	deleted:    guide/workflow/.!87169!._.!83710!._DIFY_INTEGRATION_PLAN.md
-	deleted:    &quot;guide/workflow/.!87171!._.!83711!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md&quot;
+	deleted:    "guide/workflow/.!87171!._.!83711!._\357\274\201dify\345\257\271\346\216\245\345\277\253\351\200\237\346\214\207\345\215\227.md"
 	deleted:    guide/workflow/.!87173!._.!83712!._DIFY_FIELD_MAPPING.md
-	deleted:    &quot;guide/\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md&quot;
-	deleted:    &quot;guide/\345\256\214\346\225\264\350\257\212\346\226\255\345\221\275\344\273\244.txt&quot;
-	deleted:    &quot;guide/\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md&quot;
-	deleted:    &quot;guide/\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md&quot;
-	deleted:    &quot;guide/\347\256\200\345\215\225\346\237\245\347\234\213\346\226\271\346\263\225.txt&quot;
-	deleted:    &quot;guide/\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md&quot;
-	deleted:    &quot;guide/\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md&quot;
-	deleted:    &quot;guide/\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md&quot;
-	deleted:    &quot;guide/\357\274\201R.md&quot;
+	deleted:    "guide/\344\277\256\345\244\215\351\203\250\347\275\262\351\227\256\351\242\230\346\214\207\345\215\227.md"
+	deleted:    "guide/\345\256\211\345\205\250\350\257\212\346\226\255\344\273\243\347\240\201.md"
+	deleted:    "guide/\345\256\214\346\225\264\350\257\212\346\226\255\345\221\275\344\273\244.txt"
+	deleted:    "guide/\345\256\214\346\225\264\351\207\215\346\226\260\351\203\250\347\275\262\346\212\245\345\221\212.md"
+	deleted:    "guide/\346\212\200\346\234\257\345\214\205\350\243\205\351\241\265\351\235\242\350\247\243\346\236\220.md"
+	deleted:    "guide/\346\231\272\350\203\275\345\267\245\344\275\234\346\265\201\350\212\202\347\202\271\350\277\236\346\216\245\346\200\247\351\252\214\350\257\201\346\212\245\345\221\212.md"
+	deleted:    "guide/\346\270\205\347\220\206\347\274\223\345\255\230\346\214\207\345\215\227.md"
+	deleted:    "guide/\347\256\200\345\215\225\346\237\245\347\234\213\346\226\271\346\263\225.txt"
+	deleted:    "guide/\351\203\250\347\275\262\346\200\273\347\273\223-V2.5.md"
+	deleted:    "guide/\351\203\250\347\275\262\346\210\220\345\212\237\346\212\245\345\221\212.md"
+	deleted:    "guide/\351\241\271\347\233\256\346\233\264\346\226\260\346\212\245\345\221\212-20251028.md"
+	deleted:    "guide/\357\274\201R.md"
 	deleted:    package-lock.json
 	deleted:    package.json
 	modified:   start.sh
 
 Untracked files:
-  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+  (use "git add &lt;file&gt;..." to include in what will be committed)
 	._check-external-source-logs.sh
 	._check-logs.sh
 	.specstory/history/._2025-11-27_03-08Z-analyze-ai-conversation-link-and-attachment.md
-	&quot;.specstory/history/._2025-11-27_08-59Z-\347\262\276\347\256\200\351\241\271\347\233\256\346\226\207\346\241\243\345\222\214\350\277\207\347\250\213\346\226\207\344\273\266.md&quot;
+	".specstory/history/._2025-11-27_08-59Z-\347\262\276\347\256\200\351\241\271\347\233\256\346\226\207\346\241\243\345\222\214\350\277\207\347\250\213\346\226\207\344\273\266.md"
 	.specstory/history/._2025-11-27_09-37Z-configure-lightweight-q&amp;a-ai-for-uploads.md
 	.specstory/history/._2025-11-27_10-07Z-change-button-label-and-add-logic.md
-	&quot;.specstory/history/._2025-11-27_10-20Z-\345\210\233\345\273\272\344\270\232\345\212\241\346\225\260\346\215\256\345\272\223\344\273\245\345\255\230\345\202\250\344\277\241\346\201\257.md&quot;
+	".specstory/history/._2025-11-27_10-20Z-\345\210\233\345\273\272\344\270\232\345\212\241\346\225\260\346\215\256\345\272\223\344\273\245\345\255\230\345\202\250\344\277\241\346\201\257.md"
 	.specstory/history/._2025-11-27_10-43Z-fixing-404-error-for-api-endpoint.md
-	&quot;.specstory/history/2025-11-24_01-14Z-\346\226\260\345\242\236\347\213\254\347\253\213\347\232\204ai\350\247\222\350\211\262\351\205\215\347\275\256.md&quot;
-	&quot;.specstory/history/2025-11-25_00-34Z-\344\274\230\345\214\226\350\247\222\350\211\262\347\256\241\347\220\206\344\270\216\344\273\273\345\212\241\347\274\226\346\216\222.md&quot;
-	&quot;.specstory/history/2025-11-25_02-15Z-\346\225\264\347\220\206\351\241\271\347\233\256\346\226\207\344\273\266\345\222\214\345\275\222\346\241\243.md&quot;
-	&quot;.specstory/history/2025-11-25_02-19Z-\344\277\256\345\244\215\345\220\216\347\253\257\345\220\257\345\212\250\351\227\256\351\242\230.md&quot;
+	".specstory/history/2025-11-24_01-14Z-\346\226\260\345\242\236\347\213\254\347\253\213\347\232\204ai\350\247\222\350\211\262\351\205\215\347\275\256.md"
+	".specstory/history/2025-11-25_00-34Z-\344\274\230\345\214\226\350\247\222\350\211\262\347\256\241\347\220\206\344\270\216\344\273\273\345\212\241\347\274\226\346\216\222.md"
+	".specstory/history/2025-11-25_02-15Z-\346\225\264\347\220\206\351\241\271\347\233\256\346\226\207\344\273\266\345\222\214\345\275\222\346\241\243.md"
+	".specstory/history/2025-11-25_02-19Z-\344\277\256\345\244\215\345\220\216\347\253\257\345\220\257\345\212\250\351\227\256\351\242\230.md"
 	.specstory/history/2025-11-25_02-37Z-selecting-and-executing-workflows.md
 	.specstory/history/2025-11-27_03-08Z-analyze-ai-conversation-link-and-attachment.md
-	&quot;.specstory/history/2025-11-27_08-59Z-\347\262\276\347\256\200\351\241\271\347\233\256\346\226\207\346\241\243\345\222\214\350\277\207\347\250\213\346\226\207\344\273\266.md&quot;
+	".specstory/history/2025-11-27_08-59Z-\347\262\276\347\256\200\351\241\271\347\233\256\346\226\207\346\241\243\345\222\214\350\277\207\347\250\213\346\226\207\344\273\266.md"
 	.specstory/history/2025-11-27_09-37Z-configure-lightweight-q&amp;a-ai-for-uploads.md
 	.specstory/history/2025-11-27_10-07Z-change-button-label-and-add-logic.md
-	&quot;.specstory/history/2025-11-27_10-20Z-\345\210\233\345\273\272\344\270\232\345\212\241\346\225\260\346\215\256\345\272\223\344\273\245\345\255\230\345\202\250\344\277\241\346\201\257.md&quot;
+	".specstory/history/2025-11-27_10-20Z-\345\210\233\345\273\272\344\270\232\345\212\241\346\225\260\346\215\256\345\272\223\344\273\245\345\255\230\345\202\250\344\277\241\346\201\257.md"
 	.specstory/history/2025-11-27_10-43Z-fixing-404-error-for-api-endpoint.md
 	backend/src/._index.ts
 	backend/src/models/._SourceInformation.ts
@@ -9335,14 +9335,14 @@ Untracked files:
 	frontend/src/services/._pageToolConfigService.ts
 	frontend/src/services/._sourceService.ts
 	frontend/src/types/._aiRole.ts
-	&quot;guide/database/._\346\225\260\346\215\256\350\241\250list.md&quot;
-	&quot;guide/database/\346\225\260\346\215\256\350\241\250list.md&quot;
+	"guide/database/._\346\225\260\346\215\256\350\241\250list.md"
+	"guide/database/\346\225\260\346\215\256\350\241\250list.md"
 	guide/workflow/._DIFY_FILE_UPLOAD_ANALYSIS.md
-	&quot;guide/workflow/._Dify \345\257\271\350\257\235 API.md&quot;
+	"guide/workflow/._Dify \345\257\271\350\257\235 API.md"
 	guide/workflow/DIFY_FILE_UPLOAD_ANALYSIS.md
-	&quot;guide/workflow/Dify \345\257\271\350\257\235 API.md&quot;
+	"guide/workflow/Dify \345\257\271\350\257\235 API.md"
 
-no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+no changes added to commit (use "git add" and/or "git commit -a")
 
 ```
 </details>
@@ -9392,7 +9392,7 @@ no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&q
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts | head -100</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts | head -100</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts | head -100
@@ -9408,7 +9408,7 @@ index d3779bfc..c53fdc39 100755
            knowledgeBaseNames: params.knowledgeBaseNames,
          });
 +        
-+        logger.info(&#39;SendMessageUseCase: conversationData 构建完成&#39;, {
++        logger.info('SendMessageUseCase: conversationData 构建完成', {
 +          hasSources: !!conversationData.sources,
 +          sourcesCount: Array.isArray(conversationData.sources) ? conversationData.sources.length : 0,
 +          sources: Array.isArray(conversationData.sources) ? conversationData.sources.map((s: any) =&gt; ({
@@ -9419,7 +9419,7 @@ index d3779bfc..c53fdc39 100755
 +            url: s.url,
 +          })) : null,
 +          externalSourcesCount: Array.isArray(conversationData.sources) 
-+            ? conversationData.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++            ? conversationData.sources.filter((s: any) =&gt; s.type === 'external').length 
 +            : 0,
 +          hasFiles: !!conversationData.files,
 +          filesCount: Array.isArray(conversationData.files) ? conversationData.files.length : 0,
@@ -9430,7 +9430,7 @@ index d3779bfc..c53fdc39 100755
 +        
          const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);
 +        
-+        logger.info(&#39;SendMessageUseCase: workflowInput 映射完成&#39;, {
++        logger.info('SendMessageUseCase: workflowInput 映射完成', {
 +          hasSources: !!workflowInput.sources,
 +          sourcesCount: Array.isArray(workflowInput.sources) ? workflowInput.sources.length : 0,
 +          sources: Array.isArray(workflowInput.sources) ? workflowInput.sources.map((s: any) =&gt; ({
@@ -9443,19 +9443,19 @@ index d3779bfc..c53fdc39 100755
 +            descriptionLength: s.description?.length || 0,
 +          })) : null,
 +          externalSourcesCount: Array.isArray(workflowInput.sources) 
-+            ? workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length 
++            ? workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length 
 +            : 0,
 +          hasFiles: !!workflowInput.files,
 +          filesCount: Array.isArray(workflowInput.files) ? workflowInput.files.length : 0,
 +          hasFileList: !!workflowInput.fileList,
 +          fileListCount: Array.isArray(workflowInput.fileList) ? workflowInput.fileList.length : 0,
 +          hasQuery: !!workflowInput.query,
-+          queryLength: typeof workflowInput.query === &#39;string&#39; ? workflowInput.query.length : 0,
-+          queryPreview: typeof workflowInput.query === &#39;string&#39; 
++          queryLength: typeof workflowInput.query === 'string' ? workflowInput.query.length : 0,
++          queryPreview: typeof workflowInput.query === 'string' 
 +            ? workflowInput.query.substring(0, 200) 
 +            : undefined,
-+          hasAdditionalContext: typeof workflowInput.query === &#39;string&#39; 
-+            ? workflowInput.query.includes(&#39;=== 附加信息 ===&#39;) 
++          hasAdditionalContext: typeof workflowInput.query === 'string' 
++            ? workflowInput.query.includes('=== 附加信息 ===') 
 +            : false,
 +          workflowInputKeys: Object.keys(workflowInput),
 +        });
@@ -9463,27 +9463,27 @@ index d3779bfc..c53fdc39 100755
          const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {
            input: workflowInput,
 @@ -252,8 +303,48 @@ export class SendMessageUseCase {
-       ? params.knowledgeBaseNames.split(&#39;,&#39;).map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
+       ? params.knowledgeBaseNames.split(',').map((name) =&gt; name.trim()).filter((name) =&gt; name.length &gt; 0)
        : [];
  
 +    // 提取外部来源的文本内容（description）作为附加信息
 +    const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+      s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++      s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +    );
 +    
-+    let additionalContext = &#39;&#39;;
++    let additionalContext = '';
 +    if (externalTextSources.length &gt; 0) {
 +      const textContents: string[] = [];
 +      externalTextSources.forEach((source: any) =&gt; {
 +        if (source.description &amp;&amp; source.description.trim()) {
-+          const title = source.title || &#39;附加信息&#39;;
++          const title = source.title || '附加信息';
 +          textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +        }
 +      });
 +      
 +      if (textContents.length &gt; 0) {
-+        additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
-+        logger.info(&#39;提取外部来源文本内容作为附加信息&#39;, {
++        additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
++        logger.info('提取外部来源文本内容作为附加信息', {
 +          sourcesCount: externalTextSources.length,
 +          totalTextLength: additionalContext.length,
 +          sources: externalTextSources.map((s: any) =&gt; ({
@@ -9507,7 +9507,7 @@ index d3779bfc..c53fdc39 100755
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts | head -100</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts | head -100</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts | head -100
@@ -9519,14 +9519,14 @@ index f3e43b9a..f842ee19 100755
 --- a/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts
 +++ b/backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts
 @@ -1,4 +1,8 @@
- import axios, { AxiosInstance } from &#39;axios&#39;;
-+import FormData from &#39;form-data&#39;;
-+import fs from &#39;fs&#39;;
-+import path from &#39;path&#39;;
-+import { Readable } from &#39;stream&#39;;
+ import axios, { AxiosInstance } from 'axios';
++import FormData from 'form-data';
++import fs from 'fs';
++import path from 'path';
++import { Readable } from 'stream';
  
- import { logger } from &#39;@/shared/lib/logger&#39;;
- import { Result, failure, success } from &#39;@/shared/lib/result&#39;;
+ import { logger } from '@/shared/lib/logger';
+ import { Result, failure, success } from '@/shared/lib/result';
 @@ -11,6 +15,15 @@ export interface DifyConfig {
    maxRetries?: number;
  }
@@ -9545,7 +9545,7 @@ index f3e43b9a..f842ee19 100755
    conversationId?: string;
 @@ -71,24 +84,42 @@ export class DifyGateway {
  
-     const attachLogging = (instance: AxiosInstance, service: &#39;chat&#39; | &#39;workflow&#39;) =&gt; {
+     const attachLogging = (instance: AxiosInstance, service: 'chat' | 'workflow') =&gt; {
        instance.interceptors.request.use((request) =&gt; {
 +        const requestData = request.data || {};
          const requestInfo = {
@@ -9565,33 +9565,33 @@ index f3e43b9a..f842ee19 100755
 +            hasQuery: !!requestData.query,
 +            queryLength: requestData.query?.length || 0,
 +            hasInputs: !!requestData.inputs,
-+            inputsKeys: requestData.inputs &amp;&amp; typeof requestData.inputs === &#39;object&#39; ? Object.keys(requestData.inputs) : null,
++            inputsKeys: requestData.inputs &amp;&amp; typeof requestData.inputs === 'object' ? Object.keys(requestData.inputs) : null,
 +          },
          };
--        logger.debug(&#39;Dify 请求&#39;, requestInfo);
--        console.log(&#39;Dify 请求详情:&#39;, JSON.stringify(requestInfo, null, 2));
-+        logger.info(&#39;Dify 请求详情（包含文件信息）&#39;, requestInfo);
-+        console.log(&#39;Dify 请求详情（包含文件信息）:&#39;, JSON.stringify(requestInfo, null, 2));
+-        logger.debug('Dify 请求', requestInfo);
+-        console.log('Dify 请求详情:', JSON.stringify(requestInfo, null, 2));
++        logger.info('Dify 请求详情（包含文件信息）', requestInfo);
++        console.log('Dify 请求详情（包含文件信息）:', JSON.stringify(requestInfo, null, 2));
          return request;
        });
  
        instance.interceptors.response.use(
          (response) =&gt; {
--          logger.debug(&#39;Dify 响应&#39;, {
-+          logger.info(&#39;Dify 响应&#39;, {
+-          logger.debug('Dify 响应', {
++          logger.info('Dify 响应', {
              service,
              status: response.status,
 +            statusText: response.statusText,
 +            hasData: !!response.data,
-+            dataKeys: response.data &amp;&amp; typeof response.data === &#39;object&#39; ? Object.keys(response.data) : null,
++            dataKeys: response.data &amp;&amp; typeof response.data === 'object' ? Object.keys(response.data) : null,
 +            // 检查响应中是否包含文件相关信息
-+            hasFilesInResponse: !!(response.data &amp;&amp; typeof response.data === &#39;object&#39; &amp;&amp; response.data.files),
++            hasFilesInResponse: !!(response.data &amp;&amp; typeof response.data === 'object' &amp;&amp; response.data.files),
 +            responseData: response.data,
            });
            return response;
          },
 @@ -118,17 +149,401 @@ export class DifyGateway {
-     attachLogging(this.workflowClient, &#39;workflow&#39;);
+     attachLogging(this.workflowClient, 'workflow');
    }
  
 +  /**
@@ -9599,9 +9599,9 @@ index f3e43b9a..f842ee19 100755
 +   * 根据 Dify API 文档：需要先上传文件获取文件 ID，然后在发送消息时传递文件 ID
 +   * @returns 文件信息（包含 ID、MIME 类型、文件名）或 null
 +   */
-+  private async uploadFileToDify(fileUrl: string, userId: string = &#39;todify-user&#39;): Promise&lt;FileUploadResult | null&gt; {
++  private async uploadFileToDify(fileUrl: string, userId: string = 'todify-user'): Promise&lt;FileUploadResult | null&gt; {
 +    try {
-+      logger.info(&#39;开始上传文件到 Dify&#39;, {
++      logger.info('开始上传文件到 Dify', {
 +        fileUrl,
 +        userId,
 +      });
@@ -9609,9 +9609,9 @@ index f3e43b9a..f842ee19 100755
 +      // 下载文件
 +      let fileStream: Readable;
 +      let fileName: string;
-+      let mimeType: string = &#39;application/octet-stream&#39;;
++      let mimeType: string = 'application/octet-stream';
 +
-+      if (fileUrl.startsWith(&#39;http://&#39;) || fileUrl.startsWith(&#39;https://&#39;)) {
++      if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
 +        // 远程 URL，下载文件
 +        const response = await axios.get(fileUrl, {
 
@@ -9622,7 +9622,7 @@ index f3e43b9a..f842ee19 100755
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/services/AgentWorkflowService.ts | head -100</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/services/AgentWorkflowService.ts | head -100</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git diff HEAD backend/src/services/AgentWorkflowService.ts | head -100
@@ -9655,13 +9655,13 @@ index f83bec8f..a8ee1e24 100755
      const results: any[] = [];
 @@ -812,7 +825,10 @@ export class AgentWorkflowService {
          value = workflowInput.query;
-         logger.info(&#39;输入节点：将query字段映射到input&#39;, {
+         logger.info('输入节点：将query字段映射到input', {
            nodeId: node.id,
--          queryValue: typeof value === &#39;string&#39; ? value.substring(0, 100) : value,
-+          queryLength: typeof value === &#39;string&#39; ? value.length : 0,
-+          queryPreview: typeof value === &#39;string&#39; ? value.substring(0, 200) : value,
-+          queryFull: typeof value === &#39;string&#39; ? value : undefined, // 完整 query 内容
-+          hasAdditionalContext: typeof value === &#39;string&#39; ? value.includes(&#39;=== 附加信息 ===&#39;) : false,
+-          queryValue: typeof value === 'string' ? value.substring(0, 100) : value,
++          queryLength: typeof value === 'string' ? value.length : 0,
++          queryPreview: typeof value === 'string' ? value.substring(0, 200) : value,
++          queryFull: typeof value === 'string' ? value : undefined, // 完整 query 内容
++          hasAdditionalContext: typeof value === 'string' ? value.includes('=== 附加信息 ===') : false,
          });
        }
  
@@ -9673,7 +9673,7 @@ index f83bec8f..a8ee1e24 100755
 +    // 这样后续节点可以直接访问，而不需要从 workflowInput 中查找
 +    if (workflowInput.sources &amp;&amp; Array.isArray(workflowInput.sources)) {
 +      sharedContext.sources = workflowInput.sources;
-+      logger.info(&#39;输入节点：将 sources 传递到 sharedContext&#39;, {
++      logger.info('输入节点：将 sources 传递到 sharedContext', {
 +        nodeId: node.id,
 +        sourcesCount: workflowInput.sources.length,
 +        sources: workflowInput.sources.map((s: any) =&gt; ({
@@ -9683,30 +9683,30 @@ index f83bec8f..a8ee1e24 100755
 +          hasUrl: !!s.url,
 +          url: s.url,
 +        })),
-+        externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === &#39;external&#39;).length,
++        externalSourcesCount: workflowInput.sources.filter((s: any) =&gt; s.type === 'external').length,
 +      });
 +    } else {
-+      logger.warn(&#39;输入节点：workflowInput 中没有 sources 字段&#39;, {
++      logger.warn('输入节点：workflowInput 中没有 sources 字段', {
 +        nodeId: node.id,
 +        workflowInputKeys: Object.keys(workflowInput),
 +      });
 +    }
 +    if (workflowInput.files &amp;&amp; Array.isArray(workflowInput.files)) {
 +      sharedContext.files = workflowInput.files;
-+      logger.info(&#39;输入节点：将 files 传递到 sharedContext&#39;, {
++      logger.info('输入节点：将 files 传递到 sharedContext', {
 +        nodeId: node.id,
 +        filesCount: workflowInput.files.length,
 +      });
 +    }
 +    if (workflowInput.fileList &amp;&amp; Array.isArray(workflowInput.fileList)) {
 +      sharedContext.fileList = workflowInput.fileList;
-+      logger.info(&#39;输入节点：将 fileList 传递到 sharedContext&#39;, {
++      logger.info('输入节点：将 fileList 传递到 sharedContext', {
 +        nodeId: node.id,
 +        fileListCount: workflowInput.fileList.length,
 +      });
 +    }
 +
-     logger.info(&#39;输入节点执行完成&#39;, {
+     logger.info('输入节点执行完成', {
        nodeId: node.id,
        resultsCount: results.length,
        results: results.map((r: any) =&gt; ({ name: r.name, type: r.type, hasValue: r.value !== undefined })),
@@ -9747,7 +9747,7 @@ index f83bec8f..a8ee1e24 100755
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git restore backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git restore backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts backend/src/services/AgentWorkflowService.ts</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git restore backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts backend/src/services/AgentWorkflowService.ts
@@ -9758,7 +9758,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git restore backend/src/modules/ai-search/a
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService)"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService)"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService)"
@@ -9794,7 +9794,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(EXTERNAL_SOURCE|check-external-source)" | head -10</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(EXTERNAL_SOURCE|check-external-source)" | head -10</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(EXTERNAL_SOURCE|check-external-source)" | head -10
@@ -9816,7 +9816,7 @@ cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(EXTERNAL_SOU
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory undefined • **0** results</summary>
         
 No results found
 </details>
@@ -9825,7 +9825,7 @@ No results found
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && ls -la check-external-source-logs.sh 2>/dev/null && echo "文件存在" || echo "文件不存在"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && ls -la check-external-source-logs.sh 2>/dev/null && echo "文件存在" || echo "文件不存在"</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && ls -la check-external-source-logs.sh 2>/dev/null && echo "文件存在" || echo "文件不存在"
@@ -9885,7 +9885,7 @@ Explanation: undefined
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService|EXTERNAL_SOURCE|check-external-source)" | head -20</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService|EXTERNAL_SOURCE|check-external-source)" | head -20</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && git status --short | grep -E "(SendMessage|DifyGateway|AgentWorkflowService|EXTERNAL_SOURCE|check-external-source)" | head -20
@@ -10002,7 +10002,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 41, lines removed: 1
@@ -10013,22 +10013,22 @@ Lines added: 41, lines removed: 1
   
 +     // 提取外部来源的文本内容（description）作为附加信息
 +     const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+       s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++       s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +     );
 +     
-+     let additionalContext = &#39;&#39;;
++     let additionalContext = '';
 +     if (externalTextSources.length &gt; 0) {
 +       const textContents: string[] = [];
 +       externalTextSources.forEach((source: any) =&gt; {
 +         if (source.description &amp;&amp; source.description.trim()) {
-+           const title = source.title || &#39;附加信息&#39;;
++           const title = source.title || '附加信息';
 +           textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +         }
 +       });
 +       
 +       if (textContents.length &gt; 0) {
-+         additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
-+         logger.info(&#39;提取外部来源文本内容作为附加信息&#39;, {
++         additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
++         logger.info('提取外部来源文本内容作为附加信息', {
 +           sourcesCount: externalTextSources.length,
 +           totalTextLength: additionalContext.length,
 +           sources: externalTextSources.map((s: any) =&gt; ({
@@ -10044,7 +10044,7 @@ Lines added: 41, lines removed: 1
 +     let finalQuery = params.content;
 +     if (additionalContext) {
 +       finalQuery = params.content + additionalContext;
-+       logger.info(&#39;合并附加信息到查询内容&#39;, {
++       logger.info('合并附加信息到查询内容', {
 +         originalLength: params.content.length,
 +         additionalLength: additionalContext.length,
 +         finalLength: finalQuery.length,
@@ -10119,7 +10119,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
+<details><summary>Tool use: **write** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
 
 **Chunk 1**
 Lines added: 137, lines removed: 1
@@ -10137,7 +10137,7 @@ Lines added: 137, lines removed: 1
 + 
 + ### 1. 前端处理
 + 
-+ - **AddTextModal**: 用户通过&quot;粘贴已复制的文字&quot;添加文本来源时，&#96;description&#96; 字段会包含完整的文本内容
++ - **AddTextModal**: 用户通过"粘贴已复制的文字"添加文本来源时，&#96;description&#96; 字段会包含完整的文本内容
 + - **DialogueContent**: 发送消息时，会将 &#96;sources&#96; 数组传递到后端
 + 
 + ### 2. 后端处理
@@ -10149,7 +10149,7 @@ Lines added: 137, lines removed: 1
 + 1. **提取外部来源文本**:
 +    &#96;&#96;&#96;typescript
 +    const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+      s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++      s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +    );
 +    &#96;&#96;&#96;
 + 
@@ -10159,12 +10159,12 @@ Lines added: 137, lines removed: 1
 +      const textContents: string[] = [];
 +      externalTextSources.forEach((source: any) =&gt; {
 +        if (source.description &amp;&amp; source.description.trim()) {
-+          const title = source.title || &#39;附加信息&#39;;
++          const title = source.title || '附加信息';
 +          textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +        }
 +      });
 +      
-+      additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
++      additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
 +    }
 +    &#96;&#96;&#96;
 + 
@@ -10199,12 +10199,12 @@ Lines added: 137, lines removed: 1
 + 
 + ### 用户操作
 + 
-+ 1. 在 SourceSidebar 中点击&quot;添加信息&quot;
-+ 2. 选择&quot;粘贴已复制的文字&quot;
-+ 3. 粘贴文本：&quot;千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统...&quot;
-+ 4. 点击&quot;插入&quot;
++ 1. 在 SourceSidebar 中点击"添加信息"
++ 2. 选择"粘贴已复制的文字"
++ 3. 粘贴文本："千里浩瀚智能安全辅助驾驶系统 2025年3月3日，吉利正式发布了千里浩瀚智能安全辅助驾驶系统..."
++ 4. 点击"插入"
 + 5. 勾选该外部来源
-+ 6. 发送消息：&quot;请分析这个信息&quot;
++ 6. 发送消息："请分析这个信息"
 + 
 + ### 实际发送的 query
 + 
@@ -10225,13 +10225,13 @@ Lines added: 137, lines removed: 1
 + **日志内容**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;sourcesCount&quot;: 1,
-+   &quot;totalTextLength&quot;: 500,
-+   &quot;sources&quot;: [
++   "sourcesCount": 1,
++   "totalTextLength": 500,
++   "sources": [
 +     {
-+       &quot;id&quot;: &quot;text_xxx&quot;,
-+       &quot;title&quot;: &quot;千里浩瀚智能安全辅助驾驶系统...&quot;,
-+       &quot;descriptionLength&quot;: 500
++       "id": "text_xxx",
++       "title": "千里浩瀚智能安全辅助驾驶系统...",
++       "descriptionLength": 500
 +     }
 +   ]
 + }
@@ -10244,9 +10244,9 @@ Lines added: 137, lines removed: 1
 + **日志内容**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;originalLength&quot;: 10,
-+   &quot;additionalLength&quot;: 500,
-+   &quot;finalLength&quot;: 510
++   "originalLength": 10,
++   "additionalLength": 500,
++   "finalLength": 510
 + }
 + &#96;&#96;&#96;
 + 
@@ -10384,7 +10384,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 50, lines removed: 30
@@ -10395,22 +10395,22 @@ Lines added: 50, lines removed: 30
   
 -     // 提取外部来源的文本内容（description）作为附加信息
 -     const externalTextSources = effectiveSources.filter((s: any) =&gt; 
--       s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+-       s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 -     );
 -     
--     let additionalContext = &#39;&#39;;
+-     let additionalContext = '';
 -     if (externalTextSources.length &gt; 0) {
 -       const textContents: string[] = [];
 -       externalTextSources.forEach((source: any) =&gt; {
 -         if (source.description &amp;&amp; source.description.trim()) {
--           const title = source.title || &#39;附加信息&#39;;
+-           const title = source.title || '附加信息';
 -           textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 -         }
 -       });
 -       
 -       if (textContents.length &gt; 0) {
--         additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
--         logger.info(&#39;提取外部来源文本内容作为附加信息&#39;, {
+-         additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
+-         logger.info('提取外部来源文本内容作为附加信息', {
 -           sourcesCount: externalTextSources.length,
 -           totalTextLength: additionalContext.length,
 -           sources: externalTextSources.map((s: any) =&gt; ({
@@ -10429,24 +10429,24 @@ Lines added: 50, lines removed: 30
 +                           params.conversation.messages.length === 0;
 +     
 +     // 只在第一次对话时，提取外部来源的文本内容（description）作为附加信息
-+     let additionalContext = &#39;&#39;;
++     let additionalContext = '';
 +     if (isFirstMessage) {
 +       const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+         s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++         s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +       );
 +       
 +       if (externalTextSources.length &gt; 0) {
 +         const textContents: string[] = [];
 +         externalTextSources.forEach((source: any) =&gt; {
 +           if (source.description &amp;&amp; source.description.trim()) {
-+             const title = source.title || &#39;附加信息&#39;;
++             const title = source.title || '附加信息';
 +             textContents.push(&#96;【${title}】\n${source.description.trim()}&#96;);
 +           }
 +         });
 +         
 +         if (textContents.length &gt; 0) {
-+           additionalContext = &#39;\n\n=== 附加信息 ===\n&#39; + textContents.join(&#39;\n\n---\n\n&#39;);
-+           logger.info(&#39;提取外部来源文本内容作为附加信息（仅第一次对话）&#39;, {
++           additionalContext = '\n\n=== 附加信息 ===\n' + textContents.join('\n\n---\n\n');
++           logger.info('提取外部来源文本内容作为附加信息（仅第一次对话）', {
 +             isFirstMessage: true,
 +             sourcesCount: externalTextSources.length,
 +             totalTextLength: additionalContext.length,
@@ -10461,10 +10461,10 @@ Lines added: 50, lines removed: 30
 +     } else {
 +       // 后续对话时，记录日志但不添加附加信息
 +       const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+         s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++         s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +       );
 +       if (externalTextSources.length &gt; 0) {
-+         logger.info(&#39;检测到外部来源文本，但非第一次对话，跳过附加信息&#39;, {
++         logger.info('检测到外部来源文本，但非第一次对话，跳过附加信息', {
 +           isFirstMessage: false,
 +           messageCount: params.conversation?.messages?.length || 0,
 +           sourcesCount: externalTextSources.length,
@@ -10512,7 +10512,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -10535,7 +10535,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 4
@@ -10555,11 +10555,11 @@ Lines added: 14, lines removed: 4
 + 2. **仅在第一次对话时提取外部来源文本**:
      &#96;&#96;&#96;typescript
 -    const externalTextSources = effectiveSources.filter((s: any) =&gt; 
--      s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+-      s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 -    );
 +    if (isFirstMessage) {
 +      const externalTextSources = effectiveSources.filter((s: any) =&gt; 
-+        s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
++        s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
 +      );
 +      // ... 构建附加信息
 +    }
@@ -10575,7 +10575,7 @@ Lines added: 14, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 4
@@ -10606,7 +10606,7 @@ Lines added: 5, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/EXTERNAL_SOURCE_ATTACHMENT.md</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -10621,9 +10621,9 @@ Lines added: 2, lines removed: 1
   **日志内容**:
   &#96;&#96;&#96;json
   {
-+   &quot;isFirstMessage&quot;: true,
-    &quot;sourcesCount&quot;: 1,
-    &quot;totalTextLength&quot;: 500,
++   "isFirstMessage": true,
+    "sourcesCount": 1,
+    "totalTextLength": 500,
 ```
 
 **Chunk 2**
@@ -10640,9 +10640,9 @@ Lines added: 11, lines removed: undefined
 + **日志内容**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;isFirstMessage&quot;: false,
-+   &quot;messageCount&quot;: 2,
-+   &quot;sourcesCount&quot;: 1
++   "isFirstMessage": false,
++   "messageCount": 2,
++   "sourcesCount": 1
 + }
   &#96;&#96;&#96;
   
@@ -10803,7 +10803,7 @@ _**Agent (model default, mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 20, lines removed: 4
@@ -10823,7 +10823,7 @@ Lines added: 20, lines removed: 4
 +     const isFirstMessage = !params.conversation || messageCount &lt;= 1;
 +     
 +     // 添加详细日志用于诊断
-+     logger.info(&#39;检查是否是第一次对话&#39;, {
++     logger.info('检查是否是第一次对话', {
 +       hasConversation: !!params.conversation,
 +       messageCount: messageCount,
 +       isFirstMessage: isFirstMessage,
@@ -10845,17 +10845,17 @@ Lines added: 11, lines removed: undefined
 
 ```diff
 @@ -304,4 +320,15 @@
-          s.type === &#39;external&#39; &amp;&amp; s.description &amp;&amp; s.description.trim()
+          s.type === 'external' &amp;&amp; s.description &amp;&amp; s.description.trim()
         );
 +       
-+       logger.info(&#39;第一次对话：检查外部来源文本&#39;, {
++       logger.info('第一次对话：检查外部来源文本', {
 +         externalTextSourcesCount: externalTextSources.length,
 +         externalTextSources: externalTextSources.map((s: any) =&gt; ({
 +           id: s.id,
 +           title: s.title,
 +           hasDescription: !!s.description,
 +           descriptionLength: s.description?.length || 0,
-+           descriptionPreview: s.description?.substring(0, 100) || &#39;&#39;,
++           descriptionPreview: s.description?.substring(0, 100) || '',
 +         })),
 +       });
         
@@ -10872,12 +10872,12 @@ Lines added: 9, lines removed: undefined
 +             additionalContextPreview: additionalContext.substring(0, 200),
 +           });
 +         } else {
-+           logger.warn(&#39;外部来源文本内容为空，无法构建附加信息&#39;, {
++           logger.warn('外部来源文本内容为空，无法构建附加信息', {
 +             externalTextSourcesCount: externalTextSources.length,
             });
           }
 +       } else {
-+         logger.info(&#39;第一次对话：未找到有效的外部来源文本&#39;, {
++         logger.info('第一次对话：未找到有效的外部来源文本', {
 +           effectiveSourcesCount: effectiveSources?.length || 0,
 +         });
         }
@@ -10889,7 +10889,7 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -336,5 +372,5 @@
-          logger.info(&#39;检测到外部来源文本，但非第一次对话，跳过附加信息&#39;, {
+          logger.info('检测到外部来源文本，但非第一次对话，跳过附加信息', {
             isFirstMessage: false,
 -           messageCount: params.conversation?.messages?.length || 0,
 +           messageCount: messageCount,
@@ -10970,7 +10970,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 28, lines removed: undefined
@@ -10980,7 +10980,7 @@ Lines added: 28, lines removed: undefined
       }
     ) {
 +     // 记录 sources 的传递情况
-+     logger.info(&#39;buildConversationData: 接收到的参数&#39;, {
++     logger.info('buildConversationData: 接收到的参数', {
 +       hasParamsSources: !!params.sources,
 +       paramsSourcesType: typeof params.sources,
 +       paramsSourcesIsArray: Array.isArray(params.sources),
@@ -11002,7 +11002,7 @@ Lines added: 28, lines removed: undefined
           ? params.sources
           : conversationSources;
 +     
-+     logger.info(&#39;buildConversationData: 确定的有效来源&#39;, {
++     logger.info('buildConversationData: 确定的有效来源', {
 +       effectiveSourcesCount: effectiveSources?.length || 0,
 +       effectiveSources: effectiveSources?.map((s: any) =&gt; ({
 +         id: s.id,
@@ -11324,7 +11324,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -11338,7 +11338,7 @@ Lines added: 11, lines removed: undefined
 +     // conversationId 可能不在节点配置的输入参数中，需要特殊处理
 +     if (!nodeInput.conversationId &amp;&amp; sharedContext.workflowInput?.conversationId) {
 +       nodeInput.conversationId = sharedContext.workflowInput.conversationId;
-+       logger.info(&#39;从 workflowInput 中提取 conversationId 到 nodeInput&#39;, {
++       logger.info('从 workflowInput 中提取 conversationId 到 nodeInput', {
 +         nodeId: node.id,
 +         agentId,
 +         conversationId: nodeInput.conversationId,
@@ -11367,9 +11367,9 @@ Lines added: 2, lines removed: 1
 @@ -924,5 +936,6 @@
   
       const { connectionType, apiKey, apiUrl } = role.difyConfig;
--     let conversationId = nodeInput.conversationId || &#39;&#39;;
+-     let conversationId = nodeInput.conversationId || '';
 +     // 从 nodeInput 中获取 conversationId，如果不存在则从 sharedContext.workflowInput 中获取
-+     let conversationId = nodeInput.conversationId || sharedContext.workflowInput?.conversationId || &#39;&#39;;
++     let conversationId = nodeInput.conversationId || sharedContext.workflowInput?.conversationId || '';
   
       if (!apiKey || !apiUrl) {
 ```
@@ -11400,7 +11400,7 @@ Lines added: 2, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: undefined
@@ -11414,13 +11414,13 @@ Lines added: 12, lines removed: undefined
 +     // conversationId 可能不在节点配置的输入参数中，需要特殊处理
 +     if (workflowInput.conversationId &amp;&amp; !sharedContext.conversationId) {
 +       sharedContext.conversationId = workflowInput.conversationId;
-+       logger.info(&#39;输入节点：将 conversationId 传递到 sharedContext&#39;, {
++       logger.info('输入节点：将 conversationId 传递到 sharedContext', {
 +         nodeId: node.id,
 +         conversationId: workflowInput.conversationId,
 +       });
 +     }
   
-      logger.info(&#39;输入节点执行完成&#39;, {
+      logger.info('输入节点执行完成', {
         nodeId: node.id,
         resultsCount: results.length,
         results: results.map((r: any) =&gt; ({ name: r.name, type: r.type, hasValue: r.value !== undefined })),
@@ -11438,7 +11438,7 @@ Lines added: 12, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 2
@@ -11448,17 +11448,17 @@ Lines added: 14, lines removed: 2
   
       const { connectionType, apiKey, apiUrl } = role.difyConfig;
 -     // 从 nodeInput 中获取 conversationId，如果不存在则从 sharedContext.workflowInput 中获取
--     let conversationId = nodeInput.conversationId || sharedContext.workflowInput?.conversationId || &#39;&#39;;
+-     let conversationId = nodeInput.conversationId || sharedContext.workflowInput?.conversationId || '';
 +     // 从多个可能的来源获取 conversationId
 +     // 优先级：nodeInput.conversationId &gt; sharedContext.conversationId &gt; sharedContext.workflowInput.conversationId
 +     let conversationId = nodeInput.conversationId || 
 +                         sharedContext.conversationId || 
-+                         sharedContext.workflowInput?.conversationId || &#39;&#39;;
++                         sharedContext.workflowInput?.conversationId || '';
 +     
-+     logger.info(&#39;Agent节点：确定 conversationId&#39;, {
++     logger.info('Agent节点：确定 conversationId', {
 +       nodeId: node.id,
 +       agentId,
-+       conversationId: conversationId || &#39;(空)&#39;,
++       conversationId: conversationId || '(空)',
 +       hasNodeInputConversationId: !!nodeInput.conversationId,
 +       hasSharedContextConversationId: !!sharedContext.conversationId,
 +       hasWorkflowInputConversationId: !!sharedContext.workflowInput?.conversationId,
@@ -11502,7 +11502,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
 
 **Chunk 1**
 Lines added: 18, lines removed: undefined
@@ -11512,24 +11512,24 @@ Lines added: 18, lines removed: undefined
           // 获取对话的 Dify conversation_id（如果存在），用于多轮对话
           const difyConversationId = conversationRecord?.difyConversationId || null;
 +         
-+         logger.info(&#39;检查 Dify conversation_id&#39;, {
++         logger.info('检查 Dify conversation_id', {
 +           conversationId: params.conversationId,
 +           hasConversationRecord: !!conversationRecord,
 +           hasDifyConversationId: !!difyConversationId,
-+           difyConversationId: difyConversationId || &#39;(空)&#39;,
++           difyConversationId: difyConversationId || '(空)',
 +           messageCount: conversationRecord?.messages?.length || 0,
 +         });
           
           // 将 Dify conversation_id 添加到 workflowInput 中，这样 Agent 节点可以获取到
           if (difyConversationId) {
             workflowInput.conversationId = difyConversationId;
-+           logger.info(&#39;已将 Dify conversation_id 添加到 workflowInput&#39;, {
++           logger.info('已将 Dify conversation_id 添加到 workflowInput', {
 +             conversationId: params.conversationId,
 +             difyConversationId: difyConversationId,
 +             workflowInputKeys: Object.keys(workflowInput),
 +           });
 +         } else {
-+           logger.info(&#39;未找到 Dify conversation_id，将创建新对话&#39;, {
++           logger.info('未找到 Dify conversation_id，将创建新对话', {
 +             conversationId: params.conversationId,
 +             messageCount: conversationRecord?.messages?.length || 0,
 +           });
@@ -11906,7 +11906,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -11916,7 +11916,7 @@ Lines added: 3, lines removed: undefined
             agentNodesCount: agentNodes.length,
             agentNodeIds: agentNodes.map(n =&gt; n.id),
 +           hasOutputNode: !!outputNode,
-+           outputContent: outputContent || &#39;(空)&#39;,
++           outputContent: outputContent || '(空)',
 +           nodeOutputsKeys: Object.keys(sharedContext.nodeOutputs || {}),
             availableNodeOutputs: Object.keys(sharedContext.nodeOutputs || {}),
           });
@@ -11930,7 +11930,7 @@ Lines added: 3, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -11938,11 +11938,11 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -535,4 +535,8 @@
                 outputType: typeof agentOutput,
-                outputKeys: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; ? Object.keys(agentOutput) : null,
-+               hasAnswer: !!(agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.answer),
-+               answerLength: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.answer ? agentOutput.answer.length : 0,
-+               answerPreview: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.answer ? agentOutput.answer.substring(0, 200) : null,
-+               outputKeys: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; ? Object.keys(agentOutput) : null,
+                outputKeys: agentOutput &amp;&amp; typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
++               hasAnswer: !!(agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.answer),
++               answerLength: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.answer ? agentOutput.answer.length : 0,
++               answerPreview: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.answer ? agentOutput.answer.substring(0, 200) : null,
++               outputKeys: agentOutput &amp;&amp; typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
               });
               
 ```
@@ -11973,19 +11973,19 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
 
 ```diff
 @@ -538,5 +538,7 @@
-                answerLength: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.answer ? agentOutput.answer.length : 0,
-                answerPreview: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.answer ? agentOutput.answer.substring(0, 200) : null,
--               outputKeys: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; ? Object.keys(agentOutput) : null,
-+               hasResult: !!(agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.result),
-+               resultLength: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.result ? agentOutput.result.length : 0,
-+               resultPreview: agentOutput &amp;&amp; typeof agentOutput === &#39;object&#39; &amp;&amp; agentOutput.result ? agentOutput.result.substring(0, 200) : null,
+                answerLength: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.answer ? agentOutput.answer.length : 0,
+                answerPreview: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.answer ? agentOutput.answer.substring(0, 200) : null,
+-               outputKeys: agentOutput &amp;&amp; typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
++               hasResult: !!(agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.result),
++               resultLength: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.result ? agentOutput.result.length : 0,
++               resultPreview: agentOutput &amp;&amp; typeof agentOutput === 'object' &amp;&amp; agentOutput.result ? agentOutput.result.substring(0, 200) : null,
               });
               
 ```
@@ -12512,7 +12512,7 @@ The string to replace was not found in the file.
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -12520,9 +12520,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -282,5 +282,5 @@
               // 记录节点执行结果（特别是Agent节点）
-              if (node.type === &#39;agent&#39;) {
--               logger.info(&#39;Agent节点执行完成&#39;, {
-+               logger.info(&#39;Agent节点执行完成，存储输出到sharedContext&#39;, {
+              if (node.type === 'agent') {
+-               logger.info('Agent节点执行完成', {
++               logger.info('Agent节点执行完成，存储输出到sharedContext', {
                   nodeId: node.id,
                   hasOutput: !!nodeOutput,
 ```
@@ -12532,14 +12532,14 @@ Lines added: 7, lines removed: undefined
 
 ```diff
 @@ -290,4 +290,11 @@
-                  answerType: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.answer ? typeof nodeOutput.answer : null,
-                  answerLength: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.answer &amp;&amp; typeof nodeOutput.answer === &#39;string&#39; ? nodeOutput.answer.length : null,
-+                 answerPreview: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.answer &amp;&amp; typeof nodeOutput.answer === &#39;string&#39; ? nodeOutput.answer.substring(0, 200) : null,
-+                 hasResult: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; ? !!nodeOutput.result : false,
-+                 resultType: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.result ? typeof nodeOutput.result : null,
-+                 resultLength: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.result &amp;&amp; typeof nodeOutput.result === &#39;string&#39; ? nodeOutput.result.length : null,
-+                 resultPreview: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; &amp;&amp; nodeOutput.result &amp;&amp; typeof nodeOutput.result === &#39;string&#39; ? nodeOutput.result.substring(0, 200) : null,
-+                 fullOutputPreview: nodeOutput &amp;&amp; typeof nodeOutput === &#39;object&#39; ? JSON.stringify(nodeOutput).substring(0, 500) : String(nodeOutput).substring(0, 500),
+                  answerType: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.answer ? typeof nodeOutput.answer : null,
+                  answerLength: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.answer &amp;&amp; typeof nodeOutput.answer === 'string' ? nodeOutput.answer.length : null,
++                 answerPreview: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.answer &amp;&amp; typeof nodeOutput.answer === 'string' ? nodeOutput.answer.substring(0, 200) : null,
++                 hasResult: nodeOutput &amp;&amp; typeof nodeOutput === 'object' ? !!nodeOutput.result : false,
++                 resultType: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.result ? typeof nodeOutput.result : null,
++                 resultLength: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.result &amp;&amp; typeof nodeOutput.result === 'string' ? nodeOutput.result.length : null,
++                 resultPreview: nodeOutput &amp;&amp; typeof nodeOutput === 'object' &amp;&amp; nodeOutput.result &amp;&amp; typeof nodeOutput.result === 'string' ? nodeOutput.result.substring(0, 200) : null,
++                 fullOutputPreview: nodeOutput &amp;&amp; typeof nodeOutput === 'object' ? JSON.stringify(nodeOutput).substring(0, 500) : String(nodeOutput).substring(0, 500),
 +                 storedInSharedContext: !!sharedContext.nodeOutputs[node.id],
                 });
               }
@@ -12596,7 +12596,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
 
 **Chunk 1**
 Lines added: 27, lines removed: 5
@@ -12607,16 +12607,16 @@ Lines added: 27, lines removed: 5
           const chatResponse = result.value.raw as any;
 +         
 +         // 详细记录 Dify API 返回的数据结构
-+         logger.info(&#39;Dify API 返回的原始数据 (chatflow)&#39;, {
++         logger.info('Dify API 返回的原始数据 (chatflow)', {
 +           nodeId: node.id,
 +           agentId,
-+           chatResponseKeys: chatResponse &amp;&amp; typeof chatResponse === &#39;object&#39; ? Object.keys(chatResponse) : null,
++           chatResponseKeys: chatResponse &amp;&amp; typeof chatResponse === 'object' ? Object.keys(chatResponse) : null,
 +           chatResponseAnswer: chatResponse?.answer,
 +           chatResponseAnswerType: typeof chatResponse?.answer,
-+           chatResponseAnswerLength: chatResponse?.answer &amp;&amp; typeof chatResponse.answer === &#39;string&#39; ? chatResponse.answer.length : null,
++           chatResponseAnswerLength: chatResponse?.answer &amp;&amp; typeof chatResponse.answer === 'string' ? chatResponse.answer.length : null,
 +           resultValueAnswer: result.value.answer,
 +           resultValueAnswerType: typeof result.value.answer,
-+           resultValueAnswerLength: result.value.answer &amp;&amp; typeof result.value.answer === &#39;string&#39; ? result.value.answer.length : null,
++           resultValueAnswerLength: result.value.answer &amp;&amp; typeof result.value.answer === 'string' ? result.value.answer.length : null,
 +           fullChatResponse: JSON.stringify(chatResponse).substring(0, 1000),
 +         });
 +         
@@ -12625,7 +12625,7 @@ Lines added: 27, lines removed: 5
 +                       result.value.answer || 
 +                       chatResponse?.data?.answer ||
 +                       chatResponse?.output?.answer ||
-+                       &#39;&#39;;
++                       '';
 +         
           const agentOutput = {
 -           answer: chatResponse.answer || result.value.answer,
@@ -12639,8 +12639,8 @@ Lines added: 27, lines removed: 5
             raw: chatResponse,
           };
           
--         logger.info(&#39;Agent节点执行完成 (chatflow)&#39;, {
-+         logger.info(&#39;Agent节点执行完成 (chatflow)，构建输出对象&#39;, {
+-         logger.info('Agent节点执行完成 (chatflow)', {
++         logger.info('Agent节点执行完成 (chatflow)，构建输出对象', {
             nodeId: node.id,
             agentId,
 ```
@@ -12653,7 +12653,7 @@ Lines added: 1, lines removed: undefined
             answerPreview: agentOutput.answer?.substring(0, 200) || null,
             answerType: typeof agentOutput.answer,
 +           agentOutputKeys: Object.keys(agentOutput),
-            rawKeys: chatResponse &amp;&amp; typeof chatResponse === &#39;object&#39; ? Object.keys(chatResponse) : null,
+            rawKeys: chatResponse &amp;&amp; typeof chatResponse === 'object' ? Object.keys(chatResponse) : null,
           });
 ```
 
@@ -12663,13 +12663,18 @@ Lines added: 1, lines removed: undefined
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
 <details>
-<summary>Tool use: **read_lints**</summary>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
 
-Status: **loading**
+- `backend/src/services/AgentWorkflowService.ts`
+
+Lint results
 
 
+**No lint errors found**
 </details>
 </tool-use>
 
@@ -12680,17 +12685,187 @@ Status: **loading**
 ---
 
 
+已添加更详细的日志。编写诊断指南，帮助定位问题：
+
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="write">
-<details>
-<summary>Tool use: **write**</summary>
+<tool-use data-tool-type="write" data-tool-name="write">
 
-Status: **loading**
+<details><summary>Tool use: **write** • Edit file: docs/WORKFLOW_OUTPUT_DEBUG_GUIDE.md</summary>
 
+**Chunk 1**
+Lines added: 162, lines removed: 1
+
+```diff
+@@ -1,1 +1,162 @@
+- 
++ # 工作流输出提取问题诊断指南
++ 
++ ## 问题现象
++ 
++ AI消息内容只有"工作流执行完成"，没有实际内容。
++ 
++ ## 诊断步骤
++ 
++ ### 1. 查看 Dify API 返回的原始数据
++ 
++ **查找日志**: &#96;Dify API 返回的原始数据 (chatflow)&#96;
++ 
++ **应该看到**:
++ &#96;&#96;&#96;json
++ {
++   "chatResponseKeys": ["answer", "conversation_id", "message_id", ...],
++   "chatResponseAnswer": "实际的AI回复内容",
++   "chatResponseAnswerLength": 500,
++   ...
++ }
++ &#96;&#96;&#96;
++ 
++ **如果 &#96;chatResponseAnswer&#96; 为空**:
++ - Dify API 返回的数据中没有 &#96;answer&#96; 字段
++ - 需要检查 Dify Chatflow 配置
++ 
++ ### 2. 查看 Agent 节点输出对象构建
++ 
++ **查找日志**: &#96;Agent节点执行完成 (chatflow)，构建输出对象&#96;
++ 
++ **应该看到**:
++ &#96;&#96;&#96;json
++ {
++   "hasAnswer": true,
++   "answerLength": 500,
++   "answerPreview": "实际的AI回复内容预览...",
++   "agentOutputKeys": ["answer", "conversation_id", "message_id", "metadata", "raw"]
++ }
++ &#96;&#96;&#96;
++ 
++ **如果 &#96;hasAnswer: false&#96; 或 &#96;answerLength: 0&#96;**:
++ - Agent 节点的输出对象构建失败
++ - 需要检查 answer 提取逻辑
++ 
++ ### 3. 查看 Agent 节点输出存储
++ 
++ **查找日志**: &#96;Agent节点执行完成，存储输出到sharedContext&#96;
++ 
++ **应该看到**:
++ &#96;&#96;&#96;json
++ {
++   "hasOutput": true,
++   "hasAnswer": true,
++   "answerLength": 500,
++   "answerPreview": "实际的AI回复内容预览...",
++   "storedInSharedContext": true
++ }
++ &#96;&#96;&#96;
++ 
++ **如果 &#96;storedInSharedContext: false&#96;**:
++ - 输出没有正确存储到 sharedContext
++ - 需要检查存储逻辑
++ 
++ ### 4. 查看内容提取过程
++ 
++ **查找日志**: &#96;检查Agent节点输出&#96;
++ 
++ **应该看到**:
++ &#96;&#96;&#96;json
++ {
++   "hasOutput": true,
++   "hasAnswer": true,
++   "answerLength": 500,
++   "answerPreview": "实际的AI回复内容预览..."
++ }
++ &#96;&#96;&#96;
++ 
++ **如果 &#96;hasAnswer: false&#96;**:
++ - Agent 节点的输出中没有 answer 字段
++ - 需要检查输出节点配置或 Agent 节点输出结构
++ 
++ ### 5. 查看最终提取结果
++ 
++ **查找日志**: &#96;工作流执行完成，提取结果&#96;
++ 
++ **应该看到**:
++ &#96;&#96;&#96;json
++ {
++   "hasContent": true,
++   "contentLength": 500,
++   "nodeOutputsKeys": ["agent-node-1", "output-node-1"]
++ }
++ &#96;&#96;&#96;
++ 
++ **如果 &#96;hasContent: false&#96; 或 &#96;contentLength: 0&#96;**:
++ - 内容提取失败
++ - 需要检查输出节点配置
++ 
++ ## 常见问题
++ 
++ ### 问题 1: Dify API 返回的数据结构不符合预期
++ 
++ **症状**: &#96;chatResponseAnswer&#96; 为空
++ 
++ **解决方案**:
++ 1. 检查 Dify Chatflow 配置
++ 2. 确认 Chatflow 的输出节点配置正确
++ 3. 检查 Dify API 文档，确认返回数据结构
++ 
++ ### 问题 2: Agent 节点输出没有 answer 字段
++ 
++ **症状**: &#96;hasAnswer: false&#96; 在 Agent 节点输出中
++ 
++ **解决方案**:
++ 1. 检查 Agent 节点的输出结构
++ 2. 可能需要从其他字段提取（如 &#96;result&#96;, &#96;content&#96;, &#96;text&#96;）
++ 3. 检查输出节点配置，确认源节点和源字段配置正确
++ 
++ ### 问题 3: 输出节点配置不正确
++ 
++ **症状**: &#96;工作流执行完成，提取结果&#96; 中 &#96;hasContent: false&#96;
++ 
++ **解决方案**:
++ 1. 检查输出节点的 &#96;sourceNodeId&#96; 配置
++ 2. 检查输出节点的 &#96;sourceField&#96; 配置
++ 3. 确认源节点ID正确
++ 
++ ### 问题 4: 工作流没有输出节点
++ 
++ **症状**: &#96;尝试从Agent节点提取内容&#96; 日志出现
++ 
++ **解决方案**:
++ 1. 在工作流中添加输出节点
++ 2. 配置输出节点的源节点和源字段
++ 3. 或者确保 Agent 节点的输出能被自动提取
++ 
++ ## 快速诊断命令
++ 
++ &#96;&#96;&#96;bash
++ # 1. 查看 Dify API 返回的原始数据
++ grep "Dify API 返回的原始数据" backend.log | tail -1 | jq
++ 
++ # 2. 查看 Agent 节点输出构建
++ grep "Agent节点执行完成 (chatflow)，构建输出对象" backend.log | tail -1 | jq
++ 
++ # 3. 查看 Agent 节点输出存储
++ grep "Agent节点执行完成，存储输出到sharedContext" backend.log | tail -1 | jq
++ 
++ # 4. 查看内容提取过程
++ grep "检查Agent节点输出" backend.log | tail -1 | jq
++ 
++ # 5. 查看最终提取结果
++ grep "工作流执行完成，提取结果" backend.log | tail -1 | jq
++ &#96;&#96;&#96;
++ 
++ ## 下一步
++ 
++ 根据日志结果，确定问题所在：
++ 1. 如果 Dify API 返回的数据中没有 answer → 检查 Dify Chatflow 配置
++ 2. 如果 Agent 节点输出中没有 answer → 检查输出节点配置
++ 3. 如果最终提取结果为空 → 检查工作流输出节点配置
++ 
+```
 
 </details>
+
 </tool-use>
 
 ---
@@ -12700,6 +12875,52 @@ Status: **loading**
 ---
 
 
+已添加更详细的诊断日志。请按以下步骤操作：
+
+## 已添加的诊断日志
+
+1. **Dify API 返回的原始数据** - 记录 Dify API 返回的完整数据结构
+2. **Agent 节点输出构建** - 记录如何从 Dify 响应构建 Agent 输出对象
+3. **Agent 节点输出存储** - 记录输出如何存储到 sharedContext
+4. **内容提取过程** - 记录从 Agent 节点提取内容的过程
+5. **最终提取结果** - 记录工作流最终提取的内容
+
+## 诊断步骤
+
+请运行测试并查看后端日志：
+
+```bash
+# 查看 Dify API 返回的原始数据
+grep "Dify API 返回的原始数据" backend.log | tail -1
+
+# 查看 Agent 节点输出构建
+grep "Agent节点执行完成 (chatflow)，构建输出对象" backend.log | tail -1
+
+# 查看 Agent 节点输出存储
+grep "Agent节点执行完成，存储输出到sharedContext" backend.log | tail -1
+
+# 查看内容提取过程
+grep "检查Agent节点输出" backend.log | tail -1
+
+# 查看最终提取结果
+grep "工作流执行完成，提取结果" backend.log | tail -1
+```
+
+## 可能的问题
+
+根据日志结果，可能的问题：
+
+1. **Dify API 返回的数据中没有 `answer` 字段**
+   - 检查 Dify Chatflow 配置
+   - 确认 Chatflow 的输出节点配置正确
+
+2. **Agent 节点的输出没有被正确存储**
+   - 检查 `storedInSharedContext` 是否为 `true`
+
+3. **输出节点配置不正确**
+   - 检查输出节点的 `sourceNodeId` 和 `sourceField` 配置
+
+请运行测试并将相关日志发给我，我会进一步分析。已创建诊断指南：`docs/WORKFLOW_OUTPUT_DEBUG_GUIDE.md`，可参考其中的诊断步骤。
 
 ---
 

@@ -1245,7 +1245,7 @@ React Flow 的内置边类型有：
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/WorkflowEditor/WorkflowCanvas.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/WorkflowEditor/WorkflowCanvas.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1253,11 +1253,11 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -111,6 +111,6 @@
         label: edge.label,
-        style: typeof edge.style === &#39;string&#39; ? JSON.parse(edge.style) : edge.style,
+        style: typeof edge.style === 'string' ? JSON.parse(edge.style) : edge.style,
 -       // 使用 bezier 类型创建曲线连接
--       type: &#39;bezier&#39;,
+-       type: 'bezier',
 +       // 使用 smoothstep 类型创建曲线连接（React Flow 内置类型）
-+       type: &#39;smoothstep&#39;,
++       type: 'smoothstep',
       }));
     }, []);
 ```
@@ -1270,7 +1270,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/WorkflowEditor/WorkflowCanvas.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/components/WorkflowEditor/WorkflowCanvas.tsx</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1279,8 +1279,8 @@ Lines added: 1, lines removed: 1
 @@ -353,5 +353,5 @@
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           defaultEdgeOptions={{
--           type: &#39;bezier&#39;,
-+           type: &#39;smoothstep&#39;,
+-           type: 'bezier',
++           type: 'smoothstep',
             animated: false,
           }}
 ```

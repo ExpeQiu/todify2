@@ -272,7 +272,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 26
@@ -286,24 +286,24 @@ Lines added: 1, lines removed: 26
 -  * 根据页面类型获取配置
 -  * GET /api/v1/page-tool-configs/:pageType
 -  */
-- router.get(&#39;/:pageType&#39;, async (req, res) =&gt; {
+- router.get('/:pageType', async (req, res) =&gt; {
 -   try {
 -     const { pageType } = req.params;
 -     
 -     const config = await pageToolConfigModel.getByPageType(pageType);
 -     
 -     if (!config) {
--       return res.status(404).json(formatApiResponse(false, null, &#39;配置不存在&#39;));
+-       return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
 -     }
 -     
--     res.json(formatApiResponse(true, config, &#39;获取配置成功&#39;));
+-     res.json(formatApiResponse(true, config, '获取配置成功'));
 -   } catch (error) {
--     console.error(&#39;获取配置失败:&#39;, error);
+-     console.error('获取配置失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
--       &#39;获取配置失败&#39;,
--       error instanceof Error ? error.message : &#39;未知错误&#39;
+-       '获取配置失败',
+-       error instanceof Error ? error.message : '未知错误'
 -     ));
 -   }
 - });
@@ -313,7 +313,7 @@ Lines added: 1, lines removed: 26
    * GET /api/v1/page-tool-configs
 +  * 注意：必须在 /:pageType 之前定义，否则会被参数路由匹配
    */
-  router.get(&#39;/&#39;, async (req, res) =&gt; {
+  router.get('/', async (req, res) =&gt; {
 ```
 
 </details>
@@ -324,7 +324,7 @@ Lines added: 1, lines removed: 26
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 27, lines removed: undefined
@@ -339,24 +339,24 @@ Lines added: 27, lines removed: undefined
 +  * GET /api/v1/page-tool-configs/:pageType
 +  * 注意：必须在 / 之后定义，否则会拦截根路径
 +  */
-+ router.get(&#39;/:pageType&#39;, async (req, res) =&gt; {
++ router.get('/:pageType', async (req, res) =&gt; {
 +   try {
 +     const { pageType } = req.params;
 +     
 +     const config = await pageToolConfigModel.getByPageType(pageType);
 +     
 +     if (!config) {
-+       return res.status(404).json(formatApiResponse(false, null, &#39;配置不存在&#39;));
++       return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
 +     }
 +     
-+     res.json(formatApiResponse(true, config, &#39;获取配置成功&#39;));
++     res.json(formatApiResponse(true, config, '获取配置成功'));
 +   } catch (error) {
-+     console.error(&#39;获取配置失败:&#39;, error);
++     console.error('获取配置失败:', error);
 +     res.status(500).json(formatApiResponse(
 +       false,
 +       null,
-+       &#39;获取配置失败&#39;,
-+       error instanceof Error ? error.message : &#39;未知错误&#39;
++       '获取配置失败',
++       error instanceof Error ? error.message : '未知错误'
 +     ));
 +   }
 + });
@@ -435,7 +435,7 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/services/pageToolConfigService.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/frontend/src/services/pageToolConfigService.ts</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 4
@@ -443,20 +443,20 @@ Lines added: 5, lines removed: 4
 ```diff
 @@ -18,13 +18,14 @@
       // 对于页面工具配置的 404 错误，静默处理（不抛出错误）
-      if (error?.config?.url?.includes(&#39;/page-tool-configs/&#39;) &amp;&amp; error?.response?.status === 404) {
+      if (error?.config?.url?.includes('/page-tool-configs/') &amp;&amp; error?.response?.status === 404) {
 -       // 返回一个模拟的成功响应，data 为 null
 +       // 返回一个模拟的成功响应，data 为 null，表示配置不存在（这是正常情况）
         return Promise.resolve({
           data: {
             success: false,
             data: null,
-+           message: &#39;配置不存在&#39;,
++           message: '配置不存在',
           },
 -         status: 404,
--         statusText: &#39;Not Found&#39;,
+-         statusText: 'Not Found',
 -         headers: {},
 +         status: 200, // 返回 200 而不是 404，避免浏览器控制台显示错误
-+         statusText: &#39;OK&#39;,
++         statusText: 'OK',
 +         headers: error.response?.headers || {},
           config: error.config,
         });
@@ -657,7 +657,7 @@ _**Agent (model default, mode Agent)**_
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Volumes/Lexar/git/03T/todify3 && curl -v http://localhost:3001/api/v1/page-tool-configs/tech-package 2>&1 | head -30</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Volumes/Lexar/git/03T/todify3 && curl -v http://localhost:3001/api/v1/page-tool-configs/tech-package 2>&1 | head -30</summary>
 
 ```bash
 cd /Volumes/Lexar/git/03T/todify3 && curl -v http://localhost:3001/api/v1/page-tool-configs/tech-package 2>&1 | head -30
@@ -683,14 +683,14 @@ cd /Volumes/Lexar/git/03T/todify3 && curl -v http://localhost:3001/api/v1/page-t
 &lt; access-control-allow-origin: *
 &lt; content-type: application/json; charset=utf-8
 &lt; content-length: 71
-&lt; etag: W/&quot;47-PNKyCjnohN8L0ysFBjeIROgFQE8&quot;
+&lt; etag: W/"47-PNKyCjnohN8L0ysFBjeIROgFQE8"
 &lt; date: Thu, 27 Nov 2025 10:51:00 GMT
 &lt; connection: close
 &lt; 
 { [71 bytes data]
 100    71  100    71    0     0  16900      0 --:--:-- --:--:-- --:--:-- 17750
 * Closing connection
-{&quot;success&quot;:false,&quot;error&quot;:{&quot;code&quot;:&quot;API_ERROR&quot;,&quot;message&quot;:&quot;请求失败&quot;}}
+{"success":false,"error":{"code":"API_ERROR","message":"请求失败"}}
 ```
 </details>
 </tool-use>
@@ -837,18 +837,18 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -1,4 +1,5 @@
-  import express from &#39;express&#39;;
-  import { formatApiResponse, formatValidationErrorResponse } from &#39;../utils/validation&#39;;
-+ import { createSuccessResponse, createErrorResponse, ApiErrorCode } from &#39;../shared/types/api&#39;;
-  import { DatabaseManager } from &#39;../config/database&#39;;
-  import { PageToolConfigModel, CreatePageToolConfigDTO, UpdatePageToolConfigDTO } from &#39;../models/PageToolConfig&#39;;
+  import express from 'express';
+  import { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';
++ import { createSuccessResponse, createErrorResponse, ApiErrorCode } from '../shared/types/api';
+  import { DatabaseManager } from '../config/database';
+  import { PageToolConfigModel, CreatePageToolConfigDTO, UpdatePageToolConfigDTO } from '../models/PageToolConfig';
 ```
 
 </details>
@@ -859,7 +859,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 4
@@ -868,17 +868,17 @@ Lines added: 3, lines removed: 4
 @@ -17,10 +17,9 @@
     try {
       const configs = await pageToolConfigModel.getAll();
--     res.json(formatApiResponse(true, configs, &#39;获取配置列表成功&#39;));
-+     res.json(createSuccessResponse(configs, &#39;获取配置列表成功&#39;));
+-     res.json(formatApiResponse(true, configs, '获取配置列表成功'));
++     res.json(createSuccessResponse(configs, '获取配置列表成功'));
     } catch (error) {
-      console.error(&#39;获取配置列表失败:&#39;, error);
+      console.error('获取配置列表失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
 +     res.status(500).json(createErrorResponse(
 +       ApiErrorCode.INTERNAL_ERROR,
-        &#39;获取配置列表失败&#39;,
-        error instanceof Error ? error.message : &#39;未知错误&#39;
+        '获取配置列表失败',
+        error instanceof Error ? error.message : '未知错误'
 ```
 
 </details>
@@ -889,7 +889,7 @@ Lines added: 3, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 5
@@ -898,24 +898,24 @@ Lines added: 7, lines removed: 5
 @@ -40,13 +40,15 @@
       
       if (!config) {
--       return res.status(404).json(formatApiResponse(false, null, &#39;配置不存在&#39;));
+-       return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
 +       return res.status(404).json(createErrorResponse(
 +         ApiErrorCode.NOT_FOUND,
-+         &#39;配置不存在&#39;
++         '配置不存在'
 +       ));
       }
       
--     res.json(formatApiResponse(true, config, &#39;获取配置成功&#39;));
-+     res.json(createSuccessResponse(config, &#39;获取配置成功&#39;));
+-     res.json(formatApiResponse(true, config, '获取配置成功'));
++     res.json(createSuccessResponse(config, '获取配置成功'));
     } catch (error) {
-      console.error(&#39;获取配置失败:&#39;, error);
+      console.error('获取配置失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
 +     res.status(500).json(createErrorResponse(
 +       ApiErrorCode.INTERNAL_ERROR,
-        &#39;获取配置失败&#39;,
-        error instanceof Error ? error.message : &#39;未知错误&#39;
+        '获取配置失败',
+        error instanceof Error ? error.message : '未知错误'
 ```
 
 </details>
@@ -926,7 +926,7 @@ Lines added: 7, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 4
@@ -935,17 +935,17 @@ Lines added: 3, lines removed: 4
 @@ -92,10 +92,9 @@
   
       const config = await pageToolConfigModel.create(dto);
--     res.status(201).json(formatApiResponse(true, config, &#39;创建配置成功&#39;));
-+     res.status(201).json(createSuccessResponse(config, &#39;创建配置成功&#39;));
+-     res.status(201).json(formatApiResponse(true, config, '创建配置成功'));
++     res.status(201).json(createSuccessResponse(config, '创建配置成功'));
     } catch (error) {
-      console.error(&#39;创建配置失败:&#39;, error);
+      console.error('创建配置失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
 +     res.status(500).json(createErrorResponse(
 +       ApiErrorCode.INTERNAL_ERROR,
-        &#39;创建配置失败&#39;,
-        error instanceof Error ? error.message : &#39;未知错误&#39;
+        '创建配置失败',
+        error instanceof Error ? error.message : '未知错误'
 ```
 
 </details>
@@ -956,7 +956,7 @@ Lines added: 3, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 5
@@ -965,24 +965,24 @@ Lines added: 7, lines removed: 5
 @@ -125,13 +125,15 @@
       
       if (!config) {
--       return res.status(404).json(formatApiResponse(false, null, &#39;配置不存在&#39;));
+-       return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
 +       return res.status(404).json(createErrorResponse(
 +         ApiErrorCode.NOT_FOUND,
-+         &#39;配置不存在&#39;
++         '配置不存在'
 +       ));
       }
       
--     res.json(formatApiResponse(true, config, &#39;更新配置成功&#39;));
-+     res.json(createSuccessResponse(config, &#39;更新配置成功&#39;));
+-     res.json(formatApiResponse(true, config, '更新配置成功'));
++     res.json(createSuccessResponse(config, '更新配置成功'));
     } catch (error) {
-      console.error(&#39;更新配置失败:&#39;, error);
+      console.error('更新配置失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
 +     res.status(500).json(createErrorResponse(
 +       ApiErrorCode.INTERNAL_ERROR,
-        &#39;更新配置失败&#39;,
-        error instanceof Error ? error.message : &#39;未知错误&#39;
+        '更新配置失败',
+        error instanceof Error ? error.message : '未知错误'
 ```
 
 </details>
@@ -993,7 +993,7 @@ Lines added: 7, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 5
@@ -1002,24 +1002,24 @@ Lines added: 7, lines removed: 5
 @@ -153,13 +153,15 @@
       
       if (!success) {
--       return res.status(404).json(formatApiResponse(false, null, &#39;配置不存在&#39;));
+-       return res.status(404).json(formatApiResponse(false, null, '配置不存在'));
 +       return res.status(404).json(createErrorResponse(
 +         ApiErrorCode.NOT_FOUND,
-+         &#39;配置不存在&#39;
++         '配置不存在'
 +       ));
       }
       
--     res.json(formatApiResponse(true, null, &#39;删除配置成功&#39;));
-+     res.json(createSuccessResponse(null, &#39;删除配置成功&#39;));
+-     res.json(formatApiResponse(true, null, '删除配置成功'));
++     res.json(createSuccessResponse(null, '删除配置成功'));
     } catch (error) {
-      console.error(&#39;删除配置失败:&#39;, error);
+      console.error('删除配置失败:', error);
 -     res.status(500).json(formatApiResponse(
 -       false,
 -       null,
 +     res.status(500).json(createErrorResponse(
 +       ApiErrorCode.INTERNAL_ERROR,
-        &#39;删除配置失败&#39;,
-        error instanceof Error ? error.message : &#39;未知错误&#39;
+        '删除配置失败',
+        error instanceof Error ? error.message : '未知错误'
 ```
 
 </details>
@@ -1075,18 +1075,18 @@ Lint results
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/pageToolConfig.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -1,4 +1,4 @@
-  import express from &#39;express&#39;;
-- import { formatApiResponse, formatValidationErrorResponse } from &#39;../utils/validation&#39;;
-+ import { formatValidationErrorResponse } from &#39;../utils/validation&#39;;
-  import { createSuccessResponse, createErrorResponse, ApiErrorCode } from &#39;../shared/types/api&#39;;
-  import { DatabaseManager } from &#39;../config/database&#39;;
+  import express from 'express';
+- import { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';
++ import { formatValidationErrorResponse } from '../utils/validation';
+  import { createSuccessResponse, createErrorResponse, ApiErrorCode } from '../shared/types/api';
+  import { DatabaseManager } from '../config/database';
 ```
 
 </details>
@@ -1221,7 +1221,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/index.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify3/backend/src/routes/index.ts</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: undefined
@@ -1233,7 +1233,7 @@ Lines added: 16, lines removed: undefined
 + 
 + // 404 处理中间件（必须在所有路由之后）
 + router.use((req, res) =&gt; {
-+   logger.warn(&#39;API 路由未找到&#39;, {
++   logger.warn('API 路由未找到', {
 +     method: req.method,
 +     originalUrl: req.originalUrl,
 +     path: req.path,
@@ -1241,7 +1241,7 @@ Lines added: 16, lines removed: undefined
 +   res.status(404).json({
 +     success: false,
 +     error: {
-+       code: &#39;NOT_FOUND&#39;,
++       code: 'NOT_FOUND',
 +       message: &#96;路由不存在: ${req.method} ${req.path}&#96;,
 +     },
 +   });

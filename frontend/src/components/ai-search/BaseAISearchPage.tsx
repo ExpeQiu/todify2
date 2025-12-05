@@ -3,6 +3,7 @@
  * 包含所有通用逻辑，通过配置来区分不同页面的行为
  */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import TopNavigation from "../TopNavigation";
 import SourceSidebar, { Source } from "./SourceSidebar";
 import DialogueContent from "./DialogueContent";
@@ -25,6 +26,7 @@ interface BaseAISearchPageProps {
 }
 
 const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   // 追踪当前对话中已发送给 Dify 的来源 ID，避免重复发送
@@ -140,8 +142,31 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   };
 
+  // 获取项目ID和是否创建新对话的标志
+  const projectId = searchParams.get('projectId');
+  const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
+  
+  // 根据项目ID调整 pageType，确保不同项目的对话相互独立
+  const effectivePageType = useMemo(() => {
+    if (projectId) {
+      // 如果有项目ID，使用项目特定的 pageType，例如：tech-package-project-3
+      return `${config.pageType}-project-${projectId}`;
+    }
+    return config.pageType;
+  }, [config.pageType, projectId]);
+
   // 加载对话历史和输出内容
   useEffect(() => {
+    // 如果 URL 中有 newConversation 参数，清除当前对话，确保创建新对话
+    if (shouldCreateNewConversation && currentConversation) {
+      console.log('[ConversationDebug] 检测到 newConversation 参数，清除当前对话');
+      setCurrentConversation(null);
+      // 清除 URL 参数，避免刷新时重复清除
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('newConversation');
+      setSearchParams(newSearchParams, { replace: true });
+    }
+    
     loadConversations();
     loadOutputs();
     loadWorkflowConfig();
@@ -164,8 +189,10 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   // 加载页面类型的来源信息（作为基础来源，始终保留）
   const loadPageTypeSources = useCallback(async () => {
     try {
-      console.log('[SourceInfo] 开始加载页面类型来源信息:', config.pageType);
-      const sourceResult = await sourceService.loadSourceInformationByPageType(config.pageType);
+      // 使用有效的 pageType（可能包含项目ID）
+      const pageTypeToLoad = projectId ? `${config.pageType}-project-${projectId}` : config.pageType;
+      console.log('[SourceInfo] 开始加载页面类型来源信息:', pageTypeToLoad);
+      const sourceResult = await sourceService.loadSourceInformationByPageType(pageTypeToLoad);
       console.log('[SourceInfo] 加载结果:', {
         success: sourceResult.success,
         count: sourceResult.data?.length || 0,
@@ -194,7 +221,48 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
       // 不阻止页面加载，只记录错误
     }
-  }, [config.pageType]);
+  }, [config.pageType, projectId]);
+
+  // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
+  useEffect(() => {
+    const urlSourceIds = searchParams.getAll('sourceId'); // 获取所有的 sourceId 参数
+    if (urlSourceIds.length > 0 && sources.length > 0) {
+      console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds);
+      
+      const newSelectedIds: string[] = [];
+      let hasNewSelection = false;
+      
+      // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
+      urlSourceIds.forEach(sourceId => {
+        const foundSource = sources.find(s => s.id === sourceId);
+        if (foundSource) {
+          console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
+          newSelectedIds.push(sourceId);
+          hasNewSelection = true;
+        } else {
+          console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
+        }
+      });
+      
+      // 如果有新的选中项，更新选中列表
+      if (hasNewSelection) {
+        setSelectedSourceIds(prev => {
+          const combined = [...prev];
+          newSelectedIds.forEach(id => {
+            if (!combined.includes(id)) {
+              combined.push(id);
+            }
+          });
+          return combined;
+        });
+        
+        // 清除 URL 参数，避免刷新时重复选中
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('sourceId');
+        setSearchParams(newSearchParams, { replace: true });
+      }
+    }
+  }, [sources, searchParams, setSearchParams]);
 
   const loadFiles = useCallback(async () => {
     try {
@@ -205,7 +273,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         console.warn('清理乱码文件失败:', error);
       }
 
-      const files = await aiSearchService.getFiles({ pageType: config.pageType });
+      // 使用有效的 pageType（可能包含项目ID）
+      const files = await aiSearchService.getFiles({ pageType: effectivePageType });
       const fileSources: Source[] = files.map((file) => ({
         id: `file_${file.id || file.fileId}`,
         title: file.name,
@@ -221,7 +290,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     } catch (error) {
       console.error('加载文件列表失败:', error);
     }
-  }, [config.pageType]);
+  }, [effectivePageType]);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -637,8 +706,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   );
 
   const loadConversations = useCallback(async (options?: { refreshActive?: boolean; activeConversationId?: string }) => {
+    // 使用有效的 pageType（可能包含项目ID）
     try {
-      const data = await aiSearchService.getConversations(config.pageType);
+      const data = await aiSearchService.getConversations(effectivePageType);
       console.log('[ConversationDebug] 加载对话列表，原始数据:', data.length, '条对话');
       
       // 按ID去重，保留最新的对话（按updated_at排序）
@@ -704,11 +774,12 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error("加载对话历史失败:", error);
       reportError("加载对话历史失败，请稍后重试", error instanceof Error ? error.message : undefined);
     }
-  }, [currentConversation, loadConversationDetail, reportError, loadPageTypeSources, config.pageType]);
+  }, [currentConversation, loadConversationDetail, reportError, loadPageTypeSources, effectivePageType]);
 
   const loadOutputs = async () => {
     try {
-      const data = await aiSearchService.getOutputs(undefined, config.pageType);
+      // 使用有效的 pageType（可能包含项目ID）
+      const data = await aiSearchService.getOutputs(undefined, effectivePageType);
       setOutputs(data);
     } catch (error) {
       console.error("加载输出内容失败:", error);
@@ -826,7 +897,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
-        pageType: config.pageType,
+        pageType: effectivePageType, // 使用包含项目ID的 pageType
       });
 
       console.log('[ConversationDebug] 新对话已创建:', conversation.id);
@@ -850,6 +921,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     persistWorkflowSelection,
     loadConversations,
     currentConversation,
+    effectivePageType,
   ]);
 
   const handleCreateNewConversation = useCallback(async () => {
@@ -862,7 +934,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const conversation = await aiSearchService.createConversation({
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: [], // 新对话不附带来源，等用户勾选后首次发送时传递
-        pageType: config.pageType,
+        pageType: effectivePageType, // 使用包含项目ID的 pageType
       });
 
       if (selectedWorkflowId) {
@@ -879,6 +951,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     selectedWorkflowId,
     persistWorkflowSelection,
     loadConversations,
+    effectivePageType,
   ]);
 
   const handleShowHistory = useCallback(() => {
@@ -940,7 +1013,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   };
 
   const handleSaveToNotes = (content: string) => {
-    console.log("保存到笔记:", content);
+    console.log("保存到项目:", content);
   };
 
   const handleTriggerFeature = async (featureType: string) => {
@@ -1032,10 +1105,18 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   };
 
   useEffect(() => {
+    // 如果 URL 中有 newConversation 参数，强制创建新对话
+    if (shouldCreateNewConversation && !currentConversation) {
+      console.log('[ConversationDebug] 检测到 newConversation 参数，强制创建新对话');
+      handleCreateConversation();
+      return;
+    }
+    
+    // 正常情况：当没有当前对话且有来源被选中时，创建新对话
     if (!currentConversation && sources.length > 0 && selectedSourceIds.length > 0) {
       handleCreateConversation();
     }
-  }, [currentConversation, sources, selectedSourceIds, handleCreateConversation]);
+  }, [currentConversation, sources, selectedSourceIds, handleCreateConversation, shouldCreateNewConversation]);
 
   useEffect(() => {
     return () => {
@@ -1095,16 +1176,17 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           onSaveToNotes={handleSaveToNotes}
           onEnsureConversation={ensureActiveConversation}
           onCreateNewConversation={handleCreateNewConversation}
-          onShowHistory={handleShowHistory}
           availableWorkflows={availableWorkflows}
           selectedWorkflowId={selectedWorkflowId}
           onWorkflowChange={handleWorkflowSelectionChange}
           isWorkflowLoading={isWorkflowLoading}
           dialogueTitle={config.dialogueTitle}
+          pageType={config.pageType}
         />
 
         <StudioSidebar
           outputs={outputs}
+          conversations={conversations}
           onShowConversationList={() => setShowConversationList(true)}
           onTriggerFeature={handleTriggerFeature}
           executingFeatureId={triggeringFeatureId}
@@ -1114,6 +1196,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
           enabledToolIds={enabledToolIds}
           pageType={config.pageType}
+          onDeleteConversation={handleDeleteConversation}
         />
       </div>
 
