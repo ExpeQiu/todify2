@@ -6,8 +6,6 @@ import { logger } from '@/shared/lib/logger';
 
 import techCategoriesRouter from './techCategories';
 import techPointsRouter from './techPoints';
-import brandsRouter from './brands';
-import carModelsRouter from './carModels';
 import carSeriesRouter from './carSeries';
 import knowledgePointsRouter from './knowledgePointRoutes';
 import chatRouter from './chat';
@@ -46,8 +44,6 @@ router.use((req, res, next) => {
 // 注册路由
 router.use('/tech-categories', techCategoriesRouter);
 router.use('/tech-points', techPointsRouter);
-router.use('/brands', brandsRouter);
-router.use('/car-models', carModelsRouter);
 router.use('/car-series', carSeriesRouter);
 router.use('/workflow', workflowModuleRouter);
 router.use('/knowledge-points', knowledgePointsRouter);

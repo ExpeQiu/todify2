@@ -201,6 +201,12 @@ const PublicKnowledgePage: React.FC = () => {
               >
                 公共知识库
               </button>
+              <button
+                onClick={() => navigate('/tech-point-library')}
+                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                技术点库
+              </button>
             </div>
 
             {/* 右侧操作栏 */}
