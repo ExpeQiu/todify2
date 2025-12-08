@@ -114,6 +114,7 @@ export const techPointService = {
     promotionStrategies: any[];
     pressReleases: any[];
     speeches: any[];
+    resources?: any[];
   }>> {
     try {
       const response = await api.get(`${TECH_POINT_BASE_URL}/${id}/content`);
@@ -144,12 +145,40 @@ export const techPointService = {
   async getTechCategories(): Promise<ApiResponse<TechCategory[]>> {
     try {
       const response = await api.get(TECH_CATEGORY_BASE_URL);
-      return response.data;
+      // 处理不同的响应格式
+      if (response.data) {
+        // 如果已经是 ApiResponse 格式
+        if (response.data.success !== undefined) {
+          // 确保 data 是数组
+          if (response.data.success && response.data.data) {
+            const data = Array.isArray(response.data.data) 
+              ? response.data.data 
+              : (response.data.data as any).data || [];
+            return {
+              ...response.data,
+              data
+            };
+          }
+          return response.data;
+        }
+        // 如果直接是数组
+        if (Array.isArray(response.data)) {
+          return {
+            success: true,
+            data: response.data
+          };
+        }
+      }
+      return {
+        success: false,
+        error: '获取技术分类失败：响应格式不正确'
+      };
     } catch (error) {
       console.error('获取技术分类失败:', error);
       return {
         success: false,
-        error: '获取技术分类失败'
+        error: '获取技术分类失败',
+        data: []
       };
     }
   },
@@ -299,6 +328,25 @@ export const techPointService = {
       return {
         success: false,
         error: '同步技术点数据失败'
+      };
+    }
+  },
+
+  // 获取技术点的完整关联数据（用于图谱展示和资源加载）
+  async getGraphRelations(techPointId: number): Promise<ApiResponse<{
+    products: any[];
+    category: any;
+    resources: any[];
+    technologies: any[];
+  }>> {
+    try {
+      const response = await api.get(`${TECH_POINT_BASE_URL}/${techPointId}/graph-relations`);
+      return response.data;
+    } catch (error) {
+      console.error('获取技术点关联数据失败:', error);
+      return {
+        success: false,
+        error: '获取技术点关联数据失败'
       };
     }
   }

@@ -25,6 +25,7 @@ import publicKnowledgeRouter from './publicKnowledge';
 import techPackagingRouter from './techPackaging';
 import techPromotionRouter from './techPromotion';
 import techPressRouter from './techPress';
+import bochaWebSearchRouter from './bochaWebSearch';
 
 const router = Router();
 
@@ -66,6 +67,7 @@ router.use('/tech-packaging', techPackagingRouter);
 router.use('/tech-promotion', techPromotionRouter);
 router.use('/tech-press', techPressRouter);
 router.use('/ai-search', aiSearchModuleRouter);
+router.use('/bocha', bochaWebSearchRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

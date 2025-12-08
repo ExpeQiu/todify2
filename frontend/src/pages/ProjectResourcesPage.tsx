@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper } from 'lucide-react';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus } from 'lucide-react';
 import { Project } from '../types/project';
 import projectService from '../services/projectService';
 import { aiSearchService } from '../services/aiSearchService';
@@ -12,7 +12,7 @@ import { KnowledgePoint } from '../types/knowledgePoint';
 import { FileUploadResponse } from '../types/aiSearch';
 import { PublicKnowledgeFile } from '../types/publicKnowledge';
 import api from '../services/api';
-import { workflowAPI } from '../services/api';
+import { workflowAPI, bochaAPI } from '../services/api';
 import { configService } from '../services/configService';
 import sourceService, { Source, SourceCategory } from '../services/sourceService';
 
@@ -31,6 +31,8 @@ interface SourceInformation {
 const ProjectResourcesPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const techPointSelectorRef = useRef<HTMLDivElement>(null);
   
@@ -70,6 +72,15 @@ const ProjectResourcesPage: React.FC = () => {
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [showKnowledgePointModal, setShowKnowledgePointModal] = useState(false);
   const [showInternetInfoModal, setShowInternetInfoModal] = useState(false);
+  const [internetInfoTab, setInternetInfoTab] = useState<'search' | 'web'>('web'); // 'search' 检索信息, 'web' Web Search
+  const [internetInfoSearchQuery, setInternetInfoSearchQuery] = useState('');
+  const [isAddingInternetInfo, setIsAddingInternetInfo] = useState(false);
+  // Web Search 相关状态
+  const [webSearchQuery, setWebSearchQuery] = useState('');
+  const [webSearchResults, setWebSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedSearchResults, setSelectedSearchResults] = useState<Set<number>>(new Set());
+  const [showPublicKnowledgeModal, setShowPublicKnowledgeModal] = useState(false);
   const [isSummarizingConversation, setIsSummarizingConversation] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyRecords, setHistoryRecords] = useState<SourceInformation[]>([]);
@@ -83,7 +94,14 @@ const ProjectResourcesPage: React.FC = () => {
   const [aiInputMessage, setAiInputMessage] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiConversationId, setAiConversationId] = useState<string | undefined>(undefined);
+  const [savedConversationSourceId, setSavedConversationSourceId] = useState<string | null>(null); // 已保存的对话来源ID
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 提炼为技术点相关状态
+  const [extractingTechPoint, setExtractingTechPoint] = useState(false);
+  const [showTechPointPreview, setShowTechPointPreview] = useState(false);
+  const [extractedTechPointData, setExtractedTechPointData] = useState<any>(null);
+  const [extractingSourceId, setExtractingSourceId] = useState<number | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -94,6 +112,27 @@ const ProjectResourcesPage: React.FC = () => {
       checkHistoryRecords(); // 检查历史记录
     }
   }, [projectId]);
+
+  // 处理从技术点库页面返回的选中技术点
+  useEffect(() => {
+    const selectedTechPointIds = searchParams.get('selectedTechPointIds');
+    if (selectedTechPointIds) {
+      try {
+        const ids = selectedTechPointIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+        if (ids.length > 0) {
+          setSelectedTechPoints(ids);
+          // 重新加载技术点列表，确保能获取到完整的技术点信息
+          loadTechPoints();
+          // 清除URL参数
+          const newSearchParams = new URLSearchParams(searchParams);
+          newSearchParams.delete('selectedTechPointIds');
+          setSearchParams(newSearchParams, { replace: true });
+        }
+      } catch (error) {
+        console.error('解析选中技术点ID失败:', error);
+      }
+    }
+  }, [searchParams, setSearchParams]);
 
   // AI消息自动滚动到底部
   useEffect(() => {
@@ -173,7 +212,14 @@ const ProjectResourcesPage: React.FC = () => {
         timestamp: new Date(),
       };
 
-      setAiMessages((prev) => [...prev, aiMessage]);
+      setAiMessages((prev) => {
+        const updated = [...prev, aiMessage];
+        // 在状态更新后，使用最新的消息列表自动保存
+        setTimeout(async () => {
+          await autoSaveConversationSummaryWithMessages(updated);
+        }, 300);
+        return updated;
+      });
     } catch (error) {
       console.error('AI问答API调用失败:', error);
       const errorMessage = {
@@ -185,6 +231,55 @@ const ProjectResourcesPage: React.FC = () => {
       setAiMessages((prev) => [...prev, errorMessage]);
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  // 自动保存对话摘要（使用指定的消息列表）
+  const autoSaveConversationSummaryWithMessages = async (messages: Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date }>) => {
+    if (!projectId) return;
+    
+    // 检查是否有至少一轮完整的问答（至少一条用户消息和一条AI消息）
+    const userMessages = messages.filter(msg => msg.sender === 'user');
+    const aiResponseMessages = messages.filter(msg => msg.sender === 'ai');
+    
+    // 如果没有完整的对话，不保存
+    if (userMessages.length === 0 || aiResponseMessages.length === 0) {
+      return;
+    }
+
+    // 如果有已保存的对话来源ID，先尝试删除旧的（如果存在）
+    // 然后保存新的对话摘要
+    try {
+      // 如果已经有保存的对话，更新它；否则创建新的
+      if (savedConversationSourceId) {
+        // 尝试删除旧的来源记录（使用数据库ID）
+        try {
+          const idNumber = parseInt(savedConversationSourceId);
+          if (!isNaN(idNumber)) {
+            await api.delete(`/source-information/${idNumber}`);
+          }
+        } catch (error) {
+          console.warn('删除旧对话记录失败:', error);
+          // 如果删除失败，继续创建新的
+        }
+      }
+
+      // 保存新的对话摘要，使用 project-${projectId} 作为 pageType，传入消息列表
+      const savedId = await summarizeAndSaveConversation(undefined, messages);
+      
+      if (savedId) {
+        setSavedConversationSourceId(savedId);
+        
+        // 刷新历史记录
+        await loadSources(); // 重新加载来源列表
+        // 更新历史记录列表，但不自动切换视图（避免强制跳回历史记录页面）
+        await checkHistoryRecords(false); // 传入 false 表示不自动切换视图
+        
+        console.log('[ProjectResources] 对话摘要已自动保存:', savedId);
+      }
+    } catch (error) {
+      console.error('[ProjectResources] 自动保存对话摘要失败:', error);
+      // 不抛出错误，避免影响用户体验
     }
   };
 
@@ -206,23 +301,180 @@ const ProjectResourcesPage: React.FC = () => {
     // 互联网信息点：来自"检索信息"模块的来源（排除上传的文件，只包含http/https链接或没有URL的文本来源）
     const files = sources.filter(s => {
       // 文件上传的通常URL是文件路径，不是http链接
-      return s.type === 'external' && s.url && !s.url.startsWith('http') && !s.url.startsWith('https');
-    });
-    // 互联网信息点：排除上传的文件，只包含真正的互联网信息（http/https链接或文本来源）
-    const internetInfo = sources.filter(s => {
-      // 排除上传的文件（URL是文件路径的）
-      if (s.url && !s.url.startsWith('http') && !s.url.startsWith('https')) {
+      // 检查：type为external，且有url，且url不是http/https开头
+      // 文件URL特征：以/uploads/开头，或者包含文件扩展名（.pdf, .doc等）
+      
+      // 首先检查type
+      if (s.type !== 'external') {
         return false;
       }
+      
+      // 检查URL是否存在
+      const hasUrl = s.url && (typeof s.url === 'string' || typeof s.url === 'object');
+      if (!hasUrl) {
+        console.log('[资源清单] ✗ 未识别为文件（无URL）:', { 
+          id: s.id, 
+          title: s.title, 
+          type: s.type,
+          url: s.url,
+          urlType: typeof s.url
+        });
+        return false;
+      }
+      
+      // 处理URL（可能是字符串或对象）
+      let urlStr: string;
+      if (typeof s.url === 'string') {
+        urlStr = s.url.trim();
+      } else if (s.url && typeof s.url === 'object' && 'toString' in s.url) {
+        urlStr = String(s.url).trim();
+      } else {
+        console.log('[资源清单] ✗ 未识别为文件（URL格式异常）:', { 
+          id: s.id, 
+          title: s.title, 
+          type: s.type,
+          url: s.url,
+          urlType: typeof s.url
+        });
+        return false;
+      }
+      
+      if (urlStr.length === 0) {
+        return false;
+      }
+      
+      const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
+      
+      // 判断是否为文件URL：
+      // 1. 以/uploads/开头
+      // 2. 或者不是http/https开头，且包含文件扩展名
+      const startsWithUploads = urlStr.startsWith('/uploads/') || urlStr.startsWith('uploads/');
+      const hasFileExtension = /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr);
+      const isFileUrl = !isHttpUrl && (startsWithUploads || hasFileExtension);
+      
+      const isFile = s.type === 'external' && isFileUrl;
+      
+      if (isFile) {
+        console.log('[资源清单] ✓ 识别为文件:', { 
+          id: s.id, 
+          title: s.title, 
+          url: urlStr,
+          type: s.type,
+          startsWithUploads,
+          hasFileExtension
+        });
+      } else {
+        // 记录为什么没有被识别为文件（用于调试）
+        console.log('[资源清单] ✗ 未识别为文件:', { 
+          id: s.id, 
+          title: s.title, 
+          url: urlStr,
+          urlRaw: JSON.stringify(s.url),
+          type: s.type,
+          isHttpUrl,
+          startsWithUploads,
+          hasFileExtension,
+          isFileUrl
+        });
+      }
+      return isFile;
+    });
+    
+    // 互联网信息点：排除上传的文件，只包含真正的互联网信息（http/https链接或文本来源）
+    // 辅助函数：获取来源的类别
+    const getCategory = (source: SourceInformation): SourceCategory | undefined => {
+      if (source.category) {
+        return source.category;
+      }
+      if (source.metadata) {
+        if (typeof source.metadata === 'string') {
+          try {
+            const parsed = JSON.parse(source.metadata);
+            return parsed.category || parsed.sourceCategory;
+          } catch (e) {
+            return undefined;
+          }
+        } else if (typeof source.metadata === 'object') {
+          return source.metadata.category || source.metadata.sourceCategory;
+        }
+      }
+      return undefined;
+    };
+    
+    const internetInfo = sources.filter(s => {
+      // 排除上传的文件（URL是文件路径的）
+      const hasUrl = s.url && typeof s.url === 'string' && s.url.trim().length > 0;
+      if (!hasUrl) {
+        // 没有URL的文本来源，需要检查是否是对话摘要或技术转译
+        const category = getCategory(s);
+        if (category === 'ai-qa-summary' || category === 'technical-translation') {
+          return false; // 排除对话摘要和技术转译
+        }
+        return true; // 没有URL且不是对话摘要/技术转译的，归类为互联网信息
+      }
+      
+      const urlStr = s.url.trim();
+      const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
+      const isFileUrl = !isHttpUrl && (
+        urlStr.startsWith('/uploads/') || 
+        urlStr.startsWith('uploads/') ||
+        /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr)
+      );
+      
+      if (isFileUrl) {
+        return false; // 排除文件
+      }
+      
+      // 排除对话摘要和技术转译（这些应该显示在历史记录中，而不是互联网信息点）
+      const category = getCategory(s);
+      if (category === 'ai-qa-summary' || category === 'technical-translation') {
+        return false; // 排除对话摘要和技术转译
+      }
+      
       // 包含http/https链接的来源，或者没有URL的文本来源（通过检索信息添加的）
       return true;
+    });
+    
+    // 将公共知识库文件（type: 'knowledge_base'）转换为知识点格式
+    const publicKnowledgeSources = sources.filter(s => s.type === 'knowledge_base');
+    const publicKnowledgeAsPoints: KnowledgePoint[] = publicKnowledgeSources.map(source => ({
+      id: source.id,
+      tech_point_id: 0, // 公共知识库文件没有关联的技术点
+      title: source.title,
+      content: source.description || '',
+      knowledge_type: 'fact' as any,
+      difficulty_level: 'intermediate' as any,
+      tags: [],
+      prerequisites: [],
+      learning_objectives: [],
+      examples: [],
+      references: [],
+      status: 'active' as any,
+      created_at: source.created_at || new Date().toISOString(),
+      updated_at: source.created_at || new Date().toISOString()
+    }));
+    
+    // 合并技术点关联的知识点和公共知识库文件
+    const allKnowledgePoints = [
+      ...knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id)),
+      ...publicKnowledgeAsPoints
+    ];
+    
+    console.log('[资源清单] 更新配置资源:', {
+      文件数量: files.length,
+      互联网信息数量: internetInfo.length,
+      技术点数量: techPoints.filter(tp => selectedTechPoints.includes(tp.id)).length,
+      知识点数量: allKnowledgePoints.length,
+      公共知识库文件数量: publicKnowledgeAsPoints.length,
+      总来源数量: sources.length,
+      文件列表: files.map(f => ({ id: f.id, title: f.title, url: f.url }))
     });
     
     setConfiguredResources({
       files: files,
       internetInfo: internetInfo,
       techPoints: techPoints.filter(tp => selectedTechPoints.includes(tp.id)),
-      knowledgePoints: knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id))
+      knowledgePoints: allKnowledgePoints
     });
   }, [sources, selectedTechPoints, selectedKnowledgePoints, techPoints, knowledgePoints]);
 
@@ -243,24 +495,82 @@ const ProjectResourcesPage: React.FC = () => {
   const loadSources = async () => {
     if (!projectId) return;
     try {
+      const pageType = `project-${projectId}`;
+      console.log('[加载来源] 开始加载，pageType:', pageType, 'projectId:', projectId);
+      
       // 获取项目的来源信息
       const response = await api.get('/source-information', {
         params: {
-          pageType: `project-${projectId}`,
+          pageType: pageType,
           page: 1,
           pageSize: 100
         }
       });
+      console.log('[加载来源] API响应:', response.data);
+      console.log('[加载来源] 请求参数:', { pageType, page: 1, pageSize: 100 });
+      
       if (response.data.success && response.data.data) {
-        setSources(response.data.data);
+        const loadedSources = response.data.data;
+        console.log('[加载来源] 加载的来源数量:', loadedSources.length);
+        console.log('[加载来源] 来源列表详情:', loadedSources.map((s: SourceInformation) => ({
+          id: s.id,
+          title: s.title,
+          type: s.type,
+          url: s.url,
+          urlType: typeof s.url,
+          urlValue: s.url,
+          urlStartsWithHttp: s.url ? s.url.startsWith('http') : false,
+          urlStartsWithHttps: s.url ? s.url.startsWith('https') : false,
+          urlStartsWithUploads: s.url ? (s.url.startsWith('/uploads/') || s.url.startsWith('uploads/')) : false,
+          hasFileExtension: s.url ? /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(s.url) : false,
+          page_type: (s as any).page_type,
+          source_id: s.source_id,
+          metadata: s.metadata
+        })));
+        
+        // 详细打印每个来源的完整信息
+        loadedSources.forEach((s: SourceInformation, index: number) => {
+          console.log(`[加载来源] 来源 ${index + 1} 完整信息:`, {
+            id: s.id,
+            title: s.title,
+            type: s.type,
+            url: s.url,
+            urlRaw: JSON.stringify(s.url),
+            description: s.description?.substring(0, 100),
+            page_type: (s as any).page_type,
+            source_id: s.source_id,
+            created_at: (s as any).created_at
+          });
+        });
+        
+        // 检查是否有文件类型的来源
+        const fileSources = loadedSources.filter((s: SourceInformation) => {
+          const hasUrl = s.url && typeof s.url === 'string' && s.url.trim().length > 0;
+          const urlStr = hasUrl ? s.url.trim() : '';
+          const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
+          const isFileUrl = !isHttpUrl && (
+            urlStr.startsWith('/uploads/') || 
+            urlStr.startsWith('uploads/') ||
+            /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr)
+          );
+          return s.type === 'external' && isFileUrl;
+        });
+        console.log('[加载来源] 识别出的文件来源数量:', fileSources.length);
+        if (fileSources.length > 0) {
+          console.log('[加载来源] 文件来源列表:', fileSources.map(f => ({ id: f.id, title: f.title, url: f.url })));
+        }
+        
+        setSources(loadedSources);
+      } else {
+        console.warn('[加载来源] API返回失败或没有数据:', response.data);
       }
     } catch (error) {
-      console.error('加载来源信息失败:', error);
+      console.error('[加载来源] 加载来源信息失败:', error);
     }
   };
 
   // 检查历史记录（用于决定显示哪个视图）
-  const checkHistoryRecords = async () => {
+  const checkHistoryRecords = async (autoSwitchView: boolean = true) => {
     if (!projectId) return;
     setCheckingHistory(true);
     try {
@@ -297,14 +607,22 @@ const ProjectResourcesPage: React.FC = () => {
           return category && historyCategories.includes(category);
         });
         setHistoryRecords(filtered);
-        // 如果有历史记录，显示历史记录视图；否则显示AI共创视图
-        setShowHistoryView(filtered.length > 0);
+        // 只有在 autoSwitchView 为 true 时才自动切换视图
+        // 这样可以避免在AI共创过程中保存对话后强制跳回历史记录页面
+        if (autoSwitchView) {
+          // 如果有历史记录，显示历史记录视图；否则显示AI共创视图
+          setShowHistoryView(filtered.length > 0);
+        }
       } else {
-        setShowHistoryView(false);
+        if (autoSwitchView) {
+          setShowHistoryView(false);
+        }
       }
     } catch (error) {
       console.error('检查历史记录失败:', error);
-      setShowHistoryView(false);
+      if (autoSwitchView) {
+        setShowHistoryView(false);
+      }
     } finally {
       setCheckingHistory(false);
     }
@@ -452,6 +770,122 @@ const ProjectResourcesPage: React.FC = () => {
     loadHistoryRecords();
   };
 
+  // 提炼为技术点
+  const handleExtractTechPoint = async (record: SourceInformation) => {
+    setExtractingTechPoint(true);
+    setExtractingSourceId(record.id);
+    
+    try {
+      // 获取对话内容
+      const conversationContent = record.description || record.title || '';
+      
+      // 构建AI提示词，要求提取技术点信息并转换为JSON格式
+      const extractPrompt = `你是一个技术信息提取专家。请分析以下对话内容，提炼关键信息并转换为技术点的标准JSON格式。
+
+对话内容：
+${conversationContent}
+
+请提取以下关键信息并生成JSON：
+
+必需字段：
+1. name: 技术名称（简短、准确，不超过50字）
+2. description: 技术描述（1-2句话概括，不超过200字）
+3. tech_type: 技术类型（必须是：feature、improvement、innovation、technology 之一）
+4. priority: 优先级（必须是：low、medium、high 之一）
+5. technical_details: 技术细节（JSON对象，可以包含：tech_principle技术原理、tech_value技术价值、tech_boundary技术边界等）
+6. benefits: 技术优势（字符串数组，列出3-5个关键优势，每个不超过100字）
+7. applications: 应用场景（字符串数组，列出应用场景，每个不超过100字）
+8. keywords: 关键词（字符串数组，提取3-8个关键词）
+9. features: 特性说明（字符串，格式化的markdown，包含：
+   - 【一句话说明（slogan）】
+   - 【技术品牌定位与愿景】
+   - 【用户体验与场景】
+   如果信息不足，可以使用"敬请期待"作为占位符）
+
+输出要求：
+- 只返回JSON格式，不要包含任何markdown代码块标记或其他文字说明
+- JSON必须是有效的，可以直接用JSON.parse()解析
+- 如果某些信息无法从对话中提取，使用合理的默认值或空值
+- 所有数组字段必须是数组格式，即使为空也要使用[]
+- technical_details必须是对象格式，即使为空也要使用{}
+
+示例JSON格式：
+{
+  "name": "技术名称",
+  "description": "技术描述",
+  "tech_type": "feature",
+  "priority": "medium",
+  "technical_details": {
+    "tech_principle": "技术原理说明",
+    "tech_value": "技术价值说明",
+    "tech_boundary": "技术边界说明"
+  },
+  "benefits": ["优势1", "优势2", "优势3"],
+  "applications": ["场景1", "场景2"],
+  "keywords": ["关键词1", "关键词2", "关键词3"],
+  "features": "【一句话说明（slogan）】\\n说明内容\\n【技术品牌定位与愿景】\\n定位：定位说明\\n愿景：愿景说明\\n【用户体验与场景】\\n场景说明"
+}
+
+现在请分析对话内容并返回JSON：`;
+
+      // 调用AI进行提炼
+      const aiQAConfig = await configService.getDifyConfig('smart-workflow-ai-qa');
+      const result = await workflowAPI.aiSearch(
+        extractPrompt,
+        { context: [{ role: 'user', content: extractPrompt }] },
+        (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined,
+        undefined
+      );
+
+      if (result.success && result.data) {
+        const aiResponse = result.data.answer || result.data.result || '';
+        
+        // 尝试解析JSON（AI可能返回JSON或包含JSON的文本）
+        let techPointData: any = null;
+        try {
+          // 尝试提取JSON部分（如果AI返回的是markdown代码块）
+          const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || aiResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            techPointData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+          } else {
+            techPointData = JSON.parse(aiResponse);
+          }
+        } catch (parseError) {
+          console.error('解析AI返回的JSON失败:', parseError);
+          // 如果解析失败，尝试手动构建基本结构
+          techPointData = {
+            name: record.title || '未命名技术',
+            description: conversationContent.substring(0, 200),
+            tech_type: 'feature',
+            priority: 'medium',
+            technical_details: {},
+            benefits: [],
+            applications: [],
+            keywords: [],
+            features: conversationContent
+          };
+          alert('AI提炼完成，但JSON解析失败，已使用默认格式。可以手动编辑。');
+        }
+
+        // 添加一些默认字段
+        techPointData.status = 'draft';
+        techPointData.level = 1;
+        
+        // 保存提炼的数据
+        setExtractedTechPointData(techPointData);
+        setShowTechPointPreview(true);
+      } else {
+        alert('AI提炼失败，请重试');
+      }
+    } catch (error) {
+      console.error('提炼技术点失败:', error);
+      alert(`提炼失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
+      setExtractingTechPoint(false);
+      setExtractingSourceId(null);
+    }
+  };
+
   const loadTechPoints = async () => {
     try {
       const response = await techPointService.getTechPoints({
@@ -498,6 +932,22 @@ const ProjectResourcesPage: React.FC = () => {
     }
   }, [selectedTechPoints]);
 
+  // 同步已添加的公共知识库文件到selectedPublicFiles
+  useEffect(() => {
+    if (sources.length > 0 && publicKnowledgeFiles.length > 0) {
+      const addedFileIds: number[] = [];
+      sources.forEach(source => {
+        if (source.type === 'knowledge_base' && source.source_id.startsWith('public_kb_')) {
+          const fileId = parseInt(source.source_id.replace('public_kb_', ''));
+          if (!isNaN(fileId) && publicKnowledgeFiles.find(f => f.id === fileId)) {
+            addedFileIds.push(fileId);
+          }
+        }
+      });
+      setSelectedPublicFiles(addedFileIds);
+    }
+  }, [sources, publicKnowledgeFiles]);
+
   // 点击外部关闭下拉菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -518,10 +968,14 @@ const ProjectResourcesPage: React.FC = () => {
     setIsUploading(true);
     try {
       const fileArray = Array.from(files);
+      console.log('[文件上传] 开始上传文件:', fileArray.map(f => f.name));
+      
       // 上传文件
       const uploadedFiles = await aiSearchService.uploadFiles(fileArray, undefined);
+      console.log('[文件上传] 文件上传成功:', uploadedFiles);
       
       // 创建来源信息记录
+      const createdSources = [];
       for (const uploadedFile of uploadedFiles) {
         // 如果markdown内容太长，只保存摘要
         let description = `文件大小: ${formatFileSize(uploadedFile.size)}`;
@@ -533,27 +987,124 @@ const ProjectResourcesPage: React.FC = () => {
           description = contentPreview;
         }
         
-        await api.post('/source-information', {
-          source_id: uploadedFile.id || uploadedFile.fileId || `file_${Date.now()}`,
+        const pageType = `project-${projectId}`;
+        const sourceData = {
+          source_id: uploadedFile.id || uploadedFile.fileId || `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: uploadedFile.name,
-          type: 'external',
+          type: 'external' as const,
           url: uploadedFile.url,
           description: description,
-          page_type: `project-${projectId}`,
+          page_type: pageType,
           conversation_id: null
-        });
+        };
+        
+        console.log('[文件上传] 创建来源信息:', sourceData);
+        console.log('[文件上传] pageType:', pageType, 'projectId:', projectId);
+        
+        try {
+          const response = await api.post('/source-information', sourceData);
+          console.log('[文件上传] 来源信息创建成功:', response.data);
+          const createdData = response.data.data;
+          console.log('[文件上传] 创建后的数据:', {
+            id: createdData?.id,
+            source_id: createdData?.source_id,
+            title: createdData?.title,
+            url: createdData?.url,
+            page_type: createdData?.page_type,
+            type: createdData?.type,
+            status: createdData?.status
+          });
+          
+          // 立即验证：使用source_id查询刚创建的记录
+          if (createdData?.source_id) {
+            try {
+              const verifyResponse = await api.get(`/source-information/source-id/${createdData.source_id}`);
+              console.log('[文件上传] 验证查询结果:', verifyResponse.data);
+            } catch (verifyError) {
+              console.warn('[文件上传] 验证查询失败（可能API不存在）:', verifyError);
+            }
+          }
+          
+          createdSources.push(createdData);
+        } catch (sourceError) {
+          console.error('[文件上传] 创建来源信息失败:', sourceError);
+          if (sourceError instanceof Error) {
+            console.error('[文件上传] 错误详情:', sourceError.message, sourceError.stack);
+          }
+          // 继续处理其他文件，不中断整个流程
+        }
       }
       
-      // 重新加载来源列表
+      console.log('[文件上传] 成功创建来源信息数量:', createdSources.length);
+      if (createdSources.length > 0) {
+        console.log('[文件上传] 创建的来源信息详情:', createdSources.map(s => ({
+          id: s.id,
+          source_id: s.source_id,
+          title: s.title,
+          url: s.url,
+          page_type: s.page_type
+        })));
+        
+        // 测试查询：立即查询刚创建的记录
+        const pageType = `project-${projectId}`;
+        for (const createdSource of createdSources) {
+          if (createdSource.source_id) {
+            try {
+              console.log('[文件上传] 测试查询刚创建的记录，source_id:', createdSource.source_id);
+              const testResponse = await api.get(`/source-information/source-id/${createdSource.source_id}`);
+              console.log('[文件上传] 测试查询结果:', testResponse.data);
+              
+              // 也测试用pageType查询
+              const pageTypeResponse = await api.get('/source-information', {
+                params: {
+                  pageType: pageType,
+                  page: 1,
+                  pageSize: 100
+                }
+              });
+              console.log('[文件上传] 测试pageType查询结果:', {
+                pageType,
+                count: pageTypeResponse.data.data?.length || 0,
+                sources: pageTypeResponse.data.data?.map((s: any) => ({
+                  id: s.id,
+                  source_id: s.source_id,
+                  title: s.title,
+                  url: s.url,
+                  page_type: s.page_type
+                }))
+              });
+            } catch (testError) {
+              console.error('[文件上传] 测试查询失败:', testError);
+            }
+          }
+        }
+      }
+      
+      // 等待一小段时间确保数据库已更新，然后重新加载来源列表
+      console.log('[文件上传] 等待300ms后重新加载...');
+      await new Promise(resolve => setTimeout(resolve, 300));
       await loadSources();
+      console.log('[文件上传] 来源列表已重新加载');
+      
+      // 再次等待并重新加载一次，确保数据同步
+      console.log('[文件上传] 等待500ms后二次重新加载...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await loadSources();
+      console.log('[文件上传] 来源列表二次重新加载完成');
       
       // 清空文件输入
       if (fileInputRefModal.current) {
         fileInputRefModal.current.value = '';
       }
+      
+      // 显示成功提示
+      if (createdSources.length > 0) {
+        alert(`成功上传 ${createdSources.length} 个文件`);
+      }
     } catch (error) {
-      console.error('文件上传失败:', error);
-      alert('文件上传失败，请重试');
+      console.error('[文件上传] 文件上传失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      alert(`文件上传失败: ${errorMessage}`);
     } finally {
       setIsUploading(false);
     }
@@ -633,10 +1184,25 @@ const ProjectResourcesPage: React.FC = () => {
 
   const togglePublicFile = async (fileId: number) => {
     if (selectedPublicFiles.includes(fileId)) {
+      // 取消选择：从selectedPublicFiles中移除，并从项目中删除对应的来源
       setSelectedPublicFiles(prev => prev.filter(id => id !== fileId));
+      if (projectId) {
+        // 查找对应的来源信息并删除
+        const sourceToDelete = sources.find(s => 
+          s.type === 'knowledge_base' && 
+          s.source_id === `public_kb_${fileId}`
+        );
+        if (sourceToDelete) {
+          try {
+            await handleDeleteSource(sourceToDelete.id);
+          } catch (error) {
+            console.error('删除公共知识库文件来源失败:', error);
+          }
+        }
+      }
     } else {
+      // 选择：添加到selectedPublicFiles，并添加到项目来源中
       setSelectedPublicFiles(prev => [...prev, fileId]);
-      // 将选中的公共知识库文件添加到项目来源中
       if (projectId) {
         const file = publicKnowledgeFiles.find(f => f.id === fileId);
         if (file) {
@@ -771,16 +1337,22 @@ const ProjectResourcesPage: React.FC = () => {
   };
 
   // 总结对话内容并保存为来源信息
-  const summarizeAndSaveConversation = async (targetPageType: 'tech-strategy' | 'tech-package'): Promise<string | null> => {
+  const summarizeAndSaveConversation = async (targetPageType?: string, messages?: Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date }>): Promise<string | null> => {
+    // 使用传入的消息列表，如果没有则使用状态中的消息
+    const messagesToUse = messages || aiMessages;
+    
     // 如果没有对话内容，直接返回 null
-    if (aiMessages.length === 0) {
+    if (messagesToUse.length === 0) {
       return null;
     }
+
+    // 如果没有指定pageType，使用project-{projectId}格式
+    const pageType = targetPageType || (projectId ? `project-${projectId}` : undefined);
 
     setIsSummarizingConversation(true);
     try {
       // 构建对话文本
-      const conversationText = aiMessages.map((msg) => {
+      const conversationText = messagesToUse.map((msg) => {
         const role = msg.sender === 'user' ? '用户' : 'AI助手';
         return `${role}: ${msg.content}`;
       }).join('\n\n');
@@ -833,8 +1405,8 @@ ${truncatedText}`;
       } catch (error) {
         console.warn('使用 AI 生成总结失败，使用简化版本:', error);
         // 如果 AI 调用失败，使用简化版本
-        summaryTitle = aiMessages.length > 0 
-          ? `项目对话摘要（${aiMessages.length}条消息）`
+        summaryTitle = messagesToUse.length > 0 
+          ? `项目对话摘要（${messagesToUse.length}条消息）`
           : '项目对话摘要';
       }
 
@@ -851,17 +1423,19 @@ ${truncatedText}`;
       // 保存到数据库
       const saveResult = await sourceService.saveSourceInformation(
         source,
-        targetPageType,
+        pageType,
         aiConversationId || undefined
       );
 
       if (saveResult.success && saveResult.data) {
         console.log('[ProjectResources] 对话摘要已保存:', {
+          id: saveResult.data.id,
           sourceId: saveResult.data.source_id,
           title: saveResult.data.title,
-          pageType: targetPageType
+          pageType: pageType
         });
-        return saveResult.data.source_id;
+        // 返回数据库的 id（数字），用于后续删除操作
+        return saveResult.data.id?.toString() || null;
       } else {
         console.error('[ProjectResources] 保存对话摘要失败:', saveResult.error);
         return null;
@@ -871,6 +1445,162 @@ ${truncatedText}`;
       return null;
     } finally {
       setIsSummarizingConversation(false);
+    }
+  };
+
+  // 添加互联网信息来源
+  const handleAddInternetInfo = async () => {
+    if (!internetInfoSearchQuery.trim()) {
+      alert('请输入需要检索的信息');
+      return;
+    }
+
+    if (!projectId) {
+      alert('项目ID不存在');
+      return;
+    }
+
+    setIsAddingInternetInfo(true);
+    try {
+      const searchText = internetInfoSearchQuery.trim();
+      const sourceId = `internet_search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // 创建检索信息来源
+      const source: Source = {
+        id: sourceId,
+        title: `检索信息: ${searchText.slice(0, 30)}${searchText.length > 30 ? '...' : ''}`,
+        type: 'external',
+        description: `[检索信息] ${searchText}\n\n说明：此来源需要AI检索补充相关信息。`,
+        category: 'internet-search', // 互联网搜索信息
+      };
+
+      // 保存到数据库
+      const pageType = `project-${projectId}`;
+      const saveResult = await sourceService.saveSourceInformation(
+        source,
+        pageType,
+        aiConversationId || undefined
+      );
+
+      if (saveResult.success && saveResult.data) {
+        console.log('[ProjectResources] 互联网信息已添加:', {
+          id: saveResult.data.id,
+          sourceId: saveResult.data.source_id,
+          title: saveResult.data.title,
+        });
+        
+        // 刷新来源列表
+        await loadSources();
+        
+        // 清空输入并关闭弹窗
+        setInternetInfoSearchQuery('');
+        setShowInternetInfoModal(false);
+      } else {
+        alert(saveResult.error || '添加互联网信息失败');
+      }
+    } catch (error) {
+      console.error('[ProjectResources] 添加互联网信息失败:', error);
+      alert('添加互联网信息失败，请重试');
+    } finally {
+      setIsAddingInternetInfo(false);
+    }
+  };
+
+  // Web Search 搜索处理
+  const handleWebSearch = async () => {
+    if (!webSearchQuery.trim()) {
+      alert('请输入搜索关键词');
+      return;
+    }
+
+    setIsSearching(true);
+    setWebSearchResults([]);
+    setSelectedSearchResults(new Set());
+
+    try {
+      const result = await bochaAPI.webSearch({
+        query: webSearchQuery.trim(),
+        summary: true,
+        count: 10,
+      });
+
+      if (result.success && result.data?.webPages?.value) {
+        setWebSearchResults(result.data.webPages.value);
+      } else {
+        alert(result.error?.message || '搜索失败，请重试');
+      }
+    } catch (error) {
+      console.error('[ProjectResources] Web Search 失败:', error);
+      alert('搜索失败，请重试');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 切换搜索结果选择状态
+  const toggleSearchResult = (index: number) => {
+    const newSelected = new Set(selectedSearchResults);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedSearchResults(newSelected);
+  };
+
+  // 保存选中的 Web Search 结果为来源信息
+  const handleSaveWebSearchResults = async () => {
+    if (selectedSearchResults.size === 0) {
+      alert('请至少选择一个搜索结果');
+      return;
+    }
+
+    if (!projectId) {
+      alert('项目ID不存在');
+      return;
+    }
+
+    setIsAddingInternetInfo(true);
+    try {
+      const pageType = `project-${projectId}`;
+      const selectedResults = Array.from(selectedSearchResults).map(index => webSearchResults[index]);
+      
+      // 批量保存选中的搜索结果
+      for (const result of selectedResults) {
+        const sourceId = `web_search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const description = `${result.snippet || ''}\n\n${result.summary ? `摘要：${result.summary}` : ''}\n\n来源：${result.siteName || ''}`.trim();
+        
+        const source: Source = {
+          id: sourceId,
+          title: result.name || '未命名网页',
+          type: 'external',
+          url: result.url,
+          description: description,
+          category: 'web-search',
+        };
+
+        await sourceService.saveSourceInformation(
+          source,
+          pageType,
+          aiConversationId || undefined
+        );
+      }
+
+      // 刷新来源列表
+      await loadSources();
+      
+      // 清空状态并关闭弹窗
+      setWebSearchQuery('');
+      setWebSearchResults([]);
+      setSelectedSearchResults(new Set());
+      setShowInternetInfoModal(false);
+      
+      alert(`成功添加 ${selectedResults.length} 个搜索结果`);
+    } catch (error) {
+      console.error('[ProjectResources] 保存 Web Search 结果失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsAddingInternetInfo(false);
     }
   };
 
@@ -1117,26 +1847,44 @@ ${truncatedText}`;
                                     )}
                                   </div>
                                 </div>
-                                <button
-                                  onClick={async () => {
-                                    if (confirm('确定要删除这条历史记录吗？')) {
-                                      await handleDeleteSource(record.id);
-                                      // 删除后重新加载历史记录并检查
-                                      await loadHistoryRecords();
-                                      await checkHistoryRecords();
-                                      // 如果删除后没有历史记录了，自动切换到AI共创视图
-                                      if (historyRecords.length <= 1) {
-                                        // 等待一下让状态更新
-                                        setTimeout(() => {
-                                          checkHistoryRecords();
-                                        }, 300);
+                                <div className="flex items-center space-x-2">
+                                  {/* 提炼为技术点按钮 */}
+                                  {getSourceCategory(record) === 'ai-qa-summary' && (
+                                    <button
+                                      onClick={() => handleExtractTechPoint(record)}
+                                      disabled={extractingTechPoint}
+                                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                      title="提炼为技术点"
+                                    >
+                                      {extractingTechPoint && extractingSourceId === record.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Sparkles className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  )}
+                                  {/* 删除按钮 */}
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm('确定要删除这条历史记录吗？')) {
+                                        await handleDeleteSource(record.id);
+                                        // 删除后重新加载历史记录并检查
+                                        await loadHistoryRecords();
+                                        await checkHistoryRecords();
+                                        // 如果删除后没有历史记录了，自动切换到AI共创视图
+                                        if (historyRecords.length <= 1) {
+                                          // 等待一下让状态更新
+                                          setTimeout(() => {
+                                            checkHistoryRecords();
+                                          }, 300);
+                                        }
                                       }
-                                    }
-                                  }}
-                                  className="ml-4 p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                    }}
+                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -1277,23 +2025,42 @@ ${truncatedText}`;
               
               {/* 已选择的技术点 */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <Check className="w-4 h-4 mr-2" />
-                  已选择技术点 ({configuredResources.techPoints.length})
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
+                    <Check className="w-4 h-4 mr-2" />
+                    已选择技术点 ({configuredResources.techPoints.length})
+                  </h3>
+                  <button
+                    onClick={() => {
+                      // 跳转到技术点库页面进行选择
+                      const returnUrl = `/project/${projectId}/resources`;
+                      const selectedIds = selectedTechPoints.join(',');
+                      navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${selectedIds}`);
+                    }}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="追加技术点"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {configuredResources.techPoints.length === 0 ? (
                     <div 
-                      onClick={() => setShowTechPointModal(true)}
+                      onClick={() => {
+                        // 跳转到技术点库页面进行选择
+                        const returnUrl = `/project/${projectId}/resources`;
+                        const selectedIds = selectedTechPoints.join(',');
+                        navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${selectedIds}`);
+                      }}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
-                      暂无已选择的技术点
+                      暂无已选择的技术点（点击选择）
                     </div>
                   ) : (
                     configuredResources.techPoints.map((techPoint) => (
                       <div
                         key={techPoint.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-medium text-gray-900 truncate">
@@ -1305,7 +2072,20 @@ ${truncatedText}`;
                             </p>
                           )}
                         </div>
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 ml-2" />
+                        <div className="flex items-center space-x-1 ml-2">
+                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <button
+                            onClick={() => {
+                              if (confirm(`确定要移除技术点"${techPoint.name}"吗？`)) {
+                                toggleTechPoint(techPoint.id);
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1314,17 +2094,26 @@ ${truncatedText}`;
 
               {/* 已上传的文件 */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <FileText className="w-4 h-4 mr-2" />
-                  已上传文件 ({configuredResources.files.length})
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    已上传文件 ({configuredResources.files.length})
+                  </h3>
+                  <button
+                    onClick={() => setShowFileUploadModal(true)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="追加文件"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {configuredResources.files.length === 0 ? (
                     <div 
                       onClick={() => setShowFileUploadModal(true)}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
-                      暂无已上传的文件
+                      暂无已上传的文件（点击上传）
                     </div>
                   ) : (
                     configuredResources.files.map((file) => (
@@ -1348,7 +2137,20 @@ ${truncatedText}`;
                             {formatDate(file.created_at)}
                           </p>
                         </div>
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 ml-2" />
+                        <div className="flex items-center space-x-1 ml-2">
+                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <button
+                            onClick={async () => {
+                              if (confirm(`确定要删除文件"${file.title}"吗？`)) {
+                                await handleDeleteSource(file.id);
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1357,23 +2159,32 @@ ${truncatedText}`;
 
               {/* 已选择的知识点 */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <Check className="w-4 h-4 mr-2" />
-                  已选择知识点 ({configuredResources.knowledgePoints.length})
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
+                    <Check className="w-4 h-4 mr-2" />
+                    已选择知识点 ({configuredResources.knowledgePoints.length})
+                  </h3>
+                  <button
+                    onClick={() => setShowKnowledgePointModal(true)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="追加知识点"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {configuredResources.knowledgePoints.length === 0 ? (
-                    <div 
-                      onClick={() => setShowKnowledgePointModal(true)}
+                    <div
+                      onClick={() => setShowPublicKnowledgeModal(true)}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
-                      暂无已选择的知识点
+                      暂无关联公共知识库（点击选择）
                     </div>
                   ) : (
                     configuredResources.knowledgePoints.map((knowledgePoint) => (
                       <div
                         key={knowledgePoint.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-medium text-gray-900 truncate">
@@ -1385,7 +2196,20 @@ ${truncatedText}`;
                             </p>
                           )}
                         </div>
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 ml-2" />
+                        <div className="flex items-center space-x-1 ml-2">
+                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <button
+                            onClick={() => {
+                              if (confirm(`确定要移除知识点"${knowledgePoint.title}"吗？`)) {
+                                toggleKnowledgePoint(knowledgePoint.id);
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1394,17 +2218,26 @@ ${truncatedText}`;
 
               {/* 互联网信息点 */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                  <FileText className="w-4 h-4 mr-2" />
-                  互联网信息点 ({configuredResources.internetInfo.length})
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    互联网信息点 ({configuredResources.internetInfo.length})
+                  </h3>
+                  <button
+                    onClick={() => setShowInternetInfoModal(true)}
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="追加互联网信息"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {configuredResources.internetInfo.length === 0 ? (
                     <div 
                       onClick={() => setShowInternetInfoModal(true)}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
-                      暂无互联网信息点
+                      暂无互联网信息点（点击添加）
                     </div>
                   ) : (
                     configuredResources.internetInfo.map((info) => (
@@ -1438,7 +2271,20 @@ ${truncatedText}`;
                             {formatDate(info.created_at)}
                           </p>
                         </div>
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 ml-2" />
+                        <div className="flex items-center space-x-1 ml-2">
+                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <button
+                            onClick={async () => {
+                              if (confirm(`确定要删除互联网信息"${info.title}"吗？`)) {
+                                await handleDeleteSource(info.id);
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1517,113 +2363,6 @@ ${truncatedText}`;
         )}
       </div>
 
-      {/* 技术点选择弹窗 */}
-      {showTechPointModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
-            {/* 弹窗头部 */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">关联技术点信息选择</h2>
-              <button
-                onClick={() => setShowTechPointModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
-            {/* 弹窗内容 */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="relative" ref={techPointSelectorRef}>
-                <button
-                  onClick={() => setShowTechPointSelector(!showTechPointSelector)}
-                  className="w-full flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <span className="text-sm text-gray-700">
-                    {selectedTechPoints.length > 0
-                      ? `已选择 ${selectedTechPoints.length} 个技术点`
-                      : '选择技术点'}
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showTechPointSelector ? 'transform rotate-180' : ''}`} />
-                </button>
-                {showTechPointSelector && (
-                  <div className="absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
-                    <div className="p-3 border-b border-gray-200">
-                      <input
-                        type="text"
-                        placeholder="搜索技术点..."
-                        value={techPointSearch}
-                        onChange={(e) => setTechPointSearch(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="max-h-80 overflow-y-auto">
-                      {filteredTechPoints.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500 text-sm">
-                          未找到技术点
-                        </div>
-                      ) : (
-                        filteredTechPoints.map((techPoint) => (
-                          <div
-                            key={techPoint.id}
-                            onClick={() => toggleTechPoint(techPoint.id)}
-                            className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-medium text-gray-900 truncate">
-                                {techPoint.name}
-                              </h3>
-                              {techPoint.description && (
-                                <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                                  {techPoint.description}
-                                </p>
-                              )}
-                            </div>
-                            {selectedTechPoints.includes(techPoint.id) && (
-                              <Check className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" />
-                            )}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {selectedTechPoints.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {selectedTechPoints.map((techPointId) => {
-                    const techPoint = techPoints.find(tp => tp.id === techPointId);
-                    return techPoint ? (
-                      <span
-                        key={techPointId}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                      >
-                        {techPoint.name}
-                        <button
-                          onClick={() => toggleTechPoint(techPointId)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* 弹窗底部 */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-              <button
-                onClick={() => setShowTechPointModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 上传文件弹窗 */}
       {showFileUploadModal && (
@@ -1652,10 +2391,11 @@ ${truncatedText}`;
                 onDragLeave={(e) => {
                   e.currentTarget.classList.remove('border-blue-500');
                 }}
-                onDrop={(e) => {
+                onDrop={async (e) => {
                   e.preventDefault();
                   e.currentTarget.classList.remove('border-blue-500');
-                  handleFileUpload(e.dataTransfer.files);
+                  await handleFileUpload(e.dataTransfer.files);
+                  // 上传完成后再关闭弹窗
                   setShowFileUploadModal(false);
                 }}
               >
@@ -1671,8 +2411,9 @@ ${truncatedText}`;
                   type="file"
                   multiple
                   className="hidden"
-                  onChange={(e) => {
-                    handleFileUpload(e.target.files);
+                  onChange={async (e) => {
+                    await handleFileUpload(e.target.files);
+                    // 上传完成后再关闭弹窗
                     setShowFileUploadModal(false);
                   }}
                   accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
@@ -1721,7 +2462,10 @@ ${truncatedText}`;
                   <button
                     onClick={() => {
                       setShowKnowledgePointModal(false);
-                      setShowTechPointModal(true);
+                      // 跳转到技术点库页面进行选择
+                      const returnUrl = `/project/${projectId}/resources`;
+                      const selectedIds = selectedTechPoints.join(',');
+                      navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${selectedIds}`);
                     }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                   >
@@ -1802,12 +2546,242 @@ ${truncatedText}`;
       {/* 互联网信息点弹窗 */}
       {showInternetInfoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
             {/* 弹窗头部 */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">检索信息</h2>
               <button
-                onClick={() => setShowInternetInfoModal(false)}
+                onClick={() => {
+                  setShowInternetInfoModal(false);
+                  setInternetInfoSearchQuery('');
+                  setWebSearchQuery('');
+                  setWebSearchResults([]);
+                  setSelectedSearchResults(new Set());
+                  setInternetInfoTab('web');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Tab 切换 */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setInternetInfoTab('web')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                  internetInfoTab === 'web'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                Web Search
+              </button>
+              <button
+                onClick={() => setInternetInfoTab('search')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
+                  internetInfoTab === 'search'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                检索信息
+              </button>
+            </div>
+
+            {/* 弹窗内容 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {internetInfoTab === 'search' ? (
+                // 检索信息 Tab
+                <>
+                  <p className="text-sm text-gray-600 mb-3">
+                    输入需要检索的信息，AI将自动检索并补充相关信息作为来源
+                  </p>
+                  <textarea
+                    value={internetInfoSearchQuery}
+                    onChange={(e) => setInternetInfoSearchQuery(e.target.value)}
+                    placeholder="请输入需要检索的信息，例如：iPhone 15 Pro Max 技术规格、最新市场趋势等"
+                    className="w-full min-h-[300px] px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder-gray-400"
+                    required
+                  />
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-800">
+                      <strong>说明：</strong>此功能将创建一个检索信息来源，AI会在对话时自动检索并补充相关信息。
+                    </p>
+                  </div>
+                </>
+              ) : (
+                // Web Search Tab
+                <>
+                  <div className="mb-4">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={webSearchQuery}
+                        onChange={(e) => setWebSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleWebSearch();
+                          }
+                        }}
+                        placeholder="请输入搜索关键词，例如：阿里巴巴2024年的ESG报告"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <button
+                        onClick={handleWebSearch}
+                        disabled={isSearching || !webSearchQuery.trim()}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isSearching ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            搜索中...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-4 h-4" />
+                            搜索
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      使用博查AI搜索全网网页信息和链接，结果准确、摘要完整
+                    </p>
+                  </div>
+
+                  {/* 搜索结果列表 */}
+                  {webSearchResults.length > 0 && (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-600">
+                          找到 {webSearchResults.length} 个结果
+                        </p>
+                        {selectedSearchResults.size > 0 && (
+                          <p className="text-sm text-blue-600">
+                            已选择 {selectedSearchResults.size} 个
+                          </p>
+                        )}
+                      </div>
+                      {webSearchResults.map((result, index) => (
+                        <div
+                          key={index}
+                          onClick={() => toggleSearchResult(index)}
+                          className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            selectedSearchResults.has(index)
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                              selectedSearchResults.has(index)
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-gray-300'
+                            }`}>
+                              {selectedSearchResults.has(index) && (
+                                <Check className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">
+                                {result.name}
+                              </h3>
+                              <a
+                                href={result.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs text-blue-600 hover:text-blue-800 truncate block mb-2"
+                              >
+                                {result.displayUrl || result.url}
+                              </a>
+                              {result.snippet && (
+                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                  {result.snippet}
+                                </p>
+                              )}
+                              {result.summary && (
+                                <p className="text-xs text-gray-500 line-clamp-2">
+                                  {result.summary}
+                                </p>
+                              )}
+                              {result.siteName && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {result.siteName}
+                                  {result.datePublished && ` · ${new Date(result.datePublished).toLocaleDateString()}`}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {isSearching && webSearchResults.length === 0 && (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                      <span className="ml-2 text-gray-600">正在搜索...</span>
+                    </div>
+                  )}
+
+                  {!isSearching && webSearchResults.length === 0 && webSearchQuery && (
+                    <div className="text-center py-12 text-gray-500">
+                      未找到相关结果
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* 弹窗底部 */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowInternetInfoModal(false);
+                  setInternetInfoSearchQuery('');
+                  setWebSearchQuery('');
+                  setWebSearchResults([]);
+                  setSelectedSearchResults(new Set());
+                  setInternetInfoTab('web');
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                取消
+              </button>
+              {internetInfoTab === 'search' ? (
+                <button
+                  onClick={handleAddInternetInfo}
+                  disabled={isAddingInternetInfo || !internetInfoSearchQuery.trim()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAddingInternetInfo ? '添加中...' : '插入'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveWebSearchResults}
+                  disabled={isAddingInternetInfo || selectedSearchResults.size === 0}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAddingInternetInfo ? '添加中...' : `添加选中结果 (${selectedSearchResults.size})`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 公共知识库文件选择弹窗 */}
+      {showPublicKnowledgeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+            {/* 弹窗头部 */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">从公共知识库选择文件</h2>
+              <button
+                onClick={() => setShowPublicKnowledgeModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -1820,67 +2794,66 @@ ${truncatedText}`;
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="搜索来源..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="搜索文件..."
+                  value={publicFileSearch}
+                  onChange={(e) => setPublicFileSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {filteredSources.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
-                    {searchQuery ? '未找到匹配的来源' : '暂无来源'}
+                {filteredPublicFiles.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8 text-sm">
+                    {publicFileSearch ? '未找到匹配的文件' : '暂无文件'}
                   </div>
                 ) : (
-                  filteredSources.map((source) => (
+                  filteredPublicFiles.map((file) => (
                     <div
-                      key={source.id}
-                      className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      key={file.id}
+                      onClick={() => togglePublicFile(file.id)}
+                      className={`flex items-start justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedPublicFiles.includes(file.id)
+                          ? 'bg-blue-50 border-2 border-blue-500'
+                          : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                      }`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <h3 className="text-sm font-medium text-gray-900 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                            {source.title}
+                          <h3 className="text-sm font-medium text-gray-900 truncate">
+                            {file.name}
                           </h3>
+                          {selectedPublicFiles.includes(file.id) && (
+                            <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          )}
                         </div>
-                        {source.description && (
-                          <div className="text-xs text-gray-500 line-clamp-2 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                            {(() => {
-                              let displayText = source.description;
-                              if (displayText.includes('\n')) {
-                                displayText = displayText.split('\n').slice(0, 2)
-                                  .map(line => line.replace(/^#+\s*/, '').replace(/\*\*/g, '').trim())
-                                  .filter(line => line.length > 0)
-                                  .join(' ');
-                              }
-                              if (displayText.length > 150) {
-                                displayText = displayText.substring(0, 150) + '...';
-                              }
-                              return displayText;
-                            })()}
-                          </div>
+                        {file.description && (
+                          <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                            {file.description}
+                          </p>
                         )}
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatDate(source.created_at)}
-                        </p>
+                        {file.file_url && (
+                          <p className="text-xs text-gray-400 mt-1 truncate">
+                            {file.file_url}
+                          </p>
+                        )}
                       </div>
-                      <button
-                        onClick={() => handleDeleteSource(source.id)}
-                        className="ml-2 p-1 text-gray-400 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   ))
                 )}
               </div>
+              {selectedPublicFiles.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-2">
+                    已选择 {selectedPublicFiles.length} 个文件
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 弹窗底部 */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowInternetInfoModal(false)}
+                onClick={() => setShowPublicKnowledgeModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 关闭
@@ -2025,18 +2998,36 @@ ${truncatedText}`;
                                         )}
                                       </div>
                                     </div>
-                                    <button
-                                      onClick={async () => {
-                                        if (confirm('确定要删除这条历史记录吗？')) {
-                                          await handleDeleteSource(record.id);
-                                          // 删除后重新加载历史记录
-                                          await loadHistoryRecords();
-                                        }
-                                      }}
-                                      className="ml-4 p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex items-center space-x-2">
+                                      {/* 提炼为技术点按钮 */}
+                                      {getSourceCategory(record) === 'ai-qa-summary' && (
+                                        <button
+                                          onClick={() => handleExtractTechPoint(record)}
+                                          disabled={extractingTechPoint}
+                                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                          title="提炼为技术点"
+                                        >
+                                          {extractingTechPoint && extractingSourceId === record.id ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                          ) : (
+                                            <Sparkles className="w-4 h-4" />
+                                          )}
+                                        </button>
+                                      )}
+                                      {/* 删除按钮 */}
+                                      <button
+                                        onClick={async () => {
+                                          if (confirm('确定要删除这条历史记录吗？')) {
+                                            await handleDeleteSource(record.id);
+                                            // 删除后重新加载历史记录
+                                            await loadHistoryRecords();
+                                          }
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -2058,6 +3049,168 @@ ${truncatedText}`;
               >
                 关闭
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 技术点预览和保存弹窗 */}
+      {showTechPointPreview && extractedTechPointData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
+            {/* 弹窗头部 */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">技术点预览 - AI提炼结果</h2>
+              <button
+                onClick={() => {
+                  setShowTechPointPreview(false);
+                  setExtractedTechPointData(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* 弹窗内容 */}
+            <div className="flex-1 overflow-hidden p-6">
+              <div className="h-full flex flex-col space-y-4">
+                {/* 基本信息预览 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">技术名称</label>
+                    <input
+                      type="text"
+                      value={extractedTechPointData.name || ''}
+                      onChange={(e) => setExtractedTechPointData({...extractedTechPointData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">技术类型</label>
+                    <select
+                      value={extractedTechPointData.tech_type || 'feature'}
+                      onChange={(e) => setExtractedTechPointData({...extractedTechPointData, tech_type: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="feature">特性</option>
+                      <option value="improvement">改进</option>
+                      <option value="innovation">创新</option>
+                      <option value="technology">技术</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
+                  <textarea
+                    value={extractedTechPointData.description || ''}
+                    onChange={(e) => setExtractedTechPointData({...extractedTechPointData, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* JSON预览 */}
+                <div className="flex-1 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">完整JSON数据</label>
+                    <button
+                      onClick={() => {
+                        const jsonStr = JSON.stringify(extractedTechPointData, null, 2);
+                        navigator.clipboard.writeText(jsonStr);
+                        alert('JSON已复制到剪贴板');
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>复制JSON</span>
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-auto bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap">
+                      {JSON.stringify(extractedTechPointData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 弹窗底部 */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowTechPointPreview(false);
+                  setExtractedTechPointData(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                取消
+              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      // 转换数据格式以匹配API要求
+                      // 注意：API字段名是tech_type，不是type
+                      const techPointFormData: any = {
+                        name: extractedTechPointData.name || '未命名技术',
+                        description: extractedTechPointData.description || '',
+                        category_id: extractedTechPointData.category_id || null,
+                        tech_type: extractedTechPointData.tech_type || 'feature',
+                        priority: extractedTechPointData.priority || 'medium',
+                        status: extractedTechPointData.status || 'draft',
+                        level: extractedTechPointData.level || 1,
+                        // 扩展字段
+                        tags: Array.isArray(extractedTechPointData.keywords) 
+                          ? extractedTechPointData.keywords 
+                          : (extractedTechPointData.keywords ? [extractedTechPointData.keywords] : []),
+                        technical_details: extractedTechPointData.technical_details || {},
+                        benefits: Array.isArray(extractedTechPointData.benefits) 
+                          ? extractedTechPointData.benefits 
+                          : [],
+                        applications: Array.isArray(extractedTechPointData.applications) 
+                          ? extractedTechPointData.applications 
+                          : [],
+                        keywords: Array.isArray(extractedTechPointData.keywords) 
+                          ? extractedTechPointData.keywords 
+                          : [],
+                      };
+
+                      // 验证必填字段
+                      if (!techPointFormData.name || techPointFormData.name.trim() === '') {
+                        alert('技术名称不能为空');
+                        return;
+                      }
+
+                      console.log('[提炼技术点] 准备保存的数据:', techPointFormData);
+
+                      // 调用创建技术点API（使用后端API直接调用，因为techPointService可能字段不完整）
+                      const response = await api.post('/tech-points', techPointFormData);
+                      
+                      if (response.data.success) {
+                        alert('技术点创建成功！');
+                        setShowTechPointPreview(false);
+                        setExtractedTechPointData(null);
+                        // 可选：跳转到技术点管理页面或刷新技术点列表
+                      } else {
+                        alert(`创建失败: ${response.data.message || response.data.error || '未知错误'}`);
+                      }
+                    } catch (error: any) {
+                      console.error('保存技术点失败:', error);
+                      const errorMessage = error.response?.data?.message 
+                        || error.response?.data?.error 
+                        || error.message 
+                        || '未知错误';
+                      alert(`保存失败: ${errorMessage}`);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>保存为技术点</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

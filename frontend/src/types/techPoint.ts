@@ -5,10 +5,30 @@ export interface TechPoint {
   id: number;
   name: string;
   description: string;
+  features?: string; // 技术特性（从technology_versions迁移）
+  version?: string; // 版本号（从technology_versions迁移）
+  release_date?: string; // 发布日期（从technology_versions迁移）
+  technology_id?: number; // 关联的技术IP（从technology_versions迁移）
   category_id: number;
-  type: TechType;
+  parent_id?: number | null;
+  level: number;
+  tech_type: TechType; // 统一使用tech_type与后端保持一致
   priority: TechPriority;
   status: TechStatus;
+  tags?: string[];
+  technical_details?: Record<string, any>;
+  benefits?: Record<string, any>;
+  applications?: string[];
+  keywords?: string[];
+  source_url?: string;
+  created_by?: string;
+  tech_principle?: string; // 技术原理
+  tech_value?: string; // 价值
+  tech_boundary?: string; // 适用边界
+  highlights?: string[]; // 技术亮点列表
+  evidence_measured?: string[]; // 证据-实测列表
+  evidence_certified?: string[]; // 证据-认证列表
+  evidence_comparison?: string[]; // 证据-对比列表
   created_at: string;
   updated_at: string;
   category?: TechCategory;
@@ -75,7 +95,7 @@ export interface TechPointStats {
 export interface TechPointSearchParams {
   keyword?: string;
   category_id?: number;
-  type?: TechType;
+  tech_type?: TechType; // 统一使用tech_type
   priority?: TechPriority;
   status?: TechStatus;
   page?: number;
@@ -88,8 +108,28 @@ export interface TechPointSearchParams {
 export interface TechPointFormData {
   name: string;
   description: string;
+  features?: string; // 技术特性
+  version?: string; // 版本号
+  release_date?: string; // 发布日期
+  technology_id?: number; // 关联的技术IP
   category_id: number;
-  type: TechType;
+  parent_id?: number | null;
+  level?: number;
+  tech_type: TechType; // 统一使用tech_type
   priority: TechPriority;
   status: TechStatus;
+  tags?: string[];
+  technical_details?: Record<string, any>;
+  benefits?: Record<string, any>;
+  applications?: string[];
+  keywords?: string[];
+  source_url?: string;
+  created_by?: string;
+  tech_principle?: string; // 技术原理
+  tech_value?: string; // 价值
+  tech_boundary?: string; // 适用边界
+  highlights?: string[]; // 技术亮点列表
+  evidence_measured?: string[]; // 证据-实测列表
+  evidence_certified?: string[]; // 证据-认证列表
+  evidence_comparison?: string[]; // 证据-对比列表
 }

@@ -29,6 +29,8 @@ import AIQAPage from "./pages/AIQAPage";
 import HomePage from "./pages/HomePage";
 import PublicKnowledgePage from "./pages/PublicKnowledge";
 import ProjectResourcesPage from "./pages/ProjectResourcesPage";
+import TechPointLibraryPage from "./pages/TechPointLibraryPage";
+import TechPointLibraryDetailPage from "./pages/TechPointLibraryDetailPage";
 
 function App() {
   return (
@@ -202,6 +204,16 @@ function App() {
           <Route
             path="/project/:projectId/resources"
             element={<ProjectResourcesPage />}
+          />
+
+          <Route
+            path="/tech-point-library"
+            element={<TechPointLibraryPage />}
+          />
+
+          <Route
+            path="/tech-point-library/:id"
+            element={<TechPointLibraryDetailPage />}
           />
 
           {/* 根据地址配置的动态路由（需要放在具体路由之后） */}

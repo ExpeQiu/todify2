@@ -147,11 +147,16 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
   
   // 根据项目ID调整 pageType，确保不同项目的对话相互独立
+  // 项目隔离规则：
+  // - 非关联项目（无 projectId）：使用默认 pageType（如 tech-package、tech-strategy、tech-article）
+  // - 关联项目（有 projectId）：使用 pageType-project-{projectId}（如 tech-package-project-3）
+  // 这样确保不同项目下的技术包装、技术策略、技术通稿的对话、记录、来源信息等都保持独立
   const effectivePageType = useMemo(() => {
     if (projectId) {
       // 如果有项目ID，使用项目特定的 pageType，例如：tech-package-project-3
       return `${config.pageType}-project-${projectId}`;
     }
+    // 无项目ID时，使用默认 pageType，对应"非关联项目"
     return config.pageType;
   }, [config.pageType, projectId]);
 

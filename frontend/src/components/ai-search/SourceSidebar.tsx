@@ -219,44 +219,6 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         {sources.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
             暂无来源，点击"添加信息"添加来源
-            {/* tech-strategy 页面的跳转入口 */}
-            {pageType === 'tech-strategy' && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => navigate('/tech-package')}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                  >
-                    技术包装
-                  </button>
-                  <button
-                    onClick={() => navigate('/tech-article')}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                  >
-                    技术通稿
-                  </button>
-                </div>
-              </div>
-            )}
-            {/* tech-article 页面的跳转入口 */}
-            {pageType === 'tech-article' && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => navigate('/tech-package')}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                  >
-                    技术包装
-                  </button>
-                  <button
-                    onClick={() => navigate('/tech-strategy')}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-                  >
-                    技术策略
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <div className="p-2">

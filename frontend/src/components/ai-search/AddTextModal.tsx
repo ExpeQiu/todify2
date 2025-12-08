@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from "react";
-import { ArrowLeft, Upload, FileText, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, FileText, Search, Trash2, Check, Loader2 } from "lucide-react";
 import { Source } from "./SourceSidebar";
 import { aiSearchService } from "../../services/aiSearchService";
+import { bochaAPI } from "../../services/api";
 
 interface AddTextModalProps {
   onClose: () => void;
@@ -9,7 +10,7 @@ interface AddTextModalProps {
   pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
 }
 
-type SourceMode = "upload" | "text" | "search";
+type SourceMode = "upload" | "text" | "search" | "websearch";
 
 const AddTextModal: React.FC<AddTextModalProps> = ({
   onClose,
@@ -24,6 +25,12 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
+  
+  // Web Search 相关状态
+  const [webSearchQuery, setWebSearchQuery] = useState("");
+  const [webSearchResults, setWebSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedSearchResults, setSelectedSearchResults] = useState<Set<number>>(new Set());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +103,74 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
       
       setSearchQuery("");
       onClose();
+    } else if (mode === "websearch") {
+      if (selectedSearchResults.size === 0) {
+        alert("请至少选择一个搜索结果");
+        return;
+      }
+      
+      // 保存选中的搜索结果
+      const selectedResults = Array.from(selectedSearchResults).map(index => webSearchResults[index]);
+      
+      selectedResults.forEach((result) => {
+        const description = `${result.snippet || ''}\n\n${result.summary ? `摘要：${result.summary}` : ''}\n\n来源：${result.siteName || ''}`.trim();
+        
+        onAddTextSource({
+          title: result.name || '未命名网页',
+          type: "external",
+          url: result.url,
+          description: description,
+        });
+      });
+      
+      // 清空状态
+      setWebSearchQuery("");
+      setWebSearchResults([]);
+      setSelectedSearchResults(new Set());
+      onClose();
     }
+  };
+
+  // Web Search 搜索处理
+  const handleWebSearch = async () => {
+    if (!webSearchQuery.trim()) {
+      alert('请输入搜索关键词');
+      return;
+    }
+
+    setIsSearching(true);
+    setWebSearchResults([]);
+    setSelectedSearchResults(new Set());
+
+    try {
+      const result = await bochaAPI.webSearch({
+        query: webSearchQuery.trim(),
+        summary: true,
+        count: 10,
+      });
+
+      if (result.success && result.data?.webPages?.value) {
+        setWebSearchResults(result.data.webPages.value);
+      } else {
+        alert(result.error?.message || '搜索失败，请重试');
+      }
+    } catch (error) {
+      console.error('Web Search 失败:', error);
+      alert('搜索失败，请重试');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 切换搜索结果选择状态
+  const toggleSearchResult = (index: number) => {
+    const newSelected = new Set(selectedSearchResults);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedSearchResults(newSelected);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,55 +239,83 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
         </div>
 
         {/* 模式选择 */}
-        <div className="px-6 pt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("upload");
-              setText("");
-              setSearchQuery("");
-            }}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-              mode === "upload"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            <Upload className="w-4 h-4" />
-            上传文件
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("text");
-              setFiles([]);
-              setSearchQuery("");
-            }}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-              mode === "text"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            粘贴文字
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("search");
-              setText("");
-              setFiles([]);
-            }}
-            className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-              mode === "search"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            <Search className="w-4 h-4" />
-            检索信息
-          </button>
+        <div className="px-6 pt-4">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("upload");
+                setText("");
+                setSearchQuery("");
+                setWebSearchQuery("");
+                setWebSearchResults([]);
+                setSelectedSearchResults(new Set());
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                mode === "upload"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              上传文件
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("text");
+                setFiles([]);
+                setSearchQuery("");
+                setWebSearchQuery("");
+                setWebSearchResults([]);
+                setSelectedSearchResults(new Set());
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                mode === "text"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              粘贴文字
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("search");
+                setText("");
+                setFiles([]);
+                setWebSearchQuery("");
+                setWebSearchResults([]);
+                setSelectedSearchResults(new Set());
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                mode === "search"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Search className="w-4 h-4" />
+              检索信息
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("websearch");
+                setText("");
+                setFiles([]);
+                setSearchQuery("");
+              }}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                mode === "websearch"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Search className="w-4 h-4" />
+              Web Search
+            </button>
+          </div>
         </div>
 
         {/* 内容区域 */}
@@ -325,6 +427,138 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
             </div>
           )}
 
+          {/* Web Search 模式 */}
+          {mode === "websearch" && (
+            <div className="flex-1 flex flex-col">
+              <div className="mb-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={webSearchQuery}
+                    onChange={(e) => setWebSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleWebSearch();
+                      }
+                    }}
+                    placeholder="请输入搜索关键词，例如：阿里巴巴2024年的ESG报告"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleWebSearch}
+                    disabled={isSearching || !webSearchQuery.trim()}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSearching ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        搜索中...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        搜索
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  使用博查AI搜索全网网页信息和链接，结果准确、摘要完整
+                </p>
+              </div>
+
+              {/* 搜索结果列表 */}
+              {webSearchResults.length > 0 && (
+                <div className="space-y-3 flex-1 overflow-y-auto mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-600">
+                      找到 {webSearchResults.length} 个结果
+                    </p>
+                    {selectedSearchResults.size > 0 && (
+                      <p className="text-sm text-blue-600">
+                        已选择 {selectedSearchResults.size} 个
+                      </p>
+                    )}
+                  </div>
+                  {webSearchResults.map((result, index) => (
+                    <div
+                      key={index}
+                      onClick={() => toggleSearchResult(index)}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        selectedSearchResults.has(index)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                          selectedSearchResults.has(index)
+                            ? 'border-blue-500 bg-blue-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedSearchResults.has(index) && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2">
+                            {result.name}
+                          </h3>
+                          <a
+                            href={result.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-blue-600 hover:text-blue-800 truncate block mb-2"
+                          >
+                            {result.displayUrl || result.url}
+                          </a>
+                          {result.snippet && (
+                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                              {result.snippet}
+                            </p>
+                          )}
+                          {result.summary && (
+                            <p className="text-xs text-gray-500 line-clamp-2">
+                              {result.summary}
+                            </p>
+                          )}
+                          {result.siteName && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              {result.siteName}
+                              {result.datePublished && ` · ${new Date(result.datePublished).toLocaleDateString()}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {isSearching && webSearchResults.length === 0 && (
+                <div className="flex items-center justify-center py-12 flex-1">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <span className="ml-2 text-gray-600">正在搜索...</span>
+                </div>
+              )}
+
+              {!isSearching && webSearchResults.length === 0 && webSearchQuery && (
+                <div className="text-center py-12 text-gray-500 flex-1">
+                  未找到相关结果
+                </div>
+              )}
+
+              {!isSearching && webSearchResults.length === 0 && !webSearchQuery && (
+                <div className="text-center py-12 text-gray-400 flex-1">
+                  请输入搜索关键词开始搜索
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 按钮 */}
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4">
             <button
@@ -336,10 +570,10 @@ const AddTextModal: React.FC<AddTextModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={isUploading}
+              disabled={isUploading || (mode === "websearch" && selectedSearchResults.size === 0)}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUploading ? "上传中..." : "插入"}
+              {isUploading ? "上传中..." : mode === "websearch" && selectedSearchResults.size > 0 ? `插入 (${selectedSearchResults.size})` : "插入"}
             </button>
           </div>
         </form>

@@ -1,797 +1,877 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Package,
-  Target,
-  FileText,
-  Mic,
-  Car,
-  Calendar,
+  Modal,
+  Card,
+  Descriptions,
   Tag,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  Clock,
-  BookOpen,
-  Plus,
-} from "lucide-react";
-import { TechPoint } from "../../types/techPoint";
-import { CarModel } from "../../types/carModel";
-import { KnowledgePoint } from "../../types/knowledgePoint";
-import { techPointService } from "../../services/techPointService";
-import { knowledgePointService } from "../../services/knowledgePointService";
-import CarModelAssociation from "./CarModelAssociation";
-import KnowledgePointManager from "../knowledgePoint/KnowledgePointManager";
+  Space,
+  Button,
+  Empty,
+  Spin,
+  Typography,
+  Divider,
+  List,
+  Row,
+  Col,
+  Image,
+  Dropdown,
+  message,
+} from 'antd';
+import {
+  BookOutlined,
+  CarOutlined,
+  CalendarOutlined,
+  PlusOutlined,
+  FileImageOutlined,
+  FileOutlined,
+  VideoCameraOutlined,
+  DownloadOutlined,
+} from '@ant-design/icons';
+import type { MenuProps } from 'antd';
+import { TechPoint } from '../../types/techPoint';
+import { techPointService } from '../../services/techPointService';
+import dayjs from 'dayjs';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+const { Text } = Typography;
 
 interface TechPointDetailProps {
   techPoint: TechPoint;
   onClose: () => void;
+  onRefresh?: () => void;
 }
 
 interface AssociatedContent {
-  packagingMaterials: any[];
-  promotionStrategies: any[];
-  pressReleases: any[];
-  speeches: any[];
+  packagingMaterials?: any[];
+  promotionStrategies?: any[];
+  pressReleases?: any[];
+  speeches?: any[];
+  resources?: any[];
+}
+
+interface ParsedDescription {
+  principle: string;
+  value: string;
+  boundary: string;
+  highlights: string[];
+  evidenceMeasured: string[];
+  evidenceCertified: string[];
+  evidenceComparison: string[];
 }
 
 const TechPointDetail: React.FC<TechPointDetailProps> = ({
   techPoint,
   onClose,
+  onRefresh,
 }) => {
-  const [associatedContent, setAssociatedContent] =
-    useState<AssociatedContent | null>(null);
-  const [associatedCarModels, setAssociatedCarModels] = useState<CarModel[]>(
-    [],
-  );
-  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePoint[]>([]);
+  const [currentTechPoint, setCurrentTechPoint] = useState<TechPoint>(techPoint);
+  const [associatedContent, setAssociatedContent] = useState<AssociatedContent>({
+    packagingMaterials: [],
+    promotionStrategies: [],
+    pressReleases: [],
+    speeches: [],
+    resources: [],
+  });
+  const [associatedCarModels, setAssociatedCarModels] = useState<any[]>([]);
+  const [associatedResources, setAssociatedResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
-    knowledgePoints: true,
-    packaging: false,
-    promotion: false,
-    press: false,
-    speeches: false,
-    carModels: false,
-  });
+  const [technologyName, setTechnologyName] = useState<string | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const detailContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCurrentTechPoint(techPoint);
+    fetchTechPointData();
+  }, [techPoint.id, techPoint.technology_id, techPoint.category_id]);
+
+  const fetchTechPointData = async () => {
+    try {
+      const response = await techPointService.getTechPointById(techPoint.id);
+      if (response.success && response.data) {
+        setCurrentTechPoint(response.data);
+        await Promise.all([fetchAssociatedData(), fetchTechnologyInfo(), fetchCategoryInfo()]);
+      }
+    } catch (error) {
+      console.error('重新加载技术点数据失败:', error);
+    }
+  };
 
   useEffect(() => {
     fetchAssociatedData();
-    fetchKnowledgePoints();
-  }, [techPoint.id]);
+    fetchTechnologyInfo();
+    fetchCategoryInfo();
+  }, [currentTechPoint.id, currentTechPoint.technology_id, currentTechPoint.category_id]);
 
-  const fetchKnowledgePoints = async () => {
+  const fetchTechnologyInfo = async () => {
+    const techId = currentTechPoint.technology_id;
+    if (!techId) {
+      setTechnologyName(null);
+      return;
+    }
+    // 技术IP功能暂未实现，后续可以添加
+    setTechnologyName(null);
+  };
+
+  const fetchCategoryInfo = async () => {
+    const categoryId = currentTechPoint.category_id;
+    if (!categoryId) {
+      setCategoryName(null);
+      return;
+    }
+
     try {
-      const response = await knowledgePointService.getByTechPointId(
-        techPoint.id,
-        {
-          page: 1,
-          pageSize: 100,
-        },
-      );
-
+      const response = await techPointService.getTechCategories();
       if (response.success && response.data) {
-        setKnowledgePoints(response.data);
+        // 确保 data 是数组
+        const categories = Array.isArray(response.data) 
+          ? response.data 
+          : [];
+        const category = categories.find((cat: any) => cat.id === categoryId);
+        setCategoryName(category ? category.name : null);
+      } else {
+        setCategoryName(null);
       }
-    } catch (err) {
-      console.error("获取知识点失败:", err);
+    } catch (error) {
+      console.error('获取技术领域信息失败:', error);
+      setCategoryName(null);
     }
   };
+
+  const parsedDescription = useMemo<ParsedDescription>(() => {
+    const result: ParsedDescription = {
+      principle: '',
+      value: '',
+      boundary: '',
+      highlights: [],
+      evidenceMeasured: [],
+      evidenceCertified: [],
+      evidenceComparison: [],
+    };
+
+    if (!currentTechPoint.description) return result;
+
+    const lines = currentTechPoint.description.split('\n');
+    let currentSection = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line.includes('原理：')) {
+        result.principle = line.replace('原理：', '').trim();
+        continue;
+      }
+      if (line.includes('价值：')) {
+        result.value = line.replace('价值：', '').trim();
+        continue;
+      }
+      if (line.includes('适用边界：')) {
+        result.boundary = line.replace('适用边界：', '').trim();
+        continue;
+      }
+      if (line.includes('亮点：')) {
+        currentSection = 'highlights';
+        continue;
+      }
+      if (line.includes('实测：')) {
+        currentSection = 'evidenceMeasured';
+        continue;
+      }
+      if (line.includes('认证：')) {
+        currentSection = 'evidenceCertified';
+        continue;
+      }
+      if (line.includes('对比：')) {
+        currentSection = 'evidenceComparison';
+        continue;
+      }
+
+      if (line.startsWith('- ')) {
+        const item = line.substring(2).trim();
+        if (currentSection === 'highlights' && result.highlights.length < 5) {
+          result.highlights.push(item);
+        } else if (currentSection === 'evidenceMeasured' && result.evidenceMeasured.length < 5) {
+          result.evidenceMeasured.push(item);
+        } else if (currentSection === 'evidenceCertified' && result.evidenceCertified.length < 5) {
+          result.evidenceCertified.push(item);
+        } else if (currentSection === 'evidenceComparison' && result.evidenceComparison.length < 5) {
+          result.evidenceComparison.push(item);
+        }
+        continue;
+      }
+    }
+
+    return result;
+  }, [currentTechPoint.description]);
 
   const fetchAssociatedData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [contentResponse, carModelsResponse] = await Promise.all([
-        techPointService.getTechPointAssociatedContent(techPoint.id),
-        techPointService.getTechPointAssociatedCarModels(techPoint.id),
+      const [contentResult, carModelsResult] = await Promise.allSettled([
+        techPointService.getTechPointAssociatedContent(currentTechPoint.id),
+        techPointService.getTechPointAssociatedCarModels(currentTechPoint.id),
       ]);
 
-      if (contentResponse.success && contentResponse.data) {
-        setAssociatedContent(contentResponse.data);
+      if (contentResult.status === 'fulfilled' && contentResult.value.success && contentResult.value.data) {
+        const contentData = contentResult.value.data as AssociatedContent;
+        setAssociatedContent(contentData);
+        if (contentData.resources) {
+          setAssociatedResources(contentData.resources);
+        }
+      } else {
+        setAssociatedContent({
+          packagingMaterials: [],
+          promotionStrategies: [],
+          pressReleases: [],
+          speeches: [],
+          resources: [],
+        });
+        setAssociatedResources([]);
       }
 
-      if (carModelsResponse.success && carModelsResponse.data) {
-        setAssociatedCarModels(carModelsResponse.data);
+      if (carModelsResult.status === 'fulfilled' && carModelsResult.value.success && carModelsResult.value.data) {
+        setAssociatedCarModels(carModelsResult.value.data);
+      } else {
+        setAssociatedCarModels([]);
       }
     } catch (err) {
-      setError("获取关联数据失败");
+      console.error('获取关联数据失败:', err);
+      setAssociatedContent({
+        packagingMaterials: [],
+        promotionStrategies: [],
+        pressReleases: [],
+        speeches: [],
+        resources: [],
+      });
+      setAssociatedCarModels([]);
+      setAssociatedResources([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("zh-CN");
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return '未知';
+    try {
+      const date = dayjs(dateString);
+      if (!date.isValid()) return '未知';
+      return date.format('YYYY/MM/DD');
+    } catch (error) {
+      console.error('日期格式化失败:', error);
+      return '未知';
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
-        return "bg-gray-100 text-gray-800";
-      case "draft":
-        return "bg-yellow-100 text-yellow-800";
-      case "archived":
-        return "bg-red-100 text-red-800";
+      case 'active':
+        return 'success';
+      case 'inactive':
+        return 'default';
+      case 'draft':
+        return 'warning';
+      case 'archived':
+        return 'error';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'default';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
+      case 'high':
+        return 'error';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'success';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'default';
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "feature":
-        return "bg-blue-100 text-blue-800";
-      case "performance":
-        return "bg-purple-100 text-purple-800";
-      case "safety":
-        return "bg-orange-100 text-orange-800";
-      case "comfort":
-        return "bg-teal-100 text-teal-800";
-      case "technology":
-        return "bg-indigo-100 text-indigo-800";
+      case 'feature':
+        return 'blue';
+      case 'improvement':
+        return 'cyan';
+      case 'innovation':
+        return 'purple';
+      case 'technology':
+        return 'geekblue';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'default';
     }
   };
 
-  const renderContentSection = (
-    title: string,
-    icon: React.ReactNode,
-    items: any[],
-    sectionKey: string,
-    renderItem: (item: any, index: number) => React.ReactNode,
-  ) => {
-    const isExpanded = expandedSections[sectionKey];
+  const handleExportToPDF = async () => {
+    if (!detailContentRef.current) {
+      message.warning('无法导出，请稍后再试');
+      return;
+    }
 
-    return (
-      <div
-        className="bg-white rounded-lg border border-gray-200 overflow-hidden"
-        data-oid="o38by0u"
-      >
-        <button
-          onClick={() => toggleSection(sectionKey)}
-          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-          data-oid="5wsvzuh"
-        >
-          <div className="flex items-center gap-3" data-oid="0xs8a8x">
-            <div className="p-2 bg-blue-50 rounded-lg" data-oid="z_5ac:j">
-              {icon}
-            </div>
-            <div className="text-left" data-oid="v5203t1">
-              <h3
-                className="text-lg font-semibold text-gray-900"
-                data-oid="yn7wqdw"
-              >
-                {title}
-              </h3>
-              <p className="text-sm text-gray-500" data-oid="h1gdq-e">
-                {items.length} 项内容
-              </p>
-            </div>
-          </div>
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" data-oid="fu3e_f4" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" data-oid="x77wk7y" />
-          )}
-        </button>
+    setExporting(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-        {isExpanded && (
-          <div className="border-t border-gray-200 p-6" data-oid="39rigqw">
-            {items.length > 0 ? (
-              <div className="space-y-4" data-oid="5dsa_n0">
-                {items.map((item, index) => renderItem(item, index))}
-              </div>
-            ) : (
-              <div
-                className="text-center py-8 text-gray-500"
-                data-oid="k9q:h8m"
-              >
-                <Info
-                  className="w-8 h-8 mx-auto mb-2 text-gray-300"
-                  data-oid="ujie16q"
-                />
+      const element = detailContentRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+      });
 
-                <p data-oid="c_sd-05">暂无相关内容</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      const ratio = pdfWidth / imgWidth;
+      const imgScaledWidth = imgWidth * ratio;
+      const imgScaledHeight = imgHeight * ratio;
+      
+      let heightLeft = imgScaledHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgScaledWidth, imgScaledHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgScaledHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgScaledWidth, imgScaledHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const fileName = `${currentTechPoint.name}_技术点详情_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.pdf`;
+      pdf.save(fileName);
+      message.success('导出PDF成功');
+    } catch (error) {
+      console.error('导出PDF失败:', error);
+      message.error('导出PDF失败，请稍后再试');
+    } finally {
+      setExporting(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        data-oid="-7mqrti"
-      >
-        <div
-          className="bg-white rounded-lg p-8 max-w-md w-full mx-4"
-          data-oid="1xo6m.e"
-        >
-          <div className="flex items-center justify-center" data-oid=".rky_l7">
-            <div
-              className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-              data-oid="-liw7.c"
-            ></div>
-            <span className="ml-3 text-gray-600" data-oid="64ht1ny">
-              加载中...
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleExportToJSON = () => {
+    try {
+      const exportData = {
+        ...currentTechPoint,
+        technology_name: technologyName,
+        category_name: categoryName,
+        associated_car_models: associatedCarModels,
+        associated_resources: associatedResources,
+        export_time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      };
 
-  if (error) {
-    return (
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        data-oid="_qztjri"
-      >
-        <div
-          className="bg-white rounded-lg p-8 max-w-md w-full mx-4"
-          data-oid="8hyuu8v"
-        >
-          <div className="text-center" data-oid=":9jz4x3">
-            <div className="text-red-600 mb-4" data-oid="-ofqeex">
-              <Info className="w-12 h-12 mx-auto" data-oid="wg72c9o" />
-            </div>
-            <h3
-              className="text-lg font-semibold text-gray-900 mb-2"
-              data-oid=":x1gd1a"
-            >
-              加载失败
-            </h3>
-            <p className="text-gray-600 mb-4" data-oid="jg07-:2">
-              {error}
-            </p>
-            <div className="flex gap-3 justify-center" data-oid="rgozhe2">
-              <button
-                onClick={fetchAssociatedData}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                data-oid="odxp-4c"
-              >
-                重试
-              </button>
-              <button
-                onClick={onClose}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                data-oid="jnk152l"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${currentTechPoint.name}_技术点详情_${dayjs().format('YYYY-MM-DD_HH-mm-ss')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      message.success('导出JSON成功');
+    } catch (error) {
+      console.error('导出JSON失败:', error);
+      message.error('导出JSON失败，请稍后再试');
+    }
+  };
+
+  const exportMenuItems: MenuProps['items'] = [
+    {
+      key: 'pdf',
+      label: '导出PDF',
+      icon: <FileOutlined />,
+      onClick: handleExportToPDF,
+    },
+    {
+      key: 'json',
+      label: '导出JSON',
+      icon: <FileOutlined />,
+      onClick: handleExportToJSON,
+    },
+  ];
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      data-oid=":v:fg5b"
+    <Modal
+      title={
+        <Space>
+          <span>{currentTechPoint.name}</span>
+          {currentTechPoint.tech_type && (
+            <Tag color={getTypeColor(currentTechPoint.tech_type)}>{currentTechPoint.tech_type}</Tag>
+          )}
+          {currentTechPoint.priority && (
+            <Tag color={getPriorityColor(currentTechPoint.priority)}>{currentTechPoint.priority}</Tag>
+          )}
+          <Tag color={getStatusColor(currentTechPoint.status)}>{currentTechPoint.status}</Tag>
+        </Space>
+      }
+      open={true}
+      onCancel={onClose}
+      footer={[
+        <Dropdown key="export" menu={{ items: exportMenuItems }} trigger={['click']}>
+          <Button icon={<DownloadOutlined />} loading={exporting}>
+            导出
+          </Button>
+        </Dropdown>,
+        <Button key="close" onClick={onClose}>
+          关闭
+        </Button>,
+      ]}
+      width={900}
+      style={{ top: 20 }}
+      styles={{
+        body: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' },
+      }}
     >
-      <div
-        className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-        data-oid="ioco9-o"
-      >
-        {/* Header */}
-        <div
-          className="px-6 py-4 border-b border-gray-200 flex items-center justify-between"
-          data-oid="1uwpidw"
+      <div ref={detailContentRef}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin size="large" />
+            <div style={{ marginTop: 16, color: '#666' }}>加载关联数据中...</div>
+          </div>
+        )}
+
+      {error && (
+        <div style={{ marginBottom: 16, padding: '12px', background: '#fff7e6', border: '1px solid #ffe58f', borderRadius: '4px' }}>
+          <Text type="warning">{error}</Text>
+        </div>
+      )}
+
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <Card title="基本信息" size="small">
+          <Descriptions column={2} size="small">
+            <Descriptions.Item label="技术领域">
+              {categoryName || currentTechPoint.category?.name || '未关联技术领域'}
+            </Descriptions.Item>
+            <Descriptions.Item label="技术IP">
+              {technologyName || '未关联技术IP'}
+            </Descriptions.Item>
+            <Descriptions.Item label="创建时间">
+              <Space>
+                <CalendarOutlined />
+                {formatDate(currentTechPoint.created_at)}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="更新时间">
+              <Space>
+                <CalendarOutlined />
+                {formatDate(currentTechPoint.updated_at)}
+              </Space>
+            </Descriptions.Item>
+          </Descriptions>
+
+          {(parsedDescription.principle || parsedDescription.value || parsedDescription.boundary) && (
+            <>
+              <Divider style={{ margin: '12px 0' }} />
+              <div>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>描述</Text>
+                <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                  {parsedDescription.principle && (
+                    <div>
+                      <Text type="secondary" style={{ fontSize: '14px' }}>原理：</Text>
+                      <Text style={{ fontSize: '14px', marginLeft: 8 }}>{parsedDescription.principle}</Text>
+                    </div>
+                  )}
+                  {parsedDescription.value && (
+                    <div>
+                      <Text type="secondary" style={{ fontSize: '14px' }}>价值：</Text>
+                      <Text style={{ fontSize: '14px', marginLeft: 8 }}>{parsedDescription.value}</Text>
+                    </div>
+                  )}
+                  {parsedDescription.boundary && (
+                    <div>
+                      <Text type="secondary" style={{ fontSize: '14px' }}>适用边界：</Text>
+                      <Text style={{ fontSize: '14px', marginLeft: 8 }}>{parsedDescription.boundary}</Text>
+                    </div>
+                  )}
+                </Space>
+              </div>
+            </>
+          )}
+
+          {currentTechPoint.description && (
+            <>
+              <Divider style={{ margin: '12px 0' }} />
+              <div>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>完整描述</Text>
+                <div style={{
+                  padding: '12px',
+                  background: '#f9fafb',
+                  borderRadius: '4px',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  lineHeight: '1.6',
+                  color: '#374151',
+                  fontSize: '14px'
+                }}>
+                  {currentTechPoint.description}
+                </div>
+              </div>
+            </>
+          )}
+        </Card>
+
+        <Card
+          title={
+            <Space>
+              <BookOutlined />
+              <span>知识点记录</span>
+            </Space>
+          }
+          size="small"
         >
-          <div className="flex items-center gap-4" data-oid="3rqh_nn">
-            <div className="p-2 bg-blue-50 rounded-lg" data-oid="kt9iz6_">
-              <Target className="w-6 h-6 text-blue-600" data-oid="7k7n.s:" />
-            </div>
-            <div data-oid="xix:_nc">
-              <h2
-                className="text-xl font-semibold text-gray-900"
-                data-oid="maz110a"
-              >
-                {techPoint.name}
-              </h2>
-              <div className="flex items-center gap-2 mt-1" data-oid="lpku:xs">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(techPoint.type)}`}
-                  data-oid="w33wy1o"
-                >
-                  {techPoint.type}
-                </span>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(techPoint.priority)}`}
-                  data-oid=".lc2yb."
-                >
-                  {techPoint.priority}
-                </span>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(techPoint.status)}`}
-                  data-oid="t2aga:2"
-                >
-                  {techPoint.status}
-                </span>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            data-oid="6q5x8:m"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              data-oid="4bm9.uv"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-                data-oid="8yj-5-n"
-              />
-            </svg>
-          </button>
-        </div>
+          {(() => {
+            const getHighlights = () => {
+              if (currentTechPoint.highlights) {
+                return Array.isArray(currentTechPoint.highlights) 
+                  ? currentTechPoint.highlights 
+                  : (typeof currentTechPoint.highlights === 'string' ? JSON.parse(currentTechPoint.highlights) : []);
+              }
+              return parsedDescription.highlights || [];
+            };
+            
+            const getEvidenceMeasured = () => {
+              if (currentTechPoint.evidence_measured) {
+                return Array.isArray(currentTechPoint.evidence_measured) 
+                  ? currentTechPoint.evidence_measured 
+                  : (typeof currentTechPoint.evidence_measured === 'string' ? JSON.parse(currentTechPoint.evidence_measured) : []);
+              }
+              return parsedDescription.evidenceMeasured || [];
+            };
+            
+            const getEvidenceCertified = () => {
+              if (currentTechPoint.evidence_certified) {
+                return Array.isArray(currentTechPoint.evidence_certified) 
+                  ? currentTechPoint.evidence_certified 
+                  : (typeof currentTechPoint.evidence_certified === 'string' ? JSON.parse(currentTechPoint.evidence_certified) : []);
+              }
+              return parsedDescription.evidenceCertified || [];
+            };
+            
+            const getEvidenceComparison = () => {
+              if (currentTechPoint.evidence_comparison) {
+                return Array.isArray(currentTechPoint.evidence_comparison) 
+                  ? currentTechPoint.evidence_comparison 
+                  : (typeof currentTechPoint.evidence_comparison === 'string' ? JSON.parse(currentTechPoint.evidence_comparison) : []);
+              }
+              return parsedDescription.evidenceComparison || [];
+            };
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6" data-oid="kuf.2nw">
-          <div className="space-y-6" data-oid=".4djx4m">
-            {/* Basic Info */}
-            <div
-              className="bg-white rounded-lg border border-gray-200 p-6"
-              data-oid="tbl4jy6"
-            >
-              <h3
-                className="text-lg font-semibold text-gray-900 mb-4"
-                data-oid="2crrfz4"
-              >
-                基本信息
-              </h3>
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                data-oid=":7yt57s"
-              >
-                <div data-oid="ja6nkjm">
-                  <label
-                    className="text-sm font-medium text-gray-500"
-                    data-oid="txpv_9g"
-                  >
-                    技术点名称
-                  </label>
-                  <p className="text-gray-900 mt-1" data-oid="ql:v4mf">
-                    {techPoint.name}
-                  </p>
-                </div>
-                <div data-oid=":9sb_42">
-                  <label
-                    className="text-sm font-medium text-gray-500"
-                    data-oid="0d-8bqw"
-                  >
-                    分类
-                  </label>
-                  <p className="text-gray-900 mt-1" data-oid="zhm:iy4">
-                    {techPoint.category?.name || "未分类"}
-                  </p>
-                </div>
-                <div data-oid="t6sbd.6">
-                  <label
-                    className="text-sm font-medium text-gray-500"
-                    data-oid="d9brqp:"
-                  >
-                    创建时间
-                  </label>
-                  <p
-                    className="text-gray-900 mt-1 flex items-center gap-2"
-                    data-oid="afik328"
-                  >
-                    <Clock
-                      className="w-4 h-4 text-gray-400"
-                      data-oid="r-yp_ix"
-                    />
+            const principle = currentTechPoint.tech_principle || parsedDescription.principle || '';
+            const value = currentTechPoint.tech_value || parsedDescription.value || '';
+            const boundary = currentTechPoint.tech_boundary || parsedDescription.boundary || '';
+            const highlights = getHighlights();
+            const evidenceMeasured = getEvidenceMeasured();
+            const evidenceCertified = getEvidenceCertified();
+            const evidenceComparison = getEvidenceComparison();
 
-                    {formatDate(techPoint.created_at)}
-                  </p>
-                </div>
-                <div data-oid="z0eelnq">
-                  <label
-                    className="text-sm font-medium text-gray-500"
-                    data-oid="qat_iv-"
-                  >
-                    更新时间
-                  </label>
-                  <p
-                    className="text-gray-900 mt-1 flex items-center gap-2"
-                    data-oid="h12p8bn"
-                  >
-                    <Clock
-                      className="w-4 h-4 text-gray-400"
-                      data-oid="q:w4gl8"
-                    />
+            const hasAnyData = principle || value || boundary || 
+                              (Array.isArray(highlights) && highlights.length > 0) || 
+                              (Array.isArray(evidenceMeasured) && evidenceMeasured.length > 0) || 
+                              (Array.isArray(evidenceCertified) && evidenceCertified.length > 0) || 
+                              (Array.isArray(evidenceComparison) && evidenceComparison.length > 0);
 
-                    {formatDate(techPoint.updated_at)}
-                  </p>
-                </div>
-              </div>
-              {techPoint.description && (
-                <div className="mt-4" data-oid="wpnb_ik">
-                  <label
-                    className="text-sm font-medium text-gray-500"
-                    data-oid="89nx1yq"
-                  >
-                    描述
-                  </label>
-                  <p className="text-gray-900 mt-1" data-oid="cq7n2n:">
-                    {techPoint.description}
-                  </p>
-                </div>
-              )}
-            </div>
+            if (!hasAnyData) {
+              return <Empty description="暂无知识点" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+            }
 
-            {/* Knowledge Points Section */}
-            <div
-              className="bg-white rounded-lg border border-gray-200"
-              data-oid="qe.90qs"
-            >
-              <button
-                onClick={() => toggleSection("knowledgePoints")}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                data-oid="aukldh."
-              >
-                <div className="flex items-center gap-3" data-oid="q_g91hh">
-                  <div
-                    className="p-2 bg-purple-50 rounded-lg"
-                    data-oid="3-.m23h"
-                  >
-                    <BookOpen
-                      className="w-5 h-5 text-purple-600"
-                      data-oid="9l_vfls"
-                    />
+            return (
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                {principle && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 技术原理：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      <Text style={{ fontSize: '14px' }}>{principle}</Text>
+                    </div>
                   </div>
-                  <div className="text-left" data-oid="4h1:.f4">
-                    <h3
-                      className="text-lg font-semibold text-gray-900"
-                      data-oid="41iso9h"
-                    >
-                      知识点记录
-                    </h3>
-                    <p className="text-sm text-gray-500" data-oid="08_2tqd">
-                      管理技术点相关的知识点内容
-                    </p>
-                  </div>
-                </div>
-                {expandedSections.knowledgePoints ? (
-                  <ChevronUp
-                    className="w-5 h-5 text-gray-400"
-                    data-oid="ye7enfi"
-                  />
-                ) : (
-                  <ChevronDown
-                    className="w-5 h-5 text-gray-400"
-                    data-oid="cgy-wec"
-                  />
                 )}
-              </button>
 
-              {expandedSections.knowledgePoints && (
-                <div
-                  className="border-t border-gray-200 p-6"
-                  data-oid="ys1hzj-"
-                >
-                  <KnowledgePointManager
-                    techPointId={techPoint.id}
-                    techPointName={techPoint.name}
-                    data-oid="8bjk9qb"
-                  />
-                </div>
-              )}
-            </div>
+                {value && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 价值：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      <Text style={{ fontSize: '14px' }}>{value}</Text>
+                    </div>
+                  </div>
+                )}
 
-            {/* Associated Content Sections */}
-            {associatedContent && (
-              <>
-                {renderContentSection(
-                  "包装材料",
-                  <Package
-                    className="w-5 h-5 text-blue-600"
-                    data-oid="ixuuwv4"
-                  />,
+                {boundary && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 适用边界：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      <Text style={{ fontSize: '14px' }}>{boundary}</Text>
+                    </div>
+                  </div>
+                )}
 
-                  associatedContent.packagingMaterials,
-                  "packaging",
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-gray-50 rounded-lg"
-                      data-oid="4fo:cik"
-                    >
-                      <div
-                        className="flex items-start justify-between"
-                        data-oid="ux2v-.:"
-                      >
-                        <div className="flex-1" data-oid="fb-y9qo">
-                          <h4
-                            className="font-medium text-gray-900"
-                            data-oid="m53jt_t"
-                          >
-                            {item.title}
-                          </h4>
-                          <p
-                            className="text-sm text-gray-600 mt-1"
-                            data-oid="6187i7q"
-                          >
-                            {item.description}
-                          </p>
-                          <div
-                            className="flex items-center gap-4 mt-2 text-xs text-gray-500"
-                            data-oid="ovqn2js"
-                          >
-                            <span data-oid="09kqofn">类型: {item.type}</span>
-                            <span data-oid="yqu9:65">状态: {item.status}</span>
-                          </div>
+                {Array.isArray(highlights) && highlights.length > 0 && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 技术亮点：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      {highlights.map((item: string, index: number) => (
+                        <div key={index} style={{ marginBottom: 4 }}>
+                          <Text style={{ fontSize: '14px' }}>{item}</Text>
                         </div>
-                        {item.url && (
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            data-oid="xu_8pgg"
-                          >
-                            <ExternalLink
-                              className="w-4 h-4"
-                              data-oid="r2d:dq7"
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(evidenceMeasured) && evidenceMeasured.length > 0 && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 实测证据：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      {evidenceMeasured.map((item: string, index: number) => (
+                        <div key={index} style={{ marginBottom: 4 }}>
+                          <Text style={{ fontSize: '14px' }}>{item}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(evidenceCertified) && evidenceCertified.length > 0 && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 认证证据：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      {evidenceCertified.map((item: string, index: number) => (
+                        <div key={index} style={{ marginBottom: 4 }}>
+                          <Text style={{ fontSize: '14px' }}>{item}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(evidenceComparison) && evidenceComparison.length > 0 && (
+                  <div>
+                    <Text strong style={{ fontSize: '14px' }}>- 对比证据：</Text>
+                    <div style={{ marginLeft: 16, marginTop: 4 }}>
+                      {evidenceComparison.map((item: string, index: number) => (
+                        <div key={index} style={{ marginBottom: 4 }}>
+                          <Text style={{ fontSize: '14px' }}>{item}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Space>
+            );
+          })()}
+        </Card>
+
+        <Card
+          title={
+            <Space>
+              <CarOutlined />
+              <span>关联车型</span>
+            </Space>
+          }
+          size="small"
+        >
+          {associatedCarModels.length > 0 ? (
+            <Space wrap>
+              {associatedCarModels.map((carModel: any) => (
+                <Tag key={carModel.id} color="blue">
+                  {carModel.name}
+                </Tag>
+              ))}
+            </Space>
+          ) : (
+            <Empty description="暂无关联车型" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          )}
+        </Card>
+
+        <Card
+          title={
+            <Space>
+              <FileImageOutlined />
+              <span>关联资源</span>
+            </Space>
+          }
+          size="small"
+        >
+          {associatedResources.length > 0 ? (
+            <Row gutter={[16, 16]}>
+              {associatedResources.map((resource: any) => {
+                let attachments: any[] = [];
+                if (resource.attachments) {
+                  if (typeof resource.attachments === 'string') {
+                    try {
+                      attachments = JSON.parse(resource.attachments);
+                    } catch (e) {
+                      console.error('解析附件失败:', e);
+                    }
+                  } else if (Array.isArray(resource.attachments)) {
+                    attachments = resource.attachments;
+                  }
+                }
+
+                if (attachments.length === 0) {
+                  return (
+                    <Col key={resource.id} xs={12} sm={8} md={6} lg={4}>
+                      <Card
+                        hoverable
+                        size="small"
+                        bodyStyle={{ padding: '8px', textAlign: 'center' }}
+                      >
+                        <FileOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: '8px' }} />
+                        <div style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {resource.name || '未命名资源'}
+                        </div>
+                      </Card>
+                    </Col>
+                  );
+                }
+
+                return attachments.map((attachment: any, index: number) => {
+                  const getFileUrl = (url: string) => {
+                    if (url.startsWith('http')) return url;
+                    if (url.startsWith('/')) return url;
+                    return `/${url}`;
+                  };
+
+                  const isImage = attachment.mimeType?.startsWith('image/') || 
+                                 attachment.type?.startsWith('image/') ||
+                                 resource.type === '产品素材';
+                  const isVideo = attachment.mimeType?.startsWith('video/') || 
+                                 attachment.type?.startsWith('video/') ||
+                                 resource.type === '实拍视频';
+                  const fileUrl = getFileUrl(attachment.url || attachment.file_url || '');
+
+                  return (
+                    <Col key={`${resource.id}-${index}`} xs={12} sm={8} md={6} lg={4}>
+                      <Card
+                        hoverable
+                        size="small"
+                        bodyStyle={{ padding: '8px' }}
+                        onClick={() => {
+                          if (isImage) {
+                            Modal.info({
+                              title: attachment.name || resource.name,
+                              width: 800,
+                              content: (
+                                <Image
+                                  src={fileUrl}
+                                  alt={attachment.name || resource.name}
+                                  style={{ width: '100%' }}
+                                  preview={{
+                                    mask: '查看大图'
+                                  }}
+                                />
+                              ),
+                              okText: '关闭',
+                            });
+                          } else if (isVideo) {
+                            Modal.info({
+                              title: attachment.name || resource.name,
+                              width: 800,
+                              content: (
+                                <video
+                                  src={fileUrl}
+                                  style={{ width: '100%' }}
+                                  controls
+                                />
+                              ),
+                              okText: '关闭',
+                            });
+                          } else {
+                            window.open(fileUrl, '_blank');
+                          }
+                        }}
+                      >
+                        <div style={{ 
+                          aspectRatio: '16/9', 
+                          backgroundColor: '#f5f5f5', 
+                          marginBottom: '8px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          borderRadius: '4px',
+                          overflow: 'hidden'
+                        }}>
+                          {isImage ? (
+                            <Image
+                              src={fileUrl}
+                              alt={attachment.name || resource.name}
+                              preview={false}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                {renderContentSection(
-                  "推广策略",
-                  <Target
-                    className="w-5 h-5 text-blue-600"
-                    data-oid="oo2wie8"
-                  />,
-
-                  associatedContent.promotionStrategies,
-                  "promotion",
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-gray-50 rounded-lg"
-                      data-oid="4c5w-n2"
-                    >
-                      <div
-                        className="flex items-start justify-between"
-                        data-oid="3ha-67n"
-                      >
-                        <div className="flex-1" data-oid="wtqfwk-">
-                          <h4
-                            className="font-medium text-gray-900"
-                            data-oid="7_lyzpl"
-                          >
-                            {item.title}
-                          </h4>
-                          <p
-                            className="text-sm text-gray-600 mt-1"
-                            data-oid="12ep:t4"
-                          >
-                            {item.description}
-                          </p>
-                          <div
-                            className="flex items-center gap-4 mt-2 text-xs text-gray-500"
-                            data-oid="yfxzw._"
-                          >
-                            <span data-oid="dq7h1cp">目标: {item.target}</span>
-                            <span data-oid="d736gxz">预算: {item.budget}</span>
-                          </div>
+                          ) : isVideo ? (
+                            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                              <video
+                                src={fileUrl}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                preload="metadata"
+                              />
+                              <div style={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                background: 'rgba(0,0,0,0.5)',
+                                borderRadius: '50%',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}>
+                                <VideoCameraOutlined style={{ fontSize: '20px', color: '#fff' }} />
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                              <FileOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
+                              <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
+                                {attachment.mimeType?.includes('pdf') ? 'PDF' :
+                                 attachment.mimeType?.includes('word') || attachment.mimeType?.includes('document') ? 'Word' :
+                                 attachment.mimeType?.includes('excel') || attachment.mimeType?.includes('spreadsheet') ? 'Excel' :
+                                 attachment.mimeType?.includes('powerpoint') || attachment.mimeType?.includes('presentation') ? 'PowerPoint' :
+                                 '文档'}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                {renderContentSection(
-                  "新闻稿",
-                  <FileText
-                    className="w-5 h-5 text-blue-600"
-                    data-oid="ijbgv_:"
-                  />,
-
-                  associatedContent.pressReleases,
-                  "press",
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-gray-50 rounded-lg"
-                      data-oid="togtpl8"
-                    >
-                      <div
-                        className="flex items-start justify-between"
-                        data-oid="0hq42g0"
-                      >
-                        <div className="flex-1" data-oid="y9daqt.">
-                          <h4
-                            className="font-medium text-gray-900"
-                            data-oid="6_c_yd."
-                          >
-                            {item.title}
-                          </h4>
-                          <p
-                            className="text-sm text-gray-600 mt-1"
-                            data-oid="s4lob91"
-                          >
-                            {item.summary}
-                          </p>
-                          <div
-                            className="flex items-center gap-4 mt-2 text-xs text-gray-500"
-                            data-oid="0i9mobe"
-                          >
-                            <span data-oid="i9otsf0">
-                              发布日期: {formatDate(item.publishDate)}
-                            </span>
-                            <span data-oid="73ssp8_">媒体: {item.media}</span>
-                          </div>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap',
+                          textAlign: 'center'
+                        }}>
+                          {attachment.name || resource.name || '未命名'}
                         </div>
-                        {item.url && (
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            data-oid="rvwh4cc"
-                          >
-                            <ExternalLink
-                              className="w-4 h-4"
-                              data-oid="av7kp6w"
-                            />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                {renderContentSection(
-                  "演讲内容",
-                  <Mic className="w-5 h-5 text-blue-600" data-oid="6yp1c.u" />,
-                  associatedContent.speeches,
-                  "speeches",
-                  (item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 bg-gray-50 rounded-lg"
-                      data-oid="md8qeby"
-                    >
-                      <div
-                        className="flex items-start justify-between"
-                        data-oid="ya4hpmm"
-                      >
-                        <div className="flex-1" data-oid="s8-p2c7">
-                          <h4
-                            className="font-medium text-gray-900"
-                            data-oid="wv-883y"
-                          >
-                            {item.title}
-                          </h4>
-                          <p
-                            className="text-sm text-gray-600 mt-1"
-                            data-oid="vci8zjf"
-                          >
-                            {item.summary}
-                          </p>
-                          <div
-                            className="flex items-center gap-4 mt-2 text-xs text-gray-500"
-                            data-oid=".vos752"
-                          >
-                            <span data-oid=".x6lfws">
-                              演讲者: {item.speaker}
-                            </span>
-                            <span data-oid="_jmwoue">
-                              日期: {formatDate(item.date)}
-                            </span>
-                            <span data-oid="zwduamf">地点: {item.venue}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ),
-                )}
-              </>
-            )}
-
-            {/* Car Model Association */}
-            <div
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden"
-              data-oid="53t_tfl"
-            >
-              <button
-                onClick={() => toggleSection("carModels")}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                data-oid="1xxbip6"
-              >
-                <div className="flex items-center gap-3" data-oid="6w8miih">
-                  <div className="p-2 bg-blue-50 rounded-lg" data-oid="so41.28">
-                    <Car className="w-5 h-5 text-blue-600" data-oid="ossf.1v" />
-                  </div>
-                  <div className="text-left" data-oid="i906lhy">
-                    <h3
-                      className="text-lg font-semibold text-gray-900"
-                      data-oid="ttee6y6"
-                    >
-                      关联车型管理
-                    </h3>
-                    <p className="text-sm text-gray-500" data-oid="2__.5jd">
-                      管理技术点与车型的关联关系
-                    </p>
-                  </div>
-                </div>
-                {expandedSections.carModels ? (
-                  <ChevronUp
-                    className="w-5 h-5 text-gray-400"
-                    data-oid="hwq8kg-"
-                  />
-                ) : (
-                  <ChevronDown
-                    className="w-5 h-5 text-gray-400"
-                    data-oid="0qjwi6r"
-                  />
-                )}
-              </button>
-
-              {expandedSections.carModels && (
-                <div
-                  className="border-t border-gray-200 p-6"
-                  data-oid="3aq0e6t"
-                >
-                  <CarModelAssociation
-                    techPointId={techPoint.id}
-                    onUpdate={fetchAssociatedData}
-                    data-oid="1-c1gy5"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                      </Card>
+                    </Col>
+                  );
+                });
+              })}
+            </Row>
+          ) : (
+            <Empty description="暂无关联资源" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          )}
+        </Card>
+      </Space>
       </div>
-    </div>
+    </Modal>
   );
 };
 

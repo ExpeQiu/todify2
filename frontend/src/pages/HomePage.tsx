@@ -169,6 +169,12 @@ const HomePage: React.FC = () => {
               >
                 公共知识库
               </button>
+              <button
+                onClick={() => navigate('/tech-point-library')}
+                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                技术点库
+              </button>
             </div>
 
             {/* 右侧操作栏 */}
@@ -208,9 +214,17 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* Agent助手按钮 */}
+              {/* 
+                新对话默认挂在"非关联项目"下（不传递projectId）
+                不同项目下的技术包装、技术策略、技术通稿的对话保持独立：
+                - 非关联项目：使用默认 pageType（如 tech-package）
+                - 关联项目：使用 pageType-project-{projectId}（如 tech-package-project-3）
+                对话记录、来源信息等都按 pageType 隔离
+              */}
               <button
                 onClick={() => {
-                  window.location.href = 'http://localhost:3001/tech-package';
+                  // 不传递 projectId，确保新对话默认关联到"非关联项目"
+                  window.location.href = 'http://localhost:3001/tech-package?newConversation=true';
                 }}
                 className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
               >

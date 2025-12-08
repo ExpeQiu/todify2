@@ -42,9 +42,6 @@ interface AIRoleConfigInfoBoxProps {
  */
 const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefresh }) => {
   const [expanded, setExpanded] = useState(true);
-  const [independentPageExpanded, setIndependentPageExpanded] = useState(true);
-  const [workflowExpanded, setWorkflowExpanded] = useState(true);
-  const [fieldMappingExpanded, setFieldMappingExpanded] = useState(true);
   const [nodeStatuses, setNodeStatuses] = useState<NodeConfigStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -252,19 +249,10 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
         <div className="px-4 pb-4 space-y-3">
           {/* 独立页面节点 */}
           <div>
-            <div 
-              className="flex items-center justify-between mb-2 cursor-pointer hover:bg-gray-100/50 rounded-lg p-2 -mx-2 transition-colors"
-              onClick={() => setIndependentPageExpanded(!independentPageExpanded)}
-            >
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                独立页面节点
-              </h4>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                {independentPageExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-            {independentPageExpanded && (
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              独立页面节点
+            </h4>
             <div className="space-y-2">
               {nodeStatuses
                 .filter(s => s.source === 'independent-page')
@@ -330,24 +318,14 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                   </div>
                 ))}
             </div>
-            )}
           </div>
 
           {/* 工作流Agent节点 */}
           <div>
-            <div 
-              className="flex items-center justify-between mb-2 cursor-pointer hover:bg-gray-100/50 rounded-lg p-2 -mx-2 transition-colors"
-              onClick={() => setWorkflowExpanded(!workflowExpanded)}
-            >
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Workflow className="w-4 h-4" />
-                工作流Agent节点
-              </h4>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                {workflowExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-            {workflowExpanded && (
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Workflow className="w-4 h-4" />
+              工作流Agent节点
+            </h4>
             <div className="space-y-2">
               {nodeStatuses
                 .filter(s => s.source === 'workflow')
@@ -382,24 +360,14 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                   </div>
                 ))}
             </div>
-            )}
           </div>
 
           {/* 字段映射功能对象 */}
           <div>
-            <div 
-              className="flex items-center justify-between mb-2 cursor-pointer hover:bg-gray-100/50 rounded-lg p-2 -mx-2 transition-colors"
-              onClick={() => setFieldMappingExpanded(!fieldMappingExpanded)}
-            >
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                字段映射功能对象
-              </h4>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                {fieldMappingExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-            {fieldMappingExpanded && (
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              字段映射功能对象
+            </h4>
             <div className="space-y-2">
               {nodeStatuses
                 .filter(s => s.source === 'field-mapping')
@@ -458,7 +426,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                 </div>
               )}
             </div>
-            )}
           </div>
 
           {/* 操作提示 */}

@@ -231,6 +231,80 @@ export const workflowAPI = {
   },
 };
 
+// 博查 Web Search API
+export interface BochaWebSearchRequest {
+  query: string;
+  freshness?: string;
+  summary?: boolean;
+  count?: number;
+  include?: string;
+  exclude?: string;
+}
+
+export interface BochaWebSearchResponse {
+  success: boolean;
+  data?: {
+    _type: string;
+    queryContext: {
+      originalQuery: string;
+    };
+    webPages: {
+      webSearchUrl: string;
+      totalEstimatedMatches: number;
+      value: Array<{
+        id?: string;
+        name: string;
+        url: string;
+        displayUrl: string;
+        snippet: string;
+        summary?: string;
+        siteName?: string;
+        siteIcon?: string;
+        datePublished?: string;
+        dateLastCrawled?: string;
+      }>;
+      someResultsRemoved?: boolean;
+    };
+    images?: any;
+    videos?: any;
+  };
+  error?: {
+    code: string;
+    message: string;
+    log_id?: string;
+  };
+  log_id?: string;
+}
+
+export const bochaAPI = {
+  // 博查 Web Search
+  webSearch: async (request: BochaWebSearchRequest): Promise<BochaWebSearchResponse> => {
+    try {
+      const response = await apiClient.post<BochaWebSearchResponse>("/bocha/web-search", request, {
+        timeout: 30000, // 30秒超时
+      });
+      return {
+        success: response.success,
+        data: response.data?.data || response.data,
+        log_id: response.data?.log_id,
+        error: response.error ? {
+          code: response.error.code || 'UNKNOWN_ERROR',
+          message: response.error.message || '请求失败',
+        } : undefined,
+      };
+    } catch (error) {
+      console.error('博查 Web Search API 调用失败:', error);
+      return {
+        success: false,
+        error: {
+          code: 'API_ERROR',
+          message: error instanceof Error ? error.message : '网络错误，请检查连接后重试',
+        },
+      };
+    }
+  },
+};
+
 const legacyApi = {
   async get<T = unknown>(url: string, config?: any) {
     const data = await apiClient.get<T>(url, config);
