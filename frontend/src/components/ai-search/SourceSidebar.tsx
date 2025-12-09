@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Plus, FileText, X, MessageSquare, FileCode, Brain, Package, Target, Newspaper } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
 import EditSourceModal from "./EditSourceModal";
 import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
 import { Source as SourceType, SourceCategory } from "../../services/sourceService";
+import { Conversation } from "../../types/aiSearch";
 
 export interface Source {
   id: string;
@@ -22,6 +23,8 @@ interface SourceSidebarProps {
   onSourcesChange?: (sources: Source[]) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
   pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
+  currentConversation?: Conversation | null;
+  onSummarizeAndNavigate?: (targetPageType: 'tech-strategy' | 'tech-article') => Promise<string | null>;
 }
 
 // 获取来源类别的显示信息
@@ -79,13 +82,17 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   onSourcesChange,
   onSelectionChange,
   pageType,
+  currentConversation,
+  onSummarizeAndNavigate,
 }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTextModal, setShowTextModal] = useState(false);
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [isSelectAll, setIsSelectAll] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleAddSource = () => {
     setShowTextModal(true);
@@ -271,16 +278,86 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => navigate('/tech-strategy')}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              onClick={async () => {
+                if (isNavigating) return;
+                
+                setIsNavigating(true);
+                try {
+                  let sourceId: string | null = null;
+                  
+                  // 如果有对话内容且提供了总结函数，先总结并保存
+                  if (currentConversation && currentConversation.messages && currentConversation.messages.length > 0 && onSummarizeAndNavigate) {
+                    sourceId = await onSummarizeAndNavigate('tech-strategy');
+                  }
+                  
+                  // 构建跳转 URL
+                  const projectId = searchParams.get('projectId');
+                  const params = new URLSearchParams();
+                  
+                  if (projectId) {
+                    params.append('projectId', projectId);
+                    params.append('newConversation', 'true');
+                  }
+                  
+                  if (sourceId) {
+                    params.append('sourceId', sourceId);
+                  }
+                  
+                  const url = params.toString() ? `/tech-strategy?${params.toString()}` : '/tech-strategy';
+                  navigate(url);
+                } catch (error) {
+                  console.error('[SourceSidebar] 跳转到技术策略页面失败:', error);
+                  // 即使总结失败，也继续跳转
+                  navigate('/tech-strategy');
+                } finally {
+                  setIsNavigating(false);
+                }
+              }}
+              disabled={isNavigating}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              技术策略
+              {isNavigating ? '处理中...' : '技术策略'}
             </button>
             <button
-              onClick={() => navigate('/tech-article')}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              onClick={async () => {
+                if (isNavigating) return;
+                
+                setIsNavigating(true);
+                try {
+                  let sourceId: string | null = null;
+                  
+                  // 如果有对话内容且提供了总结函数，先总结并保存
+                  if (currentConversation && currentConversation.messages && currentConversation.messages.length > 0 && onSummarizeAndNavigate) {
+                    sourceId = await onSummarizeAndNavigate('tech-article');
+                  }
+                  
+                  // 构建跳转 URL
+                  const projectId = searchParams.get('projectId');
+                  const params = new URLSearchParams();
+                  
+                  if (projectId) {
+                    params.append('projectId', projectId);
+                    params.append('newConversation', 'true');
+                  }
+                  
+                  if (sourceId) {
+                    params.append('sourceId', sourceId);
+                  }
+                  
+                  const url = params.toString() ? `/tech-article?${params.toString()}` : '/tech-article';
+                  navigate(url);
+                } catch (error) {
+                  console.error('[SourceSidebar] 跳转到技术通稿页面失败:', error);
+                  // 即使总结失败，也继续跳转
+                  navigate('/tech-article');
+                } finally {
+                  setIsNavigating(false);
+                }
+              }}
+              disabled={isNavigating}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              技术通稿
+              {isNavigating ? '处理中...' : '技术通稿'}
             </button>
           </div>
         </div>

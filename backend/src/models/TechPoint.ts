@@ -21,15 +21,7 @@ export class TechPointModel {
    * 创建技术点
    */
   async create(data: CreateTechPointDTO): Promise<TechPoint> {
-    const sql = `
-      INSERT INTO tech_points (
-        name, description, category_id, parent_id, level, tech_type, 
-        priority, status, tags, technical_details, benefits, applications, 
-        keywords, source_url, created_by
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      RETURNING *
-    `;
+    const dbType = this.db.getType();
     
     const values = [
       data.name,
@@ -46,11 +38,50 @@ export class TechPointModel {
       data.applications ? JSON.stringify(data.applications) : null,
       data.keywords ? JSON.stringify(data.keywords) : null,
       data.source_url || null,
-      data.created_by || null
+      data.created_by || null,
+      // TPD2 同步相关字段
+      data.tpd_id || null,
+      data.car_models_info ? JSON.stringify(data.car_models_info) : null,
+      data.resources_info ? JSON.stringify(data.resources_info) : null,
+      data.knowledge_info ? JSON.stringify(data.knowledge_info) : null
     ];
 
+    if (dbType === 'sqlite') {
+      // SQLite 不支持 RETURNING，需要先插入再查询
+      const sql = `
+        INSERT INTO tech_points (
+          name, description, category_id, parent_id, level, tech_type, 
+          priority, status, tags, technical_details, benefits, applications, 
+          keywords, source_url, created_by, tpd_id, car_models_info, 
+          resources_info, knowledge_info
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      const result = await this.db.query(sql, values);
+      const insertId = result.lastID || result.insertId;
+      if (!insertId) {
+        throw new Error('Failed to create tech point: no ID returned');
+      }
+      const created = await this.findById(insertId);
+      if (!created) {
+        throw new Error('Failed to retrieve created tech point');
+      }
+      return created;
+    } else {
+      // PostgreSQL 支持 RETURNING
+      const sql = `
+        INSERT INTO tech_points (
+          name, description, category_id, parent_id, level, tech_type, 
+          priority, status, tags, technical_details, benefits, applications, 
+          keywords, source_url, created_by, tpd_id, car_models_info, 
+          resources_info, knowledge_info
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING *
+      `;
     const result = await this.db.query(sql, values);
     return this.parseJsonFields(result[0]) as TechPoint;
+    }
   }
 
   /**
@@ -200,11 +231,23 @@ export class TechPointModel {
     const fields: string[] = [];
     const values: any[] = [];
 
+    // JSON 字段列表（需要序列化）
+    const jsonFields = [
+      'tags', 
+      'technical_details', 
+      'benefits', 
+      'applications', 
+      'keywords',
+      'car_models_info',
+      'resources_info',
+      'knowledge_info'
+    ];
+
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
-        if (['tags', 'technical_details', 'benefits', 'applications', 'keywords'].includes(key)) {
+        if (jsonFields.includes(key)) {
           fields.push(`${key} = ?`);
-          values.push(JSON.stringify(value));
+          values.push(value !== null ? JSON.stringify(value) : null);
         } else {
           fields.push(`${key} = ?`);
           values.push(value);
@@ -397,13 +440,35 @@ export class TechPointModel {
     pressReleases: any[];
     speeches: any[];
   }> {
+    // 初始化返回结果
+    const result = {
+      packagingMaterials: [] as any[],
+      promotionStrategies: [] as any[],
+      pressReleases: [] as any[],
+      speeches: [] as any[]
+    };
+
+    try {
     // 获取技术包装材料
     const packagingSql = `
       SELECT * FROM tech_packaging_materials 
       WHERE tech_point_id = ? 
       ORDER BY created_at DESC
     `;
-    
+      try {
+        const packagingResult = await this.db.query(packagingSql, [techPointId]);
+        result.packagingMaterials = Array.isArray(packagingResult) ? packagingResult : [];
+      } catch (error: any) {
+        // 表不存在或其他错误，返回空数组
+        if (!error.message?.includes('no such table')) {
+          console.warn('获取技术包装材料失败:', error.message);
+        }
+      }
+    } catch (error) {
+      // 忽略错误
+    }
+
+    try {
     // 获取推广策略
     const promotionSql = `
       SELECT ts.*, pt.weight 
@@ -412,7 +477,19 @@ export class TechPointModel {
       WHERE pt.tech_point_id = ?
       ORDER BY ts.created_at DESC
     `;
-    
+      try {
+        const promotionResult = await this.db.query(promotionSql, [techPointId]);
+        result.promotionStrategies = Array.isArray(promotionResult) ? promotionResult : [];
+      } catch (error: any) {
+        if (!error.message?.includes('no such table')) {
+          console.warn('获取推广策略失败:', error.message);
+        }
+      }
+    } catch (error) {
+      // 忽略错误
+    }
+
+    try {
     // 获取通稿
     const pressSql = `
       SELECT pr.*, pt.weight 
@@ -421,7 +498,19 @@ export class TechPointModel {
       WHERE pt.tech_point_id = ?
       ORDER BY pr.created_at DESC
     `;
-    
+      try {
+        const pressResult = await this.db.query(pressSql, [techPointId]);
+        result.pressReleases = Array.isArray(pressResult) ? pressResult : [];
+      } catch (error: any) {
+        if (!error.message?.includes('no such table')) {
+          console.warn('获取通稿失败:', error.message);
+        }
+      }
+    } catch (error) {
+      // 忽略错误
+    }
+
+    try {
     // 获取演讲稿
     const speechSql = `
       SELECT sp.*, st.weight 
@@ -430,35 +519,67 @@ export class TechPointModel {
       WHERE st.tech_point_id = ?
       ORDER BY sp.created_at DESC
     `;
+      try {
+        const speechResult = await this.db.query(speechSql, [techPointId]);
+        result.speeches = Array.isArray(speechResult) ? speechResult : [];
+      } catch (error: any) {
+        if (!error.message?.includes('no such table')) {
+          console.warn('获取演讲稿失败:', error.message);
+        }
+      }
+    } catch (error) {
+      // 忽略错误
+    }
 
-    const [packagingResult, promotionResult, pressResult, speechResult] = await Promise.all([
-      this.db.query(packagingSql, [techPointId]),
-      this.db.query(promotionSql, [techPointId]),
-      this.db.query(pressSql, [techPointId]),
-      this.db.query(speechSql, [techPointId])
-    ]);
-
-    return {
-      packagingMaterials: packagingResult,
-      promotionStrategies: promotionResult,
-      pressReleases: pressResult,
-      speeches: speechResult
-    };
+    return result;
   }
 
   /**
    * 获取技术点关联的车型
    */
   async getAssociatedCarModels(techPointId: number): Promise<any[]> {
+    try {
     const sql = `
-      SELECT cm.*, tcm.application_status, tcm.implementation_date, tcm.notes
+        SELECT 
+          cm.*,
+          b.id as brand_id_ref,
+          b.name as brand_name,
+          b.name_en as brand_name_en,
+          tcm.application_status, 
+          tcm.implementation_date, 
+          tcm.notes
       FROM car_models cm
+        LEFT JOIN brands b ON cm.brand_id = b.id
       JOIN tech_point_car_models tcm ON cm.id = tcm.car_model_id
       WHERE tcm.tech_point_id = ?
-      ORDER BY cm.brand, cm.series, cm.model
+        ORDER BY COALESCE(b.name, ''), cm.name
     `;
     
-    return await this.db.query(sql, [techPointId]);
+      const result = await this.db.query(sql, [techPointId]);
+      const carModels = Array.isArray(result) ? result : [];
+      
+      // 调试日志：检查返回的数据
+      if (carModels.length > 0) {
+        console.log(`[TechPointModel] 获取技术点 ${techPointId} 的关联车型:`, 
+          carModels.map((cm: any) => ({
+            id: cm.id,
+            name: cm.name,
+            brand_id: cm.brand_id,
+            brand_name: cm.brand_name,
+            brand_id_ref: cm.brand_id_ref
+          }))
+        );
+      }
+      
+      return carModels;
+    } catch (error: any) {
+      console.error('获取关联车型失败:', error.message);
+      // 如果表不存在，返回空数组
+      if (error.message?.includes('no such table')) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   /**
@@ -556,7 +677,16 @@ export class TechPointModel {
   private parseJsonFields(row: any): any {
     if (!row) return row;
     
-    const jsonFields = ['tags', 'technical_details', 'benefits', 'applications', 'keywords'];
+    const jsonFields = [
+      'tags', 
+      'technical_details', 
+      'benefits', 
+      'applications', 
+      'keywords',
+      'car_models_info',
+      'resources_info',
+      'knowledge_info'
+    ];
     const parsed = { ...row };
     
     jsonFields.forEach(field => {
@@ -565,6 +695,14 @@ export class TechPointModel {
           parsed[field] = JSON.parse(parsed[field]);
         } catch (e) {
           // 如果解析失败，保持原值
+          console.warn(`解析 JSON 字段 ${field} 失败:`, e);
+        }
+      } else if (parsed[field] === null || parsed[field] === undefined) {
+        // 对于 null 或 undefined，根据字段类型设置默认值
+        if (field === 'car_models_info' || field === 'resources_info') {
+          parsed[field] = [];
+        } else if (field === 'knowledge_info') {
+          parsed[field] = null;
         }
       }
     });

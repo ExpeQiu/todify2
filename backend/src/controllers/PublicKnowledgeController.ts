@@ -228,11 +228,11 @@ export class PublicKnowledgeController {
   }
 
   /**
-   * 上传文件
+   * 上传文件（支持单个或多个文件）
    */
   async uploadFile(req: Request, res: Response) {
     try {
-      const uploadMiddleware = upload.single('file');
+      const uploadMiddleware = upload.array('files', 50); // 最多支持50个文件
       
       uploadMiddleware(req, res, async (err) => {
         if (err) {
@@ -243,7 +243,8 @@ export class PublicKnowledgeController {
           });
         }
 
-        if (!req.file) {
+        const files = req.files as Express.Multer.File[];
+        if (!files || files.length === 0) {
           return res.status(400).json({
             success: false,
             message: '未选择文件'
@@ -257,17 +258,24 @@ export class PublicKnowledgeController {
             : undefined;
           const uploadedBy = uploaded_by ? parseInt(uploaded_by) : undefined;
 
-          const file = await publicKnowledgeService.saveUploadedFile(
-            req.file,
-            categoryId,
-            description,
-            uploadedBy
+          // 批量上传文件
+          const uploadResults = await Promise.all(
+            files.map(file => 
+              publicKnowledgeService.saveUploadedFile(
+                file,
+                categoryId,
+                description, // 所有文件共享同一个描述
+                uploadedBy
+              )
+            )
           );
 
           res.status(201).json({
             success: true,
-            data: file,
-            message: '文件上传成功'
+            data: uploadResults.length === 1 ? uploadResults[0] : uploadResults,
+            message: uploadResults.length === 1 
+              ? '文件上传成功' 
+              : `成功上传 ${uploadResults.length} 个文件`
           });
         } catch (error) {
           logger.error('保存文件失败:', error);
@@ -375,6 +383,39 @@ export class PublicKnowledgeController {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '下载文件失败'
+      });
+    }
+  }
+
+  /**
+   * 预览文件（通过文件ID）
+   */
+  async previewFile(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: '无效的文件ID'
+        });
+      }
+
+      const { stream, file } = await publicKnowledgeService.getFileStream(id);
+
+      // 设置响应头
+      res.setHeader('Content-Type', file.file_type);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(file.name)}"`);
+      res.setHeader('Content-Length', file.file_size);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 缓存1天
+
+      stream.pipe(res);
+    } catch (error) {
+      logger.error('预览文件失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '预览文件失败';
+      const statusCode = errorMessage.includes('不存在') ? 404 : 500;
+      res.status(statusCode).json({
+        success: false,
+        message: errorMessage
       });
     }
   }

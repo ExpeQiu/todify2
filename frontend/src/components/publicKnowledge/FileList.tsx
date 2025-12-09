@@ -19,6 +19,52 @@ const FileList: React.FC<FileListProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [previewFile, setPreviewFile] = useState<PublicKnowledgeFile | null>(null);
 
+  /**
+   * 修复文件名编码（前端双重保障）
+   * 处理 UTF-8 被误读为 Latin-1 的情况
+   */
+  const fixFileNameEncoding = (fileName: string): string => {
+    try {
+      // 检测是否包含乱码字符
+      const hasGarbledChars = /ã|å|ä|è|ç|æ|Ã|â|€|¥/.test(fileName);
+      
+      if (hasGarbledChars) {
+        // 尝试修复编码：将字符串按 Latin-1 编码为字节，然后按 UTF-8 解码
+        // 在浏览器中，我们需要使用 TextEncoder/TextDecoder 或手动转换
+        let fixed = fileName;
+        try {
+          // 方法1: 使用 TextDecoder（推荐）
+          const encoder = new TextEncoder();
+          const decoder = new TextDecoder('utf-8');
+          
+          // 将字符串按 Latin-1 编码（每个字符一个字节）
+          const latin1Bytes = new Uint8Array(fileName.length);
+          for (let i = 0; i < fileName.length; i++) {
+            latin1Bytes[i] = fileName.charCodeAt(i) & 0xFF;
+          }
+          
+          // 按 UTF-8 解码
+          fixed = decoder.decode(latin1Bytes);
+          
+          // 验证修复后的字符串是否更合理
+          const hasChinese = /[\u4e00-\u9fa5]/.test(fixed);
+          const originalPrintable = (fileName.match(/[\x20-\x7E\u4e00-\u9fa5]/g) || []).length;
+          const fixedPrintable = (fixed.match(/[\x20-\x7E\u4e00-\u9fa5]/g) || []).length;
+          const isMoreReadable = fixedPrintable > originalPrintable;
+          
+          if (hasChinese || isMoreReadable) {
+            return fixed;
+          }
+        } catch (e) {
+          console.warn('文件名编码修复失败', e);
+        }
+      }
+    } catch (e) {
+      console.warn('文件名编码修复异常', e);
+    }
+    return fileName;
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -51,7 +97,7 @@ const FileList: React.FC<FileListProps> = ({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.name;
+      a.download = fixFileNameEncoding(file.name);
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -134,8 +180,8 @@ const FileList: React.FC<FileListProps> = ({
                 <span className="text-4xl">{getFileIcon(file.file_type)}</span>
               </div>
               <div className="mb-2">
-                <h3 className="text-sm font-medium text-gray-900 truncate" title={file.name}>
-                  {file.name}
+                <h3 className="text-sm font-medium text-gray-900 truncate" title={fixFileNameEncoding(file.name)}>
+                  {fixFileNameEncoding(file.name)}
                 </h3>
                 {file.description && (
                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">
@@ -183,8 +229,8 @@ const FileList: React.FC<FileListProps> = ({
                 <span className="text-2xl">{getFileIcon(file.file_type)}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-gray-900 truncate">
-                  {file.name}
+                <h3 className="text-sm font-medium text-gray-900 truncate" title={fixFileNameEncoding(file.name)}>
+                  {fixFileNameEncoding(file.name)}
                 </h3>
                 {file.description && (
                   <p className="text-sm text-gray-500 mt-1 truncate">
@@ -234,7 +280,7 @@ const FileList: React.FC<FileListProps> = ({
           <div className="max-w-4xl max-h-full p-4">
             <img
               src={publicKnowledgeService.getFileUrl(previewFile)}
-              alt={previewFile.name}
+              alt={fixFileNameEncoding(previewFile.name)}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />

@@ -180,6 +180,44 @@ export interface KnowledgePoint extends BaseEntity {
   created_by?: string;
 }
 
+// 车型信息接口（用于 JSON 存储）
+export interface CarModelInfo {
+  id?: number;
+  name: string;
+  brand?: string;
+  brand_id?: number;
+  series?: string;
+  launch_date?: string;
+  status?: string;
+  application_status?: string;
+  implementation_date?: string;
+  notes?: string;
+}
+
+// 资源信息接口（用于 JSON 存储）
+export interface ResourceInfo {
+  type: 'pdf' | 'link' | 'image' | 'video' | 'document' | 'other';
+  name: string;
+  url?: string;
+  file_path?: string;
+  description?: string;
+  size?: number;
+  created_at?: string;
+}
+
+// 知识点信息接口（用于 JSON 存储）
+export interface KnowledgeInfo {
+  title?: string;
+  content?: string;
+  knowledge_type?: string;
+  difficulty_level?: string;
+  tags?: string[];
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  examples?: string[];
+  references?: string[];
+}
+
 // 技术点接口
 export interface TechPoint extends BaseEntity {
   name: string;
@@ -197,6 +235,11 @@ export interface TechPoint extends BaseEntity {
   keywords?: string[];
   source_url?: string;
   created_by?: string;
+  // TPD2 同步相关字段
+  tpd_id?: string; // TPD2 项目的原始 ID，用于同步锚点
+  car_models_info?: CarModelInfo[]; // JSON 格式存储车型信息
+  resources_info?: ResourceInfo[]; // JSON 格式存储资源信息
+  knowledge_info?: KnowledgeInfo; // JSON 格式存储知识点详情
 }
 
 // 技术点与车型关联接口

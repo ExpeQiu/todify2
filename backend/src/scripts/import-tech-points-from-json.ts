@@ -1,13 +1,14 @@
 /**
- * 从TPD2项目API导入所有技术点数据
- * 一次性导入所有技术点及其关联数据
+ * 从JSON文件导入技术点数据
+ * 支持从TPD2项目导出的JSON格式导入技术点及其关联数据
  */
 
-import axios from 'axios';
 import { DatabaseManager, db } from '../config/database';
 import { techPointModel, techCategoryModel, carModelModel } from '../models';
 import { CreateTechPointDTO, Status, TechType, Priority, KnowledgeType, DifficultyLevel, CreateKnowledgePointDTO } from '../types/database';
 import { KnowledgePointService } from '../services/knowledgePointService';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 interface TPD2TechPoint {
   id?: number;
@@ -72,7 +73,6 @@ async function findOrCreateCategory(
     const newCategory = await techCategoryModel.create({
       name: categoryName,
       level: 1,
-      sort_order: 0,
       status: Status.ACTIVE,
     });
     console.log(`  ✅ 创建技术分类: ${categoryName} (ID: ${newCategory.id})`);
@@ -86,16 +86,9 @@ async function findOrCreateCategory(
  * 查找或创建品牌
  */
 async function findOrCreateBrand(brandName: string): Promise<number> {
-  // 验证品牌名称
-  if (!brandName || brandName.trim() === '') {
-    throw new Error('品牌名称不能为空');
-  }
-  
-  const trimmedBrandName = brandName.trim();
-  
   // 查找品牌
   const brandSql = 'SELECT id FROM brands WHERE name = ?';
-  const brandResult = await db.query(brandSql, [trimmedBrandName]);
+  const brandResult = await db.query(brandSql, [brandName]);
   
   if (Array.isArray(brandResult) && brandResult.length > 0) {
     return brandResult[0].id;
@@ -103,9 +96,9 @@ async function findOrCreateBrand(brandName: string): Promise<number> {
 
   // 创建品牌
   const insertBrandSql = 'INSERT INTO brands (name, status) VALUES (?, ?)';
-  const insertResult = await db.query(insertBrandSql, [trimmedBrandName, 'active']);
+  const insertResult = await db.query(insertBrandSql, [brandName, 'active']);
   const brandId = insertResult.lastID || insertResult.insertId;
-  console.log(`  ✅ 创建品牌: ${trimmedBrandName} (ID: ${brandId})`);
+  console.log(`  ✅ 创建品牌: ${brandName} (ID: ${brandId})`);
   return brandId;
 }
 
@@ -117,23 +110,12 @@ async function findOrCreateCarModel(
   carModelName: string,
   type?: string
 ): Promise<number> {
-  // 验证输入
-  if (!brandName || brandName.trim() === '') {
-    throw new Error('品牌名称不能为空');
-  }
-  if (!carModelName || carModelName.trim() === '') {
-    throw new Error('车型名称不能为空');
-  }
-  
-  const trimmedBrandName = brandName.trim();
-  const trimmedCarModelName = carModelName.trim();
-  
   // 先查找或创建品牌
-  const brandId = await findOrCreateBrand(trimmedBrandName);
+  const brandId = await findOrCreateBrand(brandName);
 
   // 查找车型
   const carModelSql = 'SELECT id FROM car_models WHERE brand_id = ? AND name = ?';
-  const carModelResult = await db.query(carModelSql, [brandId, trimmedCarModelName]);
+  const carModelResult = await db.query(carModelSql, [brandId, carModelName]);
   
   if (Array.isArray(carModelResult) && carModelResult.length > 0) {
     return carModelResult[0].id;
@@ -156,12 +138,12 @@ async function findOrCreateCarModel(
   `;
   const insertResult = await db.query(insertCarModelSql, [
     brandId,
-    trimmedCarModelName,
+    carModelName,
     category,
     'active'
   ]);
   const carModelId = insertResult.lastID || insertResult.insertId;
-  console.log(`  ✅ 创建车型: ${trimmedBrandName} ${trimmedCarModelName} (ID: ${carModelId})`);
+  console.log(`  ✅ 创建车型: ${brandName} ${carModelName} (ID: ${carModelId})`);
   return carModelId;
 }
 
@@ -207,51 +189,23 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
     };
     const status = statusMap[tpdTechPoint.status || 'draft'] || Status.DRAFT;
 
-    // 5. 构建技术详情（合并多个字段）
-    const technicalDetails: any = {};
-    if (tpdTechPoint.tech_principle) {
-      technicalDetails.tech_principle = tpdTechPoint.tech_principle;
-    }
-    if (tpdTechPoint.tech_value) {
-      technicalDetails.tech_value = tpdTechPoint.tech_value;
-    }
-    if (tpdTechPoint.tech_boundary) {
-      technicalDetails.tech_boundary = tpdTechPoint.tech_boundary;
-    }
-    if (tpdTechPoint.highlights && tpdTechPoint.highlights.length > 0) {
-      technicalDetails.highlights = tpdTechPoint.highlights;
-    }
-    if (tpdTechPoint.evidence_measured && tpdTechPoint.evidence_measured.length > 0) {
-      technicalDetails.evidence_measured = tpdTechPoint.evidence_measured;
-    }
-    if (tpdTechPoint.evidence_certified && tpdTechPoint.evidence_certified.length > 0) {
-      technicalDetails.evidence_certified = tpdTechPoint.evidence_certified;
-    }
-    if (tpdTechPoint.evidence_comparison && tpdTechPoint.evidence_comparison.length > 0) {
-      technicalDetails.evidence_comparison = tpdTechPoint.evidence_comparison;
-    }
-    // 合并原有的technical_details
-    if (tpdTechPoint.technical_details) {
-      Object.assign(technicalDetails, tpdTechPoint.technical_details);
-    }
-
-    // 6. 准备技术点数据
+    // 5. 准备技术点数据（不合并技术知识点字段）
     const techPointData: CreateTechPointDTO = {
       name: tpdTechPoint.name,
-      description: tpdTechPoint.description || undefined,
-      category_id: categoryId || undefined,
-      parent_id: tpdTechPoint.parent_id ?? undefined,
+      description: tpdTechPoint.description || null,
+      category_id: categoryId || null,
+      parent_id: tpdTechPoint.parent_id || null,
       level: tpdTechPoint.level || 1,
       tech_type: techType,
       priority: priority,
       status: status,
-      tags: tpdTechPoint.tags || undefined,
-      technical_details: Object.keys(technicalDetails).length > 0 ? technicalDetails : undefined,
-      benefits: tpdTechPoint.benefits || undefined,
-      applications: tpdTechPoint.applications || undefined,
-      keywords: tpdTechPoint.keywords || undefined,
-      source_url: tpdTechPoint.source_url || undefined,
-      created_by: tpdTechPoint.created_by || undefined,
+      tags: tpdTechPoint.tags || null,
+      technical_details: tpdTechPoint.technical_details || null,
+      benefits: tpdTechPoint.benefits || null,
+      applications: tpdTechPoint.applications || null,
+      keywords: tpdTechPoint.keywords || null,
+      source_url: tpdTechPoint.source_url || null,
+      created_by: tpdTechPoint.created_by || null,
     };
 
     // 7. 检查技术点是否已存在（通过名称）
@@ -275,68 +229,25 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
     if (tpdTechPoint.associated_car_models && tpdTechPoint.associated_car_models.length > 0) {
       for (const carModelData of tpdTechPoint.associated_car_models) {
         try {
-          // 验证车型数据：必须有名称
-          if (!carModelData.name || carModelData.name.trim() === '') {
-            console.warn(`    ⚠️  跳过无效车型数据: 缺少车型名称`, carModelData);
-            continue;
-          }
-
-          // 验证品牌数据：如果品牌为空或无效，记录警告但不创建品牌
-          const brandName = carModelData.brand?.trim();
-          if (!brandName || brandName === '') {
-            console.warn(`    ⚠️  车型 ${carModelData.name} 缺少品牌信息，将不关联品牌`, carModelData);
-            // 如果品牌为空，跳过该车型或使用默认处理
-            // 这里选择跳过，因为无法创建没有品牌的车型
-            continue;
-          }
-
-          // 处理车型ID：即使有car_model_id，也要验证品牌和名称是否匹配
+          // 如果已有car_model_id，直接使用
           let carModelId: number;
           if (carModelData.car_model_id) {
             const existingCarModel = await carModelModel.findById(carModelData.car_model_id);
             if (existingCarModel) {
-              // 验证已存在的车型是否与TPD2数据匹配
-              // 获取车型的品牌信息
-              const brandCheckSql = 'SELECT b.name as brand_name FROM brands b WHERE b.id = ?';
-              const brandCheckResult = await db.query(brandCheckSql, [existingCarModel.brand_id]);
-              const existingBrandName = Array.isArray(brandCheckResult) && brandCheckResult.length > 0 
-                ? brandCheckResult[0].brand_name 
-                : null;
-              
-              // 验证品牌和名称是否匹配
-              const nameMatches = existingCarModel.name.trim() === carModelData.name.trim();
-              const brandMatches = existingBrandName && existingBrandName.trim() === brandName;
-              
-              if (nameMatches && brandMatches) {
-                // 完全匹配，使用现有车型
-                carModelId = existingCarModel.id;
-                console.log(`    ℹ️  使用已存在的车型: ${brandName} ${carModelData.name.trim()} (ID: ${carModelId})`);
-              } else {
-                // 不匹配，记录警告并通过品牌和名称查找或创建
-                console.warn(`    ⚠️  车型ID ${carModelData.car_model_id} 的品牌或名称不匹配:`);
-                console.warn(`       现有: ${existingBrandName || '未知品牌'} ${existingCarModel.name}`);
-                console.warn(`       TPD2: ${brandName} ${carModelData.name.trim()}`);
-                console.warn(`       将通过品牌和名称重新查找或创建车型`);
-                carModelId = await findOrCreateCarModel(
-                  brandName,
-                  carModelData.name.trim(),
-                  carModelData.type
-                );
-              }
+              carModelId = existingCarModel.id;
             } else {
               // 如果ID不存在，通过品牌和名称查找或创建
-              console.warn(`    ⚠️  车型ID ${carModelData.car_model_id} 不存在，将通过品牌和名称查找或创建`);
               carModelId = await findOrCreateCarModel(
-                brandName,
-                carModelData.name.trim(),
+                carModelData.brand,
+                carModelData.name,
                 carModelData.type
               );
             }
           } else {
             // 通过品牌和名称查找或创建
             carModelId = await findOrCreateCarModel(
-              brandName,
-              carModelData.name.trim(),
+              carModelData.brand,
+              carModelData.name,
               carModelData.type
             );
           }
@@ -347,25 +258,23 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
               techPointId,
               carModelId,
               'planned', // 默认状态
-              undefined,
-              carModelData.notes || carModelData.relationship || undefined
+              null,
+              carModelData.notes || carModelData.relationship || null
             );
-            console.log(`    ✅ 关联车型: ${brandName} ${carModelData.name.trim()}`);
+            console.log(`    ✅ 关联车型: ${carModelData.brand} ${carModelData.name}`);
           } catch (error: any) {
             // 如果已存在关联，忽略错误
             if (!error.message?.includes('已关联') && !error.message?.includes('UNIQUE')) {
-              console.warn(`    ⚠️  关联车型失败: ${brandName} ${carModelData.name.trim()} - ${error.message}`);
+              console.warn(`    ⚠️  关联车型失败: ${carModelData.brand} ${carModelData.name} - ${error.message}`);
             }
           }
         } catch (error: any) {
-          console.warn(`    ⚠️  处理车型失败: ${carModelData.name || '未知'} - ${error.message}`);
+          console.warn(`    ⚠️  处理车型失败: ${carModelData.name} - ${error.message}`);
         }
       }
     }
 
     // 9. 处理技术知识点（创建独立的知识点记录）
-    // 确保数据库已连接
-    await db.connect();
     const knowledgePointService = new KnowledgePointService();
     let knowledgePointCount = 0;
 
@@ -379,7 +288,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
           knowledge_type: KnowledgeType.PRINCIPLE,
           difficulty_level: DifficultyLevel.MEDIUM,
           status: Status.ACTIVE,
-          created_by: tpdTechPoint.created_by || undefined,
+          created_by: tpdTechPoint.created_by || null,
         });
         knowledgePointCount++;
         console.log(`    ✅ 创建知识点: 技术原理`);
@@ -398,7 +307,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
           knowledge_type: KnowledgeType.APPLICATION,
           difficulty_level: DifficultyLevel.MEDIUM,
           status: Status.ACTIVE,
-          created_by: tpdTechPoint.created_by || undefined,
+          created_by: tpdTechPoint.created_by || null,
         });
         knowledgePointCount++;
         console.log(`    ✅ 创建知识点: 价值`);
@@ -417,7 +326,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
           knowledge_type: KnowledgeType.CONCEPT,
           difficulty_level: DifficultyLevel.MEDIUM,
           status: Status.ACTIVE,
-          created_by: tpdTechPoint.created_by || undefined,
+          created_by: tpdTechPoint.created_by || null,
         });
         knowledgePointCount++;
         console.log(`    ✅ 创建知识点: 适用边界`);
@@ -437,7 +346,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
             knowledge_type: KnowledgeType.BEST_PRACTICE,
             difficulty_level: DifficultyLevel.MEDIUM,
             status: Status.ACTIVE,
-            created_by: tpdTechPoint.created_by || undefined,
+            created_by: tpdTechPoint.created_by || null,
           });
           knowledgePointCount++;
         } catch (error: any) {
@@ -460,7 +369,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
             knowledge_type: KnowledgeType.CASE_STUDY,
             difficulty_level: DifficultyLevel.MEDIUM,
             status: Status.ACTIVE,
-            created_by: tpdTechPoint.created_by || undefined,
+            created_by: tpdTechPoint.created_by || null,
           });
           knowledgePointCount++;
         } catch (error: any) {
@@ -483,7 +392,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
             knowledge_type: KnowledgeType.CASE_STUDY,
             difficulty_level: DifficultyLevel.MEDIUM,
             status: Status.ACTIVE,
-            created_by: tpdTechPoint.created_by || undefined,
+            created_by: tpdTechPoint.created_by || null,
           });
           knowledgePointCount++;
         } catch (error: any) {
@@ -506,7 +415,7 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
             knowledge_type: KnowledgeType.CASE_STUDY,
             difficulty_level: DifficultyLevel.MEDIUM,
             status: Status.ACTIVE,
-            created_by: tpdTechPoint.created_by || undefined,
+            created_by: tpdTechPoint.created_by || null,
           });
           knowledgePointCount++;
         } catch (error: any) {
@@ -541,142 +450,25 @@ async function importTechPoint(tpdTechPoint: TPD2TechPoint): Promise<{
 }
 
 /**
- * 从TPD2 API获取所有技术点
+ * 从JSON文件导入技术点
  */
-async function fetchAllTechPointsFromTPD2(tpdApiBaseUrl: string): Promise<TPD2TechPoint[]> {
-  const allTechPoints: TPD2TechPoint[] = [];
-  let page = 1;
-  const pageSize = 100;
-  let hasMore = true;
-
-  console.log(`🔗 正在从 TPD2 API 获取技术点数据...`);
-  console.log(`   API地址: ${tpdApiBaseUrl}\n`);
-
-  while (hasMore) {
-    try {
-      console.log(`📄 获取第 ${page} 页数据...`);
-      
-      // 尝试获取技术点列表
-      const response = await axios.get(`${tpdApiBaseUrl}/tech-points`, {
-        params: {
-          page,
-          pageSize,
-          orderBy: 'created_at',
-          orderDirection: 'ASC',
-        },
-        timeout: 30000,
-      });
-
-      let techPoints: TPD2TechPoint[] = [];
-
-      // 处理不同的响应格式
-      if (response.data.code === 200 && response.data.data) {
-        // 格式: { code: 200, data: { data: [...], total: ... } }
-        const paginatedData = response.data.data;
-        techPoints = paginatedData.data || [];
-      } else if (Array.isArray(response.data)) {
-        // 格式: [...]
-        techPoints = response.data;
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        // 格式: { data: [...] }
-        techPoints = response.data.data;
-      } else if (response.data.success && response.data.data) {
-        // 格式: { success: true, data: { data: [...], total: ... } }
-        const paginatedData = response.data.data;
-        techPoints = Array.isArray(paginatedData) ? paginatedData : (paginatedData.data || []);
-      }
-
-      if (techPoints.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      // 获取每个技术点的详细信息（包含关联数据）
-      for (const techPoint of techPoints) {
-        try {
-          const detailResponse = await axios.get(
-            `${tpdApiBaseUrl}/tech-points/${techPoint.id}`,
-            {
-              params: {
-                includeAssociations: true,
-              },
-              timeout: 30000,
-            }
-          );
-
-          let detailData: TPD2TechPoint = techPoint;
-
-          // 处理不同的响应格式
-          if (detailResponse.data.code === 200 && detailResponse.data.data) {
-            detailData = detailResponse.data.data;
-          } else if (detailResponse.data.success && detailResponse.data.data) {
-            detailData = detailResponse.data.data;
-          } else if (detailResponse.data.data) {
-            detailData = detailResponse.data.data;
-          } else {
-            detailData = detailResponse.data;
-          }
-
-          // 合并数据
-          allTechPoints.push({
-            ...techPoint,
-            ...detailData,
-          });
-        } catch (error: any) {
-          console.warn(`  ⚠️  获取技术点 ${techPoint.id} 详情失败: ${error.message}`);
-          // 如果获取详情失败，使用列表数据
-          allTechPoints.push(techPoint);
-        }
-      }
-
-      console.log(`  ✅ 已获取 ${techPoints.length} 个技术点（总计: ${allTechPoints.length}）\n`);
-
-      // 检查是否还有更多数据
-      if (techPoints.length < pageSize) {
-        hasMore = false;
-      } else {
-        page++;
-      }
-    } catch (error: any) {
-      console.error(`❌ 获取第 ${page} 页数据失败:`, error.message);
-      
-      // 如果是404或400，可能没有更多数据了
-      if (error.response?.status === 404 || error.response?.status === 400) {
-        hasMore = false;
-      } else {
-        // 其他错误，继续尝试
-        page++;
-        if (page > 100) {
-          // 防止无限循环
-          console.warn('⚠️  已达到最大页数限制，停止获取');
-          hasMore = false;
-        }
-      }
-    }
-  }
-
-  return allTechPoints;
-}
-
-/**
- * 从TPD2 API导入所有技术点
- */
-async function importFromTPD2API(tpdApiBaseUrl?: string): Promise<void> {
+async function importFromJson(jsonFilePath: string): Promise<void> {
   try {
     console.log('🔗 正在连接数据库...');
     await db.connect();
     console.log('✅ 数据库连接成功\n');
 
-    // 获取TPD2 API地址
-    const apiUrl = tpdApiBaseUrl || process.env.TPD_API_BASE_URL || 'http://localhost:3003/api/external/v1';
-    
-    // 从TPD2获取所有技术点
-    const techPoints = await fetchAllTechPointsFromTPD2(apiUrl);
-
-    if (techPoints.length === 0) {
-      console.log('⚠️  未获取到任何技术点数据');
-      return;
+    // 读取JSON文件
+    if (!existsSync(jsonFilePath)) {
+      throw new Error(`文件不存在: ${jsonFilePath}`);
     }
+
+    console.log(`📂 读取JSON文件: ${jsonFilePath}`);
+    const fileContent = readFileSync(jsonFilePath, 'utf-8');
+    const jsonData = JSON.parse(fileContent);
+
+    // 处理单个对象或数组
+    const techPoints: TPD2TechPoint[] = Array.isArray(jsonData) ? jsonData : [jsonData];
 
     console.log(`\n📊 准备导入 ${techPoints.length} 个技术点\n`);
 
@@ -730,9 +522,18 @@ async function importFromTPD2API(tpdApiBaseUrl?: string): Promise<void> {
 
 // 执行导入
 if (require.main === module) {
-  const tpdApiUrl = process.argv[2];
+  const jsonFilePath = process.argv[2];
   
-  importFromTPD2API(tpdApiUrl)
+  if (!jsonFilePath) {
+    console.error('❌ 请提供JSON文件路径');
+    console.log('\n使用方法:');
+    console.log('  npx ts-node -r tsconfig-paths/register src/scripts/import-tech-points-from-json.ts <json-file-path>');
+    console.log('\n示例:');
+    console.log('  npx ts-node -r tsconfig-paths/register src/scripts/import-tech-points-from-json.ts ./data/tech-points.json');
+    process.exit(1);
+  }
+
+  importFromJson(jsonFilePath)
     .then(() => {
       console.log('\n✅ 脚本执行完成');
       process.exit(0);
@@ -743,4 +544,4 @@ if (require.main === module) {
     });
 }
 
-export { importFromTPD2API, fetchAllTechPointsFromTPD2 };
+export { importFromJson, importTechPoint };

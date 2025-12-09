@@ -86,14 +86,19 @@ export const publicKnowledgeService = {
   },
 
   /**
-   * 上传文件
+   * 上传文件（支持单个或多个文件）
    */
   async uploadFile(
-    file: File,
+    files: File | File[],
     data?: CreateFileDTO
-  ): Promise<ApiResponse<PublicKnowledgeFile>> {
+  ): Promise<ApiResponse<PublicKnowledgeFile | PublicKnowledgeFile[]>> {
+    const fileArray = Array.isArray(files) ? files : [files];
     const formData = new FormData();
-    formData.append('file', file);
+    
+    // 添加所有文件（使用 'files' 作为字段名，因为后端使用 upload.array('files')）
+    fileArray.forEach(file => {
+      formData.append('files', file);
+    });
     
     if (data?.category_id !== undefined) {
       formData.append('category_id', data.category_id === null ? 'null' : String(data.category_id));
@@ -108,7 +113,7 @@ export const publicKnowledgeService = {
     // 使用 axios 直接上传，因为 api 封装可能不支持 FormData
     const axios = (await import('axios')).default;
     const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-    const response = await axios.post<ApiResponse<PublicKnowledgeFile>>(
+    const response = await axios.post<ApiResponse<PublicKnowledgeFile | PublicKnowledgeFile[]>>(
       `${baseURL}${BASE_URL}/upload`,
       formData,
       {
@@ -148,14 +153,12 @@ export const publicKnowledgeService = {
   },
 
   /**
-   * 获取文件URL
+   * 获取文件URL（用于预览）
+   * 使用文件ID而不是文件名，避免编码问题
    */
   getFileUrl(file: PublicKnowledgeFile): string {
-    if (file.file_url) {
-      return file.file_url;
-    }
-    // 如果没有file_url，使用file_path构建URL
-    const fileName = file.file_path.split('/').pop() || '';
-    return `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}${BASE_URL}/files/${fileName}`;
+    // 优先使用文件ID构建URL，避免文件名编码问题
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+    return `${baseURL}${BASE_URL}/files/${file.id}/preview`;
   }
 };

@@ -52,11 +52,82 @@ export class PublicKnowledgeService {
   }
 
   /**
+   * 修复文件名编码（处理 UTF-8 被误读为 Latin-1 的情况）
+   */
+  private fixFileNameEncoding(originalName: string): string {
+    try {
+      // 检测是否包含乱码字符（UTF-8 被误读为 Latin-1 的典型特征）
+      // 包括：ã, å, ä, è, ç, æ, Ã, â 等常见乱码字符
+      const hasGarbledChars = /ã|å|ä|è|ç|æ|Ã|â|€|¥/.test(originalName);
+      
+      if (hasGarbledChars) {
+        // 策略1: 尝试将整个字符串按 Latin-1 编码转换为 UTF-8
+        try {
+          const buffer = Buffer.from(originalName, 'latin1');
+          const decoded = buffer.toString('utf8');
+          
+          // 验证解码后的字符串是否更合理
+          // 1. 包含中文字符（最可靠的指标）
+          const hasChinese = /[\u4e00-\u9fa5]/.test(decoded);
+          // 2. 或者解码后的字符串包含更多可打印字符（排除控制字符）
+          const originalPrintable = (originalName.match(/[\x20-\x7E\u4e00-\u9fa5]/g) || []).length;
+          const decodedPrintable = (decoded.match(/[\x20-\x7E\u4e00-\u9fa5]/g) || []).length;
+          const isMoreReadable = decodedPrintable > originalPrintable;
+          // 3. 检查是否包含更少的乱码字符
+          const originalGarbled = (originalName.match(/ã|å|ä|è|ç|æ|Ã|â|€|¥/g) || []).length;
+          const decodedGarbled = (decoded.match(/ã|å|ä|è|ç|æ|Ã|â|€|¥/g) || []).length;
+          const hasLessGarbled = decodedGarbled < originalGarbled;
+          
+          if (hasChinese || (isMoreReadable && hasLessGarbled)) {
+            logger.info('文件名编码已修复', { 
+              before: originalName, 
+              after: decoded,
+              hasChinese,
+              isMoreReadable,
+              hasLessGarbled
+            });
+            return decoded;
+          }
+        } catch (e) {
+          logger.debug('策略1修复失败', { error: e });
+        }
+        
+        // 策略2: 如果策略1失败，尝试修复混合编码的情况
+        // 检测并修复部分乱码的字符串
+        try {
+          let fixed = originalName;
+          // 查找并修复常见的乱码模式
+          // 例如：ã【 可能是 【 被错误编码
+          fixed = fixed.replace(/ã【/g, '【');
+          fixed = fixed.replace(/】/g, '】'); // 确保】正确
+          
+          // 如果修复后包含中文字符，使用修复后的版本
+          if (/[\u4e00-\u9fa5]/.test(fixed) && fixed !== originalName) {
+            logger.info('文件名编码已修复（策略2）', { 
+              before: originalName, 
+              after: fixed
+            });
+            return fixed;
+          }
+        } catch (e) {
+          logger.debug('策略2修复失败', { error: e });
+        }
+      }
+    } catch (e) {
+      logger.warn('文件名编码修复失败，使用原始文件名', { originalName, error: e });
+    }
+    return originalName;
+  }
+
+  /**
    * 保存上传的文件
    */
   async saveUploadedFile(file: Express.Multer.File, categoryId?: number | null, description?: string, uploadedBy?: number): Promise<any> {
     try {
-      const filePath = this.generateFilePath(file.originalname);
+      // 修复文件名编码
+      const fixedFileName = this.fixFileNameEncoding(file.originalname);
+      
+      const filePath = this.generateFilePath(fixedFileName);
       
       // 确保目录存在
       const dir = path.dirname(filePath);
@@ -67,10 +138,10 @@ export class PublicKnowledgeService {
       // 移动文件到目标位置
       fs.writeFileSync(filePath, file.buffer);
 
-      // 创建文件记录
+      // 创建文件记录（使用修复后的文件名）
       const fileData: CreateFileDTO = {
         category_id: categoryId ?? null,
-        name: file.originalname,
+        name: fixedFileName,
         file_path: filePath,
         file_type: file.mimetype,
         file_size: file.size,
@@ -82,7 +153,7 @@ export class PublicKnowledgeService {
       
       logger.info('文件上传成功', {
         fileId: fileRecord.id,
-        fileName: file.originalname,
+        fileName: fixedFileName,
         filePath: filePath
       });
 
@@ -137,7 +208,13 @@ export class PublicKnowledgeService {
     }
 
     const stream = fs.createReadStream(file.file_path);
-    return { stream, file };
+    return { 
+      stream, 
+      file: {
+        ...file,
+        name: this.fixFileNameEncoding(file.name) // 修复文件名编码
+      }
+    };
   }
 
   // ==================== 分类相关方法 ====================
@@ -250,6 +327,7 @@ export class PublicKnowledgeService {
       const files = await publicKnowledgeModel.getAllFiles(categoryId);
       return files.map(file => ({
         ...file,
+        name: this.fixFileNameEncoding(file.name), // 修复文件名编码
         file_url: this.getFileUrl(file.file_path)
       }));
     } catch (error) {
@@ -269,6 +347,7 @@ export class PublicKnowledgeService {
       }
       return {
         ...file,
+        name: this.fixFileNameEncoding(file.name), // 修复文件名编码
         file_url: this.getFileUrl(file.file_path)
       };
     } catch (error) {
@@ -288,6 +367,7 @@ export class PublicKnowledgeService {
       }
       return {
         ...file,
+        name: this.fixFileNameEncoding(file.name), // 修复文件名编码
         file_url: this.getFileUrl(file.file_path)
       };
     } catch (error) {

@@ -1,6 +1,15 @@
 import axios from 'axios';
 import { techPointModel, techCategoryModel } from '../models';
-import { CreateTechPointDTO, UpdateTechPointDTO, Status, TechType, Priority } from '../types/database';
+import { 
+  CreateTechPointDTO, 
+  UpdateTechPointDTO, 
+  Status, 
+  TechType, 
+  Priority,
+  CarModelInfo,
+  ResourceInfo,
+  KnowledgeInfo
+} from '../types/database';
 import { logger } from '../shared/lib/logger';
 
 /**
@@ -140,6 +149,64 @@ export class TPDSyncService {
 
       const techPointDetail = detailResponse.data.data;
 
+      // 转换车型数据为 CarModelInfo 格式
+      const carModelsInfo: CarModelInfo[] = [];
+      if (techPointDetail.carModels && Array.isArray(techPointDetail.carModels)) {
+        for (const carModel of techPointDetail.carModels) {
+          carModelsInfo.push({
+            id: carModel.id || carModel.car_model_id,
+            name: carModel.name || carModel.model_name || '',
+            brand: carModel.brand || carModel.brand_name,
+            brand_id: carModel.brand_id,
+            series: carModel.series || carModel.series_name,
+            launch_date: carModel.launch_date || carModel.launch_year?.toString(),
+            status: carModel.status,
+            application_status: carModel.application_status || carModel.status,
+            implementation_date: carModel.implementation_date,
+            notes: carModel.notes || carModel.relationship
+          });
+        }
+        logger.debug(`技术点 ${techPointDetail.id} 关联了 ${carModelsInfo.length} 个车型，已转换为 JSON 格式`);
+      }
+
+      // 转换资源数据为 ResourceInfo 格式
+      const resourcesInfo: ResourceInfo[] = [];
+      if (techPointDetail.resources && Array.isArray(techPointDetail.resources)) {
+        for (const resource of techPointDetail.resources) {
+          resourcesInfo.push({
+            type: resource.type || 'other',
+            name: resource.name || resource.title || '',
+            url: resource.url || resource.link,
+            file_path: resource.file_path,
+            description: resource.description,
+            size: resource.size,
+            created_at: resource.created_at
+          });
+        }
+        logger.debug(`技术点 ${techPointDetail.id} 关联了 ${resourcesInfo.length} 个资源，已转换为 JSON 格式`);
+      }
+
+      // 转换知识点数据为 KnowledgeInfo 格式
+      let knowledgeInfo: KnowledgeInfo | null = null;
+      if (techPointDetail.knowledgePoints && Array.isArray(techPointDetail.knowledgePoints) && techPointDetail.knowledgePoints.length > 0) {
+        // 如果有多个知识点，取第一个或合并
+        const firstKnowledge = techPointDetail.knowledgePoints[0];
+        knowledgeInfo = {
+          title: firstKnowledge.title,
+          content: firstKnowledge.content,
+          knowledge_type: firstKnowledge.knowledge_type,
+          difficulty_level: firstKnowledge.difficulty_level,
+          tags: firstKnowledge.tags,
+          prerequisites: firstKnowledge.prerequisites,
+          learning_objectives: firstKnowledge.learning_objectives,
+          examples: firstKnowledge.examples,
+          references: firstKnowledge.references
+        };
+      } else if (techPointDetail.knowledge_info) {
+        // 如果直接有 knowledge_info 字段
+        knowledgeInfo = techPointDetail.knowledge_info;
+      }
+
       // 准备技术点数据
       const techPointData: CreateTechPointDTO = {
         name: techPointDetail.name,
@@ -157,11 +224,25 @@ export class TPDSyncService {
         keywords: techPointDetail.keywords || null,
         source_url: techPointDetail.source_url || null,
         created_by: techPointDetail.created_by || null,
+        // TPD2 同步相关字段
+        tpd_id: techPointDetail.id?.toString() || null,
+        car_models_info: carModelsInfo.length > 0 ? carModelsInfo : undefined,
+        resources_info: resourcesInfo.length > 0 ? resourcesInfo : undefined,
+        knowledge_info: knowledgeInfo || undefined
       };
 
-      // 检查技术点是否已存在（通过名称查找，因为 ID 可能不同）
-      // 首先尝试通过 ID 查找
-      let existing = await techPointModel.findById(techPointDetail.id);
+      // 检查技术点是否已存在
+      // 优先通过 tpd_id 查找
+      let existing = null;
+      if (techPointData.tpd_id) {
+        const allTechPoints = await techPointModel.findAll({ limit: 10000 });
+        existing = allTechPoints.data.find((tp: any) => tp.tpd_id === techPointData.tpd_id);
+      }
+      
+      // 如果通过 tpd_id 找不到，尝试通过 ID 查找
+      if (!existing) {
+        existing = await techPointModel.findById(techPointDetail.id);
+      }
       
       // 如果通过 ID 找不到，尝试通过名称查找
       if (!existing) {
@@ -172,20 +253,19 @@ export class TPDSyncService {
       let created = false;
       if (existing) {
         // 更新现有技术点
-        const updateData: UpdateTechPointDTO = techPointData;
+        const updateData: UpdateTechPointDTO = {
+          ...techPointData,
+          // 确保 tpd_id 被更新
+          tpd_id: techPointData.tpd_id || existing.tpd_id
+        };
         await techPointModel.update(existing.id, updateData);
         created = false;
+        logger.debug(`更新技术点: ${techPointDetail.name} (ID: ${existing.id}, TPD_ID: ${techPointData.tpd_id})`);
       } else {
         // 创建新技术点
-        await techPointModel.create(techPointData);
+        const newTechPoint = await techPointModel.create(techPointData);
         created = true;
-      }
-
-      // 同步关联的车型（如果有）
-      if (techPointDetail.carModels && Array.isArray(techPointDetail.carModels)) {
-        // 这里可以添加同步车型关联的逻辑
-        // 由于车型关联可能涉及复杂的业务逻辑，暂时跳过
-        logger.debug(`技术点 ${techPointDetail.id} 关联了 ${techPointDetail.carModels.length} 个车型`);
+        logger.debug(`创建技术点: ${techPointDetail.name} (ID: ${newTechPoint.id}, TPD_ID: ${techPointData.tpd_id})`);
       }
 
       return { created };

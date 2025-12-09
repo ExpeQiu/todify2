@@ -30,6 +30,8 @@ import {
 import type { MenuProps } from 'antd';
 import { TechPoint } from '../../types/techPoint';
 import { techPointService } from '../../services/techPointService';
+import { knowledgePointService } from '../../services/knowledgePointService';
+import type { KnowledgePoint } from '../../types/knowledgePoint';
 import dayjs from 'dayjs';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -75,6 +77,7 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
   });
   const [associatedCarModels, setAssociatedCarModels] = useState<any[]>([]);
   const [associatedResources, setAssociatedResources] = useState<any[]>([]);
+  const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [technologyName, setTechnologyName] = useState<string | null>(null);
@@ -211,9 +214,10 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
     setError(null);
 
     try {
-      const [contentResult, carModelsResult] = await Promise.allSettled([
+      const [contentResult, carModelsResult, knowledgePointsResult] = await Promise.allSettled([
         techPointService.getTechPointAssociatedContent(currentTechPoint.id),
         techPointService.getTechPointAssociatedCarModels(currentTechPoint.id),
+        knowledgePointService.getByTechPointId(currentTechPoint.id, { pageSize: 100 }),
       ]);
 
       if (contentResult.status === 'fulfilled' && contentResult.value.success && contentResult.value.data) {
@@ -238,6 +242,22 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
       } else {
         setAssociatedCarModels([]);
       }
+
+      if (knowledgePointsResult.status === 'fulfilled' && knowledgePointsResult.value.success) {
+        const response = knowledgePointsResult.value;
+        // API返回格式: { success: true, data: [...], pagination: {...} }
+        let kpData: KnowledgePoint[] = [];
+        if (response.data) {
+          if (Array.isArray(response.data)) {
+            kpData = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            kpData = response.data.data;
+          }
+        }
+        setKnowledgePoints(kpData);
+      } else {
+        setKnowledgePoints([]);
+      }
     } catch (err) {
       console.error('获取关联数据失败:', err);
       setAssociatedContent({
@@ -249,6 +269,7 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
       });
       setAssociatedCarModels([]);
       setAssociatedResources([]);
+      setKnowledgePoints([]);
     } finally {
       setLoading(false);
     }
@@ -538,7 +559,68 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
           size="small"
         >
           {(() => {
+            // 从知识点API获取的数据
+            if (knowledgePoints && knowledgePoints.length > 0) {
+              // 按标题分组知识点（去除标题中的数字后缀，如"技术亮点 1" -> "技术亮点"）
+              const groupedByTitle: Record<string, KnowledgePoint[]> = {};
+              knowledgePoints.forEach(kp => {
+                // 清理标题，去除数字后缀（如"技术亮点 1" -> "技术亮点"）
+                let title = kp.title || '未分类';
+                // 匹配 "标题 数字" 格式，提取基础标题
+                const titleMatch = title.match(/^(.+?)\s+\d+$/);
+                if (titleMatch) {
+                  title = titleMatch[1];
+                }
+                
+                if (!groupedByTitle[title]) {
+                  groupedByTitle[title] = [];
+                }
+                groupedByTitle[title].push(kp);
+              });
+
+              // 按固定顺序显示
+              const titleOrder = ['技术原理', '价值', '适用边界', '技术亮点', '实测证据', '认证证据', '对比证据'];
+              const sortedTitles = Object.keys(groupedByTitle).sort((a, b) => {
+                const indexA = titleOrder.indexOf(a);
+                const indexB = titleOrder.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
+              });
+
+              return (
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                  {sortedTitles.map((title) => {
+                    const kps = groupedByTitle[title];
+                    return (
+                      <div key={title}>
+                        <Text strong style={{ fontSize: '14px' }}>- {title}：</Text>
+                        <div style={{ marginLeft: 16, marginTop: 4 }}>
+                          {kps.length === 1 ? (
+                            <Text style={{ fontSize: '14px', whiteSpace: 'pre-wrap' }}>{kps[0].content}</Text>
+                          ) : (
+                            kps.map((kp, index) => (
+                              <div key={kp.id || index} style={{ marginBottom: 4 }}>
+                                <Text style={{ fontSize: '14px', whiteSpace: 'pre-wrap' }}>{kp.content}</Text>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </Space>
+              );
+            }
+
+            // 如果没有知识点数据，尝试从技术点的technical_details中解析
             const getHighlights = () => {
+              if (currentTechPoint.technical_details?.highlights) {
+                return Array.isArray(currentTechPoint.technical_details.highlights) 
+                  ? currentTechPoint.technical_details.highlights 
+                  : [];
+              }
               if (currentTechPoint.highlights) {
                 return Array.isArray(currentTechPoint.highlights) 
                   ? currentTechPoint.highlights 
@@ -548,6 +630,11 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
             };
             
             const getEvidenceMeasured = () => {
+              if (currentTechPoint.technical_details?.evidence_measured) {
+                return Array.isArray(currentTechPoint.technical_details.evidence_measured) 
+                  ? currentTechPoint.technical_details.evidence_measured 
+                  : [];
+              }
               if (currentTechPoint.evidence_measured) {
                 return Array.isArray(currentTechPoint.evidence_measured) 
                   ? currentTechPoint.evidence_measured 
@@ -557,6 +644,11 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
             };
             
             const getEvidenceCertified = () => {
+              if (currentTechPoint.technical_details?.evidence_certified) {
+                return Array.isArray(currentTechPoint.technical_details.evidence_certified) 
+                  ? currentTechPoint.technical_details.evidence_certified 
+                  : [];
+              }
               if (currentTechPoint.evidence_certified) {
                 return Array.isArray(currentTechPoint.evidence_certified) 
                   ? currentTechPoint.evidence_certified 
@@ -566,6 +658,11 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
             };
             
             const getEvidenceComparison = () => {
+              if (currentTechPoint.technical_details?.evidence_comparison) {
+                return Array.isArray(currentTechPoint.technical_details.evidence_comparison) 
+                  ? currentTechPoint.technical_details.evidence_comparison 
+                  : [];
+              }
               if (currentTechPoint.evidence_comparison) {
                 return Array.isArray(currentTechPoint.evidence_comparison) 
                   ? currentTechPoint.evidence_comparison 
@@ -574,9 +671,15 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
               return parsedDescription.evidenceComparison || [];
             };
 
-            const principle = currentTechPoint.tech_principle || parsedDescription.principle || '';
-            const value = currentTechPoint.tech_value || parsedDescription.value || '';
-            const boundary = currentTechPoint.tech_boundary || parsedDescription.boundary || '';
+            const principle = currentTechPoint.technical_details?.tech_principle || 
+                             currentTechPoint.tech_principle || 
+                             parsedDescription.principle || '';
+            const value = currentTechPoint.technical_details?.tech_value || 
+                         currentTechPoint.tech_value || 
+                         parsedDescription.value || '';
+            const boundary = currentTechPoint.technical_details?.tech_boundary || 
+                            currentTechPoint.tech_boundary || 
+                            parsedDescription.boundary || '';
             const highlights = getHighlights();
             const evidenceMeasured = getEvidenceMeasured();
             const evidenceCertified = getEvidenceCertified();
@@ -688,11 +791,32 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
         >
           {associatedCarModels.length > 0 ? (
             <Space wrap>
-              {associatedCarModels.map((carModel: any) => (
+              {associatedCarModels.map((carModel: any) => {
+                // 只在品牌名称存在且不为空时才显示品牌
+                // 如果brand_name为空、null或undefined，只显示车型名称
+                const brandName = carModel.brand_name?.trim();
+                const modelName = carModel.name?.trim() || '未知车型';
+                const displayName = brandName && brandName !== '' 
+                  ? `${brandName} ${modelName}` 
+                  : modelName;
+                
+                // 调试日志：检查数据准确性
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('车型数据:', {
+                    id: carModel.id,
+                    brand_id: carModel.brand_id,
+                    brand_name: carModel.brand_name,
+                    name: carModel.name,
+                    displayName
+                  });
+                }
+                
+                return (
                 <Tag key={carModel.id} color="blue">
-                  {carModel.name}
+                    {displayName}
                 </Tag>
-              ))}
+                );
+              })}
             </Space>
           ) : (
             <Empty description="暂无关联车型" image={Empty.PRESENTED_IMAGE_SIMPLE} />

@@ -16,10 +16,13 @@ export class KnowledgePointService {
 
   // 创建知识点
   async createKnowledgePoint(data: CreateKnowledgePointDTO): Promise<KnowledgePoint> {
+    // 确保数据库已连接
+    await this.db.connect();
+    
     const sql = `
       INSERT INTO knowledge_points (
         tech_point_id, title, content, knowledge_type, difficulty_level,
-        tags, prerequisites, learning_objectives, examples, references,
+        tags, prerequisites, learning_objectives, examples, "references",
         status, created_by
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
@@ -52,6 +55,9 @@ export class KnowledgePointService {
 
   // 根据ID获取知识点
   async getKnowledgePointById(id: number): Promise<KnowledgePoint | null> {
+    // 确保数据库已连接
+    await this.db.connect();
+    
     const sql = `
       SELECT * FROM knowledge_points WHERE id = ?
     `;
@@ -69,6 +75,9 @@ export class KnowledgePointService {
     techPointId: number, 
     options: QueryOptions = {}
   ): Promise<PaginatedResult<KnowledgePoint>> {
+    // 确保数据库已连接
+    await this.db.connect();
+    
     const { limit = 10, offset = 0, orderBy = 'created_at', orderDirection = 'DESC' } = options;
     
     // 获取总数

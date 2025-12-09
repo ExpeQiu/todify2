@@ -4,7 +4,7 @@ import { CreateFileDTO } from '../../types/publicKnowledge';
 
 interface UploadModalProps {
   onClose: () => void;
-  onUpload: (file: File, data?: CreateFileDTO) => void;
+  onUpload: (files: File[], data?: CreateFileDTO) => void;
   selectedCategoryId: number | null;
 }
 
@@ -13,14 +13,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
   onUpload,
   selectedCategoryId,
 }) => {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [description, setDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
+  const handleFileSelect = (selectedFiles: FileList | File[]) => {
+    const fileArray = Array.from(selectedFiles);
+    setFiles(prev => [...prev, ...fileArray]);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -37,33 +38,33 @@ const UploadModal: React.FC<UploadModalProps> = ({
     e.preventDefault();
     setIsDragging(false);
 
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      handleFileSelect(droppedFile);
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      handleFileSelect(droppedFiles);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      handleFileSelect(selectedFile);
+    const selectedFiles = e.target.files;
+    if (selectedFiles && selectedFiles.length > 0) {
+      handleFileSelect(selectedFiles);
     }
   };
 
   const handleUpload = async () => {
-    if (!file) {
+    if (files.length === 0) {
       alert('请选择文件');
       return;
     }
 
     setUploading(true);
     try {
-      await onUpload(file, {
+      await onUpload(files, {
         category_id: selectedCategoryId,
         description: description.trim() || undefined,
       });
       // 重置表单
-      setFile(null);
+      setFiles([]);
       setDescription('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -73,6 +74,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setUploading(false);
     }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -110,25 +115,56 @@ const UploadModal: React.FC<UploadModalProps> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {file ? (
-              <div className="space-y-2">
-                <FileIcon className="w-12 h-12 mx-auto text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formatFileSize(file.size)}
+            {files.length > 0 ? (
+              <div className="space-y-3 w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-gray-900">
+                    已选择 {files.length} 个文件
                   </p>
+                  <button
+                    onClick={() => {
+                      setFiles([]);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    清空
+                  </button>
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
+                    >
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <FileIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="ml-2 text-red-600 hover:text-red-700 flex-shrink-0"
+                        title="移除"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
                 <button
-                  onClick={() => {
-                    setFile(null);
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                    }
-                  }}
+                  onClick={() => fileInputRef.current?.click()}
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
-                  重新选择
+                  添加更多文件
                 </button>
               </div>
             ) : (
@@ -145,7 +181,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                     </button>
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    支持所有文件类型，最大 100MB
+                    支持所有文件类型，最大 100MB，可同时选择多个文件
                   </p>
                 </div>
               </div>
@@ -154,6 +190,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               ref={fileInputRef}
               type="file"
               className="hidden"
+              multiple
               onChange={handleFileInputChange}
             />
           </div>
@@ -193,10 +230,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
           </button>
           <button
             onClick={handleUpload}
-            disabled={!file || uploading}
+            disabled={files.length === 0 || uploading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            {uploading ? '上传中...' : '上传'}
+            {uploading ? `上传中... (${files.length} 个文件)` : `上传 (${files.length} 个文件)`}
           </button>
         </div>
       </div>

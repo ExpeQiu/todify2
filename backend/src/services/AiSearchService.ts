@@ -181,19 +181,24 @@ export class AiSearchService {
   }
 
   /**
-   * 获取对话列表
+   * 获取对话列表（只返回有消息的对话）
    */
   async getConversations(pageType?: string): Promise<ConversationRecord[]> {
     try {
-      let query = `SELECT * FROM ai_search_conversations`;
+      // 使用 INNER JOIN 只返回有消息的对话，避免显示空对话记录
+      let query = `
+        SELECT DISTINCT c.* 
+        FROM ai_search_conversations c
+        INNER JOIN ai_search_messages m ON c.id = m.conversation_id
+      `;
       const params: any[] = [];
       
       if (pageType) {
-        query += ` WHERE page_type = ?`;
+        query += ` WHERE c.page_type = ?`;
         params.push(pageType);
       }
       
-      query += ` ORDER BY updated_at DESC`;
+      query += ` ORDER BY c.updated_at DESC`;
       
       const rows = await db.query(query, params) as any[];
 

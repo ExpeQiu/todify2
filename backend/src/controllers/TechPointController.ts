@@ -370,7 +370,8 @@ export class TechPointController {
       console.error('Get associated content error:', error);
       res.status(500).json({
         success: false,
-        message: '获取关联内容失败'
+        message: '获取关联内容失败',
+        error: error instanceof Error ? error.message : '未知错误'
       });
     }
   }
@@ -397,7 +398,8 @@ export class TechPointController {
       console.error('Get associated car models error:', error);
       res.status(500).json({
         success: false,
-        message: '获取关联车型失败'
+        message: '获取关联车型失败',
+        error: error instanceof Error ? error.message : '未知错误'
       });
     }
   }

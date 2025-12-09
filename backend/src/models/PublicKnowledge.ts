@@ -450,7 +450,22 @@ export class PublicKnowledgeModel {
   }
 
   /**
-   * 获取所有文件
+   * 递归获取所有子分类ID（包括子分类的子分类）
+   */
+  async getAllDescendantCategoryIds(categoryId: number): Promise<number[]> {
+    const result: number[] = [categoryId];
+    const children = await this.getCategoriesByParentId(categoryId);
+    
+    for (const child of children) {
+      const descendantIds = await this.getAllDescendantCategoryIds(child.id);
+      result.push(...descendantIds);
+    }
+    
+    return result;
+  }
+
+  /**
+   * 获取所有文件（支持递归获取子分类的文件）
    */
   async getAllFiles(categoryId?: number | null): Promise<PublicKnowledgeFile[]> {
     await this.ensureConnection();
@@ -463,8 +478,21 @@ export class PublicKnowledgeModel {
       if (categoryId === null) {
         sql += dbType === 'sqlite' ? ' WHERE category_id IS NULL' : ' WHERE category_id IS NULL';
       } else {
-        sql += dbType === 'sqlite' ? ' WHERE category_id = ?' : ' WHERE category_id = $1';
-        values.push(categoryId);
+        // 获取指定分类及其所有子分类的ID
+        const allCategoryIds = await this.getAllDescendantCategoryIds(categoryId);
+        
+        // 构建 IN 查询
+        if (allCategoryIds.length === 1) {
+          sql += dbType === 'sqlite' ? ' WHERE category_id = ?' : ' WHERE category_id = $1';
+          values.push(allCategoryIds[0]);
+        } else {
+          // 为多个ID创建占位符
+          const placeholders = allCategoryIds.map((_, index) => {
+            return dbType === 'sqlite' ? '?' : `$${index + 1}`;
+          }).join(', ');
+          sql += ` WHERE category_id IN (${placeholders})`;
+          values.push(...allCategoryIds);
+        }
       }
     }
 

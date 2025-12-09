@@ -16,7 +16,7 @@ import { agentWorkflowService } from "../../services/agentWorkflowService";
 import { AgentWorkflow } from "../../types/agentWorkflow";
 import { PageConfig } from "../../configs/pageConfigs";
 import { pageToolConfigService } from "../../services/pageToolConfigService";
-import sourceService from "../../services/sourceService";
+import sourceService, { SourceCategory } from "../../services/sourceService";
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
@@ -160,6 +160,139 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     return config.pageType;
   }, [config.pageType, projectId]);
 
+  // 加载页面类型的来源信息（作为基础来源，始终保留）
+  const loadPageTypeSources = useCallback(async () => {
+    try {
+      // 使用有效的 pageType（可能包含项目ID）
+      const pageTypeToLoad = projectId ? `${config.pageType}-project-${projectId}` : config.pageType;
+      console.log('[SourceInfo] 开始加载页面类型来源信息:', pageTypeToLoad);
+      const sourceResult = await sourceService.loadSourceInformationByPageType(pageTypeToLoad);
+      console.log('[SourceInfo] 加载结果:', {
+        success: sourceResult.success,
+        count: sourceResult.data?.length || 0,
+        error: sourceResult.error
+      });
+      
+      if (sourceResult.success && sourceResult.data && sourceResult.data.length > 0) {
+        console.log('[SourceInfo] 加载到的来源:', sourceResult.data.map(s => ({ id: s.id, title: s.title })));
+        setSources(prev => {
+          // 只保留文件来源（file_开头的），然后添加当前页面的来源
+          // 这样可以确保切换页面时只显示当前页面的来源
+          const fileSources = prev.filter(s => s.id.startsWith('file_'));
+          const pageTypeSources = sourceResult.data!;
+          
+          // 合并文件来源和页面类型来源
+          const sourceMap = new Map<string, Source>();
+          fileSources.forEach(s => sourceMap.set(s.id, s));
+          pageTypeSources.forEach(s => sourceMap.set(s.id, s));
+          
+          const merged = Array.from(sourceMap.values());
+          console.log('[SourceInfo] 合并后的来源数量:', merged.length, {
+            fileSources: fileSources.length,
+            pageTypeSources: pageTypeSources.length
+          });
+          return merged;
+        });
+      } else if (sourceResult.error) {
+        console.warn('[SourceInfo] 加载失败:', sourceResult.error);
+        // 即使加载失败，也要清除其他页面的来源，只保留文件来源
+        setSources(prev => prev.filter(s => s.id.startsWith('file_')));
+      } else {
+        console.log('[SourceInfo] 没有找到页面类型的来源信息');
+        // 没有找到来源时，只保留文件来源
+        setSources(prev => prev.filter(s => s.id.startsWith('file_')));
+      }
+    } catch (error) {
+      console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
+      // 不阻止页面加载，只记录错误
+    }
+  }, [config.pageType, projectId]);
+
+  // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
+  useEffect(() => {
+    const urlSourceIds = searchParams.getAll('sourceId'); // 获取所有的 sourceId 参数
+    if (urlSourceIds.length > 0) {
+      console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds, '当前来源数量:', sources.length);
+      
+      // 如果来源列表为空，可能需要等待加载，先不处理
+      if (sources.length === 0) {
+        console.log('[SourceInfo] 来源列表为空，等待加载...');
+        return;
+      }
+      
+      const newSelectedIds: string[] = [];
+      let hasNewSelection = false;
+      const missingSourceIds: string[] = [];
+      
+      // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
+      urlSourceIds.forEach(sourceId => {
+        const foundSource = sources.find(s => s.id === sourceId);
+        if (foundSource) {
+          console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
+          newSelectedIds.push(sourceId);
+          hasNewSelection = true;
+        } else {
+          console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
+          missingSourceIds.push(sourceId);
+        }
+      });
+      
+      // 如果有新的选中项，更新选中列表
+      if (hasNewSelection) {
+        setSelectedSourceIds(prev => {
+          const combined = [...prev];
+          newSelectedIds.forEach(id => {
+            if (!combined.includes(id)) {
+              combined.push(id);
+            }
+          });
+          return combined;
+        });
+        
+        // 清除 URL 参数，避免刷新时重复选中
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('sourceId');
+        setSearchParams(newSearchParams, { replace: true });
+      } else if (missingSourceIds.length > 0) {
+        // 如果所有 sourceId 都不存在，可能是新保存的来源还未加载
+        // 等待一段时间后重新加载页面类型的来源
+        console.log('[SourceInfo] 等待新保存的来源加载...');
+        setTimeout(async () => {
+          await loadPageTypeSources();
+        }, 500);
+      }
+    }
+  }, [sources, searchParams, setSearchParams, loadPageTypeSources]);
+
+  const loadFiles = useCallback(async () => {
+    try {
+      try {
+        const cleanupApi = await import("../../services/api");
+        await cleanupApi.default.delete('/ai-search/files/garbled/cleanup');
+      } catch (error) {
+        console.warn('清理乱码文件失败:', error);
+      }
+
+      // 使用有效的 pageType（可能包含项目ID）
+      const files = await aiSearchService.getFiles({ pageType: effectivePageType });
+      const fileSources: Source[] = files.map((file) => ({
+        id: `file_${file.id || file.fileId}`,
+        title: file.name,
+        type: 'external' as const,
+        url: file.url,
+        description: `文件大小: ${formatFileSize(file.size)}`,
+      }));
+      
+      setSources((prev) => {
+        // 保留非文件来源（页面类型的来源），然后添加当前页面的文件来源
+        const nonFileSources = prev.filter((s) => !s.id.startsWith('file_'));
+        return [...nonFileSources, ...fileSources];
+      });
+    } catch (error) {
+      console.error('加载文件列表失败:', error);
+    }
+  }, [effectivePageType]);
+
   // 加载对话历史和输出内容
   useEffect(() => {
     // 如果 URL 中有 newConversation 参数，清除当前对话，确保创建新对话
@@ -191,111 +324,11 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 加载页面类型的来源信息（作为基础来源，始终保留）
-  const loadPageTypeSources = useCallback(async () => {
-    try {
-      // 使用有效的 pageType（可能包含项目ID）
-      const pageTypeToLoad = projectId ? `${config.pageType}-project-${projectId}` : config.pageType;
-      console.log('[SourceInfo] 开始加载页面类型来源信息:', pageTypeToLoad);
-      const sourceResult = await sourceService.loadSourceInformationByPageType(pageTypeToLoad);
-      console.log('[SourceInfo] 加载结果:', {
-        success: sourceResult.success,
-        count: sourceResult.data?.length || 0,
-        error: sourceResult.error
-      });
-      
-      if (sourceResult.success && sourceResult.data && sourceResult.data.length > 0) {
-        console.log('[SourceInfo] 加载到的来源:', sourceResult.data.map(s => ({ id: s.id, title: s.title })));
-        setSources(prev => {
-          // 合并现有来源和数据库中的来源，避免重复
-          const sourceMap = new Map<string, Source>();
-          // 先添加现有来源
-          prev.forEach(s => sourceMap.set(s.id, s));
-          // 再添加数据库中的来源（会覆盖重复的）
-          sourceResult.data!.forEach(s => sourceMap.set(s.id, s));
-          const merged = Array.from(sourceMap.values());
-          console.log('[SourceInfo] 合并后的来源数量:', merged.length);
-          return merged;
-        });
-      } else if (sourceResult.error) {
-        console.warn('[SourceInfo] 加载失败:', sourceResult.error);
-      } else {
-        console.log('[SourceInfo] 没有找到页面类型的来源信息');
-      }
-    } catch (error) {
-      console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
-      // 不阻止页面加载，只记录错误
-    }
-  }, [config.pageType, projectId]);
-
-  // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
+  // 当页面类型或项目ID变化时，重新加载来源信息
   useEffect(() => {
-    const urlSourceIds = searchParams.getAll('sourceId'); // 获取所有的 sourceId 参数
-    if (urlSourceIds.length > 0 && sources.length > 0) {
-      console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds);
-      
-      const newSelectedIds: string[] = [];
-      let hasNewSelection = false;
-      
-      // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
-      urlSourceIds.forEach(sourceId => {
-        const foundSource = sources.find(s => s.id === sourceId);
-        if (foundSource) {
-          console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
-          newSelectedIds.push(sourceId);
-          hasNewSelection = true;
-        } else {
-          console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
-        }
-      });
-      
-      // 如果有新的选中项，更新选中列表
-      if (hasNewSelection) {
-        setSelectedSourceIds(prev => {
-          const combined = [...prev];
-          newSelectedIds.forEach(id => {
-            if (!combined.includes(id)) {
-              combined.push(id);
-            }
-          });
-          return combined;
-        });
-        
-        // 清除 URL 参数，避免刷新时重复选中
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.delete('sourceId');
-        setSearchParams(newSearchParams, { replace: true });
-      }
-    }
-  }, [sources, searchParams, setSearchParams]);
-
-  const loadFiles = useCallback(async () => {
-    try {
-      try {
-        const cleanupApi = await import("../../services/api");
-        await cleanupApi.default.delete('/ai-search/files/garbled/cleanup');
-      } catch (error) {
-        console.warn('清理乱码文件失败:', error);
-      }
-
-      // 使用有效的 pageType（可能包含项目ID）
-      const files = await aiSearchService.getFiles({ pageType: effectivePageType });
-      const fileSources: Source[] = files.map((file) => ({
-        id: `file_${file.id || file.fileId}`,
-        title: file.name,
-        type: 'external' as const,
-        url: file.url,
-        description: `文件大小: ${formatFileSize(file.size)}`,
-      }));
-      
-      setSources((prev) => {
-        const nonFileSources = prev.filter((s) => !s.id.startsWith('file_'));
-        return [...nonFileSources, ...fileSources];
-      });
-    } catch (error) {
-      console.error('加载文件列表失败:', error);
-    }
-  }, [effectivePageType]);
+    loadPageTypeSources();
+    loadFiles();
+  }, [config.pageType, projectId, loadPageTypeSources, loadFiles]);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -1007,14 +1040,150 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   };
 
+  // 自动保存当前对话为来源记录（用于当前页面）
+  const autoSaveConversationAsSource = useCallback(async (conversation: Conversation | null) => {
+    if (!conversation || !conversation.messages || conversation.messages.length === 0) {
+      return;
+    }
+
+    // 检查是否有至少一轮完整的问答（至少一条用户消息和一条AI消息）
+    const userMessages = conversation.messages.filter(msg => msg.role === 'user');
+    const aiMessages = conversation.messages.filter(msg => msg.role === 'assistant');
+    
+    if (userMessages.length === 0 || aiMessages.length === 0) {
+      return;
+    }
+
+    try {
+      // 构建对话文本
+      const conversationText = conversation.messages.map((msg) => {
+        const role = msg.role === 'user' ? '用户' : 'AI助手';
+        return `${role}: ${msg.content}`;
+      }).join('\n\n');
+
+      // 如果对话文本太长，先截断（保留前2000字符）
+      const maxLength = 2000;
+      const truncatedText = conversationText.length > maxLength 
+        ? conversationText.substring(0, maxLength) + '\n\n...（内容已截断）'
+        : conversationText;
+
+      // 生成总结标题和描述
+      let summaryTitle = '对话摘要';
+      let summaryDescription = truncatedText;
+
+      // 根据页面类型设置默认标题
+      if (config.pageType === 'tech-package') {
+        summaryTitle = '技术包装对话摘要';
+      } else if (config.pageType === 'tech-strategy') {
+        summaryTitle = '技术策略对话摘要';
+      } else if (config.pageType === 'tech-article') {
+        summaryTitle = '技术通稿对话摘要';
+      }
+
+      // 尝试从最后一条AI消息中提取关键信息作为标题
+      const lastAssistantMessage = [...conversation.messages]
+        .reverse()
+        .find((m) => m.role === 'assistant');
+      
+      if (lastAssistantMessage && lastAssistantMessage.content) {
+        // 取前100字符作为标题候选
+        const contentPreview = lastAssistantMessage.content.substring(0, 100).replace(/\n/g, ' ').trim();
+        if (contentPreview.length > 10) {
+          summaryTitle = contentPreview.length > 50 
+            ? contentPreview.substring(0, 50) + '...'
+            : contentPreview;
+        }
+      }
+
+      // 根据当前页面的 pageType 设置类别
+      let category: SourceCategory = 'external';
+      if (config.pageType === 'tech-package') {
+        category = 'tech-package-qa';
+      } else if (config.pageType === 'tech-strategy') {
+        category = 'tech-strategy-qa';
+      } else if (config.pageType === 'tech-article') {
+        category = 'tech-article-qa';
+      }
+
+      // 使用 conversation.id 作为 sourceId 的一部分，确保同一对话只保存一次
+      const sourceId = `conversation_${conversation.id}_${config.pageType}`;
+      
+      const source: Source = {
+        id: sourceId,
+        title: summaryTitle,
+        type: 'external',
+        description: summaryDescription,
+        category: category,
+      };
+
+      // 保存到数据库，使用当前页面的 pageType
+      const pageTypeWithProject = projectId 
+        ? `${config.pageType}-project-${projectId}` 
+        : config.pageType;
+      
+      // 先检查是否已存在该对话的记录
+      const existingSources = sources.filter(s => s.id === sourceId);
+      
+      if (existingSources.length > 0) {
+        // 如果已存在，更新它（通过删除旧的后创建新的）
+        try {
+          await sourceService.deleteSourceInformation(sourceId);
+        } catch (error) {
+          console.warn('[SourceInfo] 删除旧记录失败:', error);
+        }
+      }
+
+      const saveResult = await sourceService.saveSourceInformation(
+        source,
+        pageTypeWithProject,
+        conversation.id
+      );
+
+      if (saveResult.success && saveResult.data) {
+        console.log('[SourceInfo] 对话已自动保存为来源:', {
+          id: saveResult.data.id,
+          sourceId: saveResult.data.source_id,
+          title: saveResult.data.title,
+          pageType: pageTypeWithProject
+        });
+        
+        // 刷新来源列表
+        await loadPageTypeSources();
+      } else {
+        console.error('[SourceInfo] 自动保存对话失败:', saveResult.error);
+      }
+    } catch (error) {
+      console.error('[SourceInfo] 自动保存对话异常:', error);
+      // 不抛出错误，避免影响用户体验
+    }
+  }, [config.pageType, projectId, sources, loadPageTypeSources]);
+
   const handleMessageSent = async (message: any) => {
     clearGlobalError();
+    const conversationId = currentConversation?.id;
+    
     // 只刷新对话列表，loadConversations 内部会调用 loadConversationDetail
     // 避免重复加载
     await loadConversations({
       refreshActive: true,
-      activeConversationId: currentConversation?.id,
+      activeConversationId: conversationId,
     });
+    
+    // 自动保存当前对话为来源记录
+    // 直接获取最新的对话数据，不依赖状态更新
+    if (conversationId) {
+      try {
+        const latestConversation = await aiSearchService.getConversation(conversationId);
+        if (latestConversation && latestConversation.messages && latestConversation.messages.length > 0) {
+          // 异步保存，不阻塞UI
+          autoSaveConversationAsSource(latestConversation).catch(error => {
+            console.error('[SourceInfo] 自动保存对话失败:', error);
+          });
+        }
+      } catch (error) {
+        console.error('[SourceInfo] 获取最新对话失败:', error);
+      }
+    }
   };
 
   const handleSaveToNotes = (content: string) => {
@@ -1135,6 +1304,97 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     setFieldMappingConfig(config);
   };
 
+  // 总结当前对话并保存为来源，用于跳转到其他页面
+  const summarizeAndSaveConversationForNavigation = useCallback(async (targetPageType: 'tech-strategy' | 'tech-article'): Promise<string | null> => {
+    if (!currentConversation || !currentConversation.messages || currentConversation.messages.length === 0) {
+      console.log('[SourceInfo] 没有对话内容，无法总结');
+      return null;
+    }
+
+    try {
+      // 构建对话文本
+      const conversationText = currentConversation.messages.map((msg) => {
+        const role = msg.role === 'user' ? '用户' : 'AI助手';
+        return `${role}: ${msg.content}`;
+      }).join('\n\n');
+
+      // 如果对话文本太长，先截断（保留前2000字符）
+      const maxLength = 2000;
+      const truncatedText = conversationText.length > maxLength 
+        ? conversationText.substring(0, maxLength) + '\n\n...（内容已截断）'
+        : conversationText;
+
+      // 生成总结标题和描述
+      let summaryTitle = '技术包装对话摘要';
+      let summaryDescription = truncatedText;
+
+      // 尝试从最后一条AI消息中提取关键信息作为标题
+      const lastAssistantMessage = [...currentConversation.messages]
+        .reverse()
+        .find((m) => m.role === 'assistant');
+      
+      if (lastAssistantMessage && lastAssistantMessage.content) {
+        // 取前100字符作为标题候选
+        const contentPreview = lastAssistantMessage.content.substring(0, 100).replace(/\n/g, ' ').trim();
+        if (contentPreview.length > 10) {
+          summaryTitle = contentPreview.length > 50 
+            ? contentPreview.substring(0, 50) + '...'
+            : contentPreview;
+        }
+      }
+
+      // 创建来源信息
+      // 根据当前页面的 pageType 设置类别，而不是目标页面
+      // 因为对话是在当前页面产生的
+      const sourceId = `tech_package_conversation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      let category: SourceCategory = 'external';
+      
+      if (config.pageType === 'tech-package') {
+        category = 'tech-package-qa';
+      } else if (config.pageType === 'tech-strategy') {
+        category = 'tech-strategy-qa';
+      } else if (config.pageType === 'tech-article') {
+        category = 'tech-article-qa';
+      }
+      
+      const source: Source = {
+        id: sourceId,
+        title: summaryTitle,
+        type: 'external',
+        description: summaryDescription,
+        category: category,
+      };
+
+      // 保存到数据库，使用目标页面的 pageType
+      const targetPageTypeWithProject = projectId 
+        ? `${targetPageType}-project-${projectId}` 
+        : targetPageType;
+      
+      const saveResult = await sourceService.saveSourceInformation(
+        source,
+        targetPageTypeWithProject,
+        currentConversation.id
+      );
+
+      if (saveResult.success && saveResult.data) {
+        console.log('[SourceInfo] 对话摘要已保存:', {
+          id: saveResult.data.id,
+          sourceId: saveResult.data.source_id,
+          title: saveResult.data.title,
+          pageType: targetPageTypeWithProject
+        });
+        // 返回 source_id（字符串），用于 URL 参数
+        return saveResult.data.source_id || null;
+      } else {
+        console.error('[SourceInfo] 保存对话摘要失败:', saveResult.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('[SourceInfo] 总结对话失败:', error);
+      return null;
+    }
+  }, [currentConversation, projectId]);
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <TopNavigation currentPageTitle={config.pageTitle} />
@@ -1164,6 +1424,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           onSourcesChange={handleSourcesChange}
           onSelectionChange={handleSelectionChange}
           pageType={config.pageType}
+          currentConversation={currentConversation}
+          onSummarizeAndNavigate={summarizeAndSaveConversationForNavigation}
         />
 
         <DialogueContent

@@ -14,6 +14,7 @@ import { techPointService } from "../../services/techPointService";
 import { brandService } from "../../services/brandService";
 import { carModelService } from "../../services/carModelService";
 import { carSeriesService } from "../../services/carSeriesService";
+import CarModelAssociation from "./CarModelAssociation";
 
 interface TechPointFormProps {
   techPoint?: TechPoint;
@@ -664,6 +665,59 @@ const TechPointForm: React.FC<TechPointFormProps> = ({
               ))}
             </select>
           </div>
+        </div>
+
+        {/* 车辆关联 */}
+        <div className="pt-6 border-t border-gray-200" data-oid="car-association-section">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">关联车型</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {techPoint 
+                ? "管理与此技术点关联的车型信息" 
+                : "创建技术点后，可在详情页面管理关联车型"}
+            </p>
+          </div>
+          {techPoint ? (
+            <div className="bg-white rounded-lg border border-gray-200">
+              <CarModelAssociation 
+                techPointId={techPoint.id} 
+                onUpdate={() => {
+                  // 可以在这里触发父组件的更新
+                }}
+              />
+            </div>
+          ) : (
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p className="text-sm text-blue-800">
+                💡 提示：技术点创建成功后，可在详情页面添加和管理关联车型。
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* 资源展示 */}
+        <div className="pt-6 border-t border-gray-200" data-oid="resource-section">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">关联资源</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {techPoint 
+                ? "管理与此技术点关联的资源（图片、视频、文档等）" 
+                : "创建技术点后，可在详情页面管理关联资源"}
+            </p>
+          </div>
+          {techPoint ? (
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <p className="text-sm text-gray-600">
+                💡 技术点创建后，可在详情页面添加和管理关联资源。当前技术点ID: {techPoint.id}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <p className="text-sm text-blue-800">
+                💡 提示：技术点创建成功后，可在详情页面添加和管理关联资源（包括产品素材、实拍视频、技术文档等）。
+              </p>
+            </div>
+          )}
         </div>
 
         {/* 提交按钮 */}

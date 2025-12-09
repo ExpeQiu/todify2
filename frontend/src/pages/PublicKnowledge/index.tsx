@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { publicKnowledgeService } from '../../services/publicKnowledgeService';
 import {
   CategoryTreeNode,
@@ -11,11 +11,13 @@ import {
 import CategorySidebar from '../../components/publicKnowledge/CategorySidebar';
 import FileList from '../../components/publicKnowledge/FileList';
 import UploadModal from '../../components/publicKnowledge/UploadModal';
+import HomeNavigationBar from '../../components/HomeNavigationBar';
 import { toast } from 'sonner';
-import { List, Grid, ChevronDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const PublicKnowledgePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [categories, setCategories] = useState<CategoryTreeNode[]>([]);
   const [files, setFiles] = useState<PublicKnowledgeFile[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -172,83 +174,25 @@ const PublicKnowledgePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 顶部导航栏 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* 左侧标签页 */}
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => navigate('/')}
-                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                全部
-              </button>
-              <button
-                onClick={() => navigate('/')}
-                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                我的项目
-              </button>
-              <button
-                onClick={() => navigate('/')}
-                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                精选项目
-              </button>
-              <button
-                onClick={() => navigate('/public-knowledge')}
-                className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-blue-100 text-blue-700"
-              >
-                公共知识库
-              </button>
-              <button
-                onClick={() => navigate('/tech-point-library')}
-                className="px-4 py-2 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                技术点库
-              </button>
-            </div>
-
-            {/* 右侧操作栏 */}
-            <div className="flex items-center space-x-4">
-              {/* 视图切换 */}
-              <div className="flex items-center border border-gray-300 rounded-md">
-                <button className="p-2 hover:bg-gray-100">
-                  <List className="w-4 h-4 text-gray-600" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 border-l border-gray-300">
-                  <Grid className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
-
-              {/* 排序 */}
-              <div className="relative">
-                <button className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">
-                  <span>最近</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* 上传文件按钮 */}
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>上传文件</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HomeNavigationBar currentPath={location.pathname} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">公共知识库</h1>
-          <p className="mt-2 text-gray-600">
-            管理和维护公共知识库文件，支持分类管理和文件上传
-          </p>
+        {/* 页面标题和操作栏 */}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">公共知识库</h1>
+            <p className="mt-2 text-gray-600">
+              管理和维护公共知识库文件，支持分类管理和文件上传
+            </p>
+          </div>
+          {/* 上传文件按钮 */}
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>上传文件</span>
+          </button>
         </div>
 
         {/* 主要内容区域 */}
