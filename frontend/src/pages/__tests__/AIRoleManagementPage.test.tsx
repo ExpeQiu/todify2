@@ -451,7 +451,7 @@ describe('AIRoleManagementPage', () => {
           {
             type: 'independent-page' as const,
             name: 'AI问答',
-            path: '/node/ai-search',
+            path: '', // node/* 功能子页面已删除
           },
           {
             type: 'agent-workflow' as const,

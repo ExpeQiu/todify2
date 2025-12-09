@@ -1741,25 +1741,6 @@ ${truncatedText}`;
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                {showHistoryView ? (
-                  <button
-                    onClick={handleSwitchToAICreation}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
-                  >
-                    <Brain className="w-4 h-4" />
-                    <span>AI共创</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSwitchToHistory}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                  >
-                    <History className="w-4 h-4" />
-                    <span>历史记录</span>
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -1767,6 +1748,37 @@ ${truncatedText}`;
 
       {/* 内容区域 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tab 入口 */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="flex space-x-4 h-12" aria-label="Tabs">
+            {/* AI共创 Tab */}
+            <button
+              onClick={handleSwitchToAICreation}
+              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors h-full ${
+                !showHistoryView
+                  ? 'border-green-600 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Brain className={`w-5 h-5 ${!showHistoryView ? 'text-green-600' : 'text-gray-400'}`} />
+              <span>AI共创</span>
+            </button>
+
+            {/* 历史记录 Tab */}
+            <button
+              onClick={handleSwitchToHistory}
+              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors h-full ${
+                showHistoryView
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <History className={`w-5 h-5 ${showHistoryView ? 'text-blue-600' : 'text-gray-400'}`} />
+              <span>历史记录</span>
+            </button>
+          </nav>
+        </div>
+
         {showHistoryView ? (
           /* 历史记录视图 */
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

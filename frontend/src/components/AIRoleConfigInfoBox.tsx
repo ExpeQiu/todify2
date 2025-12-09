@@ -6,17 +6,10 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Workflow,
-  FileText,
-  Target,
-  Search,
-  Package,
-  Mic,
   Settings,
   ExternalLink
 } from 'lucide-react';
 import { AIRoleConfig } from '../types/aiRole';
-import { getAllNodeTypeConfigs } from '../utils/nodeRoleMapping';
-import aiRoleService from '../services/aiRoleService';
 import { aiSearchService } from '../services/aiSearchService';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,13 +27,14 @@ interface NodeConfigStatus {
 interface AIRoleConfigInfoBoxProps {
   roles: AIRoleConfig[];
   onRefresh?: () => void;
+  hideHeader?: boolean; // 是否隐藏标题栏
 }
 
 /**
  * AI角色配置信息框
  * 显示需要配置AI角色的节点及其配置状态
  */
-const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefresh }) => {
+const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefresh, hideHeader = false }) => {
   const [expanded, setExpanded] = useState(true);
   const [nodeStatuses, setNodeStatuses] = useState<NodeConfigStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,58 +49,8 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
     try {
       const statuses: NodeConfigStatus[] = [];
 
-      // 1. 独立页面节点（5个）
-      const nodeConfigs = getAllNodeTypeConfigs();
-      nodeConfigs.forEach(config => {
-        const matchedRole = roles.find(role => 
-          role.source === 'independent-page' && 
-          role.enabled &&
-          config.patterns.some(pattern => 
-            pattern.test(role.id) || 
-            pattern.test(role.name) || 
-            pattern.test(role.description || '')
-          )
-        );
-
-        let icon: React.ReactNode;
-        let path: string;
-        switch (config.nodeType) {
-          case 'ai-search':
-            icon = <Search className="w-4 h-4" />;
-            path = '/node/ai-search';
-            break;
-          case 'tech-package':
-            icon = <Package className="w-4 h-4" />;
-            path = '/node/tech-package';
-            break;
-          case 'promotion-strategy':
-            icon = <Target className="w-4 h-4" />;
-            path = '/node/promotion-strategy';
-            break;
-          case 'core-draft':
-            icon = <FileText className="w-4 h-4" />;
-            path = '/node/core-draft';
-            break;
-          case 'speech':
-            icon = <Mic className="w-4 h-4" />;
-            path = '/node/speech';
-            break;
-          default:
-            icon = <Settings className="w-4 h-4" />;
-            path = '#';
-        }
-
-        statuses.push({
-          nodeType: config.nodeType,
-          nodeName: config.name,
-          icon,
-          configured: !!matchedRole,
-          roleId: matchedRole?.id,
-          roleName: matchedRole?.name,
-          source: 'independent-page',
-          path
-        });
-      });
+      // 1. 独立页面节点（已删除 node/* 功能子页面，不再显示）
+      // 这些节点对应的页面已删除，因此不再在配置信息框中显示
 
       // 2. 工作流Agent节点（需要检查工作流中的agent节点）
       // 这里可以通过API获取工作流信息，暂时显示提示
@@ -184,17 +128,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
   const totalCount = nodeStatuses.length;
   const unconfiguredNodes = nodeStatuses.filter(s => !s.configured);
 
-  const handleCreateRole = (nodeType: string, nodeName: string) => {
-    // 导航到创建角色页面，并预填充信息
-    navigate('/ai-roles', { 
-      state: { 
-        createNew: true,
-        suggestedName: nodeName,
-        suggestedSource: nodeType === 'workflow-agent' ? 'smart-workflow' : 'independent-page'
-      } 
-    });
-  };
-
   const handleGoToNode = (path: string) => {
     if (path && path !== '#') {
       navigate(path);
@@ -219,107 +152,38 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
       {/* 标题栏 */}
-      <div 
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-100/50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Info className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">AI角色配置状态</h3>
-            <p className="text-sm text-gray-600">
-              已配置 {configuredCount} / {totalCount} 个节点
-              {unconfiguredNodes.length > 0 && (
-                <span className="text-orange-600 ml-2">
-                  · {unconfiguredNodes.length} 个待配置
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors">
-          {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* 内容区域 */}
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3">
-          {/* 独立页面节点 */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              独立页面节点
-            </h4>
-            <div className="space-y-2">
-              {nodeStatuses
-                .filter(s => s.source === 'independent-page')
-                .map((status, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      status.configured
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-orange-50 border-orange-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-1.5 rounded ${
-                        status.configured ? 'bg-green-100' : 'bg-orange-100'
-                      }`}>
-                        {status.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-900">
-                          {status.nodeName}
-                        </div>
-                        {status.configured && status.roleName ? (
-                          <div className="text-xs text-gray-600 mt-0.5">
-                            已配置: {status.roleName}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-orange-600 mt-0.5">
-                            未配置AI角色
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {status.configured ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCreateRole(status.nodeType, status.nodeName);
-                            }}
-                            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                          >
-                            创建角色
-                          </button>
-                          {status.path && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleGoToNode(status.path!);
-                              }}
-                              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
-                              title="前往节点页面"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+      {!hideHeader && (
+        <div 
+          className="flex items-center justify-between p-4 cursor-pointer hover:bg-blue-100/50 transition-colors"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Info className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">AI角色配置状态</h3>
+              <p className="text-sm text-gray-600">
+                已配置 {configuredCount} / {totalCount} 个节点
+                {unconfiguredNodes.length > 0 && (
+                  <span className="text-orange-600 ml-2">
+                    · {unconfiguredNodes.length} 个待配置
+                  </span>
+                )}
+              </p>
             </div>
           </div>
+          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
+      )}
 
+      {/* 内容区域 */}
+      {(hideHeader || expanded) && (
+        <div className={`px-4 pb-4 space-y-3 ${hideHeader ? 'pt-4' : ''}`}>
+          {/* 独立页面节点已移除 - node/* 功能子页面已删除 */}
+          
           {/* 工作流Agent节点 */}
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -371,7 +235,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
             <div className="space-y-2">
               {nodeStatuses
                 .filter(s => s.source === 'field-mapping')
-                .slice(0, 4) // 只显示前4个
                 .map((status, index) => (
                   <div
                     key={index}
@@ -420,11 +283,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                     </div>
                   </div>
                 ))}
-              {nodeStatuses.filter(s => s.source === 'field-mapping').length > 4 && (
-                <div className="text-xs text-gray-500 text-center py-2">
-                  还有 {nodeStatuses.filter(s => s.source === 'field-mapping').length - 4} 个功能对象...
-                </div>
-              )}
             </div>
           </div>
 
@@ -439,7 +297,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                   </div>
                   <div className="text-xs text-blue-700 mt-1">
                     <ul className="list-disc list-inside space-y-1">
-                      <li>独立页面节点：创建source为"独立页面"的AI角色，系统会自动匹配</li>
                       <li>工作流Agent节点：在工作流编辑器中为Agent节点选择AI角色</li>
                       <li>字段映射功能对象：在字段映射管理页面为功能对象配置agentId</li>
                     </ul>

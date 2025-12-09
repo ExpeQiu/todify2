@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -11,6 +11,9 @@ import ReactFlow, {
   useEdgesState,
   BackgroundVariant,
   ReactFlowInstance,
+  ConnectionLineType,
+  ConnectionMode,
+  Panel,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import AgentNode from './AgentNode';
@@ -164,6 +167,17 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   // 保存ReactFlow实例引用
   const reactFlowInstanceRef = useRef<ReactFlowInstance | null>(null);
   
+  // 连接引导状态
+  const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
+  const [connectionStartNode, setConnectionStartNode] = useState<Node | null>(null);
+  
+  // 右键菜单状态
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    nodeId: string | null;
+  } | null>(null);
+  
   // 处理ReactFlow实例初始化
   const onInit = useCallback((instance: ReactFlowInstance) => {
     reactFlowInstanceRef.current = instance;
@@ -287,6 +301,25 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     [onEdgesChange]
   );
 
+  // 处理连接开始
+  const handleConnectStart = useCallback(
+    (_event: React.MouseEvent, { nodeId }: { nodeId: string | null }) => {
+      if (readOnly) return;
+      setConnectingNodeId(nodeId);
+      if (nodeId) {
+        const node = nodes.find(n => n.id === nodeId);
+        setConnectionStartNode(node || null);
+      }
+    },
+    [readOnly, nodes]
+  );
+
+  // 处理连接结束
+  const handleConnectEnd = useCallback(() => {
+    setConnectingNodeId(null);
+    setConnectionStartNode(null);
+  }, []);
+
   // 处理连接
   const handleConnect = useCallback(
     (connection: Connection) => {
@@ -294,13 +327,20 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       
       // 验证连接有效性
       if (!connection.source || !connection.target) {
-        console.warn('连接无效：缺少源节点或目标节点');
         return;
       }
       
       // 检查是否是自连接
       if (connection.source === connection.target) {
-        console.warn('不能连接节点到自身');
+        return;
+      }
+      
+      // 检查是否已存在相同的连接
+      const edgeExists = edges.some(
+        e => e.source === connection.source && e.target === connection.target
+      );
+      
+      if (edgeExists) {
         return;
       }
       
@@ -316,12 +356,14 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       setEdges(newEdges);
       shouldNotifyRef.current = true;
       
-      console.log('添加连接:', newEdge);
-      
       // 通知外部
       if (externalOnConnect) {
         externalOnConnect(connection);
       }
+      
+      // 重置连接状态
+      setConnectingNodeId(null);
+      setConnectionStartNode(null);
     },
     [readOnly, edges, setEdges, externalOnConnect]
   );
@@ -336,15 +378,106 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     [onNodeClick]
   );
 
+  // 处理画布点击（取消选择）
+  const handlePaneClick = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  // 处理节点右键点击
+  const handleNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      if (readOnly) return;
+      event.preventDefault();
+      setContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+        nodeId: node.id,
+      });
+    },
+    [readOnly]
+  );
+
+  // 处理删除节点
+  const handleDeleteNode = useCallback(() => {
+    if (!contextMenu?.nodeId || !onNodeDelete) return;
+    onNodeDelete(contextMenu.nodeId);
+    setContextMenu(null);
+  }, [contextMenu, onNodeDelete]);
+
+  // 处理复制节点
+  const handleDuplicateNode = useCallback(() => {
+    if (!contextMenu?.nodeId) return;
+    const nodeToDuplicate = nodes.find(n => n.id === contextMenu.nodeId);
+    if (!nodeToDuplicate) return;
+    
+    const newNode: Node = {
+      ...nodeToDuplicate,
+      id: `node_${Date.now()}`,
+      position: {
+        x: nodeToDuplicate.position.x + 50,
+        y: nodeToDuplicate.position.y + 50,
+      },
+      selected: false,
+    };
+    
+    const updatedNodes = [...nodes, newNode];
+    setNodes(updatedNodes);
+    shouldNotifyRef.current = true;
+    
+    if (externalNodesChange) {
+      const convertedNodes = convertFromReactFlowNodes(updatedNodes, originalNodesRef.current);
+      externalNodesChange(convertedNodes);
+      originalNodesRef.current = convertedNodes;
+    }
+    
+    setContextMenu(null);
+  }, [contextMenu, nodes, setNodes, externalNodesChange, convertFromReactFlowNodes]);
+
+  // 关闭右键菜单
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  // 更新节点样式以显示连接引导
+  const nodesWithConnectionGuide = useMemo(() => {
+    if (!connectingNodeId) return nodes;
+    
+    return nodes.map(node => {
+      if (node.id === connectingNodeId) {
+        return {
+          ...node,
+          style: {
+            ...node.style,
+            border: '2px solid #3b82f6',
+            boxShadow: '0 0 0 4px rgba(59, 130, 246, 0.2)',
+          },
+        };
+      }
+      // 高亮可连接的节点
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          opacity: 0.7,
+          border: '2px solid #e5e7eb',
+        },
+      };
+    });
+  }, [nodes, connectingNodeId]);
+
   return (
     <div className="workflow-canvas">
       <ReactFlow
-        nodes={nodes}
+        nodes={nodesWithConnectionGuide}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onConnectStart={handleConnectStart}
+        onConnectEnd={handleConnectEnd}
         onNodeClick={handleNodeClick}
+        onNodeContextMenu={handleNodeContextMenu}
+        onPaneClick={handlePaneClick}
         onInit={onInit}
         nodeTypes={nodeTypes}
         fitView
@@ -354,15 +487,76 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
+          style: { strokeWidth: 2, stroke: '#6366f1' },
         }}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionMode={ConnectionMode.Loose}
         snapToGrid
         snapGrid={[20, 20]}
         selectionOnDrag
+        deleteKeyCode={['Delete', 'Backspace']}
+        multiSelectionKeyCode={['Meta', 'Control']}
+        connectionLineStyle={{
+          strokeWidth: 2,
+          stroke: '#3b82f6',
+          strokeDasharray: '5,5',
+        }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
         <Controls />
         <MiniMap />
+        {connectingNodeId && (
+          <Panel position="top-center" className="connection-guide-panel">
+            <div className="connection-guide-text">
+              拖拽到目标节点以创建连接
+            </div>
+          </Panel>
+        )}
       </ReactFlow>
+
+      {contextMenu && (
+        <div
+          className="context-menu"
+          style={{
+            position: 'fixed',
+            left: contextMenu.x,
+            top: contextMenu.y,
+            zIndex: 1000,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="context-menu-item"
+            onClick={handleDuplicateNode}
+            disabled={readOnly}
+          >
+            <span>复制节点</span>
+            <span className="context-menu-shortcut">Ctrl+D</span>
+          </button>
+          <button
+            className="context-menu-item context-menu-item-danger"
+            onClick={handleDeleteNode}
+            disabled={readOnly}
+          >
+            <span>删除节点</span>
+            <span className="context-menu-shortcut">Del</span>
+          </button>
+          <div className="context-menu-divider" />
+          <button
+            className="context-menu-item"
+            onClick={closeContextMenu}
+          >
+            取消
+          </button>
+        </div>
+      )}
+
+      {contextMenu && (
+        <div
+          className="context-menu-overlay"
+          onClick={closeContextMenu}
+        />
+      )}
       
       <style>{`
         .workflow-canvas {
@@ -374,6 +568,117 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         .workflow-canvas-reactflow {
           width: 100%;
           height: 100%;
+        }
+
+        .connection-guide-panel {
+          pointer-events: none;
+          z-index: 10;
+        }
+
+        .connection-guide-text {
+          background: rgba(59, 130, 246, 0.9);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          animation: fadeIn 0.2s ease-in;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .react-flow__node.selected {
+          box-shadow: 0 0 0 2px #3b82f6 !important;
+        }
+
+        .react-flow__handle {
+          width: 8px;
+          height: 8px;
+          background: #6366f1;
+          border: 2px solid white;
+          transition: all 0.2s;
+        }
+
+        .react-flow__handle:hover {
+          width: 12px;
+          height: 12px;
+          background: #3b82f6;
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+          stroke: #3b82f6;
+          strokeWidth: 3;
+        }
+
+        .context-menu-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 999;
+        }
+
+        .context-menu {
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          padding: 4px;
+          min-width: 180px;
+          z-index: 1000;
+        }
+
+        .context-menu-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 8px 12px;
+          border: none;
+          background: white;
+          color: #374151;
+          font-size: 14px;
+          text-align: left;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: background 0.15s;
+        }
+
+        .context-menu-item:hover:not(:disabled) {
+          background: #f3f4f6;
+        }
+
+        .context-menu-item:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .context-menu-item-danger {
+          color: #dc2626;
+        }
+
+        .context-menu-item-danger:hover:not(:disabled) {
+          background: #fee2e2;
+        }
+
+        .context-menu-shortcut {
+          font-size: 12px;
+          color: #9ca3af;
+          margin-left: 16px;
+        }
+
+        .context-menu-divider {
+          height: 1px;
+          background: #e5e7eb;
+          margin: 4px 0;
         }
       `}</style>
     </div>

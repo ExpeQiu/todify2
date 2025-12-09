@@ -1,7 +1,6 @@
 // import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import WorkflowPage from "./pages/WorkflowPage";
-import NodePage from "./pages/NodePage";
 import ConfigPage from "./pages/ConfigPage";
 import TechPointManagement from "./pages/TechPointManagement";
 import CarSeriesManagement from "./pages/CarSeriesManagement";
@@ -60,11 +59,6 @@ function App() {
             data-oid="b5mu_kh"
           />
 
-          <Route
-            path="/node/:nodeType"
-            element={<NodePage data-oid="wbb7dct" />}
-            data-oid="-nr0paf"
-          />
 
           <Route
             path="/config"

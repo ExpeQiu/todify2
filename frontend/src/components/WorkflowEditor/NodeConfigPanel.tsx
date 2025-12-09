@@ -3,6 +3,7 @@ import { X, ChevronDown, ChevronRight, Code, Plus, Trash2 } from 'lucide-react';
 import { AgentWorkflowNode, AgentWorkflow, ConditionNodeData, AssignNodeData, MergeNodeData, TransformNodeData, InputNodeData, OutputNodeData, MemoryNodeData, ComparisonOperator, MergeStrategy, TransformRuleType, InputParameter, OutputParameter } from '../../types/agentWorkflow';
 import { AIRoleConfig } from '../../types/aiRole';
 import InputSourceSelector from './InputSourceSelector';
+import { toast } from 'sonner';
 
 interface NodeConfigPanelProps {
   node: AgentWorkflowNode | null;
@@ -27,6 +28,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
   });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isModified, setIsModified] = useState(false);
 
   useEffect(() => {
     // 当节点变化时，重置表单数据
@@ -36,8 +38,24 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
         // 确保 data 字段被正确初始化
         data: node.data ? { ...node.data } : {} as any,
       });
+      setIsModified(false);
     }
   }, [node]);
+
+  // ESC 键关闭面板
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && onClose) {
+        if (isModified) {
+          // 如果有未保存的更改，可以提示用户
+          // 这里直接关闭，因为用户可以通过 ESC 取消
+        }
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose, isModified]);
 
   const isValid = useMemo(() => {
     const e: Record<string, string> = {};
@@ -215,14 +233,17 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
       // 调用保存回调
       if (onSave) {
         onSave(updatedNode);
-        // 添加成功提示
-        console.log('节点配置保存成功！');
+        setIsModified(false);
+        toast.success('节点配置已保存');
       } else {
         console.error('onSave 回调未定义');
+        toast.error('保存失败', { description: '保存回调未定义' });
       }
     } catch (error) {
       console.error('保存节点配置时出错:', error);
-      alert('保存失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('保存失败', { 
+        description: error instanceof Error ? error.message : String(error) 
+      });
     }
   };
 
@@ -294,6 +315,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                   inputSources: currentData?.inputSources || {},
                 },
               });
+              setIsModified(true);
             }}
           >
             <option value="">请选择Agent</option>
@@ -304,7 +326,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
             ))}
           </select>
           {errors.agentId && (
-            <div className="form-hint" style={{ color: '#dc2626' }}>{errors.agentId}</div>
+            <div className="form-error">{errors.agentId}</div>
           )}
         </div>
 
@@ -929,7 +951,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                     </label>
                   </div>
                   {errors[`input_name_${index}`] && (
-                    <div className="form-hint" style={{ color: '#dc2626' }}>{errors[`input_name_${index}`]}</div>
+                    <div className="form-error">{errors[`input_name_${index}`]}</div>
                   )}
                 </div>
               ))}
@@ -1123,7 +1145,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                     />
                   </div>
                   {errors[`output_name_${index}`] && (
-                    <div className="form-hint" style={{ color: '#dc2626' }}>{errors[`output_name_${index}`]}</div>
+                    <div className="form-error">{errors[`output_name_${index}`]}</div>
                   )}
                 </div>
               ))}
@@ -1265,8 +1287,13 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
   return (
     <div className="node-config-panel">
       <div className="config-panel-header">
-        <h3 className="config-panel-title">节点配置</h3>
-        <button className="config-panel-close" onClick={onClose}>
+        <div>
+          <h3 className="config-panel-title">节点配置</h3>
+          {isModified && (
+            <span className="config-panel-modified-indicator">已修改</span>
+          )}
+        </div>
+        <button className="config-panel-close" onClick={onClose} title="关闭 (ESC)">
           <X size={16} />
         </button>
       </div>
@@ -1279,10 +1306,13 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
             type="text"
             className="form-input"
             value={formData.data?.label || ''}
-            onChange={(e) => setFormData({
-              ...formData,
-              data: { ...formData.data, label: e.target.value },
-            })}
+            onChange={(e) => {
+              setFormData({
+                ...formData,
+                data: { ...formData.data, label: e.target.value },
+              });
+              setIsModified(true);
+            }}
             placeholder="请输入节点名称"
           />
         </div>
@@ -1376,6 +1406,21 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
           padding: 16px;
           border-bottom: 1px solid #e5e7eb;
         }
+
+        .config-panel-header > div {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .config-panel-modified-indicator {
+          font-size: 11px;
+          color: #f59e0b;
+          background: #fef3c7;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
         
         .config-panel-title {
           font-size: 16px;
@@ -1460,6 +1505,21 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
           color: #9ca3af;
           margin-top: 6px;
           margin-bottom: 0;
+        }
+
+        .form-error {
+          font-size: 12px;
+          color: #dc2626;
+          margin-top: 6px;
+          margin-bottom: 0;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .form-error::before {
+          content: '⚠';
+          font-size: 14px;
         }
         
         .input-sources-container {

@@ -49,6 +49,11 @@ const AgentWorkflowPage: React.FC = () => {
   const [workflowSort, setWorkflowSort] = useState<'updated' | 'nodes'>('updated');
   const [confirmRestoreOpen, setConfirmRestoreOpen] = useState(false);
   const [draftWorkflow, setDraftWorkflow] = useState<AgentWorkflow | null>(null);
+  const [confirmCreateSmartWorkflowOpen, setConfirmCreateSmartWorkflowOpen] = useState(false);
+  const [confirmRunWithUnconfiguredNodesOpen, setConfirmRunWithUnconfiguredNodesOpen] = useState(false);
+  const [unconfiguredNodeNames, setUnconfiguredNodeNames] = useState<string>('');
+  const [confirmEditNameOpen, setConfirmEditNameOpen] = useState(false);
+  const [pendingEditWorkflow, setPendingEditWorkflow] = useState<AgentWorkflow | null>(null);
 
   // 加载数据
   useEffect(() => {
@@ -60,9 +65,33 @@ const AgentWorkflowPage: React.FC = () => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const tag = target?.tagName?.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
+      const isInput = tag === 'input' || tag === 'textarea' || target?.isContentEditable;
       const isMac = navigator.platform.toLowerCase().includes('mac');
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      
+      // 如果正在编辑工作流名称，只处理 ESC 和 Enter
+      if (editingWorkflowId) {
+        if (e.key === 'Escape') {
+          handleCancelEditWorkflowName();
+        }
+        return;
+      }
+      
+      // 如果焦点在输入框，只处理全局快捷键
+      if (isInput) {
+        // Ctrl+F 聚焦搜索框
+        if (cmdOrCtrl && e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          const searchInput = document.querySelector('.workflow-search-input') as HTMLInputElement;
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+          }
+        }
+        return;
+      }
+      
+      // 全局快捷键
       if (cmdOrCtrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
         if (isDirty) handleSave();
@@ -72,16 +101,31 @@ const AgentWorkflowPage: React.FC = () => {
       } else if (cmdOrCtrl && e.key.toLowerCase() === 'b') {
         e.preventDefault();
         setShowSidebar(s => !s);
+      } else if (cmdOrCtrl && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        const searchInput = document.querySelector('.workflow-search-input') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      } else if (cmdOrCtrl && e.key.toLowerCase() === 'd' && selectedNode) {
+        e.preventDefault();
+        handleDuplicateNode();
       } else if (e.key === 'F2') {
         if (currentWorkflow) {
           setEditingWorkflowId(currentWorkflow.id);
           setEditingWorkflowName(currentWorkflow.name);
         }
+      } else if (e.key === 'Escape') {
+        // ESC 关闭配置面板
+        if (selectedNode) {
+          setSelectedNode(null);
+        }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isDirty, currentWorkflow]);
+  }, [isDirty, currentWorkflow, selectedNode, editingWorkflowId]);
 
   useEffect(() => {
     try {
@@ -208,12 +252,36 @@ const AgentWorkflowPage: React.FC = () => {
       const validation = validateSmartWorkflowAgents(agents);
       
       if (!validation.isValid && validation.missing.length > 0) {
-        const confirmMessage = `缺少以下Agent：${validation.missing.join(', ')}\n\n是否仍要创建工作流？缺少的节点将无法配置。`;
-        if (!confirm(confirmMessage)) {
-          return;
-        }
+        setConfirmCreateSmartWorkflowOpen(true);
+        setCreatingSmartWorkflow(false);
+        return;
       }
 
+      await executeCreateSmartWorkflow();
+    } catch (error: any) {
+      const errorStatus = error?.response?.status || 'N/A';
+      const errorCode = error?.code;
+      
+      // 对于后端未运行的情况，只显示警告，不输出错误日志
+      if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
+        console.warn('创建智能工作流失败: 后端服务器未运行');
+        toast.error('创建失败', { 
+          description: '后端服务器未运行，请确保后端服务器正在运行（端口 3003）' 
+        });
+      } else {
+        console.error('创建智能工作流失败:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        toast.error('创建失败', { 
+          description: errorMessage || '请确保后端服务器正在运行（端口 3003）' 
+        });
+      }
+      setCreatingSmartWorkflow(false);
+    }
+  };
+
+  // 执行创建智能工作流
+  const executeCreateSmartWorkflow = async () => {
+    try {
       const smartWorkflow = createSmartWorkflowTemplate(agents, {
         name: '智能工作流',
         description: '从AI问答到演讲稿生成的完整工作流程',
@@ -223,19 +291,9 @@ const AgentWorkflowPage: React.FC = () => {
       await loadWorkflows();
       setCurrentWorkflow(created);
       setIsDirty(false);
+      toast.success('智能工作流创建成功');
     } catch (error: any) {
-      const errorStatus = error?.response?.status || 'N/A';
-      const errorCode = error?.code;
-      
-      // 对于后端未运行的情况，只显示警告，不输出错误日志
-      if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
-        console.warn('创建智能工作流失败: 后端服务器未运行');
-      } else {
-        console.error('创建智能工作流失败:', error);
-      }
-      
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      alert(`创建失败: ${errorMessage}\n\n请确保后端服务器正在运行（端口 3003）`);
+      throw error;
     } finally {
       setCreatingSmartWorkflow(false);
     }
@@ -386,10 +444,14 @@ const AgentWorkflowPage: React.FC = () => {
       
       // 重新加载工作流列表
       await loadWorkflows();
+      
+      toast.success('工作流已保存');
     } catch (error: any) {
       console.error('保存工作流失败:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      alert(`保存失败: ${errorMessage}\n\n请确保后端服务器正在运行（端口 3003）`);
+      toast.error('保存失败', { 
+        description: errorMessage || '请确保后端服务器正在运行（端口 3003）' 
+      });
       throw error; // 抛出错误以便调用者处理
     } finally {
       setLoading(false);
@@ -412,10 +474,9 @@ const AgentWorkflowPage: React.FC = () => {
     const unconfiguredNodes = currentWorkflow.nodes.filter(node => !node.agentId || node.agentId.trim() === '');
     if (unconfiguredNodes.length > 0) {
       const nodeNames = unconfiguredNodes.map(n => n.data?.label || n.id).join(', ');
-      const shouldContinue = confirm(`以下节点未配置Agent：${nodeNames}\n\n这些节点将无法执行。是否继续？`);
-      if (!shouldContinue) {
-        return;
-      }
+      setUnconfiguredNodeNames(nodeNames);
+      setConfirmRunWithUnconfiguredNodesOpen(true);
+      return;
     }
 
     setLoading(true);
@@ -507,6 +568,42 @@ const AgentWorkflowPage: React.FC = () => {
 
     setCurrentWorkflow(updatedWorkflow);
     setIsDirty(true);
+    
+    // 如果删除的是当前选中的节点，取消选择
+    if (selectedNode?.id === nodeId) {
+      setSelectedNode(null);
+    }
+  };
+
+  // 复制节点
+  const handleDuplicateNode = () => {
+    if (!currentWorkflow || !selectedNode) return;
+
+    const nodeToDuplicate = selectedNode;
+    const spacing = 50;
+    
+    const newNode: AgentWorkflowNode = {
+      ...nodeToDuplicate,
+      id: `node_${Date.now()}`,
+      position: {
+        x: nodeToDuplicate.position.x + spacing,
+        y: nodeToDuplicate.position.y + spacing,
+      },
+      data: {
+        ...nodeToDuplicate.data,
+        label: `${nodeToDuplicate.data?.label || '节点'} 副本`,
+      },
+    };
+
+    const updatedWorkflow = {
+      ...currentWorkflow,
+      nodes: [...currentWorkflow.nodes, newNode],
+    };
+
+    setCurrentWorkflow(updatedWorkflow);
+    setIsDirty(true);
+    setSelectedNode(newNode);
+    toast.success('节点已复制');
   };
 
   const handleNodeSave = (node: AgentWorkflowNode) => {
@@ -609,22 +706,9 @@ const AgentWorkflowPage: React.FC = () => {
     
     // 如果是当前工作流且有未保存的更改，先询问用户
     if (isDirty && currentWorkflow && currentWorkflow.id === workflow.id) {
-      const shouldSave = confirm('当前工作流有未保存的更改，是否先保存后再编辑名称？\n点击"确定"保存后编辑，点击"取消"直接编辑（将丢失未保存的更改）');
-      if (shouldSave) {
-        // 先保存，然后再编辑名称
-        handleSave().then(() => {
-          setEditingWorkflowId(workflow.id);
-          setEditingWorkflowName(workflow.name);
-        }).catch(() => {
-          // 保存失败，仍然允许编辑名称
-          setEditingWorkflowId(workflow.id);
-          setEditingWorkflowName(workflow.name);
-        });
-        return;
-      } else {
-        // 用户选择直接编辑，清除dirty状态
-        setIsDirty(false);
-      }
+      setPendingEditWorkflow(workflow);
+      setConfirmEditNameOpen(true);
+      return;
     }
     
     // 直接进入编辑模式
@@ -632,10 +716,38 @@ const AgentWorkflowPage: React.FC = () => {
     setEditingWorkflowName(workflow.name);
   };
 
+  // 确认编辑名称（保存后编辑）
+  const handleConfirmEditName = async () => {
+    if (!pendingEditWorkflow) return;
+    setConfirmEditNameOpen(false);
+    
+    try {
+      await handleSave();
+      setEditingWorkflowId(pendingEditWorkflow.id);
+      setEditingWorkflowName(pendingEditWorkflow.name);
+    } catch {
+      // 保存失败，仍然允许编辑名称
+      setEditingWorkflowId(pendingEditWorkflow.id);
+      setEditingWorkflowName(pendingEditWorkflow.name);
+    } finally {
+      setPendingEditWorkflow(null);
+    }
+  };
+
+  // 取消编辑名称确认（直接编辑）
+  const handleCancelEditName = () => {
+    if (!pendingEditWorkflow) return;
+    setConfirmEditNameOpen(false);
+    setIsDirty(false);
+    setEditingWorkflowId(pendingEditWorkflow.id);
+    setEditingWorkflowName(pendingEditWorkflow.name);
+    setPendingEditWorkflow(null);
+  };
+
   // 保存工作流名称
   const handleSaveWorkflowName = async (workflowId: string) => {
     if (!editingWorkflowName || editingWorkflowName.trim() === '') {
-      alert('工作流名称不能为空');
+      toast.error('工作流名称不能为空');
       setEditingWorkflowId(null);
       return;
     }
@@ -658,10 +770,13 @@ const AgentWorkflowPage: React.FC = () => {
       }
 
       setEditingWorkflowId(null);
+      toast.success('工作流名称已更新');
       console.log('工作流名称已更新:', updated.name);
     } catch (error) {
       console.error('更新工作流名称失败:', error);
-      alert('更新失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('更新失败', { 
+        description: error instanceof Error ? error.message : String(error) 
+      });
     }
   };
 
@@ -674,7 +789,7 @@ const AgentWorkflowPage: React.FC = () => {
   // 处理设置按钮点击
   const handleSettings = () => {
     if (!currentWorkflow) {
-      alert('请先选择一个工作流');
+      toast.error('请先选择一个工作流');
       return;
     }
     setShowSettingsModal(true);
@@ -683,7 +798,7 @@ const AgentWorkflowPage: React.FC = () => {
   // 处理保存模版按钮点击
   const handleSaveTemplate = () => {
     if (!currentWorkflow) {
-      alert('请先选择一个工作流');
+      toast.error('请先选择一个工作流');
       return;
     }
     setShowSaveTemplateModal(true);
@@ -697,15 +812,19 @@ const AgentWorkflowPage: React.FC = () => {
     }
 
     const newPublishedStatus = !currentWorkflow.published;
-    const action = newPublishedStatus ? '发布' : '取消发布';
-    
-    if (!confirm(`确定要${action}工作流"${currentWorkflow.name}"吗？\n${newPublishedStatus ? '发布后，该工作流可以被前端页面绑定使用。' : '取消发布后，前端页面将无法绑定该工作流。'}`)) {
-      return;
-    }
+    setPendingPublishStatus(newPublishedStatus);
+    setConfirmPublishOpen(true);
+  };
 
+  // 确认发布/取消发布
+  const handleConfirmPublish = async () => {
+    if (!currentWorkflow || pendingPublishStatus === null) return;
+    
+    const action = pendingPublishStatus ? '发布' : '取消发布';
+    
     try {
       const updated = await agentWorkflowService.updateWorkflow(currentWorkflow.id, {
-        published: newPublishedStatus,
+        published: pendingPublishStatus,
       });
 
       // 更新列表中的工作流
@@ -714,11 +833,16 @@ const AgentWorkflowPage: React.FC = () => {
       // 更新当前工作流
       setCurrentWorkflow(updated);
 
-      alert(`${action}成功！`);
+      toast.success(`${action}成功`);
       console.log(`工作流已${action}:`, updated.name);
     } catch (error) {
       console.error(`${action}工作流失败:`, error);
-      alert(`${action}失败: ` + (error instanceof Error ? error.message : String(error)));
+      toast.error(`${action}失败`, { 
+        description: error instanceof Error ? error.message : String(error) 
+      });
+    } finally {
+      setConfirmPublishOpen(false);
+      setPendingPublishStatus(null);
     }
   };
 
@@ -737,16 +861,19 @@ const AgentWorkflowPage: React.FC = () => {
       // 更新当前工作流
       setCurrentWorkflow(updated);
 
+      toast.success('工作流设置已保存');
       console.log('工作流设置已保存:', updated);
     } catch (error) {
       console.error('保存工作流设置失败:', error);
-      alert('保存失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('保存失败', { 
+        description: error instanceof Error ? error.message : String(error) 
+      });
     }
   };
 
   const handleOpenMultiChat = () => {
     if (!currentWorkflow) {
-      alert('请先选择一个工作流');
+      toast.error('请先选择一个工作流');
       return;
     }
     setShowMultiChatModal(true);
@@ -761,19 +888,38 @@ const AgentWorkflowPage: React.FC = () => {
       <TopNavigation />
       
       <div className="workflow-container">
-        <ToolbarPanel
-          onAddNode={handleAddNode}
-          onSave={handleSave}
-          onRun={handleRun}
-          onSaveTemplate={handleSaveTemplate}
-          onPublish={handlePublish}
-          onSettings={handleSettings}
-          onOpenMultiChat={handleOpenMultiChat}
-          canSave={isDirty}
-          canRun={!!currentWorkflow && currentWorkflow.nodes.length > 0}
-          loading={loading}
-          isPublished={currentWorkflow?.published || false}
-        />
+        <div className="workflow-header">
+          <ToolbarPanel
+            onAddNode={handleAddNode}
+            onSave={handleSave}
+            onRun={handleRun}
+            onSaveTemplate={handleSaveTemplate}
+            onPublish={handlePublish}
+            onSettings={handleSettings}
+            onOpenMultiChat={handleOpenMultiChat}
+            canSave={isDirty}
+            canRun={!!currentWorkflow && currentWorkflow.nodes.length > 0}
+            loading={loading}
+            isPublished={currentWorkflow?.published || false}
+          />
+          {currentWorkflow && (
+            <div className="workflow-status-bar">
+              <div className="workflow-status-info">
+                <span className="workflow-name">{currentWorkflow.name}</span>
+                {isDirty && (
+                  <span className="workflow-status-indicator workflow-status-dirty" title="有未保存的更改">
+                    ● 未保存
+                  </span>
+                )}
+                {!isDirty && currentWorkflow.updatedAt && (
+                  <span className="workflow-status-indicator workflow-status-saved" title="已保存">
+                    ✓ 已保存
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="workflow-content">
           {/* 左侧工作流列表侧边栏 */}
@@ -813,17 +959,30 @@ const AgentWorkflowPage: React.FC = () => {
               <span>智能工作流</span>
             </button>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={workflowSearch}
-                onChange={(e) => setWorkflowSearch(e.target.value)}
-                placeholder="搜索工作流"
-                className="workflow-search-input"
-              />
+              <div style={{ position: 'relative', flex: 1 }}>
+                <input
+                  type="text"
+                  value={workflowSearch}
+                  onChange={(e) => setWorkflowSearch(e.target.value)}
+                  placeholder="搜索工作流 (Ctrl/Cmd + F)"
+                  className="workflow-search-input"
+                  title="搜索工作流 (Ctrl/Cmd + F)"
+                />
+                {workflowSearch && (
+                  <button
+                    onClick={() => setWorkflowSearch('')}
+                    className="workflow-search-clear"
+                    title="清除搜索"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
               <select
                 value={workflowSort}
                 onChange={(e) => setWorkflowSort(e.target.value as any)}
                 className="workflow-sort-select"
+                title="排序方式"
               >
                 <option value="updated">按更新时间</option>
                 <option value="nodes">按节点数</option>
@@ -837,6 +996,12 @@ const AgentWorkflowPage: React.FC = () => {
                 <FileText size={32} className="text-gray-400" />
                 <p className="text-gray-500 text-sm mt-2">暂无工作流</p>
                 <p className="text-gray-400 text-xs mt-1">点击上方按钮创建</p>
+              </div>
+            ) : workflows.filter(w => !workflowSearch || w.name.toLowerCase().includes(workflowSearch.toLowerCase())).length === 0 ? (
+              <div className="empty-state">
+                <FileText size={32} className="text-gray-400" />
+                <p className="text-gray-500 text-sm mt-2">未找到匹配的工作流</p>
+                <p className="text-gray-400 text-xs mt-1">尝试使用其他关键词搜索</p>
               </div>
             ) : (
               workflows
@@ -898,9 +1063,21 @@ const AgentWorkflowPage: React.FC = () => {
                               // 单击时不触发切换，避免双击时误触发
                               e.stopPropagation();
                             }}
-                            title="双击重命名"
+                            title="双击重命名 (F2)"
                           >
-                            {workflow.name}
+                            {workflowSearch ? (
+                              <span>
+                                {workflow.name.split(new RegExp(`(${workflowSearch})`, 'gi')).map((part, i) => 
+                                  part.toLowerCase() === workflowSearch.toLowerCase() ? (
+                                    <mark key={i} style={{ background: '#fef3c7', padding: '0 2px' }}>{part}</mark>
+                                  ) : (
+                                    part
+                                  )
+                                )}
+                              </span>
+                            ) : (
+                              workflow.name
+                            )}
                           </h3>
                         )}
                         {workflow.description && (
@@ -910,6 +1087,12 @@ const AgentWorkflowPage: React.FC = () => {
                           <span className="workflow-item-nodes">
                             {workflow.nodes.length} 个节点
                           </span>
+                          {workflow.published && (
+                            <span className="workflow-item-badge workflow-item-badge-published" title="已发布">已发布</span>
+                          )}
+                          {currentWorkflow?.id === workflow.id && isDirty && (
+                            <span className="workflow-item-badge workflow-item-badge-modified" title="有未保存的更改">未保存</span>
+                          )}
                           {workflow.name === '智能工作流' && (
                             <span className="workflow-item-badge">默认</span>
                           )}
@@ -1109,28 +1292,96 @@ const AgentWorkflowPage: React.FC = () => {
         <ConfirmDialog
           open={confirmPublishOpen}
           title={pendingPublishStatus ? '发布工作流' : '取消发布工作流'}
-          description={pendingPublishStatus ? '发布后，该工作流可以被前端页面绑定使用' : '取消发布后，前端页面将无法绑定该工作流'}
+          description={`确定要${pendingPublishStatus ? '发布' : '取消发布'}工作流"${currentWorkflow.name}"吗？${pendingPublishStatus ? '发布后，该工作流可以被前端页面绑定使用。' : '取消发布后，前端页面将无法绑定该工作流。'}`}
           confirmText={pendingPublishStatus ? '发布' : '取消发布'}
-          cancelText="返回"
-          onConfirm={async () => {
-            setConfirmPublishOpen(false);
-            try {
-              const updated = await agentWorkflowService.updateWorkflow(currentWorkflow.id, {
-                published: pendingPublishStatus || false,
-              });
-              setWorkflows(workflows.map(w => w.id === currentWorkflow.id ? updated : w));
-              setCurrentWorkflow(updated);
-              toast.success(pendingPublishStatus ? '发布成功' : '取消发布成功');
-            } catch (error: any) {
-              toast.error('操作失败', { description: error?.message });
-            } finally {
-              setPendingPublishStatus(null);
-            }
-          }}
+          cancelText="取消"
+          onConfirm={handleConfirmPublish}
           onCancel={() => {
             setConfirmPublishOpen(false);
             setPendingPublishStatus(null);
           }}
+        />
+      )}
+
+      {confirmCreateSmartWorkflowOpen && (
+        <ConfirmDialog
+          open={confirmCreateSmartWorkflowOpen}
+          title="缺少必需的 Agent"
+          description={`缺少以下Agent：${validateSmartWorkflowAgents(agents).missing.join(', ')}\n\n是否仍要创建工作流？缺少的节点将无法配置。`}
+          confirmText="仍要创建"
+          cancelText="取消"
+          onConfirm={async () => {
+            setConfirmCreateSmartWorkflowOpen(false);
+            await executeCreateSmartWorkflow();
+          }}
+          onCancel={() => {
+            setConfirmCreateSmartWorkflowOpen(false);
+            setCreatingSmartWorkflow(false);
+          }}
+        />
+      )}
+
+      {confirmRunWithUnconfiguredNodesOpen && (
+        <ConfirmDialog
+          open={confirmRunWithUnconfiguredNodesOpen}
+          title="未配置 Agent 的节点"
+          description={`以下节点未配置Agent：${unconfiguredNodeNames}\n\n这些节点将无法执行。是否继续？`}
+          confirmText="继续执行"
+          cancelText="取消"
+          onConfirm={async () => {
+            setConfirmRunWithUnconfiguredNodesOpen(false);
+            setLoading(true);
+            try {
+              await handleSave();
+              const latestWorkflow = workflows.find(w => w.id === currentWorkflow?.id) || currentWorkflow;
+              if (!latestWorkflow) return;
+              
+              const validNodes = latestWorkflow.nodes.filter(n => n.agentId && n.agentId.trim() !== '');
+              if (validNodes.length === 0) {
+                toast.error('工作流中没有配置Agent的节点，无法执行');
+                setLoading(false);
+                return;
+              }
+
+              const inputNodes = latestWorkflow.nodes.filter(n => n.type === 'input');
+              const inputParams: InputParameter[] = [];
+              
+              inputNodes.forEach(node => {
+                const nodeData = node.data as any;
+                const inputs = nodeData.inputs || [];
+                inputs.forEach((input: InputParameter) => {
+                  inputParams.push(input);
+                });
+              });
+              
+              if (inputParams.length > 0) {
+                setRunParams(inputParams);
+                setRunModalOpen(true);
+                setLoading(false);
+                return;
+              }
+              executeWorkflowWithInput({ query: '测试输入' });
+            } catch (error) {
+              console.error('执行工作流失败:', error);
+              toast.error('执行失败', { description: error instanceof Error ? error.message : String(error) });
+              setLoading(false);
+            }
+          }}
+          onCancel={() => {
+            setConfirmRunWithUnconfiguredNodesOpen(false);
+          }}
+        />
+      )}
+
+      {confirmEditNameOpen && pendingEditWorkflow && (
+        <ConfirmDialog
+          open={confirmEditNameOpen}
+          title="未保存的更改"
+            description="当前工作流有未保存的更改，是否先保存后再编辑名称？点击「确定」保存后编辑，点击「取消」直接编辑（将丢失未保存的更改）"
+          confirmText="保存后编辑"
+          cancelText="直接编辑"
+          onConfirm={handleConfirmEditName}
+          onCancel={handleCancelEditName}
         />
       )}
 
@@ -1211,6 +1462,49 @@ const AgentWorkflowPage: React.FC = () => {
           display: flex;
           flex-direction: column;
           overflow: hidden;
+        }
+
+        .workflow-header {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .workflow-status-bar {
+          padding: 8px 16px;
+          background: #f9fafb;
+          border-bottom: 1px solid #e5e7eb;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .workflow-status-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .workflow-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #111827;
+        }
+
+        .workflow-status-indicator {
+          font-size: 12px;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+
+        .workflow-status-dirty {
+          color: #92400e;
+          background: #fef3c7;
+        }
+
+        .workflow-status-saved {
+          color: #065f46;
+          background: #d1fae5;
         }
         
         .workflow-content {
@@ -1388,6 +1682,37 @@ const AgentWorkflowPage: React.FC = () => {
           background: #dbeafe;
           color: #1e40af;
           border-radius: 4px;
+        }
+
+        .workflow-item-badge-published {
+          background: #d1fae5;
+          color: #065f46;
+        }
+
+        .workflow-item-badge-modified {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        .workflow-search-clear {
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: transparent;
+          border: none;
+          color: #9ca3af;
+          cursor: pointer;
+          font-size: 18px;
+          line-height: 1;
+          padding: 2px 4px;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .workflow-search-clear:hover {
+          background: #f3f4f6;
+          color: #374151;
         }
 
         .workflow-item-delete {

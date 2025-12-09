@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Bot,
   Plus,
@@ -25,7 +25,10 @@ import {
   Workflow,
   MessageCircle,
   X,
-  Maximize2
+  Maximize2,
+  Info,
+  BarChart3,
+  XCircle
 } from 'lucide-react';
 import TopNavigation from '../components/TopNavigation';
 import aiRoleService, { AIRoleUsage } from '../services/aiRoleService';
@@ -34,6 +37,12 @@ import migrationService from '../services/migrationService';
 import { useNavigate } from 'react-router-dom';
 import AIRoleChat from '../components/AIRoleChat';
 import AIRoleConfigInfoBox from '../components/AIRoleConfigInfoBox';
+import AIRoleEditModal from '../components/AIRoleEditModal';
+import SearchAndFilterBar, { FilterType, FilterStatus, FilterSource, SortOption, ViewMode } from '../components/SearchAndFilterBar';
+import BulkActionsBar from '../components/BulkActionsBar';
+import RoleList from '../components/RoleList';
+import RoleCard from '../components/RoleCard';
+import { filterRoles, sortRoles } from '../utils/roleFilters';
 
 // 为 Trash2 创建别名以避免冲突
 const TrashIcon = Trash2;
@@ -94,6 +103,26 @@ const AIRoleManagementPage: React.FC = () => {
 
   // Direct Agent Tab 状态
   const [activeTab, setActiveTab] = useState<'llm' | 'prompt' | 'context' | 'tools' | 'agents'>('llm');
+  
+  // 主页面Tab状态
+  const [mainTab, setMainTab] = useState<'config-status' | 'role-management'>('role-management');
+
+  // 搜索和筛选状态
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [filterSource, setFilterSource] = useState<FilterSource>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('updated-desc');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // 批量操作状态
+  const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  // 编辑弹窗状态
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingRole, setEditingRole] = useState<AIRoleConfig | null>(null);
+  const [isNewRole, setIsNewRole] = useState(false);
 
   useEffect(() => {
     // 先加载localStorage中的配置（用于显示）
@@ -341,35 +370,182 @@ const AIRoleManagementPage: React.FC = () => {
     }
   };
 
-  // 选择角色
-  const selectRole = (role: AIRoleConfig) => {
-    // 如果当前正在编辑且有未保存的更改，提示用户
-    if (isEditing && selectedRole) {
-      // 简单检查：比较关键字段是否有变化
-      const hasChanges = 
-        formData.name !== selectedRole.name ||
-        formData.description !== selectedRole.description ||
-        formData.provider !== selectedRole.provider ||
-        formData.difyConfig?.apiUrl !== selectedRole.difyConfig?.apiUrl ||
-        formData.difyConfig?.apiKey !== selectedRole.difyConfig?.apiKey ||
-        formData.agentConfig?.llm?.apiKey !== selectedRole.agentConfig?.llm?.apiKey ||
-        formData.agentConfig?.llm?.apiBaseUrl !== selectedRole.agentConfig?.llm?.apiBaseUrl;
-      
-      if (hasChanges && !confirm('当前角色有未保存的更改，确定要切换吗？')) {
-        return;
-      }
-    }
-    
-    setSelectedRole(role);
-    setFormData(role);
-    setIsEditing(false);
-    // 根据 provider 设置默认 tab
-    if (role.provider === 'direct-agent') {
-      setActiveTab('llm');
-    }
-    // 加载使用情况
+  // 筛选和排序后的角色列表
+  const filteredAndSortedRoles = useMemo(() => {
+    const filtered = filterRoles(roles, searchQuery, filterType, filterStatus, filterSource);
+    return sortRoles(filtered, sortOption);
+  }, [roles, searchQuery, filterType, filterStatus, filterSource, sortOption]);
+
+  // 选择角色（用于编辑）
+  const selectRole = useCallback((role: AIRoleConfig) => {
+    setEditingRole(role);
+    setIsNewRole(false);
+    setShowEditModal(true);
     loadRoleUsage(role.id);
-  };
+  }, []);
+
+  // 打开新建角色弹窗
+  const handleNewRole = useCallback(() => {
+    setEditingRole(null);
+    setIsNewRole(true);
+    setShowEditModal(true);
+  }, []);
+
+  // 打开编辑弹窗
+  const handleEditRole = useCallback((role: AIRoleConfig) => {
+    selectRole(role);
+  }, [selectRole]);
+
+  // 批量选择
+  const handleSelectRole = useCallback((roleId: string) => {
+    setSelectedRoles(prev => {
+      const next = new Set(prev);
+      if (next.has(roleId)) {
+        next.delete(roleId);
+      } else {
+        next.add(roleId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedRoles(new Set(filteredAndSortedRoles.map(r => r.id)));
+  }, [filteredAndSortedRoles]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedRoles(new Set());
+  }, []);
+
+  // 批量操作
+  const handleBulkEnable = useCallback(async () => {
+    if (selectedRoles.size === 0) return;
+    if (!confirm(`确定要启用 ${selectedRoles.size} 个角色吗？`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedRoles).map(roleId => {
+        const role = roles.find(r => r.id === roleId);
+        if (role) {
+          return aiRoleService.updateAIRole(roleId, { ...role, enabled: true });
+        }
+        return Promise.resolve({ success: false });
+      });
+      await Promise.all(promises);
+      setMessage({ type: 'success', text: `成功启用 ${selectedRoles.size} 个角色` });
+      await loadRoles();
+      setSelectedRoles(new Set());
+    } catch (error) {
+      setMessage({ type: 'error', text: '批量启用失败' });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  }, [selectedRoles, roles]);
+
+  const handleBulkDisable = useCallback(async () => {
+    if (selectedRoles.size === 0) return;
+    if (!confirm(`确定要禁用 ${selectedRoles.size} 个角色吗？`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedRoles).map(roleId => {
+        const role = roles.find(r => r.id === roleId);
+        if (role) {
+          return aiRoleService.updateAIRole(roleId, { ...role, enabled: false });
+        }
+        return Promise.resolve({ success: false });
+      });
+      await Promise.all(promises);
+      setMessage({ type: 'success', text: `成功禁用 ${selectedRoles.size} 个角色` });
+      await loadRoles();
+      setSelectedRoles(new Set());
+    } catch (error) {
+      setMessage({ type: 'error', text: '批量禁用失败' });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  }, [selectedRoles, roles]);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedRoles.size === 0) return;
+    if (!confirm(`确定要删除 ${selectedRoles.size} 个角色吗？此操作不可恢复！`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedRoles).map(roleId => aiRoleService.deleteAIRole(roleId));
+      await Promise.all(promises);
+      setMessage({ type: 'success', text: `成功删除 ${selectedRoles.size} 个角色` });
+      await loadRoles();
+      setSelectedRoles(new Set());
+    } catch (error) {
+      setMessage({ type: 'error', text: '批量删除失败' });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  }, [selectedRoles]);
+
+  // 切换启用状态
+  const handleToggleEnable = useCallback(async (role: AIRoleConfig) => {
+    try {
+      await aiRoleService.updateAIRole(role.id, { ...role, enabled: !role.enabled });
+      setMessage({ type: 'success', text: role.enabled ? '已禁用' : '已启用' });
+      await loadRoles();
+    } catch (error) {
+      setMessage({ type: 'error', text: '操作失败' });
+    }
+  }, []);
+
+  // 处理角色保存（从弹窗）
+  const handleSaveRole = useCallback(async (role: AIRoleConfig) => {
+    setSaving(true);
+    try {
+      let result;
+      if (isNewRole) {
+        result = await aiRoleService.createAIRole(role as Omit<AIRoleConfig, 'id' | 'createdAt' | 'updatedAt'>);
+      } else {
+        result = await aiRoleService.updateAIRole(role.id, role);
+      }
+
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message || '保存成功' });
+        await loadRoles();
+        setShowEditModal(false);
+      } else {
+        setMessage({ type: 'error', text: result.error || '保存失败' });
+        throw new Error(result.error || '保存失败');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      setMessage({ type: 'error', text: `保存失败: ${errorMessage}` });
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  }, [isNewRole]);
+
+  // 处理测试连接
+  const handleTestConnection = useCallback(async (role: AIRoleConfig) => {
+    try {
+      const result = await aiRoleService.testConnection(role.id);
+      setTestResults(prev => ({
+        ...prev,
+        [role.id]: result
+      }));
+      if (result.success) {
+        setMessage({ type: 'success', text: '连接测试成功' });
+      } else {
+        setMessage({ type: 'error', text: result.message || '连接测试失败' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: '连接测试失败' });
+    }
+  }, []);
+
+  // 处理对话测试
+  const handleChat = useCallback((role: AIRoleConfig) => {
+    setSelectedRole(role);
+    setShowChatDialog(true);
+  }, []);
 
   // 更新表单字段
   const updateFormField = (field: string, value: any) => {
@@ -525,11 +701,10 @@ const AIRoleManagementPage: React.FC = () => {
   };
 
   // 删除角色
-  const deleteRole = async () => {
-    if (!selectedRole) return;
-    if (!confirm(`确定要删除AI角色"${selectedRole.name}"吗？此操作不可恢复！`)) return;
+  const deleteRole = useCallback(async (role: AIRoleConfig) => {
+    if (!confirm(`确定要删除AI角色"${role.name}"吗？此操作不可恢复！`)) return;
 
-    const roleIdToDelete = selectedRole.id;
+    const roleIdToDelete = role.id;
     
     try {
       const result = await aiRoleService.deleteAIRole(roleIdToDelete);
@@ -543,11 +718,21 @@ const AIRoleManagementPage: React.FC = () => {
           return next;
         });
         
+        // 从选中列表中移除
+        setSelectedRoles(prev => {
+          const next = new Set(prev);
+          next.delete(roleIdToDelete);
+          return next;
+        });
+        
         // 重新加载角色列表
         await loadRoles();
         
-        // 重置表单和选中状态
-        resetForm();
+        // 如果删除的是当前选中的角色，清除选中状态
+        if (selectedRole?.id === roleIdToDelete) {
+          setSelectedRole(null);
+          resetForm();
+        }
       } else {
         setMessage({ type: 'error', text: result.error || '删除失败' });
       }
@@ -562,7 +747,7 @@ const AIRoleManagementPage: React.FC = () => {
       });
       setMessage({ type: 'error', text: '删除角色失败' });
     }
-  };
+  }, [selectedRole]);
 
   // 测试连接
   const testConnection = async () => {
@@ -597,12 +782,64 @@ const AIRoleManagementPage: React.FC = () => {
     }
   }, [message]);
 
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 按 / 聚焦搜索框
+      if (e.key === '/' && !showEditModal && !showChatDialog) {
+        const searchInput = document.querySelector('input[placeholder*="搜索"]') as HTMLInputElement;
+        if (searchInput && e.target !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      }
+      // 按 n 新建角色
+      if ((e.key === 'n' || e.key === 'N') && !showEditModal && !showChatDialog && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        handleNewRole();
+      }
+      // 按 Delete 删除选中项
+      if (e.key === 'Delete' && selectedRoles.size > 0 && !showEditModal && !showChatDialog) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showEditModal, showChatDialog, selectedRoles, handleNewRole, handleBulkDelete]);
+
+  // 骨架屏组件
+  const SkeletonCard = () => (
+    <div className="bg-white rounded-lg border-2 border-gray-200 p-4 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+          <div className="flex gap-2">
+            <div className="h-6 bg-gray-200 rounded w-20"></div>
+            <div className="h-6 bg-gray-200 rounded w-16"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <TopNavigation />
-        <div className="flex items-center justify-center h-96">
-          <Loader className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="container mx-auto px-4 py-10">
+          <div className="mb-8">
+            <div className="h-10 bg-gray-200 rounded w-64 mb-4 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 rounded w-96 animate-pulse"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -708,11 +945,7 @@ const AIRoleManagementPage: React.FC = () => {
               </button>
             )}
             <button
-              onClick={() => {
-                resetForm();
-                setIsEditing(false);
-                setSelectedRole(null);
-              }}
+              onClick={handleNewRole}
               className="flex items-center gap-2.5 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg text-base font-semibold"
             >
               <Plus size={20} />
@@ -721,12 +954,194 @@ const AIRoleManagementPage: React.FC = () => {
           </div>
         </div>
 
-        {/* AI角色配置信息框 */}
+        {/* Tab导航 */}
         <div className="mb-6">
-          <AIRoleConfigInfoBox roles={roles} onRefresh={loadRoles} />
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="border-b border-gray-200">
+              <nav className="flex -mb-px">
+                <button
+                  onClick={() => setMainTab('role-management')}
+                  className={`flex-1 px-6 py-4 text-center font-semibold text-base transition-all ${
+                    mainTab === 'role-management'
+                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    <span>角色管理</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setMainTab('config-status')}
+                  className={`flex-1 px-6 py-4 text-center font-semibold text-base transition-all ${
+                    mainTab === 'config-status'
+                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Info className="w-5 h-5" />
+                    <span>配置状态</span>
+                  </div>
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Tab内容 */}
+        {mainTab === 'config-status' && (
+          <div className="mb-6">
+            <AIRoleConfigInfoBox roles={roles} onRefresh={loadRoles} hideHeader={true} />
+          </div>
+        )}
+
+        {mainTab === 'role-management' && (
+          <div className="space-y-6">
+            {/* 统计卡片 */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">总角色数</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{roles.length}</p>
+                  </div>
+                  <Bot className="w-8 h-8 text-blue-500" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">已启用</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {roles.filter(r => r.enabled).length}
+                    </p>
+                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-gray-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">已禁用</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {roles.filter(r => !r.enabled).length}
+                    </p>
+                  </div>
+                  <XCircle className="w-8 h-8 text-gray-500" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-purple-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Dify工作流</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {roles.filter(r => r.provider === 'dify' || !r.provider).length}
+                    </p>
+                  </div>
+                  <Workflow className="w-8 h-8 text-purple-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* 搜索和筛选栏 */}
+            <SearchAndFilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              filterType={filterType}
+              onFilterTypeChange={setFilterType}
+              filterStatus={filterStatus}
+              onFilterStatusChange={setFilterStatus}
+              filterSource={filterSource}
+              onFilterSourceChange={setFilterSource}
+              sortOption={sortOption}
+              onSortChange={setSortOption}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              resultCount={filteredAndSortedRoles.length}
+            />
+
+            {/* 批量操作栏 */}
+            <BulkActionsBar
+              selectedRoles={selectedRoles}
+              roles={filteredAndSortedRoles}
+              onSelectAll={handleSelectAll}
+              onDeselectAll={handleDeselectAll}
+              onBulkEnable={handleBulkEnable}
+              onBulkDisable={handleBulkDisable}
+              onBulkDelete={handleBulkDelete}
+              isProcessing={isBulkProcessing}
+            />
+
+            {/* 角色列表/卡片 */}
+            {viewMode === 'list' ? (
+              <RoleList
+                roles={filteredAndSortedRoles}
+                selectedRoles={selectedRoles}
+                onSelect={handleSelectRole}
+                onSelectAll={handleSelectAll}
+                onEdit={handleEditRole}
+                onDelete={deleteRole}
+                onToggleEnable={handleToggleEnable}
+                onChat={handleChat}
+                roleUsages={roleUsages}
+                showUsage={true}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredAndSortedRoles.map(role => (
+                  <RoleCard
+                    key={role.id}
+                    role={role}
+                    isSelected={selectedRoles.has(role.id)}
+                    onSelect={handleSelectRole}
+                    onEdit={handleEditRole}
+                    onDelete={deleteRole}
+                    onToggleEnable={handleToggleEnable}
+                    onChat={handleChat}
+                    usage={roleUsages.get(role.id)}
+                    showUsage={true}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* 空状态 */}
+            {filteredAndSortedRoles.length === 0 && (
+              <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <Bot size={64} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all'
+                    ? '没有找到匹配的角色'
+                    : '暂无角色'}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all'
+                    ? '尝试调整搜索条件或筛选器'
+                    : '点击上方"新建角色"按钮创建您的第一个AI角色'}
+                </p>
+                {(searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilterType('all');
+                      setFilterStatus('all');
+                      setFilterSource('all');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    清除筛选
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 旧版布局（已废弃，保留用于兼容） */}
+        {false && mainTab === 'role-management-old' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 左侧：角色列表 */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -2541,7 +2956,21 @@ const AIRoleManagementPage: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
+
+      {/* 编辑弹窗 */}
+      <AIRoleEditModal
+        isOpen={showEditModal}
+        role={editingRole}
+        isNew={isNewRole}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingRole(null);
+        }}
+        onSave={handleSaveRole}
+        onTest={handleTestConnection}
+      />
 
       {/* 对话测试对话框 */}
       {showChatDialog && selectedRole && (

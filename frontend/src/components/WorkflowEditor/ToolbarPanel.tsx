@@ -70,7 +70,7 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
           <button 
             className="toolbar-button" 
             onClick={() => setShowNodeMenu(!showNodeMenu)} 
-            title="添加节点"
+            title="添加节点 (A)"
           >
             <Plus size={16} />
             <span>添加节点</span>
@@ -182,7 +182,7 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
           className="toolbar-button" 
           onClick={onSave}
           disabled={!canSave || loading}
-          title="保存工作流"
+          title="保存工作流 (Ctrl/Cmd + S)"
         >
           <Save size={16} />
           <span>{loading ? '保存中...' : '保存'}</span>
@@ -194,7 +194,7 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
           className="toolbar-button toolbar-button-primary" 
           onClick={onRun}
           disabled={!canRun || loading}
-          title="运行工作流"
+          title="运行工作流 (Ctrl/Cmd + Enter)"
         >
           <Play size={16} />
           <span>{loading ? '运行中...' : '运行'}</span>

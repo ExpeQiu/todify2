@@ -10,7 +10,7 @@ import { INDEPENDENT_NODE_CONFIGS } from './nodeRoleMapping';
 export interface AIRoleUsageLocation {
   type: 'independent-page' | 'agent-workflow' | 'multi-chat' | 'workflow-editor';
   name: string;  // 位置名称（如 "AI问答"、"智能工作流"）
-  path?: string;  // 页面路径（如 "/node/ai-search"）
+  path?: string;  // 页面路径（node/* 功能子页面已删除，路径为空）
   description?: string;  // 描述信息
   nodeId?: string;  // 节点ID（如果是工作流节点）
 }
@@ -44,23 +44,23 @@ function analyzeIndependentPageUsage(
     );
 
     if (matches && (role.source === 'independent-page' || !role.source)) {
-      // 确定页面路径
+      // 确定页面路径（node/* 功能子页面已删除，不再提供路径）
       let pagePath = '';
       switch (nodeConfig.nodeType) {
         case 'ai-search':
-          pagePath = '/node/ai-search';
+          pagePath = '';
           break;
         case 'tech-package':
-          pagePath = '/node/tech-package';
+          pagePath = '';
           break;
         case 'promotion-strategy':
-          pagePath = '/node/promotion-strategy';
+          pagePath = '';
           break;
         case 'core-draft':
-          pagePath = '/node/core-draft';
+          pagePath = '';
           break;
         case 'speech':
-          pagePath = '/node/speech';
+          pagePath = '';
           break;
       }
 

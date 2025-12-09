@@ -41,6 +41,12 @@ const INDEPENDENT_PAGE_ROLES: IndependentPageRole[] = [
     apiKey: 'app-HC8dx24idIWm1uva66VmHXsm',
   },
   {
+    id: 'project-resources-ai-qa',
+    name: 'AI问答助手',
+    description: '基于项目资源进行智能问答',
+    apiKey: 'app-HC8dx24idIWm1uva66VmHXsm',
+  },
+  {
     id: 'independent-page-tech-package',
     name: '技术包装',
     description: '技术内容包装工作流',

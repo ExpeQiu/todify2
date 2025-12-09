@@ -100,7 +100,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'ai_qa',
     description: '向AI助手提问获取专业解答',
     icon: MessageCircle,
-    path: '/node/ai-qa',
+    path: '',
     nextSteps: ['tech_package', 'core_draft', 'speech']
   },
 
@@ -110,7 +110,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'ai_search',
     description: 'AI智能搜索助手',
     icon: Search,
-    path: '/node/ai-search',
+    path: '',
     nextSteps: ['tech_package', 'core_draft', 'speech']
   },
 
@@ -120,7 +120,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'tech_package',
     description: '对搜索结果进行技术包装',
     icon: Package,
-    path: '/node/tech-package',
+    path: '',
     dependencies: ['ai_qa'],
     nextSteps: ['promotion_strategy', 'core_draft', 'speech']
   },
@@ -131,7 +131,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'promotion_strategy',
     description: '生成技术策略内容',
     icon: Target,
-    path: '/node/promotion-strategy',
+    path: '',
     dependencies: ['tech_package'],
     nextSteps: ['core_draft', 'speech']
   },
@@ -142,7 +142,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'core_draft',
     description: '生成核心文档稿件',
     icon: FileText,
-    path: '/node/core-draft',
+    path: '',
     dependencies: ['tech_package', 'promotion_strategy'],
     nextSteps: ['speech']
   },
@@ -152,7 +152,7 @@ export const workflowNodes: WorkflowNode[] = [
     type: 'speech',
     description: '生成演讲稿内容',
     icon: Mic,
-    path: '/node/speech',
+    path: '',
     dependencies: ['core_draft'],
     nextSteps: []
   }
