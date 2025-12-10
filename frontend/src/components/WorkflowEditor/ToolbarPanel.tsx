@@ -247,6 +247,14 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
         <button className="toolbar-button" onClick={onSettings} title="设置">
           <Settings size={16} />
         </button>
+        <a
+          href="/agent-workflow/guide"
+          className="toolbar-button"
+          title="创建指南"
+          style={{ padding: '6px 10px' }}
+        >
+          <span role="img" aria-label="guide">📖</span>
+        </a>
       </div>
 
       <style>{`
@@ -400,4 +408,3 @@ const ToolbarPanel: React.FC<ToolbarPanelProps> = ({
 };
 
 export default ToolbarPanel;
-

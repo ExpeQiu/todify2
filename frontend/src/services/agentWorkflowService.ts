@@ -41,6 +41,7 @@ class AgentWorkflowService {
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
           published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
+          engine: wf.engine || (wf.metadata && (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata)?.engine) || 'native',
         }));
       }
       return [];
@@ -72,6 +73,7 @@ class AgentWorkflowService {
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
           published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
+          engine: wf.engine || (wf.metadata && (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata)?.engine) || 'native',
         };
       }
       return null;
@@ -91,6 +93,7 @@ class AgentWorkflowService {
     nodes: AgentWorkflowNode[];
     edges: AgentWorkflowEdge[];
     metadata?: Record<string, any>;
+    engine?: 'native' | 'langgraph';
   }): Promise<AgentWorkflow> {
     try {
       const response = await api.post('/agent-workflows', data);
@@ -102,6 +105,7 @@ class AgentWorkflowService {
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
           published: wf.published === 1 || wf.published === true || wf.published === '1' || wf.published === 'true',
+          engine: wf.engine || (wf.metadata && (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata)?.engine) || 'native',
         };
       }
       throw new Error(response.data.error || '创建工作流失败');
@@ -135,6 +139,7 @@ class AgentWorkflowService {
           edges: typeof wf.edges === 'string' ? JSON.parse(wf.edges) : wf.edges,
           metadata: wf.metadata ? (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata) : undefined,
           published: wf.published === 1 || wf.published === true,
+          engine: wf.engine || (wf.metadata && (typeof wf.metadata === 'string' ? JSON.parse(wf.metadata) : wf.metadata)?.engine) || 'native',
         };
       }
       throw new Error(response.data.error || '更新工作流失败');
@@ -194,15 +199,31 @@ class AgentWorkflowService {
   /**
    * 执行工作流
    */
-  async executeWorkflow(id: string, input?: any): Promise<{ executionId: string; message: string }> {
+  async executeWorkflow(id: string, input?: any, options?: { engine?: 'native' | 'langgraph' }): Promise<{ executionId: string; message: string }> {
     try {
-      const response = await api.post(`/agent-workflows/${id}/execute`, { input });
+      const response = await api.post(`/agent-workflows/${id}/execute`, { input, options });
       if (response.data.success && response.data.data) {
         return response.data.data;
       }
       throw new Error(response.data.error || '执行工作流失败');
     } catch (error) {
       console.error('执行工作流失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 编译工作流（LangGraph）
+   */
+  async compileWorkflow(id: string, engine: 'langgraph' | 'native' = 'langgraph'): Promise<{ isValid: boolean; errors: string[] }> {
+    try {
+      const response = await api.post(`/agent-workflows/${id}/compile`, { engine });
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || '编译工作流失败');
+    } catch (error) {
+      console.error('编译工作流失败:', error);
       throw error;
     }
   }
@@ -398,4 +419,3 @@ export const agentWorkflowService = new AgentWorkflowService();
 export const workflowTemplateService = new WorkflowTemplateService();
 
 export default agentWorkflowService;
-

@@ -287,12 +287,14 @@ export interface AgentWorkflow {
   nodes: AgentWorkflowNode[];         // 节点列表
   edges: AgentWorkflowEdge[];         // 连接边列表
   executionMode?: WorkflowExecutionMode; // 执行方式：自动触发或单点触发（默认：auto）
+  engine?: 'native' | 'langgraph';    // 编排引擎（默认：native）
   published?: boolean;                // 是否已发布（只有发布的工作流才能被前端页面绑定）
   metadata?: {                        // 元数据
     author?: string;
     tags?: string[];
     category?: string;
     thumbnail?: string;
+    engine?: 'native' | 'langgraph';  // 可选：引擎配置冗余存储
   };
   createdAt: Date;
   updatedAt: Date;
@@ -530,4 +532,3 @@ export const DEFAULT_EXECUTION_OPTIONS: Required<WorkflowExecutionOptions> = {
   continueOnError: false,
   logging: true,
 };
-

@@ -6,6 +6,7 @@ import DifyClient from './DifyClient';
 import { DifyGateway } from '@/shared/infrastructure/integrations/dify';
 import { isSuccess } from '@/shared/lib/result';
 import { AgentOrchestrator } from './agent/AgentOrchestrator';
+import { LangGraphEngine } from './workflow/langgraph/LangGraphEngine';
 
 /**
  * Agent工作流服务
@@ -260,11 +261,32 @@ export class AgentWorkflowService {
     workflowId: string,
     options: any
   ): Promise<{ executionId: string; message: string; data?: any }> {
-    // 获取工作流定义
-    const workflow = await agentWorkflowModel.getById(workflowId);
-    if (!workflow) {
+    // 引擎分发：当请求指定 engine=langgraph 或工作流配置为 langgraph 时，走 LangGraphEngine
+    const workflowForEngine = await agentWorkflowModel.getById(workflowId);
+    if (!workflowForEngine) {
       throw new Error('工作流不存在');
     }
+
+    let engineSelected: 'native' | 'langgraph' = 'native';
+    if (options?.engine === 'langgraph') {
+      engineSelected = 'langgraph';
+    } else if (workflowForEngine.metadata) {
+      try {
+        const meta = JSON.parse(workflowForEngine.metadata as any);
+        if (meta?.engine === 'langgraph') engineSelected = 'langgraph';
+      } catch {}
+    }
+
+    if (engineSelected === 'langgraph') {
+      const workflow = await agentWorkflowModel.getById(workflowId);
+      if (!workflow) {
+        throw new Error('工作流不存在');
+      }
+      const engine = new LangGraphEngine();
+      return await engine.execute(workflow, { input: options.input });
+    }
+    // 获取工作流定义
+    const workflow = workflowForEngine;
 
     const startedAt = Date.now();
     // 创建执行实例
@@ -276,6 +298,8 @@ export class AgentWorkflowService {
       shared_context: options.input || {},
       node_results: [],
       start_time: new Date().toISOString(),
+      // 记录引擎
+      inputs: { engine: options?.engine || 'native' } as any,
     });
 
     try {
@@ -609,8 +633,10 @@ export class AgentWorkflowService {
         const agentNodes = nodes.filter((n: any) => n.type === 'agent');
         logger.info('尝试从Agent节点提取内容', {
           agentNodesCount: agentNodes.length,
-          agentNodeIds: agentNodes.map(n => n.id),
+          agentNodeIds: agentNodes.map((n: any) => n.id),
           availableNodeOutputs: Object.keys(sharedContext.nodeOutputs || {}),
+          // Log full node outputs for debugging
+          fullNodeOutputs: JSON.stringify(sharedContext.nodeOutputs || {}, null, 2)
         });
         
         if (agentNodes.length > 0) {
@@ -629,16 +655,16 @@ export class AgentWorkflowService {
             if (agentOutput) {
               // 直接尝试从answer字段提取（Agent节点chatflow模式通常返回这个字段）
               let extracted = '';
-              if (agentOutput.answer && typeof agentOutput.answer === 'string' && agentOutput.answer.trim()) {
-                extracted = agentOutput.answer.trim();
+              if ((agentOutput as any).answer && typeof (agentOutput as any).answer === 'string' && (agentOutput as any).answer.trim()) {
+                extracted = (agentOutput as any).answer.trim();
                 logger.info('从Agent节点answer字段提取内容', {
                   nodeId: agentNode.id,
                   extractedLength: extracted.length,
                   extractedPreview: extracted.substring(0, 100),
                 });
-              } else if (agentOutput.result && typeof agentOutput.result === 'string' && agentOutput.result.trim()) {
+              } else if ((agentOutput as any).result && typeof (agentOutput as any).result === 'string' && (agentOutput as any).result.trim()) {
                 // 尝试从result字段提取（Agent节点workflow模式通常返回这个字段）
-                extracted = agentOutput.result.trim();
+                extracted = (agentOutput as any).result.trim();
                 logger.info('从Agent节点result字段提取内容', {
                   nodeId: agentNode.id,
                   extractedLength: extracted.length,
@@ -669,10 +695,10 @@ export class AgentWorkflowService {
                   extractedLength: extracted?.length || 0,
                   outputType: typeof agentOutput,
                   outputKeys: typeof agentOutput === 'object' ? Object.keys(agentOutput) : null,
-                  hasAnswer: agentOutput && typeof agentOutput === 'object' ? !!agentOutput.answer : false,
-                  hasResult: agentOutput && typeof agentOutput === 'object' ? !!agentOutput.result : false,
-                  answerType: agentOutput && typeof agentOutput === 'object' && agentOutput.answer ? typeof agentOutput.answer : null,
-                  resultType: agentOutput && typeof agentOutput === 'object' && agentOutput.result ? typeof agentOutput.result : null,
+                  hasAnswer: agentOutput && typeof agentOutput === 'object' ? !!(agentOutput as any).answer : false,
+                  hasResult: agentOutput && typeof agentOutput === 'object' ? !!(agentOutput as any).result : false,
+                  answerType: agentOutput && typeof agentOutput === 'object' && (agentOutput as any).answer ? typeof (agentOutput as any).answer : null,
+                  resultType: agentOutput && typeof agentOutput === 'object' && (agentOutput as any).result ? typeof (agentOutput as any).result : null,
                 });
               }
             } else {
@@ -699,16 +725,16 @@ export class AgentWorkflowService {
           
           // 直接尝试从answer字段提取（chatflow模式）
           let extracted = '';
-          if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.answer && typeof nodeOutput.answer === 'string' && nodeOutput.answer.trim()) {
-            extracted = nodeOutput.answer.trim();
+          if (nodeOutput && typeof nodeOutput === 'object' && (nodeOutput as any).answer && typeof (nodeOutput as any).answer === 'string' && (nodeOutput as any).answer.trim()) {
+            extracted = (nodeOutput as any).answer.trim();
             logger.info('从节点输出answer字段提取内容', {
               nodeId,
               extractedLength: extracted.length,
               extractedPreview: extracted.substring(0, 100),
             });
-          } else if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.result && typeof nodeOutput.result === 'string' && nodeOutput.result.trim()) {
+          } else if (nodeOutput && typeof nodeOutput === 'object' && (nodeOutput as any).result && typeof (nodeOutput as any).result === 'string' && (nodeOutput as any).result.trim()) {
             // 尝试从result字段提取（workflow模式）
-            extracted = nodeOutput.result.trim();
+            extracted = (nodeOutput as any).result.trim();
             logger.info('从节点输出result字段提取内容', {
               nodeId,
               extractedLength: extracted.length,
@@ -731,6 +757,32 @@ export class AgentWorkflowService {
         }
       }
 
+      // 如果还是没有内容，但有 retriever_resources，尝试构建内容
+      if (!outputContent || !outputContent.trim()) {
+        for (const [nodeId, nodeOutput] of Object.entries(sharedContext.nodeOutputs || {})) {
+           const raw = (nodeOutput as any)?.raw;
+           const metadata = raw?.data?.metadata || raw?.metadata;
+           
+           if (metadata?.retriever_resources && Array.isArray(metadata.retriever_resources) && metadata.retriever_resources.length > 0) {
+             logger.info('从节点输出中发现检索资源，构建引用内容', { nodeId });
+             
+             const resources = metadata.retriever_resources;
+             outputContent = `已为您找到 ${resources.length} 条相关信息：\n\n`;
+             
+             resources.forEach((res: any, index: number) => {
+               const title = res.document_name || res.title || `文档 ${index + 1}`;
+               const content = res.content || '';
+               const score = res.score ? `(匹配度: ${(res.score * 100).toFixed(1)}%)` : '';
+               
+               outputContent += `### ${index + 1}. ${title} ${score}\n${content}\n\n`;
+             });
+             
+             finalOutput = nodeOutput;
+             break;
+           }
+        }
+      }
+
       // 更新执行记录
       await workflowExecutionModel.update(execution.id, {
         status: 'completed',
@@ -743,8 +795,8 @@ export class AgentWorkflowService {
       // 从 Agent 节点输出中提取 conversation_id（用于多轮对话）
       let conversationId: string | null = null;
       for (const [nodeId, nodeOutput] of Object.entries(sharedContext.nodeOutputs || {})) {
-        if (nodeOutput && typeof nodeOutput === 'object' && nodeOutput.conversation_id) {
-          conversationId = nodeOutput.conversation_id;
+        if (nodeOutput && typeof nodeOutput === 'object' && (nodeOutput as any).conversation_id) {
+          conversationId = (nodeOutput as any).conversation_id;
           logger.info('从 Agent 节点输出中提取到 conversation_id', {
             nodeId,
             conversationId,
@@ -764,9 +816,17 @@ export class AgentWorkflowService {
         hasConversationId: !!conversationId,
       });
 
+      // 如果有内容，确保 message 不会显示默认的 "工作流执行完成"
+      // 前端通常显示 message 字段，如果内容在 data.outputs.answer 中，
+      // 前端可能需要从那里取，或者我们直接把内容放在 message 中（如果不太长）
+      // 或者，如果内容很长，保持 message 为 "工作流执行完成"，但确保 data 中有完整内容
+      
+      // 但是，用户反馈说显示 "工作流执行完成"，说明前端可能优先展示 message
+      // 如果 outputContent 存在，我们应该将其作为 message 返回，或者返回一个更有意义的状态
+      
       return {
         executionId: execution.id,
-        message: outputContent || '工作流执行完成',
+        message: outputContent ? '工作流执行成功' : '工作流执行完成', // 避免直接把长内容放在message里，除非是短文本
         data: {
           outputs: {
             output: finalOutput || outputContent,
@@ -1118,8 +1178,38 @@ export class AgentWorkflowService {
 
       if (isSuccess(result)) {
         const workflowResponse = result.value.raw as any;
+        
+        // 更健壮的输出提取逻辑
+        let resultText = workflowResponse.data?.outputs?.text || workflowResponse.data?.outputs?.answer || '';
+        
+        // 如果标准字段没有值，尝试查找其他可能的字段
+        if (!resultText && workflowResponse.data?.outputs) {
+          const outputs = workflowResponse.data.outputs;
+          // 常见字段名尝试
+          resultText = outputs.result || outputs.output || outputs.content || outputs.response || '';
+          
+          // 如果还是没有，取第一个非空值的字符串
+          if (!resultText) {
+            const values = Object.values(outputs);
+            for (const val of values) {
+              if (val && typeof val === 'string' && val.trim()) {
+                resultText = val;
+                break;
+              }
+            }
+          }
+          
+          // 如果还是没有，尝试取第一个值转字符串（排除null/undefined）
+          if (!resultText) {
+             const values = Object.values(outputs).filter(v => v !== null && v !== undefined);
+             if (values.length > 0) {
+                resultText = typeof values[0] === 'object' ? JSON.stringify(values[0]) : String(values[0]);
+             }
+          }
+        }
+
         const agentOutput = {
-          result: workflowResponse.data?.outputs?.text || workflowResponse.data?.outputs?.answer || '',
+          result: resultText,
           conversation_id: workflowResponse.conversation_id,
           workflow_run_id: workflowResponse.workflow_run_id || result.value.workflowRunId,
           task_id: workflowResponse.task_id || result.value.taskId,
@@ -1299,6 +1389,24 @@ export class AgentWorkflowService {
   }
 
   /**
+   * 编译/校验工作流（支持 LangGraph）
+   */
+  async compileWorkflow(workflowId: string, engine: 'native' | 'langgraph' = 'langgraph') {
+    const workflow = await agentWorkflowModel.getById(workflowId);
+    if (!workflow) throw new Error('工作流不存在');
+    const nodes = JSON.parse(workflow.nodes);
+    const edges = JSON.parse(workflow.edges || '[]');
+    if (engine === 'langgraph') {
+      const { WorkflowLangGraphAdapter } = await import('./workflow/langgraph/WorkflowLangGraphAdapter');
+      const adapted = WorkflowLangGraphAdapter.adapt(nodes, edges);
+      const res = WorkflowLangGraphAdapter.validate(adapted);
+      return res;
+    }
+    const validation = await this.validateWorkflow(workflow);
+    return validation;
+  }
+
+  /**
    * 创建模板
    */
   async createTemplate(data: any): Promise<WorkflowTemplate> {
@@ -1408,4 +1516,3 @@ export class AgentWorkflowService {
 
 // 创建服务实例
 export const agentWorkflowService = new AgentWorkflowService();
-

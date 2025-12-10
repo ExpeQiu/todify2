@@ -5,7 +5,7 @@ import { AgentWorkflow, WorkflowExecutionMode } from '../../types/agentWorkflow'
 interface WorkflowSettingsModalProps {
   workflow: AgentWorkflow | null;
   onClose: () => void;
-  onSave: (settings: { executionMode: WorkflowExecutionMode }) => void;
+  onSave: (settings: { executionMode: WorkflowExecutionMode; engine?: 'native' | 'langgraph' }) => void;
 }
 
 /**
@@ -17,18 +17,20 @@ const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
   onSave,
 }) => {
   const [executionMode, setExecutionMode] = useState<WorkflowExecutionMode>('auto');
+  const [engine, setEngine] = useState<'native' | 'langgraph'>('native');
 
   // 初始化表单数据
   useEffect(() => {
     if (workflow) {
       setExecutionMode(workflow.executionMode || 'auto');
+      setEngine(workflow.engine || workflow.metadata?.engine || 'native');
     }
   }, [workflow]);
 
   const handleSave = () => {
     if (!workflow) return;
     
-    onSave({ executionMode });
+    onSave({ executionMode, engine });
     onClose();
   };
 
@@ -86,6 +88,49 @@ const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
                   </div>
                   <p className="option-description">
                     工作流启动后，每个节点需要手动触发才能执行，可以更灵活地控制执行流程
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h3 className="section-title">编排模式</h3>
+            <p className="section-description">
+              选择工作流的编排引擎（Native 或 LangGraph）
+            </p>
+            <div className="execution-mode-options">
+              <label className={`execution-mode-option ${engine === 'native' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="engine"
+                  value="native"
+                  checked={engine === 'native'}
+                  onChange={(e) => setEngine(e.target.value as 'native' | 'langgraph')}
+                />
+                <div className="option-content">
+                  <div className="option-header">
+                    <span className="option-title">Native（现有DAG执行）</span>
+                  </div>
+                  <p className="option-description">
+                    使用当前后端拓扑排序执行（支持 Input/Agent/Output）。
+                  </p>
+                </div>
+              </label>
+              <label className={`execution-mode-option ${engine === 'langgraph' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="engine"
+                  value="langgraph"
+                  checked={engine === 'langgraph'}
+                  onChange={(e) => setEngine(e.target.value as 'native' | 'langgraph')}
+                />
+                <div className="option-content">
+                  <div className="option-header">
+                    <span className="option-title">LangGraph（图模式编排）</span>
+                  </div>
+                  <p className="option-description">
+                    以 LangGraph 模式执行，逐步支持条件/赋值/转换/合并/记忆节点。
                   </p>
                 </div>
               </label>
@@ -298,4 +343,3 @@ const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
 };
 
 export default WorkflowSettingsModal;
-

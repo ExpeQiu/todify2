@@ -103,7 +103,7 @@ const HomeNavigationBar: React.FC<HomeNavigationBarProps> = ({ currentPath }) =>
             <button
               onClick={() => {
                 // 不传递 projectId，确保新对话默认关联到"非关联项目"
-                window.location.href = 'http://localhost:3001/tech-package?newConversation=true';
+                navigate('/tech-package?newConversation=true');
               }}
               className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
             >

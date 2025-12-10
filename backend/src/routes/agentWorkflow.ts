@@ -213,6 +213,27 @@ router.post('/:id/execute', async (req, res) => {
 });
 
 /**
+ * 编译Agent工作流（支持LangGraph）
+ * POST /api/v1/agent-workflows/:id/compile
+ */
+router.post('/:id/compile', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { engine = 'langgraph' } = req.body || {};
+    const result = await agentWorkflowService.compileWorkflow(id, engine);
+    res.json(formatApiResponse(true, result, '工作流编译完成'));
+  } catch (error) {
+    console.error('编译工作流失败:', error);
+    res.status(500).json(formatApiResponse(
+      false,
+      null,
+      '编译工作流失败',
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
+/**
  * 获取工作流执行历史
  * GET /api/v1/agent-workflows/:id/executions
  */
@@ -234,4 +255,3 @@ router.get('/:id/executions', async (req, res) => {
 });
 
 export default router;
-

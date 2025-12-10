@@ -4,7 +4,7 @@ import { AIRoleConfig } from '../types/aiRole';
 
 export type FilterType = 'all' | 'dify' | 'direct-agent';
 export type FilterStatus = 'all' | 'enabled' | 'disabled';
-export type FilterSource = 'all' | 'smart-workflow' | 'independent-page' | 'custom';
+export type FilterSource = 'all' | 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';
 export type SortOption = 'name-asc' | 'name-desc' | 'created-desc' | 'created-asc' | 'updated-desc' | 'updated-asc';
 export type ViewMode = 'list' | 'grid';
 
@@ -186,6 +186,7 @@ const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
                 <option value="all">全部</option>
                 <option value="smart-workflow">智能工作流</option>
                 <option value="independent-page">独立页面</option>
+                <option value="agent-workflow">自编工作流</option>
                 <option value="custom">自定义</option>
               </select>
             </div>

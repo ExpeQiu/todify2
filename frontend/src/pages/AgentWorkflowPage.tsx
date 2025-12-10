@@ -54,6 +54,8 @@ const AgentWorkflowPage: React.FC = () => {
   const [unconfiguredNodeNames, setUnconfiguredNodeNames] = useState<string>('');
   const [confirmEditNameOpen, setConfirmEditNameOpen] = useState(false);
   const [pendingEditWorkflow, setPendingEditWorkflow] = useState<AgentWorkflow | null>(null);
+  const [compiling, setCompiling] = useState(false);
+  const [compileResult, setCompileResult] = useState<{ isValid: boolean; errors: string[] } | null>(null);
 
   // 加载数据
   useEffect(() => {
@@ -344,6 +346,56 @@ const AgentWorkflowPage: React.FC = () => {
     setIsDirty(false); // 新创建的工作流初始状态为未修改（因为还没有内容）
   };
 
+  // 创建 +DAG工作流（Native 引擎）
+  const handleCreateDagWorkflow = () => {
+    if (isDirty && currentWorkflow) {
+      setConfirmCreateNewOpen(true);
+      return;
+    }
+
+    const newWorkflow: AgentWorkflow = {
+      id: `workflow-${Date.now()}`,
+      name: `DAG工作流 ${workflows.length + 1}`,
+      description: '',
+      version: '1.0.0',
+      nodes: [],
+      edges: [],
+      engine: 'native',
+      metadata: { engine: 'native' },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setCurrentWorkflow(newWorkflow);
+    setSelectedNode(null);
+    setIsDirty(false);
+  };
+
+  // 创建 +LangGraph工作流（LangGraph 引擎）
+  const handleCreateLangGraphWorkflow = () => {
+    if (isDirty && currentWorkflow) {
+      setConfirmCreateNewOpen(true);
+      return;
+    }
+
+    const newWorkflow: AgentWorkflow = {
+      id: `workflow-${Date.now()}`,
+      name: `LangGraph工作流 ${workflows.length + 1}`,
+      description: '',
+      version: '1.0.0',
+      nodes: [],
+      edges: [],
+      engine: 'langgraph',
+      metadata: { engine: 'langgraph' },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setCurrentWorkflow(newWorkflow);
+    setSelectedNode(null);
+    setIsDirty(false);
+  };
+
   const loadAgents = async () => {
     try {
       const data = await aiRoleService.getAIRoles();
@@ -526,18 +578,24 @@ const AgentWorkflowPage: React.FC = () => {
     
     try {
       const latestWorkflow = workflows.find(w => w.id === currentWorkflow.id) || currentWorkflow;
-      const engine = new WorkflowEngine();
-      
-      const result = await engine.execute(
-        latestWorkflow,
-        { input, logging: true, continueOnError: true }
-      );
+      const useLangGraph = (latestWorkflow.engine || latestWorkflow.metadata?.engine) === 'langgraph';
+      let result: any;
+      if (useLangGraph && latestWorkflow.id) {
+        const resp = await agentWorkflowService.executeWorkflow(latestWorkflow.id, input, { engine: 'langgraph' });
+        result = resp;
+      } else {
+        const engine = new WorkflowEngine();
+        result = await engine.execute(
+          latestWorkflow,
+          { input, logging: true, continueOnError: true }
+        );
+      }
       
       console.log('执行结果:', result);
       
       // 显示执行结果
-      const successCount = result.nodeResults?.filter(r => r.status === 'completed').length || 0;
-      const failCount = result.nodeResults?.filter(r => r.status === 'failed').length || 0;
+      const successCount = result.nodeResults?.filter((r: any) => r.status === 'completed').length || 0;
+      const failCount = result.nodeResults?.filter((r: any) => r.status === 'failed').length || 0;
       toast.success('工作流执行完成', { description: `成功 ${successCount}，失败 ${failCount}` });
     } catch (error) {
       console.error('执行工作流失败:', error);
@@ -795,6 +853,25 @@ const AgentWorkflowPage: React.FC = () => {
     setShowSettingsModal(true);
   };
 
+  const handleCompile = async () => {
+    if (!currentWorkflow?.id) return;
+    setCompiling(true);
+    try {
+      const engine = (currentWorkflow.engine || currentWorkflow.metadata?.engine || 'native') as 'native' | 'langgraph';
+      const res = await agentWorkflowService.compileWorkflow(currentWorkflow.id, engine);
+      setCompileResult(res);
+      if (res.isValid) {
+        toast.success('编译通过');
+      } else {
+        toast.error('编译失败', { description: `${res.errors.length} 个问题` });
+      }
+    } catch (e: any) {
+      toast.error('编译失败', { description: e?.message });
+    } finally {
+      setCompiling(false);
+    }
+  };
+
   // 处理保存模版按钮点击
   const handleSaveTemplate = () => {
     if (!currentWorkflow) {
@@ -847,12 +924,17 @@ const AgentWorkflowPage: React.FC = () => {
   };
 
   // 保存工作流设置
-  const handleSaveSettings = async (settings: { executionMode: WorkflowExecutionMode }) => {
+  const handleSaveSettings = async (settings: { executionMode: WorkflowExecutionMode; engine?: 'native' | 'langgraph' }) => {
     if (!currentWorkflow) return;
 
     try {
       const updated = await agentWorkflowService.updateWorkflow(currentWorkflow.id, {
         executionMode: settings.executionMode,
+        engine: settings.engine,
+        metadata: {
+          ...(currentWorkflow.metadata || {}),
+          engine: settings.engine || 'native',
+        },
       });
 
       // 更新列表中的工作流
@@ -916,6 +998,19 @@ const AgentWorkflowPage: React.FC = () => {
                     ✓ 已保存
                   </span>
                 )}
+                <span className="workflow-status-indicator" style={{ background: '#eef2ff', color: '#3730a3' }}>
+                  引擎：{(currentWorkflow.engine || currentWorkflow.metadata?.engine || 'native')}
+                </span>
+              </div>
+              <div>
+                <button
+                  onClick={handleCompile}
+                  className="sidebar-button secondary"
+                  disabled={compiling}
+                  title="编译工作流"
+                >
+                  {compiling ? '编译中...' : '编译'}
+                </button>
               </div>
             </div>
           )}
@@ -938,25 +1033,25 @@ const AgentWorkflowPage: React.FC = () => {
           
           <div className="sidebar-actions">
             <button
-              onClick={handleCreateNewWorkflow}
+              onClick={handleCreateDagWorkflow}
               className="sidebar-button primary"
-              title="创建新工作流"
+              title="创建 DAG 工作流"
             >
               <Plus size={18} />
-              <span>新建工作流</span>
+              <span>+DAG工作流</span>
             </button>
             <button
-              onClick={handleCreateSmartWorkflow}
+              onClick={handleCreateLangGraphWorkflow}
               disabled={creatingSmartWorkflow}
               className="sidebar-button secondary"
-              title="从模板创建智能工作流"
+              title="创建 LangGraph 工作流"
             >
               {creatingSmartWorkflow ? (
                 <Loader className="animate-spin" size={18} />
               ) : (
                 <Sparkles size={18} />
               )}
-              <span>智能工作流</span>
+              <span>+LangGraph工作流</span>
             </button>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div style={{ position: 'relative', flex: 1 }}>
@@ -1838,9 +1933,25 @@ const AgentWorkflowPage: React.FC = () => {
           }
         }
       `}</style>
+      {compileResult && (
+        <div style={{ position: 'fixed', bottom: 12, right: 12, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, boxShadow: '0 4px 10px rgba(0,0,0,0.06)', maxWidth: 420 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>编译结果</div>
+          {compileResult.isValid ? (
+            <div style={{ color: '#065f46' }}>✓ 通过</div>
+          ) : (
+            <div style={{ color: '#92400e' }}>✗ 失败（{compileResult.errors.length}）</div>
+          )}
+          {!compileResult.isValid && (
+            <ul style={{ marginTop: 8, maxHeight: 160, overflow: 'auto', paddingLeft: 18 }}>
+              {compileResult.errors.map((e, i) => (
+                <li key={i} style={{ fontSize: 12, color: '#6b7280' }}>{e}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 export default AgentWorkflowPage;
-

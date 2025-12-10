@@ -113,16 +113,9 @@
 
 ### 3. ProjectResourcesPage（项目资源页面）
 **位置**: `frontend/src/pages/ProjectResourcesPage.tsx`
-- **调用节点1**: `handleAISendMessage()` - AI问答发送消息
+- **调用节点**: `handleAISendMessage()` - AI问答发送消息
   - 调用`workflowAPI.aiSearch()`
   - 支持项目资源上下文
-  - 支持多轮对话
-  - ✅ **是调用Agent的**
-  
-- **调用节点2**: `handleTechnicalTranslation()` - 技术转译
-  - ❌ **不是调用Agent的**
-  - 纯前端数据整理功能，将项目资源格式化为markdown
-  - 不涉及任何AI调用
 
 ### 4. AiSearchComponent（AI搜索组件）
 **位置**: `frontend/src/components/AiSearchComponent.tsx`

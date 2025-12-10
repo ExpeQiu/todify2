@@ -86,12 +86,21 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
       let responseContent = '抱歉，我无法处理您的请求。';
 
       if (result.success && result.data) {
-        responseContent = result.data.answer || result.data.result || responseContent;
+        // 按优先级提取内容：answer > result > outputs.answer > outputs.text > outputs.content
+        // 避免显示 "工作流执行完成" 这样的状态消息
+        const data = result.data;
+        responseContent = 
+          (data.answer && data.answer !== '工作流执行完成' && data.answer !== '工作流执行成功' ? data.answer : null) ||
+          (data.result && data.result !== '工作流执行完成' && data.result !== '工作流执行成功' ? data.result : null) ||
+          (data.outputs?.answer && typeof data.outputs.answer === 'string' ? data.outputs.answer : null) ||
+          (data.outputs?.text && typeof data.outputs.text === 'string' ? data.outputs.text : null) ||
+          (data.outputs?.content && typeof data.outputs.content === 'string' ? data.outputs.content : null) ||
+          (data.answer || data.result || responseContent);
 
         // 更新conversationId以支持多轮对话
-        if (result.data.conversation_id && result.data.conversation_id !== currentConversationId) {
-          setCurrentConversationId(result.data.conversation_id);
-          onConversationUpdate?.(result.data.conversation_id);
+        if (data.conversation_id && data.conversation_id !== currentConversationId) {
+          setCurrentConversationId(data.conversation_id);
+          onConversationUpdate?.(data.conversation_id);
         }
       } else if (result.error) {
         responseContent = `处理请求时出现问题：${result.error}`;
@@ -151,7 +160,16 @@ const AIRoleChat: React.FC<AIRoleChatProps> = ({
       let responseContent = '抱歉，我无法处理您的请求。';
 
       if (result.success && result.data) {
-        responseContent = result.data.answer || result.data.result || responseContent;
+        // 按优先级提取内容：answer > result > outputs.answer > outputs.text > outputs.content
+        // 避免显示 "工作流执行完成" 这样的状态消息
+        const data = result.data;
+        responseContent = 
+          (data.answer && data.answer !== '工作流执行完成' && data.answer !== '工作流执行成功' ? data.answer : null) ||
+          (data.result && data.result !== '工作流执行完成' && data.result !== '工作流执行成功' ? data.result : null) ||
+          (data.outputs?.answer && typeof data.outputs.answer === 'string' ? data.outputs.answer : null) ||
+          (data.outputs?.text && typeof data.outputs.text === 'string' ? data.outputs.text : null) ||
+          (data.outputs?.content && typeof data.outputs.content === 'string' ? data.outputs.content : null) ||
+          (data.answer || data.result || responseContent);
       } else if (result.error) {
         responseContent = `处理请求时出现问题：${result.error}`;
       }

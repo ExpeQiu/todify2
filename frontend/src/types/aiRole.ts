@@ -133,7 +133,7 @@ export interface AIRoleConfig {
   agentConfig?: DirectAgentConfig;
   
   enabled: boolean;              // 是否启用
-  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记
+  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -179,4 +179,3 @@ export interface AIRolePreset {
     connectionType: 'chatflow' | 'workflow';
   };
 }
-

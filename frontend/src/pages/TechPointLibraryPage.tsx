@@ -12,6 +12,7 @@ import {
   Row,
   Col,
   Checkbox,
+  Popconfirm,
 } from 'antd';
 import {
   PlusOutlined,
@@ -209,9 +210,10 @@ const TechPointLibraryPage: React.FC = () => {
     }
     
     // 将选中的技术点ID传回
+    const separator = returnUrl.includes('?') ? '&' : '?';
     const params = new URLSearchParams();
     params.append('selectedTechPointIds', selectedTechPointIds.join(','));
-    navigate(`${returnUrl}?${params.toString()}`);
+    navigate(`${returnUrl}${separator}${params.toString()}`);
   };
 
   const handleCancelSelection = () => {
@@ -373,15 +375,21 @@ const TechPointLibraryPage: React.FC = () => {
           >
             编辑
           </Button>
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+          <Popconfirm
+            title="确定要删除这个技术点吗？"
+            onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
           >
-            删除
-          </Button>
+            <Button
+              type="link"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+            >
+              删除
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     }] : []),

@@ -4,6 +4,7 @@ import { AgentWorkflowNode, AgentWorkflow, ConditionNodeData, AssignNodeData, Me
 import { AIRoleConfig } from '../../types/aiRole';
 import InputSourceSelector from './InputSourceSelector';
 import { toast } from 'sonner';
+import { aiRoleService } from '../../services/aiRoleService';
 
 interface NodeConfigPanelProps {
   node: AgentWorkflowNode | null;
@@ -298,7 +299,7 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
           <select
             className="form-select"
             value={formData.agentId || ''}
-            onChange={(e) => {
+            onChange={async (e) => {
               const selectedAgent = agents.find(a => a.id === e.target.value);
               const currentData = formData.data as any;
               
@@ -316,6 +317,11 @@ const NodeConfigPanel: React.FC<NodeConfigPanelProps> = ({
                 },
               });
               setIsModified(true);
+              if (e.target.value) {
+                try {
+                  await aiRoleService.updateAIRole(String(e.target.value), { source: 'agent-workflow' });
+                } catch {}
+              }
             }}
           >
             <option value="">请选择Agent</option>

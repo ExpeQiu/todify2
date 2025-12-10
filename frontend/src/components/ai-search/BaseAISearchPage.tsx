@@ -163,10 +163,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   // 加载页面类型的来源信息（作为基础来源，始终保留）
   const loadPageTypeSources = useCallback(async () => {
     try {
-      // 使用有效的 pageType（可能包含项目ID）
-      const pageTypeToLoad = projectId ? `${config.pageType}-project-${projectId}` : config.pageType;
-      console.log('[SourceInfo] 开始加载页面类型来源信息:', pageTypeToLoad);
-      const sourceResult = await sourceService.loadSourceInformationByPageType(pageTypeToLoad);
+      // 使用有效的 pageType（可能包含项目ID），确保项目隔离
+      console.log('[SourceInfo] 开始加载页面类型来源信息:', effectivePageType);
+      const sourceResult = await sourceService.loadSourceInformationByPageType(effectivePageType);
       console.log('[SourceInfo] 加载结果:', {
         success: sourceResult.success,
         count: sourceResult.data?.length || 0,
@@ -206,7 +205,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
       // 不阻止页面加载，只记录错误
     }
-  }, [config.pageType, projectId]);
+  }, [effectivePageType]);
 
   // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
   useEffect(() => {
@@ -864,7 +863,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           // 保存新添加的来源
           if (addedSources.length > 0) {
             console.log('[SourceInfo] 保存新添加的来源:', addedSources.length, '个', {
-              pageType: config.pageType,
+              pageType: effectivePageType,
               conversationId: currentConversation?.id,
               sources: addedSources.map(s => ({ id: s.id, title: s.title }))
             });
@@ -873,7 +872,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
               // 如果有当前对话，保存到对话关联的来源
               const result = await sourceService.saveSourceInformationBatch(
                 addedSources,
-                config.pageType,
+                effectivePageType,
                 currentConversation.id
               );
               if (result.success) {
@@ -882,10 +881,10 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
                 console.error('[SourceInfo] 保存失败（关联对话）:', result.error);
               }
             } else {
-              // 如果没有对话，只保存页面类型的来源
+              // 如果没有对话，只保存页面类型的来源（使用 effectivePageType 确保项目隔离）
               const result = await sourceService.saveSourceInformationBatch(
                 addedSources,
-                config.pageType
+                effectivePageType
               );
               if (result.success) {
                 console.log('[SourceInfo] 保存成功（页面类型）:', result.data?.length || 0, '条');
@@ -913,7 +912,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       
       return newSources;
     });
-  }, [currentConversation?.id, config.pageType]);
+  }, [currentConversation?.id, effectivePageType]);
 
   const handleSelectionChange = (selectedIds: string[]) => {
     setSelectedSourceIds(selectedIds);
@@ -1116,11 +1115,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         category: category,
       };
 
-      // 保存到数据库，使用当前页面的 pageType
-      const pageTypeWithProject = projectId 
-        ? `${config.pageType}-project-${projectId}` 
-        : config.pageType;
-      
+      // 保存到数据库，使用 effectivePageType 确保项目隔离
       // 先检查是否已存在该对话的记录
       const existingSources = sources.filter(s => s.id === sourceId);
       
@@ -1135,7 +1130,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
       const saveResult = await sourceService.saveSourceInformation(
         source,
-        pageTypeWithProject,
+        effectivePageType,
         conversation.id
       );
 
@@ -1144,7 +1139,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           id: saveResult.data.id,
           sourceId: saveResult.data.source_id,
           title: saveResult.data.title,
-          pageType: pageTypeWithProject
+          pageType: effectivePageType
         });
         
         // 刷新来源列表
@@ -1156,7 +1151,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error('[SourceInfo] 自动保存对话异常:', error);
       // 不抛出错误，避免影响用户体验
     }
-  }, [config.pageType, projectId, sources, loadPageTypeSources]);
+  }, [config.pageType, effectivePageType, sources, loadPageTypeSources]);
 
   const handleMessageSent = async (message: any) => {
     clearGlobalError();

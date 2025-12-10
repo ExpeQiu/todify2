@@ -14,6 +14,7 @@ import SearchHistoryDetailPage from "./pages/SearchHistoryDetailPage";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
 import MultiChatContainer from "./components/MultiChatContainer";
 import AgentWorkflowPage from "./pages/AgentWorkflowPage";
+import AgentWorkflowGuidePage from "./pages/AgentWorkflowGuidePage";
 import PublicPageConfigManagementPage from "./pages/PublicPageConfigManagementPage";
 import PublicChatPage from "./pages/PublicChatPage";
 import AIUnifiedManagementPage from "./pages/AIUnifiedManagementPage";
@@ -131,6 +132,11 @@ function App() {
           <Route
             path="/agent-workflow"
             element={<AgentWorkflowPage />}
+          />
+
+          <Route
+            path="/agent-workflow/guide"
+            element={<AgentWorkflowGuidePage />}
           />
 
           <Route

@@ -127,6 +127,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
                         ? 'bg-blue-100 text-blue-700'
                         : role.source === 'independent-page'
                         ? 'bg-green-100 text-green-700'
+                        : role.source === 'agent-workflow'
+                        ? 'bg-indigo-100 text-indigo-700'
                         : 'bg-gray-100 text-gray-700'
                     }`}
                   >
@@ -134,6 +136,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
                       ? '智能工作流'
                       : role.source === 'independent-page'
                       ? '独立页面'
+                      : role.source === 'agent-workflow'
+                      ? '自编工作流'
                       : '自定义'}
                   </span>
                 )}

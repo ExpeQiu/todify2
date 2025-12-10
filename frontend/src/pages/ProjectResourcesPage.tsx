@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus } from 'lucide-react';
+import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings } from 'lucide-react';
 import { Project } from '../types/project';
 import projectService from '../services/projectService';
 import { aiSearchService } from '../services/aiSearchService';
@@ -15,6 +15,8 @@ import api from '../services/api';
 import { workflowAPI, bochaAPI } from '../services/api';
 import { configService } from '../services/configService';
 import sourceService, { Source, SourceCategory } from '../services/sourceService';
+import { AIRoleConfig } from '../types/aiRole';
+import aiRoleService from '../services/aiRoleService';
 
 interface SourceInformation {
   id: number;
@@ -40,7 +42,21 @@ const ProjectResourcesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sources, setSources] = useState<SourceInformation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTechPoints, setSelectedTechPoints] = useState<number[]>([]);
+  
+  // 从 localStorage 恢复已选择的技术点（使用函数式初始化）
+  const [selectedTechPoints, setSelectedTechPoints] = useState<number[]>(() => {
+    if (!projectId) return [];
+    try {
+      const stored = localStorage.getItem(`project-${projectId}-selectedTechPoints`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed.filter((id: any) => typeof id === 'number') : [];
+      }
+    } catch (error) {
+      console.error('恢复已选择技术点失败:', error);
+    }
+    return [];
+  });
   const [selectedKnowledgePoints, setSelectedKnowledgePoints] = useState<number[]>([]);
   const [techPoints, setTechPoints] = useState<TechPoint[]>([]);
   const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePoint[]>([]);
@@ -48,6 +64,96 @@ const ProjectResourcesPage: React.FC = () => {
   const [selectedPublicFiles, setSelectedPublicFiles] = useState<number[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showTechPointSelector, setShowTechPointSelector] = useState(false);
+  
+  // AI角色选择相关状态
+  const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [currentRoleName, setCurrentRoleName] = useState<string | null>(null);
+  const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
+
+  // 加载当前配置的角色名称
+  useEffect(() => {
+    const loadCurrentRole = async () => {
+      try {
+        // 优先从 localStorage 获取 Role ID
+        const storedRoleId = localStorage.getItem('project-resources-ai-role-id');
+        if (storedRoleId) {
+          setCurrentRoleId(storedRoleId);
+          // 获取角色详情以显示名称
+          const role = await aiRoleService.getAIRole(storedRoleId);
+          if (role) {
+            setCurrentRoleName(role.name);
+            return;
+          }
+        }
+
+        // 回退：尝试从 Dify Config 获取名称（兼容旧逻辑）
+        const config = await configService.getDifyConfig('smart-workflow-ai-qa');
+        if (config && config.enabled && config.name) {
+          setCurrentRoleName(config.name);
+        }
+      } catch (error) {
+        console.error('加载当前AI角色配置失败:', error);
+      }
+    };
+    loadCurrentRole();
+  }, []);
+
+  // 加载角色列表
+  const loadRoles = async () => {
+    setLoadingRoles(true);
+    try {
+      const roleList = await aiRoleService.getAIRoles();
+      // 去重
+      const uniqueRoles = Array.from(
+        new Map(roleList.map(role => [role.id, role])).values()
+      );
+      setAiRoles(uniqueRoles);
+    } catch (error) {
+      console.error('加载AI角色列表失败:', error);
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  // 选择角色
+   const handleSelectRole = async (role: AIRoleConfig) => {
+     try {
+       // 保存 Role ID 到 localStorage
+       localStorage.setItem('project-resources-ai-role-id', role.id);
+       setCurrentRoleId(role.id);
+       setCurrentRoleName(role.name);
+
+       if (role.provider === 'dify' && role.difyConfig) {
+         const configToSave = {
+           id: 'smart-workflow-ai-qa',
+           name: role.name,
+           description: role.description,
+           apiUrl: role.difyConfig.apiUrl,
+           apiKey: role.difyConfig.apiKey,
+           enabled: true,
+           createdAt: new Date(),
+           updatedAt: new Date()
+         };
+         const allConfigs = await configService.getDifyConfigs();
+         const index = allConfigs.findIndex(c => c.id === 'smart-workflow-ai-qa');
+         if (index >= 0) {
+           allConfigs[index] = { ...allConfigs[index], ...configToSave };
+         } else {
+           allConfigs.push(configToSave);
+         }
+         await configService.saveDifyConfigs(allConfigs);
+       }
+       
+       setShowRoleSelector(false);
+       // 重新加载AI消息或提示用户
+       alert('AI角色已更新，新的对话将使用该角色。');
+     } catch (error) {
+       console.error('配置角色失败:', error);
+       alert('配置角色失败，请重试');
+     }
+   };
   const [showKnowledgeBaseSelector, setShowKnowledgeBaseSelector] = useState(false);
   const [techPointSearch, setTechPointSearch] = useState('');
   const [knowledgeBaseSearch, setKnowledgeBaseSearch] = useState('');
@@ -90,7 +196,10 @@ const ProjectResourcesPage: React.FC = () => {
   const fileInputRefModal = useRef<HTMLInputElement>(null);
   
   // AI问答相关状态
-  const [aiMessages, setAiMessages] = useState<Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date }>>([]);
+  const [aiMessages, setAiMessages] = useState<Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date; metadata?: any }>>([]);
+  const [ragKnowledgeItems, setRagKnowledgeItems] = useState<Array<{ document_id: string; document_name: string; segment_id: string; content: string; score?: number }>>([]);
+  // 手动选择的知识库（公共知识库文件）
+  const [manualKnowledgeItems, setManualKnowledgeItems] = useState<Array<{ id: string; title: string; content?: string; type: 'public_kb' | 'knowledge_point' }>>([]);
   const [aiInputMessage, setAiInputMessage] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiConversationId, setAiConversationId] = useState<string | undefined>(undefined);
@@ -105,13 +214,40 @@ const ProjectResourcesPage: React.FC = () => {
 
   useEffect(() => {
     if (projectId) {
+      // 从 localStorage 恢复已选择的技术点
+      try {
+        const stored = localStorage.getItem(`project-${projectId}-selectedTechPoints`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const validIds = parsed.filter((id: any) => typeof id === 'number');
+            if (validIds.length > 0) {
+              setSelectedTechPoints(validIds);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('恢复已选择技术点失败:', error);
+      }
+      
       loadProject();
       loadSources();
       loadTechPoints();
       loadPublicKnowledgeFiles();
-      checkHistoryRecords(); // 检查历史记录
+      checkHistoryRecords(false); // 检查历史记录，但不自动切换视图
     }
   }, [projectId]);
+
+  // 持久化已选择的技术点到 localStorage
+  useEffect(() => {
+    if (projectId) {
+      try {
+        localStorage.setItem(`project-${projectId}-selectedTechPoints`, JSON.stringify(selectedTechPoints));
+      } catch (error) {
+        console.error('保存已选择技术点失败:', error);
+      }
+    }
+  }, [selectedTechPoints, projectId]);
 
   // 处理从技术点库页面返回的选中技术点
   useEffect(() => {
@@ -139,6 +275,29 @@ const ProjectResourcesPage: React.FC = () => {
     aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiMessages]);
 
+  // 从AI消息中提取RAG知识库知识
+  useEffect(() => {
+    const allRagItems: Array<{ document_id: string; document_name: string; segment_id: string; content: string; score?: number }> = [];
+    aiMessages.forEach(msg => {
+      if (msg.metadata?.retriever_resources) {
+        msg.metadata.retriever_resources.forEach((res: any) => {
+          // 去重：使用document_id + segment_id作为唯一标识
+          const key = `${res.document_id}_${res.segment_id}`;
+          if (!allRagItems.find(item => `${item.document_id}_${item.segment_id}` === key)) {
+            allRagItems.push({
+              document_id: res.document_id,
+              document_name: res.document_name || '未命名文档',
+              segment_id: res.segment_id,
+              content: res.content || '',
+              score: res.score
+            });
+          }
+        });
+      }
+    });
+    setRagKnowledgeItems(allRagItems);
+  }, [aiMessages]);
+
   // AI问答发送消息
   const handleAISendMessage = async () => {
     if (!aiInputMessage.trim() || aiLoading) return;
@@ -156,6 +315,80 @@ const ProjectResourcesPage: React.FC = () => {
     setAiLoading(true);
 
     try {
+      // 优先使用新版 AI Role 接口 (如果有选择角色)
+      if (currentRoleId) {
+        // 构建上下文信息（包含项目资源）
+        const contextMessages = aiMessages.map((msg) => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+        }));
+
+        // 添加项目资源信息到上下文
+        const resourceContext: string[] = [];
+        if (configuredResources.techPoints.length > 0) {
+          resourceContext.push(`已选择的技术点：${configuredResources.techPoints.map(tp => tp.name).join('、')}`);
+        }
+        if (configuredResources.files.length > 0) {
+          resourceContext.push(`已上传的文件：${configuredResources.files.map(f => f.title).join('、')}`);
+        }
+        if (configuredResources.knowledgePoints.length > 0) {
+          resourceContext.push(`已选择的知识点：${configuredResources.knowledgePoints.map(kp => kp.title).join('、')}`);
+        }
+
+        const inputs: any = {
+          context: contextMessages,
+        };
+
+        if (resourceContext.length > 0) {
+          inputs.projectResources = resourceContext.join('\n');
+        }
+
+        // 调用 aiRoleService
+        const result = await aiRoleService.chatWithRole(
+          currentRoleId,
+          currentMessage,
+          inputs,
+          aiConversationId || undefined
+        );
+
+        let responseContent = '抱歉，我无法处理您的请求。';
+        let retrieverResources: any[] = [];
+
+        if (result.success && result.data) {
+          responseContent = result.data.answer || result.data.result || responseContent;
+          // 更新conversationId以支持多轮对话
+          if (result.data.conversation_id) {
+            setAiConversationId(result.data.conversation_id);
+          }
+          // 提取RAG知识库资源
+          if (result.data.metadata?.retriever_resources) {
+            retrieverResources = result.data.metadata.retriever_resources;
+          }
+        } else {
+          responseContent = result.error || responseContent;
+        }
+
+        const aiMessage = {
+          id: (Date.now() + 1).toString(),
+          content: responseContent,
+          sender: 'ai' as const,
+          timestamp: new Date(),
+          metadata: retrieverResources.length > 0 ? { retriever_resources: retrieverResources } : undefined,
+        };
+
+        setAiMessages((prev) => {
+          const updated = [...prev, aiMessage];
+          // 在状态更新后，使用最新的消息列表自动保存
+          setTimeout(async () => {
+            await autoSaveConversationSummaryWithMessages(updated);
+          }, 300);
+          return updated;
+        });
+        
+        return; // 结束处理
+      }
+
+      // 回退逻辑：使用旧版 configService 获取配置 (兼容旧代码)
       // 获取智能工作流AI问答的Dify配置
       const aiQAConfig = await configService.getDifyConfig('smart-workflow-ai-qa');
 
@@ -194,12 +427,17 @@ const ProjectResourcesPage: React.FC = () => {
       );
 
       let responseContent = '抱歉，我无法处理您的请求。';
+      let retrieverResources: any[] = [];
 
       if (result.success && result.data) {
         responseContent = result.data.answer || result.data.result || responseContent;
         // 更新conversationId以支持多轮对话
         if (result.data.conversation_id) {
           setAiConversationId(result.data.conversation_id);
+        }
+        // 提取RAG知识库资源
+        if (result.data.metadata?.retriever_resources) {
+          retrieverResources = result.data.metadata.retriever_resources;
         }
       } else {
         responseContent = result.error || responseContent;
@@ -210,6 +448,7 @@ const ProjectResourcesPage: React.FC = () => {
         content: responseContent,
         sender: 'ai' as const,
         timestamp: new Date(),
+        metadata: retrieverResources.length > 0 ? { retriever_resources: retrieverResources } : undefined,
       };
 
       setAiMessages((prev) => {
@@ -312,13 +551,6 @@ const ProjectResourcesPage: React.FC = () => {
       // 检查URL是否存在
       const hasUrl = s.url && (typeof s.url === 'string' || typeof s.url === 'object');
       if (!hasUrl) {
-        console.log('[资源清单] ✗ 未识别为文件（无URL）:', { 
-          id: s.id, 
-          title: s.title, 
-          type: s.type,
-          url: s.url,
-          urlType: typeof s.url
-        });
         return false;
       }
       
@@ -329,13 +561,6 @@ const ProjectResourcesPage: React.FC = () => {
       } else if (s.url && typeof s.url === 'object' && 'toString' in s.url) {
         urlStr = String(s.url).trim();
       } else {
-        console.log('[资源清单] ✗ 未识别为文件（URL格式异常）:', { 
-          id: s.id, 
-          title: s.title, 
-          type: s.type,
-          url: s.url,
-          urlType: typeof s.url
-        });
         return false;
       }
       
@@ -353,30 +578,6 @@ const ProjectResourcesPage: React.FC = () => {
       const isFileUrl = !isHttpUrl && (startsWithUploads || hasFileExtension);
       
       const isFile = s.type === 'external' && isFileUrl;
-      
-      if (isFile) {
-        console.log('[资源清单] ✓ 识别为文件:', { 
-          id: s.id, 
-          title: s.title, 
-          url: urlStr,
-          type: s.type,
-          startsWithUploads,
-          hasFileExtension
-        });
-      } else {
-        // 记录为什么没有被识别为文件（用于调试）
-        console.log('[资源清单] ✗ 未识别为文件:', { 
-          id: s.id, 
-          title: s.title, 
-          url: urlStr,
-          urlRaw: JSON.stringify(s.url),
-          type: s.type,
-          isHttpUrl,
-          startsWithUploads,
-          hasFileExtension,
-          isFileUrl
-        });
-      }
       return isFile;
     });
     
@@ -459,16 +660,29 @@ const ProjectResourcesPage: React.FC = () => {
       ...knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id)),
       ...publicKnowledgeAsPoints
     ];
-    
-    console.log('[资源清单] 更新配置资源:', {
-      文件数量: files.length,
-      互联网信息数量: internetInfo.length,
-      技术点数量: techPoints.filter(tp => selectedTechPoints.includes(tp.id)).length,
-      知识点数量: allKnowledgePoints.length,
-      公共知识库文件数量: publicKnowledgeAsPoints.length,
-      总来源数量: sources.length,
-      文件列表: files.map(f => ({ id: f.id, title: f.title, url: f.url }))
+
+    // 更新手动选择的知识库
+    const manualItems: Array<{ id: string; title: string; content?: string; type: 'public_kb' | 'knowledge_point' }> = [];
+    // 添加公共知识库文件
+    publicKnowledgeSources.forEach(source => {
+      // title是知识库信息，description是文件名（如果有）
+      manualItems.push({
+        id: `public_kb_${source.id}`,
+        title: source.title, // 知识库信息
+        content: source.description && source.description !== source.title ? source.description : undefined, // 文件名作为补充信息
+        type: 'public_kb'
+      });
     });
+    // 添加技术点关联的知识点
+    knowledgePoints.filter(kp => selectedKnowledgePoints.includes(kp.id)).forEach(kp => {
+      manualItems.push({
+        id: `knowledge_point_${kp.id}`,
+        title: kp.title,
+        content: kp.content || '',
+        type: 'knowledge_point'
+      });
+    });
+    setManualKnowledgeItems(manualItems);
     
     setConfiguredResources({
       files: files,
@@ -496,7 +710,6 @@ const ProjectResourcesPage: React.FC = () => {
     if (!projectId) return;
     try {
       const pageType = `project-${projectId}`;
-      console.log('[加载来源] 开始加载，pageType:', pageType, 'projectId:', projectId);
       
       // 获取项目的来源信息
       const response = await api.get('/source-information', {
@@ -506,61 +719,24 @@ const ProjectResourcesPage: React.FC = () => {
           pageSize: 100
         }
       });
-      console.log('[加载来源] API响应:', response.data);
-      console.log('[加载来源] 请求参数:', { pageType, page: 1, pageSize: 100 });
       
       if (response.data.success && response.data.data) {
         const loadedSources = response.data.data;
-        console.log('[加载来源] 加载的来源数量:', loadedSources.length);
-        console.log('[加载来源] 来源列表详情:', loadedSources.map((s: SourceInformation) => ({
-          id: s.id,
-          title: s.title,
-          type: s.type,
-          url: s.url,
-          urlType: typeof s.url,
-          urlValue: s.url,
-          urlStartsWithHttp: s.url ? s.url.startsWith('http') : false,
-          urlStartsWithHttps: s.url ? s.url.startsWith('https') : false,
-          urlStartsWithUploads: s.url ? (s.url.startsWith('/uploads/') || s.url.startsWith('uploads/')) : false,
-          hasFileExtension: s.url ? /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(s.url) : false,
-          page_type: (s as any).page_type,
-          source_id: s.source_id,
-          metadata: s.metadata
-        })));
         
-        // 详细打印每个来源的完整信息
-        loadedSources.forEach((s: SourceInformation, index: number) => {
-          console.log(`[加载来源] 来源 ${index + 1} 完整信息:`, {
-            id: s.id,
-            title: s.title,
-            type: s.type,
-            url: s.url,
-            urlRaw: JSON.stringify(s.url),
-            description: s.description?.substring(0, 100),
-            page_type: (s as any).page_type,
-            source_id: s.source_id,
-            created_at: (s as any).created_at
-          });
+        // 只有当数据真正变化时才更新状态（避免不必要的重新渲染）
+        setSources(prevSources => {
+          // 简单比较：如果数量相同且ID列表相同，则不更新
+          if (prevSources.length === loadedSources.length) {
+            const prevIds = new Set(prevSources.map(s => s.id));
+            const newIds = new Set(loadedSources.map((s: SourceInformation) => s.id));
+            if (prevIds.size === newIds.size && 
+                Array.from(prevIds).every(id => newIds.has(id))) {
+              // 数据没有变化，返回原状态避免重新渲染
+              return prevSources;
+            }
+          }
+          return loadedSources;
         });
-        
-        // 检查是否有文件类型的来源
-        const fileSources = loadedSources.filter((s: SourceInformation) => {
-          const hasUrl = s.url && typeof s.url === 'string' && s.url.trim().length > 0;
-          const urlStr = hasUrl ? s.url.trim() : '';
-          const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
-          const isFileUrl = !isHttpUrl && (
-            urlStr.startsWith('/uploads/') || 
-            urlStr.startsWith('uploads/') ||
-            /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr)
-          );
-          return s.type === 'external' && isFileUrl;
-        });
-        console.log('[加载来源] 识别出的文件来源数量:', fileSources.length);
-        if (fileSources.length > 0) {
-          console.log('[加载来源] 文件来源列表:', fileSources.map(f => ({ id: f.id, title: f.title, url: f.url })));
-        }
-        
-        setSources(loadedSources);
       } else {
         console.warn('[加载来源] API返回失败或没有数据:', response.data);
       }
@@ -570,7 +746,7 @@ const ProjectResourcesPage: React.FC = () => {
   };
 
   // 检查历史记录（用于决定显示哪个视图）
-  const checkHistoryRecords = async (autoSwitchView: boolean = true) => {
+  const checkHistoryRecords = async (autoSwitchView: boolean = false) => {
     if (!projectId) return;
     setCheckingHistory(true);
     try {
@@ -1209,10 +1385,10 @@ ${conversationContent}
           try {
             await api.post('/source-information', {
               source_id: `public_kb_${file.id}`,
-              title: file.name,
+              title: file.description || file.name, // 使用知识库信息作为title
               type: 'knowledge_base',
               url: file.file_url || file.file_path,
-              description: file.description || `公共知识库文件: ${file.name}`,
+              description: file.name, // 文件名作为description
               page_type: `project-${projectId}`,
               conversation_id: null
             });
@@ -1728,7 +1904,14 @@ ${truncatedText}`;
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => navigate('/')}
+                  onClick={() => {
+                    const fromTab = (location.state as any)?.fromTab;
+                    if (fromTab) {
+                      navigate(`/?tab=${fromTab}`);
+                    } else {
+                      navigate('/');
+                    }
+                  }}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   ← 返回
@@ -1880,16 +2063,9 @@ ${truncatedText}`;
                                     onClick={async () => {
                                       if (confirm('确定要删除这条历史记录吗？')) {
                                         await handleDeleteSource(record.id);
-                                        // 删除后重新加载历史记录并检查
+                                        // 删除后重新加载历史记录，但不自动切换视图
                                         await loadHistoryRecords();
-                                        await checkHistoryRecords();
-                                        // 如果删除后没有历史记录了，自动切换到AI共创视图
-                                        if (historyRecords.length <= 1) {
-                                          // 等待一下让状态更新
-                                          setTimeout(() => {
-                                            checkHistoryRecords();
-                                          }, 300);
-                                        }
+                                        await checkHistoryRecords(false);
                                       }
                                     }}
                                     className="p-1 text-gray-400 hover:text-red-600 transition-colors"
@@ -1916,13 +2092,22 @@ ${truncatedText}`;
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
               {/* AI问答头部 */}
               <div className="mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Brain className="w-5 h-5 text-blue-600" />
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Brain className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">AI问答助手</h2>
+                      <p className="text-sm text-gray-500">基于项目资源进行智能问答</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">AI问答助手</h2>
-                    <p className="text-sm text-gray-500">基于项目资源进行智能问答</p>
+                  <div className="flex items-center gap-2">
+                    {currentRoleName && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
+                        当前: {currentRoleName}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2174,56 +2359,110 @@ ${truncatedText}`;
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-gray-700 flex items-center">
                     <Check className="w-4 h-4 mr-2" />
-                    已选择知识点 ({configuredResources.knowledgePoints.length})
+                    已选择知识点 ({ragKnowledgeItems.length + manualKnowledgeItems.length})
                   </h3>
                   <button
-                    onClick={() => setShowKnowledgePointModal(true)}
+                    onClick={() => setShowPublicKnowledgeModal(true)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="追加知识点"
+                    title="添加知识库"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {configuredResources.knowledgePoints.length === 0 ? (
+                  {ragKnowledgeItems.length === 0 && manualKnowledgeItems.length === 0 ? (
                     <div
                       onClick={() => setShowPublicKnowledgeModal(true)}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
-                      暂无关联公共知识库（点击选择）
+                      暂无知识库（点击添加）
                     </div>
                   ) : (
-                    configuredResources.knowledgePoints.map((knowledgePoint) => (
-                      <div
-                        key={knowledgePoint.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {knowledgePoint.title}
-                          </h4>
-                          {knowledgePoint.content && (
-                            <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                              {knowledgePoint.content}
-                            </p>
-                          )}
+                    <>
+                      {/* RAG知识库知识（自动提取） */}
+                      {ragKnowledgeItems.map((item) => (
+                        <div
+                          key={`rag_${item.document_id}_${item.segment_id}`}
+                          className="flex items-start justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full">RAG</span>
+                              <h4 className="text-sm font-medium text-gray-900 truncate">
+                                {item.document_name}
+                              </h4>
+                            </div>
+                            {item.content && (
+                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                                {item.content}
+                              </p>
+                            )}
+                            {item.score !== undefined && (
+                              <p className="text-xs text-gray-400 mt-1">
+                                匹配度: {(item.score * 100).toFixed(1)}%
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1 ml-2">
+                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <button
-                            onClick={() => {
-                              if (confirm(`确定要移除知识点"${knowledgePoint.title}"吗？`)) {
-                                toggleKnowledgePoint(knowledgePoint.id);
-                              }
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                      ))}
+                      {/* 手动选择的知识库 */}
+                      {manualKnowledgeItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full">
+                                {item.type === 'public_kb' ? '公共知识库' : '知识点'}
+                              </span>
+                              <h4 className="text-sm font-medium text-gray-900 truncate">
+                                {item.title}
+                              </h4>
+                            </div>
+                            {item.content && (
+                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                                {item.content}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1 ml-2">
+                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <button
+                              onClick={async () => {
+                                if (confirm(`确定要移除"${item.title}"吗？`)) {
+                                  if (item.type === 'public_kb') {
+                                    // 移除公共知识库文件：item.id格式是 public_kb_${source.id}
+                                    const sourceId = parseInt(item.id.replace('public_kb_', ''));
+                                    if (!isNaN(sourceId)) {
+                                      // 直接删除source
+                                      const success = await handleDeleteSource(sourceId);
+                                      if (success) {
+                                        // 重新加载来源列表以更新显示
+                                        await loadSources();
+                                      }
+                                    }
+                                  } else {
+                                    // 移除知识点：知识点不存储在sources中，只需要从选中列表中移除
+                                    const kpId = parseInt(item.id.replace('knowledge_point_', ''));
+                                    if (!isNaN(kpId)) {
+                                      toggleKnowledgePoint(kpId);
+                                    }
+                                  }
+                                }
+                              }}
+                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                              title="删除"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </>
                   )}
                 </div>
               </div>
@@ -2791,7 +3030,7 @@ ${truncatedText}`;
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
             {/* 弹窗头部 */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">从公共知识库选择文件</h2>
+              <h2 className="text-xl font-semibold text-gray-900">选择知识库</h2>
               <button
                 onClick={() => setShowPublicKnowledgeModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -2915,6 +3154,107 @@ ${truncatedText}`;
               >
                 <Save className="w-4 h-4" />
                 <span>{isSaving ? '保存中...' : '保存'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI角色选择弹窗 */}
+      {showRoleSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">选择AI角色</h3>
+              <button
+                onClick={() => setShowRoleSelector(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1">
+              <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-md text-sm">
+                <div className="font-medium mb-1">正在配置: 项目资源AI助手</div>
+                <div>请选择一个配置了Dify API的角色。该角色的配置将被应用到当前节点。</div>
+              </div>
+
+              {loadingRoles ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-600">加载角色中...</span>
+                </div>
+              ) : aiRoles.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>暂无可用角色</p>
+                  <button
+                    onClick={() => navigate('/ai-roles')}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    前往创建角色
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {aiRoles.map(role => (
+                    <div
+                      key={role.id}
+                      onClick={() => handleSelectRole(role)}
+                      className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        currentRoleName === role.name
+                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mr-3 overflow-hidden">
+                        {role.avatar ? (
+                          <img src={role.avatar} alt={role.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Bot className="w-6 h-6 text-gray-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 truncate">{role.name}</h4>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            role.provider === 'dify' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : role.provider === 'direct-agent'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {role.provider === 'dify' ? 'Dify' : role.provider === 'direct-agent' ? 'Direct' : 'Unknown'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 truncate mt-0.5">
+                          {role.description || '暂无描述'}
+                        </p>
+                      </div>
+                      {currentRoleName === role.name && (
+                        <div className="ml-3 text-blue-600">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => navigate('/ai-roles')}
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline mr-auto"
+              >
+                管理所有角色
+              </button>
+              <button
+                onClick={() => setShowRoleSelector(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors text-sm font-medium"
+              >
+                取消
               </button>
             </div>
           </div>

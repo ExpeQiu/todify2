@@ -56,6 +56,8 @@ export function filterRoles(
         return role.source === 'smart-workflow';
       } else if (filterSource === 'independent-page') {
         return role.source === 'independent-page';
+      } else if (filterSource === 'agent-workflow') {
+        return role.source === 'agent-workflow';
       } else if (filterSource === 'custom') {
         return !role.source || role.source === 'custom';
       }

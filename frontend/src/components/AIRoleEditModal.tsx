@@ -14,17 +14,15 @@ import {
   TestTube,
   MessageSquare,
   Loader,
-  AlertCircle,
-  CheckCircle,
   Maximize2,
   Minimize2,
-  ChevronRight,
-  ChevronLeft,
   Plus,
-  Trash2
+  Trash2,
+  Layout,
+  Settings,
+  Bot
 } from 'lucide-react';
 import { AIRoleConfig, DifyInputField, DirectAgentConfig, PromptVariable, ToolConfig, AgentCallConfig } from '../types/aiRole';
-import aiRoleService from '../services/aiRoleService';
 import AIRoleChat from './AIRoleChat';
 
 interface AIRoleEditModalProps {
@@ -36,7 +34,7 @@ interface AIRoleEditModalProps {
   onTest?: (role: AIRoleConfig) => Promise<void>;
 }
 
-type Step = 'basic' | 'provider' | 'config' | 'advanced';
+type Section = 'basic' | 'provider' | 'dify-config' | 'llm' | 'prompt' | 'context' | 'tools' | 'agents' | 'advanced';
 type DirectAgentTab = 'llm' | 'prompt' | 'context' | 'tools' | 'agents';
 
 const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
@@ -48,11 +46,9 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
   onTest
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [currentStep, setCurrentStep] = useState<Step>('basic');
-  const [activeTab, setActiveTab] = useState<DirectAgentTab>('llm');
+  const [activeSection, setActiveSection] = useState<Section>('basic');
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
-  const [testResults, setTestResults] = useState<any>(null);
   const [showChatDialog, setShowChatDialog] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -77,15 +73,11 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
     if (isOpen) {
       if (role) {
         setFormData(role);
-        if (role.provider === 'direct-agent') {
-          setActiveTab('llm');
-        }
       } else {
         resetForm();
       }
-      setCurrentStep('basic');
+      setActiveSection('basic');
       setErrors({});
-      setTestResults(null);
     }
   }, [isOpen, role]);
 
@@ -105,7 +97,6 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
       agentConfig: undefined,
       enabled: true
     });
-    setActiveTab('llm');
   };
 
   // 表单验证
@@ -116,9 +107,16 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
       newErrors.name = '角色名称不能为空';
     }
 
+    if (!formData.description?.trim()) {
+      newErrors.description = '角色描述不能为空';
+    }
+
     if (formData.provider === 'dify' || !formData.provider) {
       if (!formData.difyConfig?.apiUrl?.trim()) {
         newErrors['difyConfig.apiUrl'] = 'API地址不能为空';
+      }
+      if (!formData.difyConfig?.apiKey?.trim()) {
+        newErrors['difyConfig.apiKey'] = 'API密钥不能为空';
       }
     } else if (formData.provider === 'direct-agent') {
       if (!formData.agentConfig?.llm?.apiKey?.trim()) {
@@ -129,6 +127,9 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
       }
       if (!formData.agentConfig?.llm?.apiBaseUrl?.trim()) {
         newErrors['agentConfig.llm.apiBaseUrl'] = 'API地址不能为空';
+      }
+      if (!formData.agentConfig?.prompt?.systemPrompt?.trim()) {
+        newErrors['agentConfig.prompt.systemPrompt'] = '系统提示词不能为空';
       }
     }
 
@@ -315,16 +316,205 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
 
   if (!isOpen) return null;
 
-  const steps: { id: Step; label: string }[] = [
-    { id: 'basic', label: '基本信息' },
-    { id: 'provider', label: 'Agent类型' },
-    { id: 'config', label: '配置' },
-    { id: 'advanced', label: '高级设置' }
+  const navItems = [
+    { id: 'basic', label: '基本信息', icon: FileText },
+    { id: 'provider', label: 'Agent类型', icon: Bot },
   ];
 
-  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
-  const canGoNext = currentStepIndex < steps.length - 1;
-  const canGoPrev = currentStepIndex > 0;
+  if (formData.provider === 'dify') {
+    navItems.push({ id: 'dify-config', label: 'Dify配置', icon: Settings });
+  } else if (formData.provider === 'direct-agent') {
+    navItems.push(
+      { id: 'llm', label: 'LLM配置', icon: Cpu },
+      { id: 'prompt', label: 'Prompt配置', icon: MessageSquare },
+      { id: 'context', label: '上下文策略', icon: Layers },
+      { id: 'tools', label: '工具配置', icon: Wrench },
+      { id: 'agents', label: 'Agent协作', icon: Network }
+    );
+  }
+  navItems.push({ id: 'advanced', label: '高级设置', icon: Layout });
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'basic':
+        return (
+          <div className="space-y-6 max-w-3xl">
+            <div>
+              <label className="block text-base font-semibold text-gray-800 mb-2">
+                角色名称 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.name || ''}
+                onChange={(e) => updateFormField('name', e.target.value)}
+                placeholder="例如：AI技术顾问"
+                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  errors.name ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-base font-semibold text-gray-800 mb-2">
+                角色描述 <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={formData.description || ''}
+                onChange={(e) => updateFormField('description', e.target.value)}
+                placeholder="描述这个AI角色的用途和特点"
+                rows={4}
+                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors resize-none ${
+                  errors.description ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-base font-semibold text-gray-800 mb-2">
+                头像URL（可选）
+              </label>
+              <input
+                type="url"
+                value={formData.avatar || ''}
+                onChange={(e) => updateFormField('avatar', e.target.value)}
+                placeholder="https://example.com/avatar.png"
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+            </div>
+          </div>
+        );
+      case 'provider':
+        return (
+          <div className="space-y-6 max-w-3xl">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">选择Agent类型</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.provider === 'dify' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="provider"
+                    value="dify"
+                    checked={formData.provider === 'dify' || !formData.provider}
+                    onChange={(e) => {
+                      updateFormField('provider', e.target.value);
+                      // Auto switch to next section
+                      setTimeout(() => setActiveSection('dify-config'), 100);
+                    }}
+                    className="mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-800 mb-1">Dify工作流</div>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      集成Dify平台的Workflow或Chatflow。适合需要复杂编排或已有Dify应用场景。
+                    </div>
+                  </div>
+                </label>
+                <label className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                  formData.provider === 'direct-agent' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="provider"
+                    value="direct-agent"
+                    checked={formData.provider === 'direct-agent'}
+                    onChange={(e) => {
+                      updateFormField('provider', e.target.value);
+                      if (!formData.agentConfig) {
+                        setFormData(prev => ({
+                          ...prev,
+                          agentConfig: {
+                            llm: {
+                              provider: 'openai',
+                              apiKey: '',
+                              apiBaseUrl: 'https://api.openai.com/v1',
+                              model: 'gpt-3.5-turbo',
+                              temperature: 0.7,
+                              maxTokens: 2000
+                            },
+                            prompt: { systemPrompt: '', variables: [], templates: [] },
+                            contextStrategy: { type: 'window', maxMessages: 10, maxTokens: 4000, includeSystemPrompt: true },
+                            tools: [],
+                            agentCalls: []
+                          }
+                        }));
+                      }
+                      // Auto switch to next section
+                      setTimeout(() => setActiveSection('llm'), 100);
+                    }}
+                    className="mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-800 mb-1">独立Agent</div>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      直接配置LLM、Prompt和工具。适合快速构建轻量级Agent或完全自定义控制。
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        );
+      case 'dify-config':
+        return (
+          <DifyConfigSection
+            formData={formData}
+            updateFormField={updateFormField}
+            showApiKey={showApiKey}
+            setShowApiKey={setShowApiKey}
+            addInputField={addInputField}
+            updateInputField={updateInputField}
+            removeInputField={removeInputField}
+            errors={errors}
+          />
+        );
+      case 'advanced':
+        return (
+          <div className="space-y-6 max-w-3xl">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <input
+                type="checkbox"
+                checked={formData.enabled || false}
+                onChange={(e) => updateFormField('enabled', e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <div>
+                <label className="text-base font-semibold text-gray-800 block">
+                  启用此角色
+                </label>
+                <p className="text-sm text-gray-500">
+                  禁用后，此角色将不会出现在聊天列表中。
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        // Reuse DirectAgentConfigSection but hide its internal tabs
+        // We trick it by passing the current section as the active tab
+        // Note: DirectAgentConfigSection implementation needs to be adjusted to NOT show tabs
+        // For now, let's try to render it with the specific tab active.
+        return (
+          <DirectAgentConfigSection
+            formData={formData}
+            updateFormField={updateFormField}
+            activeTab={activeSection as any}
+            setActiveTab={() => {}} // Disable internal tab switching
+            showApiKey={showApiKey}
+            setShowApiKey={setShowApiKey}
+            errors={errors}
+            hideTabs={true} // We will add this prop
+          />
+        );
+    }
+  };
 
   return (
     <>
@@ -337,309 +527,125 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
         }}
       >
         <div
-          className={`bg-white rounded-lg shadow-2xl flex flex-col ${
+          className={`bg-white rounded-xl shadow-2xl flex overflow-hidden ${
             isFullscreen
-              ? 'w-full h-full max-w-full max-h-full'
-              : 'w-full max-w-4xl h-[90vh] max-h-[900px]'
+              ? 'w-full h-full max-w-full max-h-full rounded-none'
+              : 'w-full max-w-6xl h-[90vh] max-h-[900px]'
           } transition-all duration-300`}
         >
-          {/* 标题栏 */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold">
-                {isNew ? '新建角色' : `编辑角色: ${formData.name || role?.name || '未命名'}`}
+          {/* 左侧侧边栏 */}
+          <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0">
+            <div className="p-5 border-b border-gray-200 bg-white">
+              <h2 className="text-lg font-bold text-gray-800 truncate" title={formData.name || '新角色'}>
+                {isNew ? '新建角色' : (formData.name || '编辑角色')}
               </h2>
             </div>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex-1 overflow-y-auto py-4">
+              <nav className="space-y-1 px-3">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id as Section)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                        activeSection === item.id
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon size={18} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-2 hover:bg-white/20 rounded transition-colors"
-                title={isFullscreen ? '退出全屏' : '全屏'}
+                className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800 transition-colors w-full"
               >
-                {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                disabled={saving}
-                className="p-2 hover:bg-white/20 rounded transition-colors disabled:opacity-50"
-                title="关闭 (ESC)"
-              >
-                <X size={18} />
+                {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                {isFullscreen ? '退出全屏' : '全屏模式'}
               </button>
             </div>
           </div>
 
-          {/* 步骤指示器 */}
-          <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-2 flex-1">
-              {steps.map((step, index) => (
-                <React.Fragment key={step.id}>
-                  <button
-                    onClick={() => setCurrentStep(step.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      currentStep === step.id
-                        ? 'bg-blue-100 text-blue-700'
-                        : index < currentStepIndex
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {step.label}
-                  </button>
-                  {index < steps.length - 1 && (
-                    <ChevronRight size={16} className="text-gray-400" />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              {canGoPrev && (
+          {/* 右侧内容区域 */}
+          <div className="flex-1 flex flex-col bg-white min-w-0">
+            {/* 顶部标题栏 (可选，显示当前部分标题) */}
+            <div className="px-8 py-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-800">
+                {navItems.find(i => i.id === activeSection)?.label}
+              </h3>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentStep(steps[currentStepIndex - 1].id)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                  onClick={onClose}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
                 >
-                  <ChevronLeft size={16} />
-                  上一步
+                  <X size={20} />
                 </button>
-              )}
-              {canGoNext && (
-                <button
-                  onClick={() => setCurrentStep(steps[currentStepIndex + 1].id)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                >
-                  下一步
-                  <ChevronRight size={16} />
-                </button>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* 内容区域 */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {/* 基本信息步骤 */}
-            {currentStep === 'basic' && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-2">
-                    角色名称 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => updateFormField('name', e.target.value)}
-                    placeholder="例如：AI技术顾问"
-                    className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      errors.name ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                  )}
-                </div>
+            {/* 内容滚动区 */}
+            <div className="flex-1 overflow-y-auto p-8">
+              {renderContent()}
+            </div>
 
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-2">
-                    角色描述
-                  </label>
-                  <textarea
-                    value={formData.description || ''}
-                    onChange={(e) => updateFormField('description', e.target.value)}
-                    placeholder="描述这个AI角色的用途和特点"
-                    rows={4}
-                    className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-2">
-                    头像URL（可选）
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.avatar || ''}
-                    onChange={(e) => updateFormField('avatar', e.target.value)}
-                    placeholder="https://example.com/avatar.png"
-                    className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Agent类型步骤 */}
-            {currentStep === 'provider' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">选择Agent类型</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-blue-400 hover:bg-blue-50 group">
-                      <input
-                        type="radio"
-                        name="provider"
-                        value="dify"
-                        checked={formData.provider === 'dify' || !formData.provider}
-                        onChange={(e) => {
-                          updateFormField('provider', e.target.value);
-                        }}
-                        className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-800 group-hover:text-blue-600">
-                          Dify工作流
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          使用Dify平台的工作流或聊天流
-                        </div>
-                      </div>
-                    </label>
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:border-blue-400 hover:bg-blue-50 group">
-                      <input
-                        type="radio"
-                        name="provider"
-                        value="direct-agent"
-                        checked={formData.provider === 'direct-agent'}
-                        onChange={(e) => {
-                          updateFormField('provider', e.target.value);
-                          if (!formData.agentConfig) {
-                            setFormData(prev => ({
-                              ...prev,
-                              agentConfig: {
-                                llm: {
-                                  provider: 'openai',
-                                  apiKey: '',
-                                  apiBaseUrl: 'https://api.openai.com/v1',
-                                  model: 'gpt-3.5-turbo',
-                                  temperature: 0.7,
-                                  maxTokens: 2000
-                                },
-                                prompt: {
-                                  systemPrompt: '',
-                                  variables: [],
-                                  templates: []
-                                },
-                                contextStrategy: {
-                                  type: 'window',
-                                  maxMessages: 10,
-                                  maxTokens: 4000,
-                                  includeSystemPrompt: true
-                                },
-                                tools: [],
-                                agentCalls: []
-                              }
-                            }));
-                          }
-                          setActiveTab('llm');
-                        }}
-                        className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-gray-800 group-hover:text-blue-600">
-                          独立Agent
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          直接配置LLM和工具
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 配置步骤 - 这里需要根据provider显示不同的配置 */}
-            {currentStep === 'config' && (
-              <div className="space-y-6">
-                {(formData.provider === 'dify' || !formData.provider) ? (
-                  <DifyConfigSection
-                    formData={formData}
-                    updateFormField={updateFormField}
-                    showApiKey={showApiKey}
-                    setShowApiKey={setShowApiKey}
-                    addInputField={addInputField}
-                    updateInputField={updateInputField}
-                    removeInputField={removeInputField}
-                    errors={errors}
-                  />
-                ) : (
-                  <DirectAgentConfigSection
-                    formData={formData}
-                    updateFormField={updateFormField}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    showApiKey={showApiKey}
-                    setShowApiKey={setShowApiKey}
-                    errors={errors}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* 高级设置步骤 */}
-            {currentStep === 'advanced' && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={formData.enabled || false}
-                    onChange={(e) => updateFormField('enabled', e.target.checked)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <label className="text-base font-semibold text-gray-800">
-                    启用此角色
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 底部操作栏 */}
-          <div className="border-t border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0 bg-gray-50">
-            <div className="flex items-center gap-3">
-              {!isNew && role && (
-                <>
-                  <button
-                    onClick={() => setShowChatDialog(true)}
-                    className="flex items-center gap-2 px-4 py-2 border-2 border-blue-300 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-semibold"
-                  >
-                    <MessageSquare size={16} />
-                    对话测试
-                  </button>
-                  {onTest && (
+            {/* 底部操作栏 */}
+            <div className="px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {!isNew && role && (
+                  <>
                     <button
-                      onClick={handleTest}
-                      className="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold"
+                      onClick={() => setShowChatDialog(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium shadow-sm"
                     >
-                      <TestTube size={16} />
-                      测试连接
+                      <MessageSquare size={16} />
+                      对话测试
                     </button>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onClose}
-                disabled={saving}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold disabled:opacity-50"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <>
-                    <Loader className="animate-spin" size={16} />
-                    保存中...
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} />
-                    保存 (Ctrl+S)
+                    {onTest && (
+                      <button
+                        onClick={handleTest}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium shadow-sm"
+                      >
+                        <TestTube size={16} />
+                        测试连接
+                      </button>
+                    )}
                   </>
                 )}
-              </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onClose}
+                  disabled={saving}
+                  className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <>
+                      <Loader className="animate-spin" size={16} />
+                      保存中...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      保存配置
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -655,17 +661,22 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
             }
           }}
         >
-          <div className="bg-white rounded-lg shadow-2xl flex flex-col w-full max-w-2xl h-[85vh] max-h-[700px] overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <MessageSquare className="w-5 h-5" />
-                <span className="font-semibold text-base">{formData.name || role.name}</span>
+          <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-w-4xl h-[85vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-800">{formData.name || role.name}</h3>
+                  <p className="text-xs text-gray-500">对话测试环境</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowChatDialog(false)}
-                className="p-1 hover:bg-white/20 rounded transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
             <div className="flex-1 overflow-hidden bg-white">
@@ -724,7 +735,7 @@ const DifyConfigSection: React.FC<{
 
         <div>
           <label className="block text-base font-semibold text-gray-800 mb-2">
-            API密钥
+            API密钥 <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
@@ -732,7 +743,9 @@ const DifyConfigSection: React.FC<{
               value={formData.difyConfig?.apiKey || ''}
               onChange={(e) => updateFormField('difyConfig.apiKey', e.target.value)}
               placeholder="app-xxxxxxxxxx"
-              className="w-full px-4 py-3 pr-12 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={`w-full px-4 py-3 pr-12 text-base border-2 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                errors['difyConfig.apiKey'] ? 'border-red-300' : 'border-gray-300'
+              }`}
             />
             <button
               onClick={() => setShowApiKey(!showApiKey)}
@@ -741,6 +754,9 @@ const DifyConfigSection: React.FC<{
               {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
+          {errors['difyConfig.apiKey'] && (
+            <p className="mt-1 text-sm text-red-600">{errors['difyConfig.apiKey']}</p>
+          )}
         </div>
 
         <div>
@@ -854,6 +870,7 @@ const DirectAgentConfigSection: React.FC<{
   showApiKey: boolean;
   setShowApiKey: (show: boolean) => void;
   errors: Record<string, string>;
+  hideTabs?: boolean;
 }> = ({
   formData,
   updateFormField,
@@ -861,38 +878,41 @@ const DirectAgentConfigSection: React.FC<{
   setActiveTab,
   showApiKey,
   setShowApiKey,
-  errors
+  errors,
+  hideTabs = false
 }) => {
   return (
     <div>
       {/* Tab 导航 */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="flex space-x-4">
-          {[
-            { id: 'llm', label: 'LLM配置', icon: Cpu },
-            { id: 'prompt', label: 'Prompt配置', icon: FileText },
-            { id: 'context', label: '上下文策略', icon: Layers },
-            { id: 'tools', label: '工具配置', icon: Wrench },
-            { id: 'agents', label: 'Agent协作', icon: Network }
-          ].map(tab => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as DirectAgentTab)}
-                className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors text-sm font-medium ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Icon size={16} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      {!hideTabs && (
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="flex space-x-4">
+            {[
+              { id: 'llm', label: 'LLM配置', icon: Cpu },
+              { id: 'prompt', label: 'Prompt配置', icon: FileText },
+              { id: 'context', label: '上下文策略', icon: Layers },
+              { id: 'tools', label: '工具配置', icon: Wrench },
+              { id: 'agents', label: 'Agent协作', icon: Network }
+            ].map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as DirectAgentTab)}
+                  className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors text-sm font-medium ${
+                    activeTab === tab.id
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      )}
 
       {/* Tab 内容 - 这里只实现LLM配置，其他tab可以后续扩展 */}
       {activeTab === 'llm' && (
@@ -1021,8 +1041,13 @@ const DirectAgentConfigSection: React.FC<{
               onChange={(e) => updateFormField('agentConfig.prompt.systemPrompt', e.target.value)}
               rows={10}
               placeholder="例如：你是一个专业的AI助手，擅长..."
-              className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
+              className={`w-full px-4 py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono ${
+                errors['agentConfig.prompt.systemPrompt'] ? 'border-red-300' : 'border-gray-300'
+              }`}
             />
+            {errors['agentConfig.prompt.systemPrompt'] && (
+              <p className="mt-1 text-sm text-red-600">{errors['agentConfig.prompt.systemPrompt']}</p>
+            )}
             <p className="mt-2 text-sm text-gray-500">
               支持变量替换，使用 {'{{variable}}'} 或 {'{variable}'} 格式
             </p>

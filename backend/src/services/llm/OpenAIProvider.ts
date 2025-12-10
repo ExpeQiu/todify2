@@ -21,12 +21,20 @@ export class OpenAIProvider implements ILLMProvider {
   async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise<LLMResponse> {
     const url = `${this.apiBaseUrl}/chat/completions`;
     
+    // Check if model requires max_completion_tokens (e.g., o1 series, gpt-5.1)
+    const isReasoningModel = config.model.startsWith('o1') || config.model.startsWith('o3') || config.model === 'gpt-5.1';
+
     const requestBody: any = {
       model: config.model,
       messages: this.formatMessages(messages),
       temperature: config.temperature,
-      max_tokens: config.maxTokens,
     };
+
+    if (isReasoningModel) {
+      requestBody.max_completion_tokens = config.maxTokens;
+    } else {
+      requestBody.max_tokens = config.maxTokens;
+    }
 
     if (config.topP !== undefined) {
       requestBody.top_p = config.topP;

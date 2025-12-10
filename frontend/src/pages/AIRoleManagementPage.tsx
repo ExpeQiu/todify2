@@ -32,6 +32,8 @@ import {
 } from 'lucide-react';
 import TopNavigation from '../components/TopNavigation';
 import aiRoleService, { AIRoleUsage } from '../services/aiRoleService';
+import { agentWorkflowService } from '../services/agentWorkflowService';
+import { AgentWorkflow } from '../types/agentWorkflow';
 import { AIRoleConfig, DifyInputField, DirectAgentConfig, PromptVariable, ToolConfig, AgentCallConfig } from '../types/aiRole';
 import migrationService from '../services/migrationService';
 import { useNavigate } from 'react-router-dom';
@@ -123,6 +125,8 @@ const AIRoleManagementPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingRole, setEditingRole] = useState<AIRoleConfig | null>(null);
   const [isNewRole, setIsNewRole] = useState(false);
+  const [publishedWorkflows, setPublishedWorkflows] = useState<AgentWorkflow[]>([]);
+  const [debugWorkflows, setDebugWorkflows] = useState<any[]>([]); // Debug state
 
   useEffect(() => {
     // 先加载localStorage中的配置（用于显示）
@@ -145,6 +149,11 @@ const AIRoleManagementPage: React.FC = () => {
       }
       // 检查迁移状态（传入已加载的角色，避免重复调用API）
       await checkMigrationStatus(loadedRoles);
+      try {
+        const wfs = await agentWorkflowService.getAllWorkflows();
+        const pubs = wfs.filter(w => w.published);
+        setPublishedWorkflows(pubs);
+      } catch {}
     };
     
         initData();
@@ -165,6 +174,27 @@ const AIRoleManagementPage: React.FC = () => {
     } catch (error) {
       // 静默处理错误，不影响页面正常显示
       setDuplicateInfo(null);
+    }
+  };
+
+  const loadPublishedWorkflows = async () => {
+    try {
+      const wfs = await agentWorkflowService.getAllWorkflows();
+      setDebugWorkflows(wfs); // Store for debugging
+      console.log('Fetched workflows:', wfs);
+      const pubs = wfs.filter(w => (
+        (w as any).published === true ||
+        (w as any).published === 1 ||
+        (w as any).published === '1' ||
+        (w as any).published === 'true' ||
+        (typeof (w as any).published === 'string' && (w as any).published.toLowerCase() === 'true') ||
+        (w as any).is_published === true ||
+        (w as any).is_published === 1
+      ));
+      console.log('Filtered published workflows:', pubs);
+      setPublishedWorkflows(pubs);
+    } catch (error) {
+      console.error('Error loading published workflows:', error);
     }
   };
 
@@ -544,6 +574,23 @@ const AIRoleManagementPage: React.FC = () => {
   // 处理对话测试
   const handleChat = useCallback((role: AIRoleConfig) => {
     setSelectedRole(role);
+    setShowChatDialog(true);
+  }, []);
+
+  // 处理工作流对话测试
+  const handleWorkflowChat = useCallback((workflow: AgentWorkflow) => {
+    // 构造一个临时的 AIRoleConfig 对象
+    const tempRole: AIRoleConfig = {
+      id: workflow.id,
+      name: workflow.name,
+      description: workflow.description || '',
+      enabled: true,
+      // @ts-ignore - 后端会自动识别 workflow ID 并处理，这里使用 dify 是为了满足类型检查
+      provider: 'dify', 
+      createdAt: workflow.createdAt || new Date(),
+      updatedAt: workflow.updatedAt || new Date(),
+    };
+    setSelectedRole(tempRole);
     setShowChatDialog(true);
   }, []);
 
@@ -1000,7 +1047,7 @@ const AIRoleManagementPage: React.FC = () => {
         {mainTab === 'role-management' && (
           <div className="space-y-6">
             {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1041,6 +1088,15 @@ const AIRoleManagementPage: React.FC = () => {
                     </p>
                   </div>
                   <Workflow className="w-8 h-8 text-purple-500" />
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-indigo-500">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">自编工作流</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{publishedWorkflows.length}</p>
+                  </div>
+                  <Workflow className="w-8 h-8 text-indigo-500" />
                 </div>
               </div>
             </div>
@@ -1106,6 +1162,111 @@ const AIRoleManagementPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {/* Debug info - TEMPORARY */}
+            {debugWorkflows.length > 0 && (
+              <div className="bg-gray-100 p-4 mb-4 rounded overflow-auto max-h-60 text-xs font-mono border border-gray-300">
+                <div className="flex justify-between mb-2 font-bold">
+                  <span>Debug Info: Raw Workflows ({debugWorkflows.length})</span>
+                  <button onClick={() => setDebugWorkflows([])} className="text-blue-600">Close</button>
+                </div>
+                <pre>{JSON.stringify(debugWorkflows.slice(0, 3), null, 2)}</pre>
+                {debugWorkflows.length > 3 && <p className="mt-2 text-gray-500">...and {debugWorkflows.length - 3} more</p>}
+              </div>
+            )}
+
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <Workflow className="w-5 h-5 text-indigo-600" />
+                  <span>自编工作流（已发布）</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={loadPublishedWorkflows}
+                    className="text-sm px-3 py-1.5 border rounded-lg text-gray-700 hover:bg-gray-100"
+                    title="刷新列表"
+                  >
+                    刷新
+                  </button>
+                  <button
+                    onClick={async () => {
+                        try {
+                          const wfs = await agentWorkflowService.getAllWorkflows();
+                          setPublishedWorkflows(wfs);
+                        } catch (e) { console.error(e); }
+                    }}
+                    className="text-sm px-3 py-1.5 border rounded-lg text-gray-700 hover:bg-gray-100 ml-2"
+                  >
+                    显示所有
+                  </button>
+                  <a href="/agent-workflow" className="text-blue-600 hover:text-blue-800 text-sm">去管理</a>
+                </div>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {publishedWorkflows.map(wf => (
+                  <div key={wf.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-3 flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                            <Workflow className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-gray-900 truncate text-sm">{wf.name}</h3>
+                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                            </div>
+                            <p className="text-xs text-gray-600 truncate mt-0.5">{wf.description || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+                            {(wf.engine as any) || (wf.metadata?.engine as any) || 'native'}
+                          </span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">已发布</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">自编</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-xs text-gray-400">—</span>
+                        </div>
+                        <div className="col-span-1 flex items-center justify-end gap-2">
+                          <button
+                            className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                            title="对话测试"
+                            onClick={() => handleWorkflowChat(wf)}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </button>
+                          <a className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="编辑" href="/agent-workflow">
+                            <Edit2 className="w-4 h-4" />
+                          </a>
+                          <button
+                            className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+                            title="取消发布"
+                            onClick={async () => {
+                              try {
+                                await agentWorkflowService.updateWorkflow(wf.id, { published: false });
+                                await loadPublishedWorkflows();
+                              } catch {}
+                            }}
+                          >
+                            <EyeOff className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {publishedWorkflows.length === 0 && (
+                  <div className="px-4 py-6 text-sm text-gray-500">暂无已发布的自编工作流</div>
+                )}
+              </div>
+            </div>
 
             {/* 空状态 */}
             {filteredAndSortedRoles.length === 0 && (
@@ -1226,10 +1387,13 @@ const AIRoleManagementPage: React.FC = () => {
                                         ? 'bg-blue-100 text-blue-700' 
                                         : role.source === 'independent-page'
                                         ? 'bg-green-100 text-green-700'
+                                        : role.source === 'agent-workflow'
+                                        ? 'bg-indigo-100 text-indigo-700'
                                         : 'bg-gray-100 text-gray-700'
                                     }`}>
                                       {role.source === 'smart-workflow' ? '智能工作流' : 
-                                       role.source === 'independent-page' ? '独立页面' : '自定义'}
+                                       role.source === 'independent-page' ? '独立页面' : 
+                                       role.source === 'agent-workflow' ? '自编工作流' : '自定义'}
                                     </span>
                                   )}
                                 </div>
@@ -3012,4 +3176,3 @@ const AIRoleManagementPage: React.FC = () => {
 };
 
 export default AIRoleManagementPage;
-
