@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Plus, FileText, X, MessageSquare, FileCode, Brain, Package, Target, Newspaper } from "lucide-react";
+import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
 import EditSourceModal from "./EditSourceModal";
 import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
-import { Source as SourceType, SourceCategory } from "../../services/sourceService";
+import { SourceCategory } from "../../services/sourceService";
 import { Conversation } from "../../types/aiSearch";
 
 export interface Source {
@@ -98,10 +98,6 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     setShowTextModal(true);
   };
 
-  const handleExplore = () => {
-    setShowKnowledgeBrowser(true);
-  };
-
   const handleSelectAll = () => {
     const newSelectAll = !isSelectAll;
     setIsSelectAll(newSelectAll);
@@ -166,7 +162,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   const handleAddTextSource = (newSource: Omit<Source, "id">) => {
     const source: Source = {
       ...newSource,
-      id: `text_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 确保ID唯一
+      id: `text_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`, // 确保ID唯一
       category: newSource.category || 'external', // 确保有 category
     };
     if (onSourcesChange) {

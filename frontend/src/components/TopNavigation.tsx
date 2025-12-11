@@ -4,7 +4,6 @@ import {
   MessageCircle,
   Target,
   FileText,
-  Mic,
   Home,
   Settings,
   User,
@@ -14,7 +13,6 @@ import publicPageConfigService from "../services/publicPageConfigService";
 import { PublicPageConfig } from "../types/publicPageConfig";
 
 interface TopNavigationProps {
-  currentPageTitle?: string;
 }
 
 interface NavigationItem {
@@ -50,7 +48,7 @@ const AGENT_CONFIG_PATHS = [
 ];
 
 
-const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
+const TopNavigation: React.FC<TopNavigationProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeConfigs, setActiveConfigs] = useState<PublicPageConfig[]>([]);

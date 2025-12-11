@@ -6,6 +6,8 @@ export type SourceCategory =
   | "tech-package-qa"            // 技术包装问答总结信息
   | "tech-strategy-qa"           // 技术策略问答总结信息
   | "tech-article-qa"            // 技术通稿问答总结
+  | "internet-search"            // 互联网搜索信息
+  | "web-search"                 // Web Search
   | "external";                  // 外部添加信息（默认）
 
 export interface Source {
@@ -27,8 +29,11 @@ export interface SourceInformation {
   page_type?: "tech-package" | "press-release" | "tech-strategy" | "tech-article";
   conversation_id?: string;
   metadata?: Record<string, any>;
+  category?: SourceCategory;
   status?: "active" | "archived" | "deleted";
   created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AddExternalSourceParams {
@@ -158,6 +163,7 @@ const sourceService = {
     error?: string;
   }> {
     try {
+      console.log("Mock deleting source:", sourceId);
       // 这里可以调用实际的API
       // const response = await api.delete(`/sources/${sourceId}`);
       // return response.data;
@@ -185,6 +191,7 @@ const sourceService = {
     error?: string;
   }> {
     try {
+      console.log("Mock updating source:", sourceId, updates);
       // 这里可以调用实际的API
       // const response = await api.put(`/sources/${sourceId}`, updates);
       // return response.data;
@@ -233,10 +240,11 @@ const sourceService = {
       };
 
       const response = await api.post("/source-information", sourceInfo);
+      const resData = response.data as any;
       return {
-        success: response.data.success,
-        data: response.data.data,
-        error: response.data.error,
+        success: resData.success,
+        data: resData.data,
+        error: resData.error,
       };
     } catch (error) {
       console.error("保存来源信息失败:", error);
@@ -288,16 +296,17 @@ const sourceService = {
       });
 
       const response = await api.post("/source-information/batch", sourceInfoList);
+      const resData = response.data as any;
       console.log('[SourceService] 批量保存响应:', {
-        success: response.data.success,
-        dataCount: response.data.data?.length || 0,
-        error: response.data.error
+        success: resData.success,
+        dataCount: resData.data?.length || 0,
+        error: resData.error
       });
       
       return {
-        success: response.data.success,
-        data: response.data.data,
-        error: response.data.error,
+        success: resData.success,
+        data: resData.data,
+        error: resData.error,
       };
     } catch (error: any) {
       console.error("[SourceService] 批量保存来源信息失败:", error);
@@ -325,9 +334,10 @@ const sourceService = {
   }> {
     try {
       const response = await api.get(`/source-information/conversation/${conversationId}`);
-      if (response.data.success && response.data.data) {
+      const resData = response.data as any;
+      if (resData.success && resData.data) {
         // 将数据库格式转换为前端Source格式
-        const sources: Source[] = response.data.data.map(convertToSource);
+        const sources: Source[] = (resData.data as any[]).map(convertToSource);
         return {
           success: true,
           data: sources,
@@ -335,7 +345,7 @@ const sourceService = {
       }
       return {
         success: false,
-        error: response.data.error || "加载来源信息失败",
+        error: resData.error || "加载来源信息失败",
       };
     } catch (error) {
       console.error("加载来源信息失败:", error);
@@ -359,16 +369,17 @@ const sourceService = {
     try {
       console.log('[SourceService] 加载页面类型来源信息:', pageType);
       const response = await api.get(`/source-information/page-type/${pageType}`);
+      const resData = response.data as any;
       console.log('[SourceService] 加载响应:', {
-        success: response.data.success,
-        dataCount: response.data.data?.length || 0,
-        error: response.data.error,
-        rawData: response.data
+        success: resData.success,
+        dataCount: resData.data?.length || 0,
+        error: resData.error,
+        rawData: resData
       });
       
-      if (response.data.success && response.data.data) {
+      if (resData.success && resData.data) {
         // 将数据库格式转换为前端Source格式
-        const sources: Source[] = response.data.data.map(convertToSource);
+        const sources: Source[] = (resData.data as any[]).map(convertToSource);
         console.log('[SourceService] 转换后的来源:', sources.map(s => ({ id: s.id, title: s.title, category: s.category })));
         return {
           success: true,
@@ -377,7 +388,7 @@ const sourceService = {
       }
       return {
         success: false,
-        error: response.data.error || "加载来源信息失败",
+        error: resData.error || "加载来源信息失败",
       };
     } catch (error: any) {
       console.error("[SourceService] 加载来源信息失败:", error);
@@ -402,9 +413,10 @@ const sourceService = {
   }> {
     try {
       const response = await api.delete(`/source-information/source-id/${sourceId}`);
+      const resData = response.data as any;
       return {
-        success: response.data.success,
-        error: response.data.error,
+        success: resData.success,
+        error: resData.error,
       };
     } catch (error) {
       console.error("删除来源信息失败:", error);

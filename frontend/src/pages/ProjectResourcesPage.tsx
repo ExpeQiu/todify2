@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings } from 'lucide-react';
+import { Upload, Search, X, FileText, Trash2, Check, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Project } from '../types/project';
@@ -16,34 +16,19 @@ import { PublicKnowledgeFile } from '../types/publicKnowledge';
 import api from '../services/api';
 import { workflowAPI, bochaAPI } from '../services/api';
 import { configService } from '../services/configService';
-import sourceService, { Source, SourceCategory } from '../services/sourceService';
+import sourceService, { Source, SourceCategory, SourceInformation } from '../services/sourceService';
 import { AIRoleConfig } from '../types/aiRole';
 import aiRoleService from '../services/aiRoleService';
-
-interface SourceInformation {
-  id: number;
-  source_id: string;
-  title: string;
-  type: 'knowledge_base' | 'external';
-  url?: string;
-  description?: string;
-  created_at: string;
-  metadata?: any;
-  category?: SourceCategory;
-}
 
 const ProjectResourcesPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const techPointSelectorRef = useRef<HTMLDivElement>(null);
   
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [sources, setSources] = useState<SourceInformation[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isTechPointsLoaded, setIsTechPointsLoaded] = useState(false);
   
   // 从 localStorage 恢复已选择的技术点（使用函数式初始化）
@@ -66,12 +51,11 @@ const ProjectResourcesPage: React.FC = () => {
   const [publicKnowledgeFiles, setPublicKnowledgeFiles] = useState<PublicKnowledgeFile[]>([]);
   const [selectedPublicFiles, setSelectedPublicFiles] = useState<number[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [showTechPointSelector, setShowTechPointSelector] = useState(false);
   
   // AI角色选择相关状态
-  const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
+  const [aiRoles] = useState<AIRoleConfig[]>([]);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
-  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [loadingRoles] = useState(false);
   const [currentRoleName, setCurrentRoleName] = useState<string | null>(null);
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
 
@@ -103,25 +87,8 @@ const ProjectResourcesPage: React.FC = () => {
     loadCurrentRole();
   }, []);
 
-  // 加载角色列表
-  const loadRoles = async () => {
-    setLoadingRoles(true);
-    try {
-      const roleList = await aiRoleService.getAIRoles();
-      // 去重
-      const uniqueRoles = Array.from(
-        new Map(roleList.map(role => [role.id, role])).values()
-      );
-      setAiRoles(uniqueRoles);
-    } catch (error) {
-      console.error('加载AI角色列表失败:', error);
-    } finally {
-      setLoadingRoles(false);
-    }
-  };
-
   // 选择角色
-   const handleSelectRole = async (role: AIRoleConfig) => {
+  const handleSelectRole = async (role: AIRoleConfig) => {
      try {
        // 保存 Role ID 到 localStorage
        localStorage.setItem('project-resources-ai-role-id', role.id);
@@ -157,8 +124,6 @@ const ProjectResourcesPage: React.FC = () => {
        alert('配置角色失败，请重试');
      }
    };
-  const [showKnowledgeBaseSelector, setShowKnowledgeBaseSelector] = useState(false);
-  const [techPointSearch, setTechPointSearch] = useState('');
   const [knowledgeBaseSearch, setKnowledgeBaseSearch] = useState('');
   const [publicFileSearch, setPublicFileSearch] = useState('');
   const [configuredResources, setConfiguredResources] = useState<{
@@ -177,7 +142,6 @@ const ProjectResourcesPage: React.FC = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewContent, setReviewContent] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
-  const [showTechPointModal, setShowTechPointModal] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
   const [showKnowledgePointModal, setShowKnowledgePointModal] = useState(false);
   const [showInternetInfoModal, setShowInternetInfoModal] = useState(false);
@@ -698,7 +662,7 @@ const ProjectResourcesPage: React.FC = () => {
         return true; // 没有URL且不是对话摘要/技术转译的，归类为互联网信息
       }
       
-      const urlStr = s.url.trim();
+      const urlStr = s.url?.trim() || '';
       const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
       const isFileUrl = !isHttpUrl && (
         urlStr.startsWith('/uploads/') || 
@@ -723,7 +687,7 @@ const ProjectResourcesPage: React.FC = () => {
     // 将公共知识库文件（type: 'knowledge_base'）转换为知识点格式
     const publicKnowledgeSources = sources.filter(s => s.type === 'knowledge_base');
     const publicKnowledgeAsPoints: KnowledgePoint[] = publicKnowledgeSources.map(source => ({
-      id: source.id,
+      id: source.id || 0,
       tech_point_id: 0, // 公共知识库文件没有关联的技术点
       title: source.title,
       content: source.description || '',
@@ -805,16 +769,16 @@ const ProjectResourcesPage: React.FC = () => {
       });
       
       if (response.data.success && response.data.data) {
-        const loadedSources = response.data.data;
+        const loadedSources = response.data.data as SourceInformation[];
         
         // 只有当数据真正变化时才更新状态（避免不必要的重新渲染）
-        setSources(prevSources => {
+        setSources((prevSources: SourceInformation[]) => {
           // 简单比较：如果数量相同且ID列表相同，则不更新
           if (prevSources.length === loadedSources.length) {
             const prevIds = new Set(prevSources.map(s => s.id));
             const newIds = new Set(loadedSources.map((s: SourceInformation) => s.id));
             if (prevIds.size === newIds.size && 
-                Array.from(prevIds).every(id => newIds.has(id))) {
+                Array.from(prevIds).every(id => id !== undefined && newIds.has(id))) {
               // 数据没有变化，返回原状态避免重新渲染
               return prevSources;
             }
@@ -845,7 +809,7 @@ const ProjectResourcesPage: React.FC = () => {
       if (response.data.success && response.data.data) {
         // 过滤出历史记录（AI问答、技术包装、技术策略、技术通稿）
         const historyCategories = ['ai-qa-summary', 'tech-package-qa', 'tech-strategy-qa', 'tech-article-qa', 'technical-translation'];
-        const filtered = response.data.data.filter((source: SourceInformation) => {
+        const filtered = (response.data.data as SourceInformation[]).filter((source: SourceInformation) => {
           // 从 metadata 中解析 category
           let category: string | undefined;
           if (source.metadata) {
@@ -904,7 +868,7 @@ const ProjectResourcesPage: React.FC = () => {
       if (response.data.success && response.data.data) {
         // 过滤出历史记录（AI问答、技术包装、技术策略、技术通稿）
         const historyCategories = ['ai-qa-summary', 'tech-package-qa', 'tech-strategy-qa', 'tech-article-qa', 'technical-translation'];
-        const filtered = response.data.data.filter((source: SourceInformation) => {
+        const filtered = (response.data.data as SourceInformation[]).filter((source: SourceInformation) => {
           // 从 metadata 中解析 category
           let category: string | undefined;
           if (source.metadata) {
@@ -1013,12 +977,6 @@ const ProjectResourcesPage: React.FC = () => {
     return groups;
   };
 
-  // 打开历史记录模态框
-  const handleOpenHistoryModal = () => {
-    setShowHistoryModal(true);
-    loadHistoryRecords();
-  };
-
   // 切换到AI共创视图
   const handleSwitchToAICreation = () => {
     setShowHistoryView(false);
@@ -1033,7 +991,7 @@ const ProjectResourcesPage: React.FC = () => {
   // 提炼为技术点
   const handleExtractTechPoint = async (record: SourceInformation) => {
     setExtractingTechPoint(true);
-    setExtractingSourceId(record.id);
+    setExtractingSourceId(record.id || null);
     
     try {
       // 获取对话内容
@@ -1208,20 +1166,6 @@ ${conversationContent}
     }
   }, [sources, publicKnowledgeFiles]);
 
-  // 点击外部关闭下拉菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (techPointSelectorRef.current && !techPointSelectorRef.current.contains(event.target as Node)) {
-        setShowTechPointSelector(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0 || !projectId) return;
     
@@ -1235,7 +1179,7 @@ ${conversationContent}
       console.log('[文件上传] 文件上传成功:', uploadedFiles);
       
       // 创建来源信息记录
-      const createdSources = [];
+      const createdSources: SourceInformation[] = [];
       for (const uploadedFile of uploadedFiles) {
         // 如果markdown内容太长，只保存摘要
         let description = `文件大小: ${formatFileSize(uploadedFile.size)}`;
@@ -1249,7 +1193,7 @@ ${conversationContent}
         
         const pageType = `project-${projectId}`;
         const sourceData = {
-          source_id: uploadedFile.id || uploadedFile.fileId || `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          source_id: uploadedFile.id || uploadedFile.fileId || `file_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           title: uploadedFile.name,
           type: 'external' as const,
           url: uploadedFile.url,
@@ -1264,7 +1208,7 @@ ${conversationContent}
         try {
           const response = await api.post('/source-information', sourceData);
           console.log('[文件上传] 来源信息创建成功:', response.data);
-          const createdData = response.data.data;
+          const createdData = response.data.data as SourceInformation;
           console.log('[文件上传] 创建后的数据:', {
             id: createdData?.id,
             source_id: createdData?.source_id,
@@ -1324,8 +1268,8 @@ ${conversationContent}
               });
               console.log('[文件上传] 测试pageType查询结果:', {
                 pageType,
-                count: pageTypeResponse.data.data?.length || 0,
-                sources: pageTypeResponse.data.data?.map((s: any) => ({
+                count: (pageTypeResponse.data.data as SourceInformation[])?.length || 0,
+                sources: (pageTypeResponse.data.data as SourceInformation[])?.map((s: any) => ({
                   id: s.id,
                   source_id: s.source_id,
                   title: s.title,
@@ -1370,7 +1314,8 @@ ${conversationContent}
     }
   };
 
-  const handleDeleteSource = async (sourceId: number) => {
+  const handleDeleteSource = async (sourceId?: number) => {
+    if (!sourceId) return false;
     try {
       await api.delete(`/source-information/${sourceId}`);
       await loadSources();
@@ -1397,24 +1342,6 @@ ${conversationContent}
       day: 'numeric'
     });
   };
-
-  // 过滤检索信息：排除上传的文件，只显示真正的检索信息（http/https链接或文本来源）
-  const filteredSources = sources.filter(source => {
-    // 排除上传的文件（URL是文件路径的，不是http链接）
-    if (source.url && !source.url.startsWith('http') && !source.url.startsWith('https')) {
-      return false;
-    }
-    // 只包含http/https链接或没有URL的文本来源
-    return true;
-  }).filter(source =>
-    source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    source.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredTechPoints = techPoints.filter(tp =>
-    tp.name.toLowerCase().includes(techPointSearch.toLowerCase()) ||
-    tp.description?.toLowerCase().includes(techPointSearch.toLowerCase())
-  );
 
   const filteredKnowledgePoints = knowledgePoints.filter(kp =>
     kp.title.toLowerCase().includes(knowledgeBaseSearch.toLowerCase()) ||
@@ -1690,7 +1617,7 @@ ${truncatedText}`;
       }
 
       // 创建来源信息
-      const sourceId = `project_conversation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sourceId = `project_conversation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       const source: Source = {
         id: sourceId,
         title: summaryTitle,
@@ -1745,7 +1672,7 @@ ${truncatedText}`;
     setIsAddingInternetInfo(true);
     try {
       const searchText = internetInfoSearchQuery.trim();
-      const sourceId = `internet_search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sourceId = `internet_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       
       // 创建检索信息来源
       const source: Source = {
@@ -1849,7 +1776,7 @@ ${truncatedText}`;
       
       // 批量保存选中的搜索结果
       for (const result of selectedResults) {
-        const sourceId = `web_search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const sourceId = `web_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const description = `${result.snippet || ''}\n\n${result.summary ? `摘要：${result.summary}` : ''}\n\n来源：${result.siteName || ''}`.trim();
         
         const source: Source = {
@@ -1913,7 +1840,7 @@ ${truncatedText}`;
       }
 
       // 创建来源信息
-      const sourceId = `project_translation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sourceId = `project_translation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       const source: Source = {
         id: sourceId,
         title: title,
@@ -2347,7 +2274,7 @@ ${truncatedText}`;
                     type="text"
                     value={aiInputMessage}
                     onChange={(e) => setAiInputMessage(e.target.value)}
-                    onKeyPress={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter' && !aiLoading && aiInputMessage.trim()) {
                         handleAISendMessage();
                       }

@@ -36,7 +36,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [outputs, setOutputs] = useState<OutputContent[]>([]);
   const [showConversationList, setShowConversationList] = useState(false);
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
-  const [fieldMappingConfig, setFieldMappingConfig] = useState<FieldMappingConfigType | null>(null);
   const [showFieldMappingConfig, setShowFieldMappingConfig] = useState(false);
   const [triggeringFeatureId, setTriggeringFeatureId] = useState<string | null>(null);
   const [triggeringStatus, setTriggeringStatus] = useState<string | null>(null);
@@ -57,11 +56,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   useEffect(() => {
     currentConversationRef.current = currentConversation;
   }, [currentConversation]);
-
-  const activeWorkflow = useMemo(
-    () => availableWorkflows.find((workflow) => workflow.id === selectedWorkflowId) || null,
-    [availableWorkflows, selectedWorkflowId]
-  );
 
   const loadWorkflowSelectionFromStorage = useCallback(() => {
     if (typeof window === "undefined") {
@@ -1029,10 +1023,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     effectivePageType,
   ]);
 
-  const handleShowHistory = useCallback(() => {
-    setShowConversationList(true);
-  }, []);
-
   // 标记来源已发送给 Dify，避免重复发送
   const handleSourcesSent = useCallback((sourceIds: string[]) => {
     setSentSourceIds(prev => {
@@ -1191,7 +1181,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   }, [config.pageType, effectivePageType, sources, loadPageTypeSources]);
 
-  const handleMessageSent = async (message: any) => {
+  const handleMessageSent = async (_message: any) => {
     clearGlobalError();
     const conversationId = currentConversation?.id;
     
@@ -1334,7 +1324,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   }, []);
 
   const handleFieldMappingConfigSave = (config: FieldMappingConfigType) => {
-    setFieldMappingConfig(config);
+    // setFieldMappingConfig(config);
+    console.log('保存字段映射配置:', config);
   };
 
   // 总结当前对话并保存为来源，用于跳转到其他页面
@@ -1379,7 +1370,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       // 创建来源信息
       // 根据当前页面的 pageType 设置类别，而不是目标页面
       // 因为对话是在当前页面产生的
-      const sourceId = `tech_package_conversation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sourceId = `tech_package_conversation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       let category: SourceCategory = 'external';
       
       if (config.pageType === 'tech-package') {
@@ -1430,7 +1421,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <TopNavigation currentPageTitle={config.pageTitle} />
+      <TopNavigation />
       {globalError && (
         <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
           <div className="flex items-start justify-between gap-3">
