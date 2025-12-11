@@ -113,7 +113,13 @@ class AgentWorkflowService {
       const errorStatus = error?.response?.status || 'N/A';
       const errorCode = error?.code;
       
-      // 对于500错误或连接错误（后端未运行），提供更友好的错误信息
+      // 优先使用后端返回的具体错误信息
+      const serverError = error?.response?.data?.error || error?.response?.data?.message;
+      if (serverError) {
+        throw new Error(serverError);
+      }
+
+      // 对于500错误（无具体信息）或连接错误（后端未运行），提供更友好的错误信息
       if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
         const friendlyError = new Error('后端服务器未运行，请启动后端服务器后重试');
         // 完全静默处理，不输出任何日志
@@ -147,7 +153,13 @@ class AgentWorkflowService {
       const errorStatus = error?.response?.status || 'N/A';
       const errorCode = error?.code;
       
-      // 对于500错误或连接错误（后端未运行），提供更友好的错误信息
+      // 优先使用后端返回的具体错误信息
+      const serverError = error?.response?.data?.error || error?.response?.data?.message;
+      if (serverError) {
+        throw new Error(serverError);
+      }
+
+      // 对于500错误（无具体信息）或连接错误（后端未运行），提供更友好的错误信息
       if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
         const friendlyError = new Error('后端服务器未运行，请启动后端服务器后重试');
         // 完全静默处理，不输出任何日志

@@ -48,7 +48,20 @@ export class AgentWorkflowService {
       }
 
       // 检查是否有环
-      if (this.hasCycle(nodes, edges)) {
+      // LangGraph 引擎允许循环（如重试机制），跳过循环检测
+      let isLangGraph = false;
+      try {
+        if (workflow.metadata) {
+          const meta = typeof workflow.metadata === 'string' ? JSON.parse(workflow.metadata) : workflow.metadata;
+          if (meta && meta.engine === 'langgraph') {
+            isLangGraph = true;
+          }
+        }
+      } catch (e) {
+        // 忽略解析错误
+      }
+      
+      if (!isLangGraph && this.hasCycle(nodes, edges)) {
         errors.push('工作流包含循环依赖，请检查边的连接');
       }
     } catch (error) {

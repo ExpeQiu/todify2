@@ -358,8 +358,42 @@ const AgentWorkflowPage: React.FC = () => {
       name: `DAG工作流 ${workflows.length + 1}`,
       description: '',
       version: '1.0.0',
-      nodes: [],
-      edges: [],
+      nodes: [
+        {
+          id: 'node_input_1',
+          type: 'input',
+          position: { x: 100, y: 200 },
+          data: { 
+            label: '用户输入', 
+            inputs: [{ name: 'query', type: 'string', required: true, description: '用户问题' }] 
+          }
+        },
+        {
+          id: 'node_agent_1',
+          type: 'agent',
+          position: { x: 400, y: 200 },
+          data: { label: 'AI 助手' },
+          agentId: '' 
+        },
+        {
+          id: 'node_output_1',
+          type: 'output',
+          position: { x: 700, y: 200 },
+          data: { label: '最终结果' }
+        }
+      ],
+      edges: [
+        {
+          id: 'edge_1',
+          source: 'node_input_1',
+          target: 'node_agent_1'
+        },
+        {
+          id: 'edge_2',
+          source: 'node_agent_1',
+          target: 'node_output_1'
+        }
+      ],
       engine: 'native',
       metadata: { engine: 'native' },
       createdAt: new Date(),
@@ -383,8 +417,71 @@ const AgentWorkflowPage: React.FC = () => {
       name: `LangGraph工作流 ${workflows.length + 1}`,
       description: '',
       version: '1.0.0',
-      nodes: [],
-      edges: [],
+      nodes: [
+        {
+          id: 'node_input_1',
+          type: 'input',
+          position: { x: 50, y: 200 },
+          data: { 
+            label: '开始',
+            inputs: [{ name: 'topic', type: 'string', required: true, description: '主题' }]
+          }
+        },
+        {
+          id: 'node_agent_1',
+          type: 'agent',
+          position: { x: 300, y: 200 },
+          data: { label: '生成内容' },
+          agentId: ''
+        },
+        {
+          id: 'node_condition_1',
+          type: 'condition',
+          position: { x: 600, y: 200 },
+          data: { 
+            label: '检查质量',
+            condition: {
+              left: 'result.length',
+              operator: '>',
+              right: 50
+            },
+            trueLabel: '通过',
+            falseLabel: '重试'
+          }
+        },
+        {
+          id: 'node_output_1',
+          type: 'output',
+          position: { x: 900, y: 100 },
+          data: { label: '结束任务' }
+        }
+      ],
+      edges: [
+        {
+          id: 'edge_1',
+          source: 'node_input_1',
+          target: 'node_agent_1'
+        },
+        {
+          id: 'edge_2',
+          source: 'node_agent_1',
+          target: 'node_condition_1'
+        },
+        {
+          id: 'edge_3',
+          source: 'node_condition_1',
+          target: 'node_output_1',
+          sourceHandle: 'true',
+          label: '通过'
+        },
+        {
+          id: 'edge_4',
+          source: 'node_condition_1',
+          target: 'node_agent_1',
+          sourceHandle: 'false',
+          label: '重试'
+        }
+      ],
       engine: 'langgraph',
       metadata: { engine: 'langgraph' },
       createdAt: new Date(),

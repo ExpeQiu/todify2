@@ -39,6 +39,26 @@ const AgentWorkflowGuidePage: React.FC = () => {
             <li><b>Native</b>：现有 DAG 执行，支持 Input/Agent/Output</li>
             <li><b>LangGraph</b>：图模式执行，支持更多逻辑节点与条件边</li>
           </ul>
+          <div style={{ marginTop: '12px', background: '#f3f4f6', padding: '12px', borderRadius: '8px' }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: 600, color: '#374151' }}>示例 1：创建一个简单的问答工作流 (Native 模式)</h4>
+            <ol className="steps" style={{ fontSize: '14px', marginBottom: 0 }}>
+              <li><b>Input 节点</b>：设置参数 <code>user_question</code> (必填)</li>
+              <li><b>Agent 节点</b>：选择 "Q&A Bot"，Input 绑定 <code>user_question</code></li>
+              <li><b>Output 节点</b>：选择 Agent 节点的输出 <code>text</code></li>
+              <li><b>执行</b>：点击运行，输入问题，查看 Agent 回答</li>
+            </ol>
+          </div>
+
+          <div style={{ marginTop: '12px', background: '#eef2ff', padding: '12px', borderRadius: '8px', border: '1px solid #c7d2fe' }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: 600, color: '#3730a3' }}>示例 2：创建一个条件循环工作流 (LangGraph 模式)</h4>
+            <ol className="steps" style={{ fontSize: '14px', marginBottom: 0, color: '#3730a3' }}>
+              <li><b>Agent 节点</b>：执行初步研究或搜索</li>
+              <li><b>Condition 节点</b>：判断结果质量 (如 <code>result.length &gt; 100</code>)</li>
+              <li><b>True 分支</b>：连接到 <b>Output</b>，结束任务</li>
+              <li><b>False 分支</b>：连接回 <b>Agent</b> (或另一个优化 Agent) 进行重试</li>
+              <li><b>设置</b>：确保右上角编排模式已切换为 "LangGraph"</li>
+            </ol>
+          </div>
           <p className="note">在“设置”中选择编排模式；状态栏显示当前引擎；运行将按所选模式执行。</p>
         </section>
 

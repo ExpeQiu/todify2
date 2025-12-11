@@ -108,13 +108,13 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
+      sourceHandle: edge.sourceHandle || undefined,
+      targetHandle: edge.targetHandle || undefined,
       animated: edge.animated,
-      label: edge.label,
+      label: typeof edge.label === 'string' ? edge.label : undefined,
       style: typeof edge.style === 'string' ? JSON.parse(edge.style) : edge.style,
-      // 使用 smoothstep 类型创建曲线连接（React Flow 内置类型）
-      type: 'smoothstep',
+      // 使用默认类型（Bezier）创建柔和曲线连接
+      type: 'default',
     }));
   }, []);
 
@@ -147,11 +147,11 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
+      sourceHandle: edge.sourceHandle || undefined,
+      targetHandle: edge.targetHandle || undefined,
       animated: edge.animated,
-      label: edge.label,
-      style: edge.style ? JSON.stringify(edge.style) : undefined,
+      label: typeof edge.label === 'string' ? edge.label : undefined,
+      style: edge.style,
     }));
   }, []);
 
@@ -303,7 +303,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 
   // 处理连接开始
   const handleConnectStart = useCallback(
-    (_event: React.MouseEvent, { nodeId }: { nodeId: string | null }) => {
+    (_event: any, { nodeId }: { nodeId: string | null }) => {
       if (readOnly) return;
       setConnectingNodeId(nodeId);
       if (nodeId) {
@@ -485,11 +485,11 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         className="workflow-canvas-reactflow"
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         defaultEdgeOptions={{
-          type: 'smoothstep',
+          type: 'default',
           animated: false,
           style: { strokeWidth: 2, stroke: '#6366f1' },
         }}
-        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionLineType={ConnectionLineType.Bezier}
         connectionMode={ConnectionMode.Loose}
         snapToGrid
         snapGrid={[20, 20]}
