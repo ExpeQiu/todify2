@@ -192,6 +192,22 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     setShowKnowledgeBrowser(false);
   };
 
+  const handleNavigate = (path: string) => {
+    const projectId = searchParams.get('projectId');
+    const newConversation = searchParams.get('newConversation');
+    const params = new URLSearchParams();
+    
+    if (projectId) {
+      params.append('projectId', projectId);
+    }
+    if (newConversation) {
+      params.append('newConversation', newConversation);
+    }
+    
+    const url = params.toString() ? `${path}?${params.toString()}` : path;
+    navigate(url);
+  };
+
   return (
     <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
       {/* 标题和操作按钮 */}
@@ -292,11 +308,12 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                   
                   // 构建跳转 URL
                   const projectId = searchParams.get('projectId');
+                  const newConversation = searchParams.get('newConversation');
                   const params = new URLSearchParams();
                   
                   if (projectId) {
                     params.append('projectId', projectId);
-                    params.append('newConversation', 'true');
+                    params.append('newConversation', newConversation || 'true');
                   }
                   
                   if (sourceId) {
@@ -308,7 +325,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 } catch (error) {
                   console.error('[SourceSidebar] 跳转到技术策略页面失败:', error);
                   // 即使总结失败，也继续跳转
-                  navigate('/tech-strategy');
+                  handleNavigate('/tech-strategy');
                 } finally {
                   setIsNavigating(false);
                 }
@@ -333,11 +350,12 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                   
                   // 构建跳转 URL
                   const projectId = searchParams.get('projectId');
+                  const newConversation = searchParams.get('newConversation');
                   const params = new URLSearchParams();
                   
                   if (projectId) {
                     params.append('projectId', projectId);
-                    params.append('newConversation', 'true');
+                    params.append('newConversation', newConversation || 'true');
                   }
                   
                   if (sourceId) {
@@ -349,7 +367,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 } catch (error) {
                   console.error('[SourceSidebar] 跳转到技术通稿页面失败:', error);
                   // 即使总结失败，也继续跳转
-                  navigate('/tech-article');
+                  handleNavigate('/tech-article');
                 } finally {
                   setIsNavigating(false);
                 }
@@ -366,13 +384,13 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => navigate('/tech-package')}
+              onClick={() => handleNavigate('/tech-package')}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
               技术包装
             </button>
             <button
-              onClick={() => navigate('/tech-article')}
+              onClick={() => handleNavigate('/tech-article')}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
               技术通稿
@@ -384,13 +402,13 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => navigate('/tech-package')}
+              onClick={() => handleNavigate('/tech-package')}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
               技术包装
             </button>
             <button
-              onClick={() => navigate('/tech-strategy')}
+              onClick={() => handleNavigate('/tech-strategy')}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
               技术策略

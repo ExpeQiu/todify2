@@ -51,6 +51,13 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [dynamicLabelMap, setDynamicLabelMap] = useState<Record<string, string>>({});
   const triggerStatusTimerRef = useRef<number | null>(null);
   const workflowSelectionRef = useRef<Record<string, string>>({});
+  
+  // 使用 ref 来追踪 currentConversation，避免 loadConversations 循环依赖导致无限请求
+  const currentConversationRef = useRef(currentConversation);
+  useEffect(() => {
+    currentConversationRef.current = currentConversation;
+  }, [currentConversation]);
+
   const activeWorkflow = useMemo(
     () => availableWorkflows.find((workflow) => workflow.id === selectedWorkflowId) || null,
     [availableWorkflows, selectedWorkflowId]
@@ -273,7 +280,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       }
 
       // 使用有效的 pageType（可能包含项目ID）
-      const files = await aiSearchService.getFiles({ pageType: effectivePageType });
+      const files = await aiSearchService.getFiles({ pageType: effectivePageType as any });
       const fileSources: Source[] = files.map((file) => ({
         id: `file_${file.id || file.fileId}`,
         title: file.name,
@@ -322,12 +329,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // 当页面类型或项目ID变化时，重新加载来源信息
-  useEffect(() => {
-    loadPageTypeSources();
-    loadFiles();
-  }, [config.pageType, projectId, loadPageTypeSources, loadFiles]);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
@@ -559,7 +560,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
   const loadWorkflowConfig = async () => {
     try {
-      const workflowConfig = await aiSearchService.getWorkflowConfig(config.pageType);
+      const workflowConfig = await aiSearchService.getWorkflowConfig(config.pageType as any);
       setWorkflowConfig(workflowConfig);
     } catch (error) {
       console.error("加载工作流配置失败:", error);
@@ -791,19 +792,31 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         return;
       }
 
-      const activeId =
-        options?.activeConversationId ||
-        currentConversation?.id ||
-        uniqueConversations[0].id;
+      // 确定要激活的对话ID
+      let activeId = options?.activeConversationId;
+      
+      // 如果没有指定，尝试保持当前对话（如果在列表中）
+      if (!activeId && currentConversationRef.current?.id) {
+        const currentId = currentConversationRef.current.id;
+        if (uniqueConversations.some(c => c.id === currentId)) {
+          activeId = currentId;
+        }
+      }
+      
+      // 如果还是没有，默认选中第一个
+      if (!activeId) {
+        activeId = uniqueConversations[0].id;
+      }
 
       if (!activeId) {
         return;
       }
 
+      const current = currentConversationRef.current;
       if (
-        !currentConversation ||
+        !current ||
         options?.refreshActive ||
-        currentConversation.id !== activeId
+        current.id !== activeId
       ) {
         await loadConversationDetail(activeId);
       }
@@ -811,7 +824,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error("加载对话历史失败:", error);
       reportError("加载对话历史失败，请稍后重试", error instanceof Error ? error.message : undefined);
     }
-  }, [currentConversation, loadConversationDetail, reportError, loadPageTypeSources, effectivePageType]);
+  }, [loadConversationDetail, reportError, loadPageTypeSources, effectivePageType]);
 
   const loadOutputs = async () => {
     try {
@@ -823,6 +836,31 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       reportError("加载输出内容失败，请稍后重试", error instanceof Error ? error.message : undefined);
     }
   };
+
+  // 当页面类型或项目ID变化时，重新加载所有信息
+  useEffect(() => {
+    // 清空状态，防止跨项目数据污染
+    setSources([]);
+    setConversations([]);
+    setOutputs([]);
+    setCurrentConversation(null);
+
+    // 重新加载所有数据
+    loadPageTypeSources();
+    loadFiles();
+    loadConversations();
+    
+    // 加载输出内容
+    const fetchOutputs = async () => {
+      try {
+        const data = await aiSearchService.getOutputs(undefined, effectivePageType);
+        setOutputs(data);
+      } catch (error) {
+        console.error("加载输出内容失败:", error);
+      }
+    };
+    fetchOutputs();
+  }, [config.pageType, projectId, effectivePageType, loadPageTypeSources, loadFiles, loadConversations]);
 
   const handleLoadMoreMessages = useCallback(async () => {
     if (
@@ -1418,7 +1456,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           selectedSources={selectedSourceIds}
           onSourcesChange={handleSourcesChange}
           onSelectionChange={handleSelectionChange}
-          pageType={config.pageType}
+          pageType={config.pageType as any}
           currentConversation={currentConversation}
           onSummarizeAndNavigate={summarizeAndSaveConversationForNavigation}
         />
@@ -1443,7 +1481,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           onWorkflowChange={handleWorkflowSelectionChange}
           isWorkflowLoading={isWorkflowLoading}
           dialogueTitle={config.dialogueTitle}
-          pageType={config.pageType}
+          pageType={config.pageType as any}
         />
 
         <StudioSidebar
@@ -1457,7 +1495,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           studioTitle={config.studioTitle}
           featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
           enabledToolIds={enabledToolIds}
-          pageType={config.pageType}
+          pageType={config.pageType as any}
           onDeleteConversation={handleDeleteConversation}
         />
       </div>

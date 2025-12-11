@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Upload, Search, X, FileText, Trash2, Check, ChevronDown, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Project } from '../types/project';
 import projectService from '../services/projectService';
 import { aiSearchService } from '../services/aiSearchService';
@@ -42,6 +44,7 @@ const ProjectResourcesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sources, setSources] = useState<SourceInformation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isTechPointsLoaded, setIsTechPointsLoaded] = useState(false);
   
   // 从 localStorage 恢复已选择的技术点（使用函数式初始化）
   const [selectedTechPoints, setSelectedTechPoints] = useState<number[]>(() => {
@@ -196,7 +199,22 @@ const ProjectResourcesPage: React.FC = () => {
   const fileInputRefModal = useRef<HTMLInputElement>(null);
   
   // AI问答相关状态
-  const [aiMessages, setAiMessages] = useState<Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date; metadata?: any }>>([]);
+  const [aiMessages, setAiMessages] = useState<Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date; metadata?: any }>>(() => {
+    if (!projectId) return [];
+    try {
+      const stored = localStorage.getItem(`project-${projectId}-ai-messages`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error('恢复对话记录失败:', error);
+    }
+    return [];
+  });
   const [ragKnowledgeItems, setRagKnowledgeItems] = useState<Array<{ document_id: string; document_name: string; segment_id: string; content: string; score?: number }>>([]);
   // 手动选择的知识库（公共知识库文件）
   const [manualKnowledgeItems, setManualKnowledgeItems] = useState<Array<{ id: string; title: string; content?: string; type: 'public_kb' | 'knowledge_point' }>>([]);
@@ -228,6 +246,27 @@ const ProjectResourcesPage: React.FC = () => {
         }
       } catch (error) {
         console.error('恢复已选择技术点失败:', error);
+      } finally {
+        setIsTechPointsLoaded(true);
+      }
+      
+      // 恢复对话记录（如果在初始化时未恢复）
+      if (aiMessages.length === 0) {
+        try {
+          const stored = localStorage.getItem(`project-${projectId}-ai-messages`);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            const restored = parsed.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }));
+            if (restored.length > 0) {
+              setAiMessages(restored);
+            }
+          }
+        } catch (error) {
+          console.error('恢复对话记录失败:', error);
+        }
       }
       
       loadProject();
@@ -240,14 +279,25 @@ const ProjectResourcesPage: React.FC = () => {
 
   // 持久化已选择的技术点到 localStorage
   useEffect(() => {
-    if (projectId) {
+    if (projectId && isTechPointsLoaded) {
       try {
         localStorage.setItem(`project-${projectId}-selectedTechPoints`, JSON.stringify(selectedTechPoints));
       } catch (error) {
         console.error('保存已选择技术点失败:', error);
       }
     }
-  }, [selectedTechPoints, projectId]);
+  }, [selectedTechPoints, projectId, isTechPointsLoaded]);
+
+  // 持久化对话记录到 localStorage
+  useEffect(() => {
+    if (projectId && aiMessages.length > 0) {
+      try {
+        localStorage.setItem(`project-${projectId}-ai-messages`, JSON.stringify(aiMessages));
+      } catch (error) {
+        console.error('保存对话记录失败:', error);
+      }
+    }
+  }, [aiMessages, projectId]);
 
   // 处理从技术点库页面返回的选中技术点
   useEffect(() => {
@@ -323,24 +373,41 @@ const ProjectResourcesPage: React.FC = () => {
           content: msg.content,
         }));
 
-        // 添加项目资源信息到上下文
-        const resourceContext: string[] = [];
-        if (configuredResources.techPoints.length > 0) {
-          resourceContext.push(`已选择的技术点：${configuredResources.techPoints.map(tp => tp.name).join('、')}`);
-        }
-        if (configuredResources.files.length > 0) {
-          resourceContext.push(`已上传的文件：${configuredResources.files.map(f => f.title).join('、')}`);
-        }
-        if (configuredResources.knowledgePoints.length > 0) {
-          resourceContext.push(`已选择的知识点：${configuredResources.knowledgePoints.map(kp => kp.title).join('、')}`);
+        // 获取项目资源上下文（优先使用已转译的内容，否则自动生成）
+        let resourceContextContent = translatedContent;
+        if (!resourceContextContent || resourceContextContent.trim().length === 0) {
+          // 只有在有配置资源的情况下才尝试生成
+          if (configuredResources.techPoints.length > 0 || 
+              configuredResources.files.length > 0 || 
+              configuredResources.knowledgePoints.length > 0 ||
+              configuredResources.internetInfo.length > 0) {
+             try {
+               // 自动生成技术上下文
+               resourceContextContent = await generateTechnicalContext();
+             } catch (e) {
+               console.error("自动生成技术上下文失败:", e);
+               // 降级策略：使用简单的列表
+               const simpleContext: string[] = [];
+               if (configuredResources.techPoints.length > 0) {
+                 simpleContext.push(`已选择的技术点：${configuredResources.techPoints.map(tp => tp.name).join('、')}`);
+               }
+               if (configuredResources.files.length > 0) {
+                 simpleContext.push(`已上传的文件：${configuredResources.files.map(f => f.title).join('、')}`);
+               }
+               if (configuredResources.knowledgePoints.length > 0) {
+                 simpleContext.push(`已选择的知识点：${configuredResources.knowledgePoints.map(kp => kp.title).join('、')}`);
+               }
+               resourceContextContent = simpleContext.join('\n');
+             }
+          }
         }
 
         const inputs: any = {
           context: contextMessages,
         };
 
-        if (resourceContext.length > 0) {
-          inputs.projectResources = resourceContext.join('\n');
+        if (resourceContextContent) {
+          inputs.projectResources = resourceContextContent;
         }
 
         // 调用 aiRoleService
@@ -398,24 +465,41 @@ const ProjectResourcesPage: React.FC = () => {
         content: msg.content,
       }));
 
-      // 添加项目资源信息到上下文
-      const resourceContext: string[] = [];
-      if (configuredResources.techPoints.length > 0) {
-        resourceContext.push(`已选择的技术点：${configuredResources.techPoints.map(tp => tp.name).join('、')}`);
-      }
-      if (configuredResources.files.length > 0) {
-        resourceContext.push(`已上传的文件：${configuredResources.files.map(f => f.title).join('、')}`);
-      }
-      if (configuredResources.knowledgePoints.length > 0) {
-        resourceContext.push(`已选择的知识点：${configuredResources.knowledgePoints.map(kp => kp.title).join('、')}`);
+      // 获取项目资源上下文（优先使用已转译的内容，否则自动生成）
+      let resourceContextContent = translatedContent;
+      if (!resourceContextContent || resourceContextContent.trim().length === 0) {
+        // 只有在有配置资源的情况下才尝试生成
+        if (configuredResources.techPoints.length > 0 || 
+            configuredResources.files.length > 0 || 
+            configuredResources.knowledgePoints.length > 0 ||
+            configuredResources.internetInfo.length > 0) {
+           try {
+             // 自动生成技术上下文
+             resourceContextContent = await generateTechnicalContext();
+           } catch (e) {
+             console.error("自动生成技术上下文失败:", e);
+             // 降级策略：使用简单的列表
+             const simpleContext: string[] = [];
+             if (configuredResources.techPoints.length > 0) {
+               simpleContext.push(`已选择的技术点：${configuredResources.techPoints.map(tp => tp.name).join('、')}`);
+             }
+             if (configuredResources.files.length > 0) {
+               simpleContext.push(`已上传的文件：${configuredResources.files.map(f => f.title).join('、')}`);
+             }
+             if (configuredResources.knowledgePoints.length > 0) {
+               simpleContext.push(`已选择的知识点：${configuredResources.knowledgePoints.map(kp => kp.title).join('、')}`);
+             }
+             resourceContextContent = simpleContext.join('\n');
+           }
+        }
       }
 
       const inputs: any = {
         context: contextMessages,
       };
 
-      if (resourceContext.length > 0) {
-        inputs.projectResources = resourceContext.join('\n');
+      if (resourceContextContent) {
+        inputs.projectResources = resourceContextContent;
       }
 
       // 调用AI问答API
@@ -504,17 +588,17 @@ const ProjectResourcesPage: React.FC = () => {
       }
 
       // 保存新的对话摘要，使用 project-${projectId} 作为 pageType，传入消息列表
-      const savedId = await summarizeAndSaveConversation(undefined, messages);
+      const savedResult = await summarizeAndSaveConversation(undefined, messages);
       
-      if (savedId) {
-        setSavedConversationSourceId(savedId);
+      if (savedResult) {
+        setSavedConversationSourceId(savedResult.dbId);
         
         // 刷新历史记录
         await loadSources(); // 重新加载来源列表
         // 更新历史记录列表，但不自动切换视图（避免强制跳回历史记录页面）
         await checkHistoryRecords(false); // 传入 false 表示不自动切换视图
         
-        console.log('[ProjectResources] 对话摘要已自动保存:', savedId);
+        console.log('[ProjectResources] 对话摘要已自动保存:', savedResult.dbId);
       }
     } catch (error) {
       console.error('[ProjectResources] 自动保存对话摘要失败:', error);
@@ -1402,89 +1486,99 @@ ${conversationContent}
     }
   };
 
+  const generateTechnicalContext = async (): Promise<string> => {
+    const contentParts: string[] = [];
+      
+    // 1. 拼接已选择的技术点
+    if (configuredResources.techPoints.length > 0) {
+      contentParts.push('## 已选择技术点\n\n');
+      configuredResources.techPoints.forEach((techPoint, index) => {
+        contentParts.push(`### ${index + 1}. ${techPoint.name}\n\n`);
+        if (techPoint.description) {
+          contentParts.push(`${techPoint.description}\n\n`);
+        }
+      });
+      contentParts.push('\n---\n\n');
+    }
+    
+    // 2. 拼接已上传的文件（转换为markdown）
+    if (configuredResources.files.length > 0) {
+      contentParts.push('## 已上传文件\n\n');
+      
+      // 获取所有文件记录以获取markdown内容
+      let fileRecords: FileUploadResponse[] = [];
+      try {
+        fileRecords = await aiSearchService.getFiles({
+          pageType: `project-${projectId}` as any
+        });
+      } catch (error) {
+        console.error('获取文件列表失败:', error);
+      }
+      
+      for (const file of configuredResources.files) {
+        contentParts.push(`### ${file.title}\n\n`);
+        
+        // 尝试从文件记录中获取markdown内容
+        const fileRecord = fileRecords.find(f => 
+          f.url === file.url || 
+          f.name === file.title ||
+          f.id === file.source_id
+        );
+        
+        if (fileRecord?.markdownContent) {
+          // 使用文件的markdown内容
+          contentParts.push(`${fileRecord.markdownContent}\n\n`);
+        } else if (file.description) {
+          // 如果没有markdown内容，使用description（可能已经包含markdown内容）
+          contentParts.push(`${file.description}\n\n`);
+        } else {
+          contentParts.push(`文件：${file.title}\n\n`);
+        }
+      }
+      contentParts.push('\n---\n\n');
+    }
+    
+    // 3. 拼接已选择的知识点
+    if (configuredResources.knowledgePoints.length > 0) {
+      contentParts.push('## 已选择知识点\n\n');
+      configuredResources.knowledgePoints.forEach((knowledgePoint, index) => {
+        contentParts.push(`### ${index + 1}. ${knowledgePoint.title}\n\n`);
+        if (knowledgePoint.content) {
+          // Check if content looks like a filename
+          const isFilename = /\.(pdf|doc|docx|txt|md|ppt|pptx)$/i.test(knowledgePoint.content.trim());
+          if (isFilename && knowledgePoint.content.length < 200) {
+                contentParts.push(`(文件: ${knowledgePoint.content})\n(注意: 文件内容未自动加载，请参考文件详情)\n\n`);
+          } else {
+                contentParts.push(`${knowledgePoint.content}\n\n`);
+          }
+        }
+      });
+      contentParts.push('\n---\n\n');
+    }
+    
+    // 4. 拼接互联网信息点
+    if (configuredResources.internetInfo.length > 0) {
+      contentParts.push('## 互联网信息点\n\n');
+      configuredResources.internetInfo.forEach((info, index) => {
+        contentParts.push(`### ${index + 1}. ${info.title}\n\n`);
+        if (info.url) {
+          contentParts.push(`链接：${info.url}\n\n`);
+        }
+        if (info.description) {
+          contentParts.push(`${info.description}\n\n`);
+        }
+      });
+    }
+    
+    return contentParts.join('');
+  };
+
   const handleTechnicalTranslation = async () => {
     setIsTranslating(true);
     setTranslatedContent('');
     
     try {
-      const contentParts: string[] = [];
-      
-      // 1. 拼接已选择的技术点
-      if (configuredResources.techPoints.length > 0) {
-        contentParts.push('## 已选择技术点\n\n');
-        configuredResources.techPoints.forEach((techPoint, index) => {
-          contentParts.push(`### ${index + 1}. ${techPoint.name}\n\n`);
-          if (techPoint.description) {
-            contentParts.push(`${techPoint.description}\n\n`);
-          }
-        });
-        contentParts.push('\n---\n\n');
-      }
-      
-      // 2. 拼接已上传的文件（转换为markdown）
-      if (configuredResources.files.length > 0) {
-        contentParts.push('## 已上传文件\n\n');
-        
-        // 获取所有文件记录以获取markdown内容
-        let fileRecords: FileUploadResponse[] = [];
-        try {
-          fileRecords = await aiSearchService.getFiles({
-            pageType: `project-${projectId}` as any
-          });
-        } catch (error) {
-          console.error('获取文件列表失败:', error);
-        }
-        
-        for (const file of configuredResources.files) {
-          contentParts.push(`### ${file.title}\n\n`);
-          
-          // 尝试从文件记录中获取markdown内容
-          const fileRecord = fileRecords.find(f => 
-            f.url === file.url || 
-            f.name === file.title ||
-            f.id === file.source_id
-          );
-          
-          if (fileRecord?.markdownContent) {
-            // 使用文件的markdown内容
-            contentParts.push(`${fileRecord.markdownContent}\n\n`);
-          } else if (file.description) {
-            // 如果没有markdown内容，使用description（可能已经包含markdown内容）
-            contentParts.push(`${file.description}\n\n`);
-          } else {
-            contentParts.push(`文件：${file.title}\n\n`);
-          }
-        }
-        contentParts.push('\n---\n\n');
-      }
-      
-      // 3. 拼接已选择的知识点
-      if (configuredResources.knowledgePoints.length > 0) {
-        contentParts.push('## 已选择知识点\n\n');
-        configuredResources.knowledgePoints.forEach((knowledgePoint, index) => {
-          contentParts.push(`### ${index + 1}. ${knowledgePoint.title}\n\n`);
-          if (knowledgePoint.content) {
-            contentParts.push(`${knowledgePoint.content}\n\n`);
-          }
-        });
-        contentParts.push('\n---\n\n');
-      }
-      
-      // 4. 拼接互联网信息点
-      if (configuredResources.internetInfo.length > 0) {
-        contentParts.push('## 互联网信息点\n\n');
-        configuredResources.internetInfo.forEach((info, index) => {
-          contentParts.push(`### ${index + 1}. ${info.title}\n\n`);
-          if (info.url) {
-            contentParts.push(`链接：${info.url}\n\n`);
-          }
-          if (info.description) {
-            contentParts.push(`${info.description}\n\n`);
-          }
-        });
-      }
-      
-      const finalContent = contentParts.join('');
+      const finalContent = await generateTechnicalContext();
       setTranslatedContent(finalContent);
     } catch (error) {
       console.error('技术转译失败:', error);
@@ -1513,7 +1607,7 @@ ${conversationContent}
   };
 
   // 总结对话内容并保存为来源信息
-  const summarizeAndSaveConversation = async (targetPageType?: string, messages?: Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date }>): Promise<string | null> => {
+  const summarizeAndSaveConversation = async (targetPageType?: string, messages?: Array<{ id: string; content: string; sender: 'user' | 'ai'; timestamp: Date }>): Promise<{ dbId: string, sourceId: string } | null> => {
     // 使用传入的消息列表，如果没有则使用状态中的消息
     const messagesToUse = messages || aiMessages;
     
@@ -1554,14 +1648,23 @@ ${conversationContent}
 对话内容：
 ${truncatedText}`;
 
-        const result = await workflowAPI.aiSearch(
+        // 设置 1.5 秒超时，如果 AI 响应太慢，则跳过
+        const timeoutPromise = new Promise<{ success: false, timeout: true }>((resolve) => {
+          setTimeout(() => resolve({ success: false, timeout: true }), 1500);
+        });
+
+        const aiPromise = workflowAPI.aiSearch(
           summaryPrompt,
           { context: [{ role: 'user', content: summaryPrompt }] },
           (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined,
           undefined
         );
 
-        if (result.success && result.data) {
+        const result: any = await Promise.race([aiPromise, timeoutPromise]);
+
+        if (result.timeout) {
+          console.warn('AI 生成总结超时，使用简化版本');
+        } else if (result.success && result.data) {
           const aiResponse = result.data.answer || result.data.result || '';
           // 解析 AI 响应，提取标题和摘要
           const titleMatch = aiResponse.match(/标题[：:]\s*(.+)/);
@@ -1610,8 +1713,11 @@ ${truncatedText}`;
           title: saveResult.data.title,
           pageType: pageType
         });
-        // 返回数据库的 id（数字），用于后续删除操作
-        return saveResult.data.id?.toString() || null;
+        // 返回数据库的 id 和 source_id
+        return {
+          dbId: saveResult.data.id?.toString() || '',
+          sourceId: saveResult.data.source_id || ''
+        };
       } else {
         console.error('[ProjectResources] 保存对话摘要失败:', saveResult.error);
         return null;
@@ -1781,9 +1887,10 @@ ${truncatedText}`;
   };
 
   // 保存技术转译内容为来源信息
-  const saveTechnicalTranslationAsSource = async (targetPageType: 'tech-strategy' | 'tech-package'): Promise<string | null> => {
+  const saveTechnicalTranslationAsSource = async (targetPageType: string, content?: string): Promise<string | null> => {
     // 如果没有转译内容，直接返回 null
-    if (!translatedContent || translatedContent.trim().length === 0) {
+    const text = content || translatedContent;
+    if (!text || text.trim().length === 0) {
       return null;
     }
 
@@ -1793,7 +1900,7 @@ ${truncatedText}`;
       let title = '技术转译内容';
       
       // 尝试从转译内容中提取标题（第一行非空内容）
-      const lines = translatedContent.split('\n').filter(line => line.trim().length > 0);
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
       if (lines.length > 0) {
         const firstLine = lines[0].trim();
         // 移除 markdown 标题符号（##、###等）
@@ -1811,7 +1918,7 @@ ${truncatedText}`;
         id: sourceId,
         title: title,
         type: 'external',
-        description: translatedContent,
+        description: text,
         category: 'technical-translation', // 技术转译信息
       };
 
@@ -1839,44 +1946,86 @@ ${truncatedText}`;
     }
   };
 
+  // 跟踪正在跳转的目标页面，用于控制按钮的加载状态
+  const [navigatingTarget, setNavigatingTarget] = useState<'tech-strategy' | 'tech-package' | null>(null);
+
   // 处理跳转到技术策略或技术包装页面
   const handleNavigateToAIPage = async (pageType: 'tech-strategy' | 'tech-package') => {
-    // 收集所有需要保存的来源 ID
-    const sourceIds: string[] = [];
+    // 设置当前正在跳转的目标
+    setNavigatingTarget(pageType);
     
-    // 1. 总结并保存对话内容
-    const conversationSourceId = await summarizeAndSaveConversation(pageType);
-    if (conversationSourceId) {
-      sourceIds.push(conversationSourceId);
-    }
-    
-    // 2. 保存技术转译内容
-    const translationSourceId = await saveTechnicalTranslationAsSource(pageType);
-    if (translationSourceId) {
-      sourceIds.push(translationSourceId);
-    }
-    
-    // 构建跳转 URL
-    let url = `/${pageType}`;
-    const params = new URLSearchParams();
-    
-    if (projectId) {
-      params.append('projectId', projectId);
-      // 添加 newConversation 参数，确保创建新对话
-      params.append('newConversation', 'true');
-    }
-    
-    // 添加所有 sourceId（支持多个）
-    sourceIds.forEach(sourceId => {
-      params.append('sourceId', sourceId);
-    });
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
+    try {
+      // 计算目标页面的实际 pageType（包含项目ID）
+      // 这里的逻辑必须与 BaseAISearchPage 中的 effectivePageType 逻辑保持一致
+      // 规则：如果有 projectId，则是 {pageType}-project-{projectId}
+      const targetEffectivePageType = projectId ? `${pageType}-project-${projectId}` : pageType;
+      console.log('[ProjectResources] 跳转目标 pageType:', targetEffectivePageType);
+      
+      // 1. 准备任务：对话总结
+      const conversationPromise = summarizeAndSaveConversation(targetEffectivePageType);
 
-    // 跳转
-    navigate(url);
+      // 2. 准备任务：技术转译保存
+      // 封装为一个异步函数，以便在 Promise.all 中使用
+      const translationPromise = (async () => {
+        let contentToSave = translatedContent;
+        if (!contentToSave || contentToSave.trim().length === 0) {
+          try {
+            contentToSave = await generateTechnicalContext();
+            // 更新状态，以便界面上也显示（可选，但用户跳转走了可能看不到）
+            setTranslatedContent(contentToSave);
+          } catch (error) {
+            console.error('生成技术转译内容失败:', error);
+          }
+        }
+        
+        if (contentToSave && contentToSave.trim().length > 0) {
+            return await saveTechnicalTranslationAsSource(targetEffectivePageType, contentToSave);
+        }
+        return null;
+      })();
+      
+      // 并行执行所有任务
+      // 使用 Promise.allSettled 确保即使其中一个失败，另一个也能完成，且最终能跳转
+      const results = await Promise.allSettled([conversationPromise, translationPromise]);
+      
+      // 收集结果
+      const sourceIds: string[] = [];
+      
+      // 处理对话总结结果
+      if (results[0].status === 'fulfilled' && results[0].value) {
+        sourceIds.push(results[0].value.sourceId);
+      }
+      
+      // 处理技术转译结果
+      if (results[1].status === 'fulfilled' && results[1].value) {
+        sourceIds.push(results[1].value);
+      }
+      
+      // 构建跳转 URL
+      let url = `/${pageType}`;
+      const params = new URLSearchParams();
+      
+      if (projectId) {
+        params.append('projectId', projectId);
+        // 添加 newConversation 参数，确保创建新对话
+        params.append('newConversation', 'true');
+      }
+      
+      // 添加所有 sourceId（支持多个）
+      sourceIds.forEach(sourceId => {
+        params.append('sourceId', sourceId);
+      });
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      // 跳转
+      navigate(url);
+    } finally {
+      // 无论成功失败，最后重置状态（虽然成功跳转后组件会卸载，但为了代码健壮性）
+      setNavigatingTarget(null);
+    }
   };
 
   if (loading || checkingHistory) {
@@ -2148,17 +2297,25 @@ ${truncatedText}`;
 
                         {/* 消息内容 */}
                         <div
-                          className={`px-4 py-3 rounded-2xl shadow-sm ${
-                            message.sender === 'user'
-                              ? 'bg-blue-500 text-white rounded-br-md'
-                              : 'bg-gray-50 border border-gray-200 rounded-tl-md'
-                          }`}
-                        >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                          <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
-                            {message.timestamp.toLocaleTimeString()}
+                            className={`px-4 py-3 rounded-2xl shadow-sm ${
+                              message.sender === 'user'
+                                ? 'bg-blue-500 text-white rounded-br-md'
+                                : 'bg-gray-50 border border-gray-200 rounded-tl-md'
+                            }`}
+                          >
+                            {message.sender === 'user' ? (
+                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                            ) : (
+                              <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                            <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
+                              {message.timestamp.toLocaleTimeString()}
+                            </div>
                           </div>
-                        </div>
                       </div>
                     </div>
                   ))
@@ -2592,20 +2749,20 @@ ${truncatedText}`;
               <h2 className="text-lg font-semibold text-gray-900 mb-4">进入AI辅助共创：</h2>
               <div className="space-y-3">
                 <button
-                  onClick={() => handleNavigateToAIPage('tech-strategy')}
-                  disabled={isSummarizingConversation}
-                  className="w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700 rounded-lg font-medium transition-colors text-left flex items-center justify-between"
-                >
-                  <span>技术策略</span>
-                  {isSummarizingConversation && <Loader2 className="w-4 h-4 animate-spin" />}
-                </button>
-                <button
                   onClick={() => handleNavigateToAIPage('tech-package')}
-                  disabled={isSummarizingConversation}
+                  disabled={isSummarizingConversation || navigatingTarget !== null}
                   className="w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700 rounded-lg font-medium transition-colors text-left flex items-center justify-between"
                 >
                   <span>技术包装</span>
-                  {isSummarizingConversation && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {navigatingTarget === 'tech-package' && <Loader2 className="w-4 h-4 animate-spin" />}
+                </button>
+                <button
+                  onClick={() => handleNavigateToAIPage('tech-strategy')}
+                  disabled={isSummarizingConversation || navigatingTarget !== null}
+                  className="w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700 rounded-lg font-medium transition-colors text-left flex items-center justify-between"
+                >
+                  <span>技术策略</span>
+                  {navigatingTarget === 'tech-strategy' && <Loader2 className="w-4 h-4 animate-spin" />}
                 </button>
               </div>
             </div>

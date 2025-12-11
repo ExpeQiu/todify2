@@ -242,7 +242,28 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ currentPageTitle }) => {
     if (path === '/' && itemId === 'home') {
       navigate('/?tab=all');
     } else {
-      navigate(path);
+      // 检查当前 URL 是否有 projectId 参数
+      const searchParams = new URLSearchParams(location.search);
+      const projectId = searchParams.get('projectId');
+      const newConversation = searchParams.get('newConversation');
+      
+      // 如果有 projectId，在跳转时带上它
+      if (projectId) {
+        let targetUrl = path;
+        const targetParams = new URLSearchParams();
+        targetParams.append('projectId', projectId);
+        
+        // 如果是技术包装、技术策略、技术通稿之间的跳转，且当前有 newConversation，也带上它
+        const isTechPage = ['/tech-package', '/tech-strategy', '/tech-article'].includes(path);
+        if (isTechPage && newConversation) {
+          targetParams.append('newConversation', newConversation);
+        }
+        
+        targetUrl += `?${targetParams.toString()}`;
+        navigate(targetUrl);
+      } else {
+        navigate(path);
+      }
     }
   };
 
