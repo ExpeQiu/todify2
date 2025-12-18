@@ -1,0 +1,61 @@
+# 依赖
+node_modules
+npm-debug.log
+yarn-error.log
+
+# 构建产物
+dist
+build
+*.log
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+
+# 测试
+coverage
+.nyc_output
+
+# 临时文件
+tmp
+temp
+*.tmp
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 数据文件（保留目录结构，但不复制数据）
+backend/data/*.db
+backend/data/*.db-journal
+
+# 上传文件（保留目录结构，但不复制上传的文件）
+backend/uploads/*
+
+# 文档和脚本
+README.md
+*.md
+scripts/
+guide/
+deploy/
+
+# CI/CD
+.github
+.travis.yml
+
+# 其他
+.cursorindexingignore
+.specstory/
+.trae/

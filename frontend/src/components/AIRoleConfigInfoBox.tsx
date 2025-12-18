@@ -5,7 +5,6 @@ import {
   ChevronUp, 
   CheckCircle2, 
   AlertCircle, 
-  Workflow,
   Settings,
   ExternalLink,
   PlusCircle,
@@ -28,7 +27,7 @@ interface NodeConfigStatus {
   configured: boolean;
   roleId?: string;
   roleName?: string;
-  source: 'independent-page' | 'workflow' | 'field-mapping' | 'project-resources';
+  source: 'independent-page' | 'workflow' | 'field-mapping' | 'project-resources' | 'feature-page';
   path?: string;
 }
 
@@ -65,49 +64,62 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
 
       // 1. 独立页面节点（已删除 node/* 功能子页面，不再显示）
 
-      // 2. 工作流Agent节点
-      // 查找标记为 'smart-workflow' 的角色
-      const workflowRole = roles.find(r => r.source === 'smart-workflow');
-      
-      statuses.push({
-        nodeType: 'workflow-agent',
-        nodeName: '工作流Agent节点',
-        icon: <Workflow className="w-4 h-4" />,
-        configured: !!workflowRole,
-        roleName: workflowRole?.name,
-        roleId: workflowRole?.id,
-        source: 'workflow',
-        path: '/agent-workflow'
-      });
+      // 2. 功能页面AI助手（技术包装、技术策略、技术通稿、项目资源）
+      const featurePages = [
+        { type: 'tech-package', name: '技术包装', path: '/tech-package', storageKey: 'tech-package-ai-role-id' },
+        { type: 'tech-strategy', name: '技术策略', path: '/tech-strategy', storageKey: 'tech-strategy-ai-role-id' },
+        { type: 'tech-article', name: '技术通稿', path: '/tech-article', storageKey: 'tech-article-ai-role-id' },
+        { type: 'ai-qa-assistant', name: 'AI问答助手', path: '/project-resources', storageKey: 'project-resources-ai-role-id' },
+      ];
 
-      // 3. 项目资源AI助手
-      try {
-        const aiQAConfig = await configService.getDifyConfig('smart-workflow-ai-qa');
-        // 检查配置是否存在且已启用
-        const configured = !!(aiQAConfig && aiQAConfig.enabled);
-        
+      for (const page of featurePages) {
+        let configured = false;
+        let roleId: string | undefined;
+        let roleName: string | undefined;
+
+        if (page.type === 'ai-qa-assistant') {
+          // 项目资源AI助手使用 configService
+          try {
+            const aiQAConfig = await configService.getDifyConfig('smart-workflow-ai-qa');
+            configured = !!(aiQAConfig && aiQAConfig.enabled);
+            if (configured) {
+              // 尝试从 localStorage 获取 roleId
+              const storedRoleId = localStorage.getItem(page.storageKey);
+              if (storedRoleId) {
+                roleId = storedRoleId;
+                const matchedRole = roles.find(r => r.id === roleId);
+                roleName = matchedRole?.name || aiQAConfig?.name;
+              } else {
+                roleName = aiQAConfig?.name || 'AI问答助手';
+              }
+            }
+          } catch (error) {
+            console.warn(`获取${page.name}配置失败:`, error);
+          }
+        } else {
+          // 其他功能页面从 localStorage 获取
+          const storedRoleId = localStorage.getItem(page.storageKey);
+          if (storedRoleId) {
+            roleId = storedRoleId;
+            const matchedRole = roles.find(r => r.id === roleId);
+            configured = !!matchedRole;
+            roleName = matchedRole?.name;
+          }
+        }
+
         statuses.push({
-          nodeType: 'ai-qa-assistant',
-          nodeName: 'AI问答助手',
+          nodeType: page.type,
+          nodeName: page.name,
           icon: <Brain className="w-4 h-4" />,
           configured,
-          roleName: configured ? (aiQAConfig?.name || 'AI问答助手') : undefined,
-          source: 'project-resources',
-          path: '/ai-roles'
-        });
-      } catch (error) {
-        console.warn('获取AI问答配置失败:', error);
-        statuses.push({
-          nodeType: 'ai-qa-assistant',
-          nodeName: 'AI问答助手',
-          icon: <Brain className="w-4 h-4" />,
-          configured: false,
-          source: 'project-resources',
-          path: '/ai-roles'
+          roleId,
+          roleName,
+          source: 'feature-page',
+          path: page.path
         });
       }
 
-      // 4. 字段映射功能对象
+      // 3. 字段映射功能对象
       const featureTypes = [
         { type: 'five-view-analysis', name: '技术转译（五看）', label: '五看分析' },
         { type: 'three-fix-analysis', name: '用户场景挖掘（三定）', label: '三定分析' },
@@ -236,49 +248,49 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
     if (!selectorTarget) return;
 
     try {
-      if (selectorTarget.source === 'project-resources' && selectorTarget.nodeType === 'ai-qa-assistant') {
-        // 更新 smart-workflow-ai-qa 配置
-        if (role.provider === 'dify' && role.difyConfig) {
-          const configToSave = {
-            id: 'smart-workflow-ai-qa',
-            name: role.name,
-            description: role.description,
-            apiUrl: role.difyConfig.apiUrl,
-            apiKey: role.difyConfig.apiKey,
-            enabled: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
+      if (selectorTarget.source === 'feature-page') {
+        // 功能页面AI助手配置
+        if (selectorTarget.nodeType === 'ai-qa-assistant') {
+          // 项目资源AI助手：更新 smart-workflow-ai-qa 配置
+          if (role.provider === 'dify' && role.difyConfig) {
+            const configToSave = {
+              id: 'smart-workflow-ai-qa',
+              name: role.name,
+              description: role.description,
+              apiUrl: role.difyConfig.apiUrl,
+              apiKey: role.difyConfig.apiKey,
+              enabled: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
 
-          // 获取所有配置并更新或添加
-          const allConfigs = await configService.getDifyConfigs();
-          const index = allConfigs.findIndex(c => c.id === 'smart-workflow-ai-qa');
-          
-          if (index >= 0) {
-            allConfigs[index] = { ...allConfigs[index], ...configToSave };
+            const allConfigs = await configService.getDifyConfigs();
+            const index = allConfigs.findIndex(c => c.id === 'smart-workflow-ai-qa');
+            
+            if (index >= 0) {
+              allConfigs[index] = { ...allConfigs[index], ...configToSave };
+            } else {
+              allConfigs.push(configToSave);
+            }
+            
+            await configService.saveDifyConfigs(allConfigs);
+            localStorage.setItem('project-resources-ai-role-id', role.id);
           } else {
-            allConfigs.push(configToSave);
+            alert('项目资源AI助手仅支持Dify类型的AI角色。请选择一个配置了Dify API的角色。');
+            return;
           }
-          
-          await configService.saveDifyConfigs(allConfigs);
-          
-          // 同时保存 Role ID 到 localStorage，以便 ProjectResourcesPage 使用新版接口
-          localStorage.setItem('project-resources-ai-role-id', role.id);
         } else {
-           // 尝试支持 Direct Agent (如果需要) 或提示
-           // 目前项目资源页面主要使用 getDifyConfig，所以暂时限制
-           alert('当前节点配置仅支持Dify类型的AI角色。请选择一个配置了Dify API的角色。');
-           return;
+          // 其他功能页面：保存到 localStorage
+          const storageKeyMap: Record<string, string> = {
+            'tech-package': 'tech-package-ai-role-id',
+            'tech-strategy': 'tech-strategy-ai-role-id',
+            'tech-article': 'tech-article-ai-role-id',
+          };
+          const storageKey = storageKeyMap[selectorTarget.nodeType];
+          if (storageKey) {
+            localStorage.setItem(storageKey, role.id);
+          }
         }
-      } else if (selectorTarget.source === 'workflow') {
-              // 1. 找到当前已分配的角色并取消分配
-              const currentAssignedRole = roles.find(r => r.source === 'smart-workflow');
-              if (currentAssignedRole && currentAssignedRole.id !== role.id) {
-                await aiRoleService.updateAIRole(currentAssignedRole.id, { source: 'custom' });
-              }
-              
-              // 2. 分配新角色
-              await aiRoleService.updateAIRole(role.id, { source: 'smart-workflow' });
       } else if (selectorTarget.source === 'field-mapping') {
         try {
           const configs = await aiSearchService.getAllFieldMappingConfigs();
@@ -374,65 +386,15 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
       {(hideHeader || expanded) && (
         <div className={`px-4 pb-4 space-y-3 ${hideHeader ? 'pt-4' : ''}`}>
           
-          {/* 工作流Agent节点 */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <Workflow className="w-4 h-4" />
-              工作流Agent节点
-            </h4>
-            <div className="space-y-2">
-              {nodeStatuses
-                .filter(s => s.source === 'workflow')
-                .map((status, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                        status.configured 
-                          ? 'bg-blue-50 border-blue-200' 
-                          : 'bg-yellow-50 border-yellow-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-1.5 rounded ${
-                          status.configured ? 'bg-blue-100' : 'bg-yellow-100'
-                      }`}>
-                        {status.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-900">
-                          {status.nodeName}
-                        </div>
-                        <div className="text-xs text-gray-600 mt-0.5">
-                          {status.configured && status.roleName 
-                            ? `已选择: ${status.roleName}` 
-                            : '在工作流编辑器中为Agent节点配置AI角色'}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenSelector(status);
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center gap-1"
-                    >
-                      <Bot className="w-3 h-3" />
-                      选择AI角色
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* 项目资源AI助手 */}
+          {/* 功能页面AI助手 */}
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
               <Brain className="w-4 h-4" />
-              项目资源AI助手
+              功能页面AI助手
             </h4>
             <div className="space-y-2">
               {nodeStatuses
-                .filter(s => s.source === 'project-resources')
+                .filter(s => s.source === 'feature-page')
                 .map((status, index) => (
                   <div
                     key={index}
@@ -452,7 +414,7 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                         <div className="font-medium text-sm text-gray-900">
                           {status.nodeName}
                         </div>
-                        {status.configured ? (
+                        {status.configured && status.roleName ? (
                           <div className="text-xs text-gray-600 mt-0.5">
                             已配置: {status.roleName}
                           </div>

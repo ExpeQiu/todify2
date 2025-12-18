@@ -43,6 +43,21 @@ const RoleList: React.FC<RoleListProps> = ({
   const allSelected = roles.length > 0 && selectedRoles.size === roles.length;
   const someSelected = selectedRoles.size > 0 && selectedRoles.size < roles.length;
 
+  // 检查 avatar 是否是有效的 URL
+  const isValidAvatarUrl = (avatar: string | undefined): boolean => {
+    if (!avatar) return false;
+    // 如果包含 emoji 或不是以 http/https/data: 开头，则认为是无效 URL
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+    if (emojiRegex.test(avatar)) return false;
+    try {
+      const url = new URL(avatar);
+      return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'data:';
+    } catch {
+      // 如果不是有效的 URL，返回 false
+      return false;
+    }
+  };
+
   if (roles.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
@@ -101,17 +116,24 @@ const RoleList: React.FC<RoleListProps> = ({
                 <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                   {/* 角色信息 */}
                   <div className="col-span-3 flex items-center gap-3 min-w-0">
-                    {role.avatar ? (
+                    {role.avatar && isValidAvatarUrl(role.avatar) ? (
                       <img
                         src={role.avatar}
                         alt={role.name}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                        onError={(e) => {
+                          // 如果图片加载失败，替换为默认图标
+                          e.currentTarget.style.display = 'none';
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-6 h-6 text-white" />
-                      </div>
-                    )}
+                    ) : null}
+                    <div 
+                      className={`w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 ${role.avatar && isValidAvatarUrl(role.avatar) ? 'hidden' : ''}`}
+                    >
+                      <Bot className="w-6 h-6 text-white" />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900 truncate text-sm">

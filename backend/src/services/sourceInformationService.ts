@@ -76,7 +76,11 @@ export class SourceInformationService {
     const existing = await this.model.findBySourceId(data.source_id);
     if (existing) {
       // 如果已存在，更新而不是创建
-      return await this.model.updateBySourceId(data.source_id, data);
+      const updated = await this.model.updateBySourceId(data.source_id, data);
+      if (!updated) {
+        throw new Error('更新来源信息失败');
+      }
+      return updated;
     }
     
     return await this.model.create(data);

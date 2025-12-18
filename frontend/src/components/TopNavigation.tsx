@@ -357,10 +357,10 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-all duration-200"
-                title={currentUsername}
+                title="用户"
               >
                 <User className="w-4 h-4" />
-                <span>{currentUsername}</span>
+                <span>用户</span>
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${userMenuOpen ? 'transform rotate-180' : ''}`} />
               </button>
 

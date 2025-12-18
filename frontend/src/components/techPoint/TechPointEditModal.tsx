@@ -3,6 +3,13 @@ import { Modal, Form, Input, Select, Button, Space, message, Empty, DatePicker, 
 import { ImportOutlined } from '@ant-design/icons';
 import type { TechPoint, TechCategory } from '../../types/techPoint';
 import { techPointService } from '../../services/techPointService';
+import { brandService } from '../../services/brandService';
+import { carModelService } from '../../services/carModelService';
+import { carSeriesService } from '../../services/carSeriesService';
+import type { Brand } from '../../types/brand';
+import type { CarModel } from '../../types/carModel';
+import type { CarSeries } from '../../types/carSeries';
+import CarModelAssociation from './CarModelAssociation';
 import dayjs from 'dayjs';
 
 interface TechPointEditModalProps {
@@ -25,17 +32,155 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
   const [techCategories, setTechCategories] = useState<TechCategory[]>([]);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importJsonText, setImportJsonText] = useState('');
+  
+  // 品牌、车型、车系相关状态
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [carModels, setCarModels] = useState<CarModel[]>([]);
+  const [carSeries, setCarSeries] = useState<CarSeries[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null);
+  const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
+  const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null);
+  const [brandsLoading, setBrandsLoading] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [seriesLoading, setSeriesLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
       loadTechCategories();
+      loadBrands();
       if (techPoint) {
-        loadTechPointData();
+        // 重新从后端获取最新数据，确保所有字段都正确加载
+        loadTechPointDataFromServer();
       } else {
         form.resetFields();
+        setSelectedBrandId(null);
+        setSelectedModelId(null);
+        setSelectedSeriesId(null);
+        setCarModels([]);
+        setCarSeries([]);
       }
     }
   }, [visible, techPoint]);
+
+  // 从服务器重新加载技术点数据
+  const loadTechPointDataFromServer = async () => {
+    if (!techPoint) return;
+    
+    try {
+      const response = await techPointService.getTechPointById(techPoint.id);
+      if (response.success && response.data) {
+        // 使用从服务器获取的最新数据
+        loadTechPointDataWithData(response.data);
+      } else {
+        // 如果服务器请求失败，使用传入的 techPoint
+        loadTechPointData();
+      }
+    } catch (error) {
+      console.error('从服务器加载技术点数据失败:', error);
+      // 如果服务器请求失败，使用传入的 techPoint
+      loadTechPointData();
+    }
+  };
+
+  // 使用指定数据加载表单
+  const loadTechPointDataWithData = (data: TechPoint) => {
+    try {
+      // 从 technical_details 中提取字段（如果存在）
+      const technicalDetails = data.technical_details || {};
+      
+      // 优先使用直接字段，如果没有则从 technical_details 中获取
+      const techPrinciple = data.tech_principle || technicalDetails.tech_principle || '';
+      const techValue = data.tech_value || technicalDetails.tech_value || '';
+      const techBoundary = data.tech_boundary || technicalDetails.tech_boundary || '';
+      
+      // 处理 highlights 和 evidence 字段
+      let highlights = data.highlights || [];
+      let evidenceMeasured = data.evidence_measured || [];
+      let evidenceCertified = data.evidence_certified || [];
+      let evidenceComparison = data.evidence_comparison || [];
+      
+      // 如果字段是字符串，尝试解析为数组
+      if (typeof highlights === 'string') {
+        try {
+          highlights = JSON.parse(highlights);
+        } catch (e) {
+          highlights = [];
+        }
+      }
+      if (typeof evidenceMeasured === 'string') {
+        try {
+          evidenceMeasured = JSON.parse(evidenceMeasured);
+        } catch (e) {
+          evidenceMeasured = [];
+        }
+      }
+      if (typeof evidenceCertified === 'string') {
+        try {
+          evidenceCertified = JSON.parse(evidenceCertified);
+        } catch (e) {
+          evidenceCertified = [];
+        }
+      }
+      if (typeof evidenceComparison === 'string') {
+        try {
+          evidenceComparison = JSON.parse(evidenceComparison);
+        } catch (e) {
+          evidenceComparison = [];
+        }
+      }
+      
+      // 从 technical_details 中获取（如果直接字段为空）
+      if (!highlights.length && technicalDetails.highlights) {
+        highlights = Array.isArray(technicalDetails.highlights) 
+          ? technicalDetails.highlights 
+          : [];
+      }
+      if (!evidenceMeasured.length && technicalDetails.evidence_measured) {
+        evidenceMeasured = Array.isArray(technicalDetails.evidence_measured) 
+          ? technicalDetails.evidence_measured 
+          : [];
+      }
+      if (!evidenceCertified.length && technicalDetails.evidence_certified) {
+        evidenceCertified = Array.isArray(technicalDetails.evidence_certified) 
+          ? technicalDetails.evidence_certified 
+          : [];
+      }
+      if (!evidenceComparison.length && technicalDetails.evidence_comparison) {
+        evidenceComparison = Array.isArray(technicalDetails.evidence_comparison) 
+          ? technicalDetails.evidence_comparison 
+          : [];
+      }
+
+      // 填充表单数据
+      form.setFieldsValue({
+        name: data.name,
+        description: data.description || '',
+        category_id: data.category_id,
+        technology_id: data.technology_id || undefined,
+        tech_principle: techPrinciple,
+        tech_value: techValue,
+        tech_boundary: techBoundary,
+        highlights: highlights,
+        evidence_measured: evidenceMeasured,
+        evidence_certified: evidenceCertified,
+        evidence_comparison: evidenceComparison,
+        release_date: data.release_date ? dayjs(data.release_date) : null,
+        tech_type: data.tech_type || 'feature',
+        priority: data.priority || 'medium',
+        status: data.status || 'draft',
+      });
+      
+      console.log('加载技术点数据:', {
+        tech_principle: techPrinciple,
+        tech_value: techValue,
+        tech_boundary: techBoundary,
+        technical_details: technicalDetails
+      });
+    } catch (error) {
+      console.error('加载技术点数据失败:', error);
+      message.error('加载技术点数据失败');
+    }
+  };
 
   const loadTechCategories = async () => {
     try {
@@ -55,27 +200,177 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
     }
   };
 
+  // 加载品牌列表
+  const loadBrands = async () => {
+    setBrandsLoading(true);
+    try {
+      const response = await brandService.getAll();
+      if (response.data) {
+        setBrands(response.data);
+      }
+    } catch (error) {
+      console.error('加载品牌列表失败:', error);
+    } finally {
+      setBrandsLoading(false);
+    }
+  };
+
+  // 根据品牌加载车型列表
+  const loadCarModelsByBrand = async (brandId: number) => {
+    setModelsLoading(true);
+    try {
+      const response = await carModelService.getByBrand(brandId);
+      if (response.data) {
+        setCarModels(response.data);
+      } else {
+        setCarModels([]);
+      }
+    } catch (error) {
+      console.error('加载车型列表失败:', error);
+      setCarModels([]);
+    } finally {
+      setModelsLoading(false);
+    }
+  };
+
+  // 根据车型加载车系列表
+  const loadCarSeriesByModel = async (modelId: number) => {
+    setSeriesLoading(true);
+    try {
+      const response = await carSeriesService.getByModel(modelId);
+      if (response.data) {
+        setCarSeries(response.data);
+      } else {
+        setCarSeries([]);
+      }
+    } catch (error) {
+      console.error('加载车系列表失败:', error);
+      setCarSeries([]);
+    } finally {
+      setSeriesLoading(false);
+    }
+  };
+
+  // 品牌变化处理
+  useEffect(() => {
+    if (selectedBrandId) {
+      loadCarModelsByBrand(selectedBrandId);
+      setCarSeries([]);
+      setSelectedModelId(null);
+      setSelectedSeriesId(null);
+    } else {
+      setCarModels([]);
+      setCarSeries([]);
+      setSelectedModelId(null);
+      setSelectedSeriesId(null);
+    }
+  }, [selectedBrandId]);
+
+  // 车型变化处理
+  useEffect(() => {
+    if (selectedModelId) {
+      loadCarSeriesByModel(selectedModelId);
+      setSelectedSeriesId(null);
+    } else {
+      setCarSeries([]);
+      setSelectedSeriesId(null);
+    }
+  }, [selectedModelId]);
+
   const loadTechPointData = async () => {
     if (!techPoint) return;
 
     try {
+      // 从 technical_details 中提取字段（如果存在）
+      const technicalDetails = techPoint.technical_details || {};
+      
+      // 优先使用直接字段，如果没有则从 technical_details 中获取
+      const techPrinciple = techPoint.tech_principle || technicalDetails.tech_principle || '';
+      const techValue = techPoint.tech_value || technicalDetails.tech_value || '';
+      const techBoundary = techPoint.tech_boundary || technicalDetails.tech_boundary || '';
+      
+      // 处理 highlights 和 evidence 字段
+      let highlights = techPoint.highlights || [];
+      let evidenceMeasured = techPoint.evidence_measured || [];
+      let evidenceCertified = techPoint.evidence_certified || [];
+      let evidenceComparison = techPoint.evidence_comparison || [];
+      
+      // 如果字段是字符串，尝试解析为数组
+      if (typeof highlights === 'string') {
+        try {
+          highlights = JSON.parse(highlights);
+        } catch (e) {
+          highlights = [];
+        }
+      }
+      if (typeof evidenceMeasured === 'string') {
+        try {
+          evidenceMeasured = JSON.parse(evidenceMeasured);
+        } catch (e) {
+          evidenceMeasured = [];
+        }
+      }
+      if (typeof evidenceCertified === 'string') {
+        try {
+          evidenceCertified = JSON.parse(evidenceCertified);
+        } catch (e) {
+          evidenceCertified = [];
+        }
+      }
+      if (typeof evidenceComparison === 'string') {
+        try {
+          evidenceComparison = JSON.parse(evidenceComparison);
+        } catch (e) {
+          evidenceComparison = [];
+        }
+      }
+      
+      // 从 technical_details 中获取（如果直接字段为空）
+      if (!highlights.length && technicalDetails.highlights) {
+        highlights = Array.isArray(technicalDetails.highlights) 
+          ? technicalDetails.highlights 
+          : [];
+      }
+      if (!evidenceMeasured.length && technicalDetails.evidence_measured) {
+        evidenceMeasured = Array.isArray(technicalDetails.evidence_measured) 
+          ? technicalDetails.evidence_measured 
+          : [];
+      }
+      if (!evidenceCertified.length && technicalDetails.evidence_certified) {
+        evidenceCertified = Array.isArray(technicalDetails.evidence_certified) 
+          ? technicalDetails.evidence_certified 
+          : [];
+      }
+      if (!evidenceComparison.length && technicalDetails.evidence_comparison) {
+        evidenceComparison = Array.isArray(technicalDetails.evidence_comparison) 
+          ? technicalDetails.evidence_comparison 
+          : [];
+      }
+
       // 填充表单数据
       form.setFieldsValue({
         name: techPoint.name,
         description: techPoint.description || '',
         category_id: techPoint.category_id,
         technology_id: techPoint.technology_id || undefined,
-        tech_principle: techPoint.tech_principle || '',
-        tech_value: techPoint.tech_value || '',
-        tech_boundary: techPoint.tech_boundary || '',
-        highlights: techPoint.highlights || [],
-        evidence_measured: techPoint.evidence_measured || [],
-        evidence_certified: techPoint.evidence_certified || [],
-        evidence_comparison: techPoint.evidence_comparison || [],
+        tech_principle: techPrinciple,
+        tech_value: techValue,
+        tech_boundary: techBoundary,
+        highlights: highlights,
+        evidence_measured: evidenceMeasured,
+        evidence_certified: evidenceCertified,
+        evidence_comparison: evidenceComparison,
         release_date: techPoint.release_date ? dayjs(techPoint.release_date) : null,
         tech_type: techPoint.tech_type || 'feature',
         priority: techPoint.priority || 'medium',
         status: techPoint.status || 'draft',
+      });
+      
+      console.log('加载技术点数据:', {
+        tech_principle: techPrinciple,
+        tech_value: techValue,
+        tech_boundary: techBoundary,
+        technical_details: technicalDetails
       });
     } catch (error) {
       console.error('加载技术点数据失败:', error);
@@ -252,7 +547,7 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
       title={techPoint ? `编辑技术点（${techPoint.name}）` : '新增技术点'}
       open={visible}
       onCancel={onCancel}
-      width={800}
+      width={900}
       footer={[
         <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
           Json导入
@@ -265,6 +560,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
         </Button>,
       ]}
       destroyOnHidden
+      style={{ top: 20 }}
+      bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
     >
       <Divider style={{ margin: '0 0 24px 0' }} />
       <Form
@@ -280,43 +577,130 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
           status: 'draft',
         }}
       >
+        {/* 基本信息 */}
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={{ marginBottom: 16, fontSize: 14, fontWeight: 500 }}>基本信息</h4>
+          <Form.Item
+            name="name"
+            label="技术点名称"
+            rules={[{ required: true, message: '请输入技术点名称' }]}
+          >
+            <Input placeholder="请输入技术点名称" />
+          </Form.Item>
 
-        <Form.Item
-          name="name"
-          label="技术点名称"
-          rules={[{ required: true, message: '请输入技术点名称' }]}
-        >
-          <Input placeholder="请输入技术点名称" />
-        </Form.Item>
+          <Form.Item
+            name="description"
+            label="描述"
+            rules={[{ required: true, message: '请输入描述' }]}
+          >
+            <Input.TextArea rows={3} placeholder="请输入技术点描述" />
+          </Form.Item>
+        </div>
 
-        <Form.Item
-          name="description"
-          label="描述"
-          rules={[{ required: true, message: '请输入描述' }]}
-        >
-          <Input.TextArea rows={3} placeholder="请输入技术点描述" />
-        </Form.Item>
+        <Divider />
 
-        <Form.Item
-          name="tech_principle"
-          label="技术原理"
-        >
-          <Input.TextArea rows={3} placeholder="请输入技术原理" />
-        </Form.Item>
+        {/* 技术详情 */}
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={{ marginBottom: 16, fontSize: 14, fontWeight: 500 }}>技术详情</h4>
+          <Form.Item
+            name="tech_principle"
+            label="技术原理"
+          >
+            <Input.TextArea rows={3} placeholder="请输入技术原理" id="tech_principle" />
+          </Form.Item>
 
-        <Form.Item
-          name="tech_value"
-          label="价值"
-        >
-          <Input.TextArea rows={3} placeholder="请输入价值" />
-        </Form.Item>
+          <Form.Item
+            name="tech_value"
+            label="价值"
+          >
+            <Input.TextArea rows={3} placeholder="请输入价值" id="tech_value" />
+          </Form.Item>
 
-        <Form.Item
-          name="tech_boundary"
-          label="适用边界"
-        >
-          <Input.TextArea rows={3} placeholder="请输入适用边界" />
-        </Form.Item>
+          <Form.Item
+            name="tech_boundary"
+            label="适用边界"
+          >
+            <Input.TextArea rows={3} placeholder="请输入适用边界" id="tech_boundary" />
+          </Form.Item>
+        </div>
+
+        <Divider />
+
+        {/* 车型信息选择 */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>车型信息（可选）</label>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item label="品牌">
+                <Select
+                  placeholder="请选择品牌"
+                  value={selectedBrandId}
+                  onChange={(value) => {
+                    setSelectedBrandId(value);
+                    form.setFieldsValue({ car_model_id: undefined, car_series_id: undefined });
+                  }}
+                  loading={brandsLoading}
+                  allowClear
+                >
+                  {brands.map(brand => (
+                    <Select.Option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="车型">
+                <Select
+                  placeholder="请选择车型"
+                  value={selectedModelId}
+                  onChange={(value) => {
+                    setSelectedModelId(value);
+                    form.setFieldsValue({ car_series_id: undefined });
+                  }}
+                  disabled={!selectedBrandId}
+                  loading={modelsLoading}
+                  allowClear
+                >
+                  {carModels.map(model => (
+                    <Select.Option key={model.id} value={model.id}>
+                      {model.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="车系">
+                <Select
+                  placeholder="请选择车系"
+                  value={selectedSeriesId}
+                  onChange={(value) => setSelectedSeriesId(value)}
+                  disabled={!selectedModelId}
+                  loading={seriesLoading}
+                  allowClear
+                >
+                  {carSeries.map(series => (
+                    <Select.Option key={series.id} value={series.id}>
+                      {series.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          {techPoint && (
+            <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
+              <div style={{ marginBottom: 8, fontWeight: 500 }}>关联车型管理</div>
+              <p style={{ margin: 0, fontSize: 12, color: '#666' }}>
+                技术点创建后，可在详情页面管理关联车型。当前技术点ID: {techPoint.id}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <Divider />
 
         <Form.List name="highlights">
           {(fields, { add, remove }) => (
@@ -396,6 +780,7 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
 
         <Divider />
 
+        {/* 关联信息 */}
         <Row gutter={16} style={{ marginTop: 16 }}>
           <Col span={12}>
             <Form.Item
@@ -436,12 +821,35 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
 
         <Divider />
 
+        {/* 日期信息 */}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="release_date" label="发布日期">
               <DatePicker style={{ width: '100%' }} placeholder="请选择发布日期" />
             </Form.Item>
           </Col>
+          {techPoint && (
+            <>
+              <Col span={12}>
+                <Form.Item label="创建时间">
+                  <Input 
+                    value={techPoint.created_at ? dayjs(techPoint.created_at).format('YYYY-MM-DD HH:mm:ss') : '-'} 
+                    disabled 
+                    style={{ background: '#f5f5f5' }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="更新时间">
+                  <Input 
+                    value={techPoint.updated_at ? dayjs(techPoint.updated_at).format('YYYY-MM-DD HH:mm:ss') : '-'} 
+                    disabled 
+                    style={{ background: '#f5f5f5' }}
+                  />
+                </Form.Item>
+              </Col>
+            </>
+          )}
         </Row>
 
         <Divider />

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Mic, Plus, ArrowLeft, Bot, User, Zap, FileText, Megaphone, Newspaper, Presentation, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, History, MessageSquare } from "lucide-react";
 import { workflowAPI } from "../services/api";
 import { configService } from "../services/configService";
+import TopNavigation from "../components/TopNavigation";
 
 interface Message {
   id: string;
@@ -261,7 +262,9 @@ const AIChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50">
+      <TopNavigation />
+      <div className="flex flex-1 overflow-hidden">
       {/* 左侧导航栏 */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
         {/* 顶部返回按钮 */}
@@ -515,6 +518,7 @@ const AIChatPage: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,0 +1,51 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# 构建产物
+dist
+build
+
+# 测试
+coverage
+.nyc_output
+tests
+*.test.tsx
+*.test.ts
+*.spec.tsx
+*.spec.ts
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# 临时文件
+*.log
+tmp
+temp
+
+# 文档
+*.md
+README.md
+
+# Playwright
+playwright-report
+test-results
+
+# macOS 特有文件
+.DS_Store
+._*
+.AppleDouble
+.LSOverride

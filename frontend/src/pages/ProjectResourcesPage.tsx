@@ -19,6 +19,7 @@ import { configService } from '../services/configService';
 import sourceService, { Source, SourceCategory, SourceInformation } from '../services/sourceService';
 import { AIRoleConfig } from '../types/aiRole';
 import aiRoleService from '../services/aiRoleService';
+import TopNavigation from '../components/TopNavigation';
 
 const ProjectResourcesPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -1973,6 +1974,7 @@ ${truncatedText}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <TopNavigation />
       {/* 头部 */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

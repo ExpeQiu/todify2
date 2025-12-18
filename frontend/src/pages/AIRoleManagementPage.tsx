@@ -10,6 +10,7 @@ import {
   Save,
   AlertCircle,
   CheckCircle,
+  CheckCircle2,
   Loader,
   MessageSquare,
   Settings,
@@ -28,7 +29,9 @@ import {
   Maximize2,
   Info,
   BarChart3,
-  XCircle
+  XCircle,
+  Power,
+  PowerOff
 } from 'lucide-react';
 import TopNavigation from '../components/TopNavigation';
 import aiRoleService, { AIRoleUsage } from '../services/aiRoleService';
@@ -150,9 +153,9 @@ const AIRoleManagementPage: React.FC = () => {
       // 检查迁移状态（传入已加载的角色，避免重复调用API）
       await checkMigrationStatus(loadedRoles);
       try {
+        // 默认显示全部自编工作流
         const wfs = await agentWorkflowService.getAllWorkflows();
-        const pubs = wfs.filter(w => w.published);
-        setPublishedWorkflows(pubs);
+        setPublishedWorkflows(wfs);
       } catch {}
     };
     
@@ -182,19 +185,10 @@ const AIRoleManagementPage: React.FC = () => {
       const wfs = await agentWorkflowService.getAllWorkflows();
       setDebugWorkflows(wfs); // Store for debugging
       console.log('Fetched workflows:', wfs);
-      const pubs = wfs.filter(w => (
-        (w as any).published === true ||
-        (w as any).published === 1 ||
-        (w as any).published === '1' ||
-        (w as any).published === 'true' ||
-        (typeof (w as any).published === 'string' && (w as any).published.toLowerCase() === 'true') ||
-        (w as any).is_published === true ||
-        (w as any).is_published === 1
-      ));
-      console.log('Filtered published workflows:', pubs);
-      setPublishedWorkflows(pubs);
+      // 默认显示全部自编工作流，不进行发布状态过滤
+      setPublishedWorkflows(wfs);
     } catch (error) {
-      console.error('Error loading published workflows:', error);
+      console.error('Error loading workflows:', error);
     }
   };
 
@@ -400,7 +394,142 @@ const AIRoleManagementPage: React.FC = () => {
     }
   };
 
-  // 筛选和排序后的角色列表
+  // 统一的角色和工作流项目类型
+  type UnifiedItem = {
+    type: 'role';
+    data: AIRoleConfig;
+  } | {
+    type: 'workflow';
+    data: AgentWorkflow;
+  };
+
+  // 合并角色和工作流为统一列表
+  const unifiedItems = useMemo<UnifiedItem[]>(() => {
+    const items: UnifiedItem[] = [
+      ...roles.map(role => ({ type: 'role' as const, data: role })),
+      ...publishedWorkflows.map(wf => ({ type: 'workflow' as const, data: wf }))
+    ];
+    return items;
+  }, [roles, publishedWorkflows]);
+
+  // 筛选统一列表
+  const filteredUnifiedItems = useMemo(() => {
+    let filtered = [...unifiedItems];
+
+    // 搜索筛选
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(item => {
+        if (item.type === 'role') {
+          return (
+            item.data.name.toLowerCase().includes(query) ||
+            item.data.description?.toLowerCase().includes(query) ||
+            item.data.id.toLowerCase().includes(query)
+          );
+        } else {
+          return (
+            item.data.name.toLowerCase().includes(query) ||
+            item.data.description?.toLowerCase().includes(query) ||
+            item.data.id.toLowerCase().includes(query)
+          );
+        }
+      });
+    }
+
+    // 类型筛选（只适用于角色）
+    if (filterType !== 'all') {
+      filtered = filtered.filter(item => {
+        if (item.type === 'workflow') {
+          // 工作流总是显示（可以根据需求调整）
+          return true;
+        }
+        if (filterType === 'dify') {
+          return item.data.provider === 'dify' || !item.data.provider;
+        } else if (filterType === 'direct-agent') {
+          return item.data.provider === 'direct-agent';
+        }
+        return true;
+      });
+    }
+
+    // 状态筛选
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(item => {
+        if (item.type === 'workflow') {
+          // 工作流的状态根据 published 字段判断
+          if (filterStatus === 'enabled') {
+            return item.data.published === true;
+          } else if (filterStatus === 'disabled') {
+            return item.data.published !== true;
+          }
+          return true;
+        } else {
+          if (filterStatus === 'enabled') {
+            return item.data.enabled === true;
+          } else if (filterStatus === 'disabled') {
+            return item.data.enabled === false;
+          }
+          return true;
+        }
+      });
+    }
+
+    // 来源筛选（只适用于角色，工作流标记为 'workflow'）
+    if (filterSource !== 'all') {
+      filtered = filtered.filter(item => {
+        if (item.type === 'workflow') {
+          // 可以根据需求决定工作流是否显示
+          // 这里暂时让工作流总是显示，或者可以根据 filterSource === 'workflow' 来筛选
+          return true;
+        } else {
+          if (filterSource === 'smart-workflow') {
+            return item.data.source === 'smart-workflow';
+          } else if (filterSource === 'independent-page') {
+            return item.data.source === 'independent-page';
+          } else if (filterSource === 'agent-workflow') {
+            return item.data.source === 'agent-workflow';
+          } else if (filterSource === 'custom') {
+            return !item.data.source || item.data.source === 'custom';
+          }
+          return true;
+        }
+      });
+    }
+
+    // 排序
+    filtered.sort((a, b) => {
+      if (sortOption === 'name-asc') {
+        const nameA = a.data.name || '';
+        const nameB = b.data.name || '';
+        return nameA.localeCompare(nameB, 'zh-CN');
+      } else if (sortOption === 'name-desc') {
+        const nameA = a.data.name || '';
+        const nameB = b.data.name || '';
+        return nameB.localeCompare(nameA, 'zh-CN');
+      } else if (sortOption === 'created-desc') {
+        const dateA = a.data.createdAt instanceof Date ? a.data.createdAt : new Date(a.data.createdAt);
+        const dateB = b.data.createdAt instanceof Date ? b.data.createdAt : new Date(b.data.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      } else if (sortOption === 'created-asc') {
+        const dateA = a.data.createdAt instanceof Date ? a.data.createdAt : new Date(a.data.createdAt);
+        const dateB = b.data.createdAt instanceof Date ? b.data.createdAt : new Date(b.data.createdAt);
+        return dateA.getTime() - dateB.getTime();
+      } else if (sortOption === 'updated-desc') {
+        const dateA = a.data.updatedAt instanceof Date ? a.data.updatedAt : new Date(a.data.updatedAt);
+        const dateB = b.data.updatedAt instanceof Date ? b.data.updatedAt : new Date(b.data.updatedAt);
+        return dateB.getTime() - dateA.getTime();
+      } else if (sortOption === 'updated-asc') {
+        const dateA = a.data.updatedAt instanceof Date ? a.data.updatedAt : new Date(a.data.updatedAt);
+        const dateB = b.data.updatedAt instanceof Date ? b.data.updatedAt : new Date(b.data.updatedAt);
+        return dateA.getTime() - dateB.getTime();
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [unifiedItems, searchQuery, filterType, filterStatus, filterSource, sortOption]);
+
+  // 筛选和排序后的角色列表（保持向后兼容）
   const filteredAndSortedRoles = useMemo(() => {
     const filtered = filterRoles(roles, searchQuery, filterType, filterStatus, filterSource);
     return sortRoles(filtered, sortOption);
@@ -440,8 +569,9 @@ const AIRoleManagementPage: React.FC = () => {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    setSelectedRoles(new Set(filteredAndSortedRoles.map(r => r.id)));
-  }, [filteredAndSortedRoles]);
+    const roleItems = filteredUnifiedItems.filter(item => item.type === 'role');
+    setSelectedRoles(new Set(roleItems.map(item => item.data.id)));
+  }, [filteredUnifiedItems]);
 
   const handleDeselectAll = useCallback(() => {
     setSelectedRoles(new Set());
@@ -1115,172 +1245,356 @@ const AIRoleManagementPage: React.FC = () => {
               onSortChange={setSortOption}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
-              resultCount={filteredAndSortedRoles.length}
+              resultCount={filteredUnifiedItems.length}
             />
 
-            {/* 批量操作栏 */}
-            <BulkActionsBar
-              selectedRoles={selectedRoles}
-              roles={filteredAndSortedRoles}
-              onSelectAll={handleSelectAll}
-              onDeselectAll={handleDeselectAll}
-              onBulkEnable={handleBulkEnable}
-              onBulkDisable={handleBulkDisable}
-              onBulkDelete={handleBulkDelete}
-              isProcessing={isBulkProcessing}
-            />
-
-            {/* 角色列表/卡片 */}
-            {viewMode === 'list' ? (
-              <RoleList
-                roles={filteredAndSortedRoles}
+            {/* 批量操作栏 - 只对角色生效 */}
+            {filteredUnifiedItems.some(item => item.type === 'role') && (
+              <BulkActionsBar
                 selectedRoles={selectedRoles}
-                onSelect={handleSelectRole}
+                roles={filteredUnifiedItems.filter(item => item.type === 'role').map(item => item.data as AIRoleConfig)}
                 onSelectAll={handleSelectAll}
-                onEdit={handleEditRole}
-                onDelete={deleteRole}
-                onToggleEnable={handleToggleEnable}
-                onChat={handleChat}
-                roleUsages={roleUsages}
-                showUsage={true}
+                onDeselectAll={handleDeselectAll}
+                onBulkEnable={handleBulkEnable}
+                onBulkDisable={handleBulkDisable}
+                onBulkDelete={handleBulkDelete}
+                isProcessing={isBulkProcessing}
               />
+            )}
+
+            {/* 角色和工作流统一列表/卡片 */}
+            {viewMode === 'list' ? (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                {/* 表头 */}
+                <div className="bg-gray-50 border-b border-gray-200 px-4 py-3">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="checkbox"
+                      checked={filteredUnifiedItems.filter(item => item.type === 'role').length > 0 && 
+                               filteredUnifiedItems.filter(item => item.type === 'role').every(item => selectedRoles.has(item.data.id))}
+                      ref={(input) => {
+                        if (input) {
+                          const roleItems = filteredUnifiedItems.filter(item => item.type === 'role');
+                          const someSelected = roleItems.some(item => selectedRoles.has(item.data.id));
+                          input.indeterminate = someSelected && !roleItems.every(item => selectedRoles.has(item.data.id));
+                        }
+                      }}
+                      onChange={() => {
+                        const roleItems = filteredUnifiedItems.filter(item => item.type === 'role');
+                        const allSelected = roleItems.every(item => selectedRoles.has(item.data.id));
+                        if (allSelected) {
+                          roleItems.forEach(item => {
+                            setSelectedRoles(prev => {
+                              const next = new Set(prev);
+                              next.delete(item.data.id);
+                              return next;
+                            });
+                          });
+                        } else {
+                          roleItems.forEach(item => {
+                            setSelectedRoles(prev => new Set(prev).add(item.data.id));
+                          });
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <div className="flex-1 grid grid-cols-12 gap-4 text-sm font-semibold text-gray-700">
+                      <div className="col-span-3">名称</div>
+                      <div className="col-span-2">类型</div>
+                      <div className="col-span-2">状态</div>
+                      <div className="col-span-2">来源</div>
+                      <div className="col-span-2">使用情况</div>
+                      <div className="col-span-1 text-right">操作</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 列表项 */}
+                <div className="divide-y divide-gray-200">
+                  {filteredUnifiedItems.map((item, index) => {
+                    if (item.type === 'role') {
+                      const role = item.data;
+                      const usage = roleUsages?.get(role.id);
+                      return (
+                        <div key={`role-${role.id}`} className={`px-4 py-3 hover:bg-gray-50 transition-colors ${
+                          selectedRoles.has(role.id) ? 'bg-blue-50' : ''
+                        }`}>
+                          {/* 角色项 - 复用RoleList的逻辑 */}
+                          <div className="flex items-center gap-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedRoles.has(role.id)}
+                              onChange={() => handleSelectRole(role.id)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                            <div className="flex-1 grid grid-cols-12 gap-4 items-center">
+                              {/* 角色信息 */}
+                              <div className="col-span-3 flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                                  <Bot className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-semibold text-gray-900 truncate text-sm">{role.name}</h3>
+                                    {role.enabled ? (
+                                      <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                    ) : (
+                                      <XCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600 truncate mt-0.5">{role.description || '暂无描述'}</p>
+                                </div>
+                              </div>
+                              {/* 类型 */}
+                              <div className="col-span-2">
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                                  role.provider === 'direct-agent' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {role.provider === 'direct-agent' ? '独立Agent' : 'Dify工作流'}
+                                </span>
+                              </div>
+                              {/* 状态 */}
+                              <div className="col-span-2">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  role.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {role.enabled ? '启用' : '禁用'}
+                                </span>
+                              </div>
+                              {/* 来源 */}
+                              <div className="col-span-2">
+                                {role.source ? (
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                    role.source === 'smart-workflow' ? 'bg-blue-100 text-blue-700' :
+                                    role.source === 'independent-page' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {role.source === 'smart-workflow' ? '智能工作流' :
+                                     role.source === 'independent-page' ? '独立页面' : '自定义'}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-400">-</span>
+                                )}
+                              </div>
+                              {/* 使用情况 */}
+                              <div className="col-span-2">
+                                {usage && usage.totalUsageCount > 0 ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-700">
+                                    <FileText size={12} />
+                                    {usage.totalUsageCount}处使用
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-400">未使用</span>
+                                )}
+                              </div>
+                              {/* 操作 */}
+                              <div className="col-span-1 flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleEditRole(role)}
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  title="编辑"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleChat(role)}
+                                  className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                  title="对话测试"
+                                >
+                                  <MessageSquare size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleToggleEnable(role)}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    role.enabled ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'
+                                  }`}
+                                  title={role.enabled ? '禁用' : '启用'}
+                                >
+                                  {role.enabled ? <PowerOff size={16} /> : <Power size={16} />}
+                                </button>
+                                <button
+                                  onClick={() => deleteRole(role)}
+                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  title="删除"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      const wf = item.data;
+                      return (
+                        <div key={`workflow-${wf.id}`} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="w-4" /> {/* 占位，保持对齐 */}
+                            <div className="flex-1 grid grid-cols-12 gap-4 items-center">
+                              {/* 工作流信息 */}
+                              <div className="col-span-3 flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                                  <Workflow className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h3 className="font-semibold text-gray-900 truncate text-sm">{wf.name}</h3>
+                                    {wf.published && <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />}
+                                  </div>
+                                  <p className="text-xs text-gray-600 truncate mt-0.5">{wf.description || '—'}</p>
+                                </div>
+                              </div>
+                              {/* 类型 */}
+                              <div className="col-span-2">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+                                  {(wf.engine as any) || (wf.metadata?.engine as any) || 'native'}
+                                </span>
+                              </div>
+                              {/* 状态 */}
+                              <div className="col-span-2">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  wf.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {wf.published ? '已发布' : '未发布'}
+                                </span>
+                              </div>
+                              {/* 来源 */}
+                              <div className="col-span-2">
+                                <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">自编</span>
+                              </div>
+                              {/* 使用情况 */}
+                              <div className="col-span-2">
+                                <span className="text-xs text-gray-400">—</span>
+                              </div>
+                              {/* 操作 */}
+                              <div className="col-span-1 flex items-center justify-end gap-2">
+                                <button
+                                  className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                  title="对话测试"
+                                  onClick={() => handleWorkflowChat(wf)}
+                                >
+                                  <MessageSquare size={16} />
+                                </button>
+                                <a className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="编辑" href="/agent-workflow">
+                                  <Edit2 size={16} />
+                                </a>
+                                <button
+                                  className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+                                  title={wf.published ? '取消发布' : '发布'}
+                                  onClick={async () => {
+                                    try {
+                                      await agentWorkflowService.updateWorkflow(wf.id, { published: !wf.published });
+                                      await loadPublishedWorkflows();
+                                    } catch {}
+                                  }}
+                                >
+                                  {wf.published ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
+                </div>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAndSortedRoles.map(role => (
-                  <RoleCard
-                    key={role.id}
-                    role={role}
-                    isSelected={selectedRoles.has(role.id)}
-                    onSelect={handleSelectRole}
-                    onEdit={handleEditRole}
-                    onDelete={deleteRole}
-                    onToggleEnable={handleToggleEnable}
-                    onChat={handleChat}
-                    usage={roleUsages.get(role.id)}
-                    showUsage={true}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Debug info - TEMPORARY */}
-            {debugWorkflows.length > 0 && (
-              <div className="bg-gray-100 p-4 mb-4 rounded overflow-auto max-h-60 text-xs font-mono border border-gray-300">
-                <div className="flex justify-between mb-2 font-bold">
-                  <span>Debug Info: Raw Workflows ({debugWorkflows.length})</span>
-                  <button onClick={() => setDebugWorkflows([])} className="text-blue-600">Close</button>
-                </div>
-                <pre>{JSON.stringify(debugWorkflows.slice(0, 3), null, 2)}</pre>
-                {debugWorkflows.length > 3 && <p className="mt-2 text-gray-500">...and {debugWorkflows.length - 3} more</p>}
-              </div>
-            )}
-
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <Workflow className="w-5 h-5 text-indigo-600" />
-                  <span>自编工作流（已发布）</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={loadPublishedWorkflows}
-                    className="text-sm px-3 py-1.5 border rounded-lg text-gray-700 hover:bg-gray-100"
-                    title="刷新列表"
-                  >
-                    刷新
-                  </button>
-                  <button
-                    onClick={async () => {
-                        try {
-                          const wfs = await agentWorkflowService.getAllWorkflows();
-                          setPublishedWorkflows(wfs);
-                        } catch (e) { console.error(e); }
-                    }}
-                    className="text-sm px-3 py-1.5 border rounded-lg text-gray-700 hover:bg-gray-100 ml-2"
-                  >
-                    显示所有
-                  </button>
-                  <a href="/agent-workflow" className="text-blue-600 hover:text-blue-800 text-sm">去管理</a>
-                </div>
-              </div>
-              <div className="divide-y divide-gray-200">
-                {publishedWorkflows.map(wf => (
-                  <div key={wf.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                        <div className="col-span-3 flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                            <Workflow className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-gray-900 truncate text-sm">{wf.name}</h3>
-                              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                {filteredUnifiedItems.map((item) => {
+                  if (item.type === 'role') {
+                    const role = item.data;
+                    return (
+                      <RoleCard
+                        key={role.id}
+                        role={role}
+                        isSelected={selectedRoles.has(role.id)}
+                        onSelect={handleSelectRole}
+                        onEdit={handleEditRole}
+                        onDelete={deleteRole}
+                        onToggleEnable={handleToggleEnable}
+                        onChat={handleChat}
+                        usage={roleUsages.get(role.id)}
+                        showUsage={true}
+                      />
+                    );
+                  } else {
+                    const wf = item.data;
+                    return (
+                      <div key={wf.id} className="bg-white rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="p-4 border-b border-gray-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                              <Workflow className="w-7 h-7 text-white" />
                             </div>
-                            <p className="text-xs text-gray-600 truncate mt-0.5">{wf.description || '—'}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-gray-900 truncate text-sm">{wf.name}</h3>
+                                {wf.published && <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />}
+                              </div>
+                              <p className="text-xs text-gray-600 line-clamp-2">{wf.description || '—'}</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
-                            {(wf.engine as any) || (wf.metadata?.engine as any) || 'native'}
-                          </span>
+                        <div className="p-4 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-500">引擎</span>
+                            <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 font-medium">
+                              {(wf.engine as any) || (wf.metadata?.engine as any) || 'native'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-500">状态</span>
+                            <span className={`px-2 py-1 rounded font-medium ${
+                              wf.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {wf.published ? '已发布' : '未发布'}
+                            </span>
+                          </div>
                         </div>
-                        <div className="col-span-2">
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">已发布</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">自编</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-xs text-gray-400">—</span>
-                        </div>
-                        <div className="col-span-1 flex items-center justify-end gap-2">
+                        <div className="p-4 pt-2 border-t border-gray-100 flex items-center justify-end gap-2">
                           <button
                             className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors"
                             title="对话测试"
                             onClick={() => handleWorkflowChat(wf)}
                           >
-                            <MessageSquare className="w-4 h-4" />
+                            <MessageSquare size={16} />
                           </button>
                           <a className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="编辑" href="/agent-workflow">
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 size={16} />
                           </a>
                           <button
                             className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
-                            title="取消发布"
+                            title={wf.published ? '取消发布' : '发布'}
                             onClick={async () => {
                               try {
-                                await agentWorkflowService.updateWorkflow(wf.id, { published: false });
+                                await agentWorkflowService.updateWorkflow(wf.id, { published: !wf.published });
                                 await loadPublishedWorkflows();
                               } catch {}
                             }}
                           >
-                            <EyeOff className="w-4 h-4" />
+                            {wf.published ? <EyeOff size={16} /> : <Eye size={16} />}
                           </button>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-                {publishedWorkflows.length === 0 && (
-                  <div className="px-4 py-6 text-sm text-gray-500">暂无已发布的自编工作流</div>
-                )}
+                    );
+                  }
+                })}
               </div>
-            </div>
+            )}
 
             {/* 空状态 */}
-            {filteredAndSortedRoles.length === 0 && (
+            {filteredUnifiedItems.length === 0 && (
               <div className="bg-white rounded-lg shadow-md p-12 text-center">
                 <Bot size={64} className="mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all'
-                    ? '没有找到匹配的角色'
-                    : '暂无角色'}
+                    ? '没有找到匹配的角色或工作流'
+                    : '暂无角色和工作流'}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all'
                     ? '尝试调整搜索条件或筛选器'
-                    : '点击上方"新建角色"按钮创建您的第一个AI角色'}
+                    : '点击上方"新建角色"按钮创建您的第一个AI角色，或前往工作流编辑器创建自编工作流'}
                 </p>
                 {(searchQuery || filterType !== 'all' || filterStatus !== 'all' || filterSource !== 'all') && (
                   <button

@@ -1,0 +1,58 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# 构建产物
+dist
+build
+
+# 测试
+coverage
+.nyc_output
+tests
+*.test.ts
+*.spec.ts
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# 数据文件（保留目录结构）
+data/*.db
+data/*.db-journal
+
+# 但包含 init-data 目录用于初始化
+!init-data/
+
+# 上传文件（保留目录结构）
+uploads/*
+
+# 临时文件
+*.log
+tmp
+temp
+
+# 文档
+*.md
+README.md
+
+# 脚本
+scripts/test-*.ts
+
+# macOS 特有文件
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
