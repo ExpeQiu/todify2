@@ -456,7 +456,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
               className="hidden"
               accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
             />
-            {pageType !== 'tech-package' && (
+            {pageType !== 'tech-package' && pageType !== 'tech-strategy' && pageType !== 'tech-article' && (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"

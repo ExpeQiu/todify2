@@ -119,36 +119,96 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
         });
       }
 
-      // 3. 字段映射功能对象
-      const featureTypes = [
-        { type: 'five-view-analysis', name: '技术转译（五看）', label: '五看分析' },
-        { type: 'three-fix-analysis', name: '用户场景挖掘（三定）', label: '三定分析' },
-        { type: 'tech-matrix', name: '技术矩阵', label: '技术矩阵' },
-        { type: 'propagation-strategy', name: '传播策略', label: '传播策略' },
-        { type: 'exhibition-video', name: '展具与视频', label: '展具与视频' },
-        { type: 'translation', name: '翻译', label: '翻译' },
-        { type: 'ppt-outline', name: '技术讲稿', label: '技术讲稿' },
-        { type: 'script', name: '脚本', label: '脚本' },
-      ];
+      // 3. 字段映射功能对象 - 动态加载所有已配置的功能对象（包括自定义模块）
+      // 预定义功能类型的显示名称映射（用于向后兼容）
+      const FEATURE_DISPLAY_NAMES: Record<string, string> = {
+        'five-view-analysis': '技术转译（五看）',
+        'three-fix-analysis': '用户场景挖掘（三定）',
+        'tech-matrix': '技术矩阵',
+        'propagation-strategy': '传播策略',
+        'exhibition-video': '展具与视频',
+        'translation': '翻译',
+        'ppt-outline': '技术讲稿',
+        'script': '脚本',
+      };
 
-      // 从字段映射配置中获取agentId配置状态
       try {
         const fieldMappingConfigs = await aiSearchService.getAllFieldMappingConfigs();
         const allFeatureObjects = fieldMappingConfigs.flatMap(
           config => config.config.featureObjects || []
         );
 
-        featureTypes.forEach(feature => {
-          const featureConfig = allFeatureObjects.find(
-            (fo: any) => fo.featureType === feature.type && fo.agentId
-          );
+        // 从localStorage加载自定义模块
+        const CUSTOM_MODULES_STORAGE_KEY = 'field-mapping-custom-modules';
+        let customModules: Array<{ id: string; label: string }> = [];
+        try {
+          const stored = localStorage.getItem(CUSTOM_MODULES_STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              customModules = parsed.filter((m: any) => m && m.id && m.label);
+            }
+          }
+        } catch (error) {
+          console.warn('加载自定义模块失败:', error);
+        }
+
+        // 收集所有已配置的功能对象（排除 ai-dialog）
+        const seenFeatureTypes = new Set<string>();
+        const featureObjectsMap = new Map<string, any>();
+
+        // 从字段映射配置中收集所有功能对象
+        allFeatureObjects.forEach((fo: any) => {
+          if (fo.featureType && fo.featureType !== 'ai-dialog') {
+            const featureType = fo.featureType;
+            if (!seenFeatureTypes.has(featureType)) {
+              seenFeatureTypes.add(featureType);
+              featureObjectsMap.set(featureType, fo);
+            } else {
+              // 如果已存在，优先使用有 agentId 的配置
+              const existing = featureObjectsMap.get(featureType);
+              if (fo.agentId && !existing?.agentId) {
+                featureObjectsMap.set(featureType, fo);
+              }
+            }
+          }
+        });
+
+        // 添加自定义模块（即使它们可能还没有在字段映射配置中）
+        customModules.forEach(module => {
+          if (!seenFeatureTypes.has(module.id)) {
+            seenFeatureTypes.add(module.id);
+            // 尝试从字段映射配置中查找对应的配置
+            const existingConfig = allFeatureObjects.find((fo: any) => fo.featureType === module.id);
+            if (existingConfig) {
+              featureObjectsMap.set(module.id, existingConfig);
+            } else {
+              // 如果配置中还没有，创建一个占位符
+              featureObjectsMap.set(module.id, {
+                featureType: module.id,
+                label: module.label,
+                agentId: undefined
+              });
+            }
+          }
+        });
+
+        // 为每个功能对象创建状态
+        featureObjectsMap.forEach((featureConfig, featureType) => {
           const configured = !!featureConfig?.agentId;
           const roleId = featureConfig?.agentId;
           const matchedRole = roleId ? roles.find(r => r.id === roleId) : null;
 
+          // 获取显示名称：优先使用 label，然后是自定义模块的 label，最后是预定义的名称
+          let displayName = featureConfig?.label;
+          if (!displayName) {
+            const customModule = customModules.find(m => m.id === featureType);
+            displayName = customModule?.label || FEATURE_DISPLAY_NAMES[featureType] || featureType;
+          }
+
           statuses.push({
-            nodeType: feature.type,
-            nodeName: feature.name,
+            nodeType: featureType,
+            nodeName: displayName,
             icon: <Settings className="w-4 h-4" />,
             configured,
             roleId,
@@ -160,16 +220,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
       } catch (error) {
         // 如果获取字段映射配置失败，显示为未配置
         console.warn('获取字段映射配置失败:', error);
-        featureTypes.forEach(feature => {
-          statuses.push({
-            nodeType: feature.type,
-            nodeName: feature.name,
-            icon: <Settings className="w-4 h-4" />,
-            configured: false,
-            source: 'field-mapping',
-            path: '/field-mapping-management'
-          });
-        });
       }
 
       setNodeStatuses(statuses);
@@ -183,8 +233,80 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
   const handleCreateAndAssignRole = async (featureType: string) => {
     setCreatingRole(featureType);
     try {
-      // 1. 创建或获取预设角色
-      const result = await createPresetRole(featureType);
+      let result: { success: boolean; role?: AIRoleConfig; error?: string };
+      
+      // 检查是否是预设角色
+      if (PRESET_ROLES[featureType]) {
+        // 1. 创建或获取预设角色
+        result = await createPresetRole(featureType);
+      } else {
+        // 2. 对于自定义模块，创建通用角色
+        // 从localStorage加载自定义模块信息
+        const CUSTOM_MODULES_STORAGE_KEY = 'field-mapping-custom-modules';
+        let customModules: Array<{ id: string; label: string }> = [];
+        try {
+          const stored = localStorage.getItem(CUSTOM_MODULES_STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              customModules = parsed.filter((m: any) => m && m.id && m.label);
+            }
+          }
+        } catch (error) {
+          console.warn('加载自定义模块失败:', error);
+        }
+        
+        const customModule = customModules.find(m => m.id === featureType);
+        const roleName = customModule?.label || featureType;
+        const roleDescription = `${roleName}助手，用于处理${roleName}相关的任务。`;
+        
+        // 检查是否已存在同名角色
+        const existingRoles = await aiRoleService.getAIRoles();
+        const existingRole = existingRoles.find(r => r.name === roleName);
+        
+        if (existingRole) {
+          result = { success: true, role: existingRole };
+        } else {
+          // 创建新角色（使用通用配置）
+          const response = await aiRoleService.createAIRole({
+            name: roleName,
+            description: roleDescription,
+            provider: 'direct-agent',
+            agentConfig: {
+              llm: {
+                provider: 'openai',
+                model: 'gpt-4o',
+                temperature: 0.7,
+                maxTokens: 2000,
+                apiKey: 'sk-placeholder-please-update',
+              },
+              prompt: {
+                systemPrompt: `你是一位专业的${roleName}助手。你的任务是根据用户输入，提供专业、准确、有用的${roleName}相关服务。请仔细分析用户需求，提供结构化的输出。`,
+              },
+              contextStrategy: {
+                type: 'window',
+                maxMessages: 20,
+                maxTokens: 4000,
+                includeSystemPrompt: true
+              }
+            },
+            enabled: true,
+            avatar: '🤖'
+          } as any);
+          
+          if (response.success && response.data) {
+            const newRole = {
+              ...response.data,
+              createdAt: new Date(response.data.createdAt),
+              updatedAt: new Date(response.data.updatedAt)
+            };
+            result = { success: true, role: newRole };
+          } else {
+            result = { success: false, error: response.message || response.error || '创建失败' };
+          }
+        }
+      }
+      
       if (!result.success || !result.role) {
         alert(`创建角色失败: ${result.error}`);
         return;
@@ -488,7 +610,7 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                       {status.configured && (
                         <CheckCircle2 className="w-5 h-5 text-green-600" />
                       )}
-                      {!status.configured && PRESET_ROLES[status.nodeType] && (
+                      {!status.configured && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -496,7 +618,7 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                           }}
                           disabled={creatingRole === status.nodeType}
                           className="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-md transition-colors flex items-center gap-1 disabled:opacity-50"
-                          title="使用预设配置创建并自动分配角色"
+                          title={PRESET_ROLES[status.nodeType] ? "使用预设配置创建并自动分配角色" : "创建通用角色并自动分配"}
                         >
                           {creatingRole === status.nodeType ? (
                             <Loader2 className="w-3 h-3 animate-spin" />

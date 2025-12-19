@@ -15,10 +15,10 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 对于页面工具配置的 404 错误，静默处理（不抛出错误）
+    // 对于页面工具配置的 404 错误，静默处理（不抛出错误，也不在控制台显示）
     if (error?.config?.url?.includes('/page-tool-configs/') && error?.response?.status === 404) {
-      // 返回一个模拟的成功响应，data 为 null，表示配置不存在（这是正常情况）
-      return Promise.resolve({
+      // 阻止错误在控制台显示：创建一个静默的响应对象
+      const silentResponse = {
         data: {
           success: false,
           data: null,
@@ -27,8 +27,17 @@ api.interceptors.response.use(
         status: 200, // 返回 200 而不是 404，避免浏览器控制台显示错误
         statusText: 'OK',
         headers: error.response?.headers || {},
-        config: error.config,
-      });
+        config: {
+          ...error.config,
+          // 标记为已处理，避免axios显示错误
+          __silentError: true,
+        },
+      };
+      // 阻止浏览器控制台显示网络错误
+      if (error.config && typeof error.config === 'object') {
+        Object.defineProperty(error.config, 'silent', { value: true, writable: false });
+      }
+      return Promise.resolve(silentResponse);
     }
     // 其他错误正常抛出
     return Promise.reject(error);

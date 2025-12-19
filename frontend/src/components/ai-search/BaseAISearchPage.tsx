@@ -347,89 +347,188 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     loadAvailableWorkflows();
   }, [loadAvailableWorkflows]);
 
-  useEffect(() => {
-    const loadEnabledToolsForPage = async () => {
-      try {
-        console.log('[BaseAISearchPage] 加载工具配置，pageType:', config.pageType);
-        
-        // 1. 优先从数据库加载页面工具配置
-        const dbConfig = await pageToolConfigService.getByPageType(config.pageType);
-        if (dbConfig && dbConfig.enabledToolIds && dbConfig.enabledToolIds.length > 0) {
-          console.log('[BaseAISearchPage] 从数据库配置加载工具:', dbConfig.enabledToolIds);
-          setEnabledToolIds(dbConfig.enabledToolIds);
-          setDynamicLabelMap(dbConfig.featureLabelMap || {});
-          return;
-        }
+  // 使用ref缓存已加载的工具ID列表，避免重复请求
+  const cachedToolIdsRef = useRef<Record<string, string[]>>({});
+  const cachedMappingsRef = useRef<any[]>([]);
 
-        // 2. 如果没有数据库配置，尝试从字段映射配置中加载
-        const mappings = await aiSearchService.getAllFieldMappingConfigs();
-        // 向后兼容：支持读取旧数据中的 'speech'，但新数据统一使用 'press-release'
-        const pageKeys = config.pageType === 'press-release' 
-          ? ['press-release', 'speech'] 
-          : [config.pageType];
-        console.log('[BaseAISearchPage] 从字段映射配置加载工具，pageKeys:', pageKeys, 'mappings数量:', mappings.length);
-        
-        const setIds = new Set<string>();
-        const labels: Record<string, string> = {};
-        
-        // 从所有字段映射配置中筛选匹配当前 pageType 的工具项
-        // 这样可以聚合所有工作流中配置的该页面的工具
-        for (const item of mappings) {
-          const fos = Array.isArray(item.config?.featureObjects) ? item.config.featureObjects : [];
+  // 提取加载工具配置的函数，以便在多个地方调用
+  const loadEnabledToolsForPage = useCallback(async () => {
+    try {
+      console.log('[BaseAISearchPage] 加载工具配置，pageType:', config.pageType);
+      
+      // 1. 优先从字段映射配置中加载（字段映射配置是用户实际配置的，应该优先使用）
+      const mappings = await aiSearchService.getAllFieldMappingConfigs();
+      cachedMappingsRef.current = mappings; // 缓存映射配置
+      
+      // 向后兼容：支持读取旧数据中的 'speech'，但新数据统一使用 'press-release'
+      const pageKeys = config.pageType === 'press-release' 
+        ? ['press-release', 'speech'] 
+        : [config.pageType];
+      console.log('[BaseAISearchPage] 从字段映射配置加载工具，pageKeys:', pageKeys, 'mappings数量:', mappings.length);
+      
+      const setIds = new Set<string>();
+      const labels: Record<string, string> = {};
+      
+      // 从所有字段映射配置中筛选匹配当前 pageType 的工具项
+      // 这样可以聚合所有工作流中配置的该页面的工具
+      for (const item of mappings) {
+        const fos = Array.isArray(item.config?.featureObjects) ? item.config.featureObjects : [];
+        for (const f of fos) {
+          // 排除 ai-dialog，检查是否匹配当前页面的 pageType
+          if (f.featureType && f.featureType !== 'ai-dialog') {
+            const featurePageType = (f as any).pageType;
+            // 如果 featureObject 有 pageType，必须匹配当前页面；如果没有 pageType，则不显示（避免显示不相关的工具）
+            if (featurePageType && pageKeys.includes(featurePageType)) {
+              setIds.add(f.featureType);
+              // 如果多个工作流配置了同一个工具，优先使用有 label 的配置
+              if ((f as any).label && !labels[f.featureType]) {
+                labels[f.featureType] = (f as any).label as string;
+              }
+            }
+          }
+        }
+      }
+      
+      // 如果当前工作流有配置，优先使用当前工作流的标签
+      if (selectedWorkflowId) {
+        const currentMapping = mappings.find(m => m.workflowId === selectedWorkflowId);
+        if (currentMapping) {
+          const fos = Array.isArray(currentMapping.config?.featureObjects) ? currentMapping.config.featureObjects : [];
           for (const f of fos) {
-            // 排除 ai-dialog，检查是否匹配当前页面的 pageType
             if (f.featureType && f.featureType !== 'ai-dialog') {
               const featurePageType = (f as any).pageType;
-              // 如果 featureObject 有 pageType，必须匹配当前页面；如果没有 pageType，则不显示（避免显示不相关的工具）
               if (featurePageType && pageKeys.includes(featurePageType)) {
-                setIds.add(f.featureType);
-                // 如果多个工作流配置了同一个工具，优先使用有 label 的配置
-                if ((f as any).label && !labels[f.featureType]) {
+                if ((f as any).label) {
                   labels[f.featureType] = (f as any).label as string;
                 }
               }
             }
           }
         }
+      }
+      
+      console.log('[BaseAISearchPage] 从字段映射配置找到的工具数量:', setIds.size, '工具列表:', Array.from(setIds));
+      
+      // 如果字段映射配置中有工具，优先使用字段映射配置
+      if (setIds.size > 0) {
+        const toolIds = Array.from(setIds);
+        setEnabledToolIds(toolIds);
+        setDynamicLabelMap(labels);
+        // 缓存工具ID
+        cachedToolIdsRef.current[config.pageType] = toolIds;
+        return;
+      }
+
+      // 2. 如果字段映射配置中没有工具，尝试从数据库加载页面工具配置
+      const dbConfig = await pageToolConfigService.getByPageType(config.pageType);
+      if (dbConfig && dbConfig.enabledToolIds && dbConfig.enabledToolIds.length > 0) {
+        console.log('[BaseAISearchPage] 字段映射配置为空，从数据库配置加载工具:', dbConfig.enabledToolIds);
+        setEnabledToolIds(dbConfig.enabledToolIds);
+        setDynamicLabelMap(dbConfig.featureLabelMap || {});
+        // 缓存工具ID
+        cachedToolIdsRef.current[config.pageType] = dbConfig.enabledToolIds;
+        return;
+      }
+
+      // 3. 如果都没有，回退到使用配置中的默认工具列表
+      console.log('[BaseAISearchPage] 未找到字段映射配置和数据库配置，使用默认配置:', config.enabledToolIds);
+      const defaultToolIds = config.enabledToolIds || [];
+      setEnabledToolIds(defaultToolIds);
+      setDynamicLabelMap({});
+      // 缓存默认工具ID
+      cachedToolIdsRef.current[config.pageType] = defaultToolIds;
+    } catch (error) {
+      console.error('[BaseAISearchPage] 加载工具配置失败:', error);
+      // 出错时也回退到使用配置中的默认工具列表
+      const defaultToolIds = config.enabledToolIds || [];
+      setEnabledToolIds(defaultToolIds);
+      setDynamicLabelMap({});
+      cachedToolIdsRef.current[config.pageType] = defaultToolIds;
+    }
+  }, [config.pageType, config.enabledToolIds, selectedWorkflowId]);
+
+  // 只在pageType改变时加载工具配置（包括API请求）
+  useEffect(() => {
+    loadEnabledToolsForPage();
+  }, [loadEnabledToolsForPage]);
+
+  // 监听页面可见性和焦点变化，当页面重新获得焦点时重新加载工具配置
+  // 这样当用户从字段映射管理页面返回时，新添加的工具会自动显示
+  useEffect(() => {
+    let reloadTimer: number | null = null;
+    
+    const reloadTools = () => {
+      // 清除之前的定时器
+      if (reloadTimer) {
+        clearTimeout(reloadTimer);
+      }
+      // 延迟一小段时间再加载，避免频繁请求
+      reloadTimer = window.setTimeout(() => {
+        console.log('[BaseAISearchPage] 页面重新获得焦点，重新加载工具配置');
+        loadEnabledToolsForPage();
+        reloadTimer = null;
+      }, 500);
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        reloadTools();
+      }
+    };
+
+    const handleFocus = () => {
+      reloadTools();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      if (reloadTimer) {
+        clearTimeout(reloadTimer);
+      }
+    };
+  }, [loadEnabledToolsForPage]);
+
+  // 只在selectedWorkflowId改变时更新标签（不重新请求API）
+  useEffect(() => {
+    if (!selectedWorkflowId || !cachedMappingsRef.current.length) {
+      return;
+    }
+
+    const updateLabelsForWorkflow = () => {
+      const mappings = cachedMappingsRef.current;
+      const pageKeys = config.pageType === 'press-release' 
+        ? ['press-release', 'speech'] 
+        : [config.pageType];
+      
+      const currentMapping = mappings.find(m => m.workflowId === selectedWorkflowId);
+      if (currentMapping) {
+        const labels: Record<string, string> = {};
+        const fos = Array.isArray(currentMapping.config?.featureObjects) ? currentMapping.config.featureObjects : [];
         
-        // 如果当前工作流有配置，优先使用当前工作流的标签
-        if (selectedWorkflowId) {
-          const currentMapping = mappings.find(m => m.workflowId === selectedWorkflowId);
-          if (currentMapping) {
-            const fos = Array.isArray(currentMapping.config?.featureObjects) ? currentMapping.config.featureObjects : [];
-            for (const f of fos) {
-              if (f.featureType && f.featureType !== 'ai-dialog') {
-                const featurePageType = (f as any).pageType;
-                if (featurePageType && pageKeys.includes(featurePageType)) {
-                  if ((f as any).label) {
-                    labels[f.featureType] = (f as any).label as string;
-                  }
-                }
+        for (const f of fos) {
+          if (f.featureType && f.featureType !== 'ai-dialog') {
+            const featurePageType = (f as any).pageType;
+            if (featurePageType && pageKeys.includes(featurePageType)) {
+              if ((f as any).label) {
+                labels[f.featureType] = (f as any).label as string;
               }
             }
           }
         }
         
-        console.log('[BaseAISearchPage] 从字段映射配置找到的工具数量:', setIds.size, '工具列表:', Array.from(setIds));
-        
-        if (setIds.size > 0) {
-          setEnabledToolIds(Array.from(setIds));
-          setDynamicLabelMap(labels);
-        } else {
-          // 3. 如果都没有，回退到使用配置中的默认工具列表
-          console.log('[BaseAISearchPage] 未找到字段映射配置，使用默认配置:', config.enabledToolIds);
-          setEnabledToolIds(config.enabledToolIds || []);
-          setDynamicLabelMap({});
+        // 只有在找到标签时才更新
+        if (Object.keys(labels).length > 0) {
+          setDynamicLabelMap(prev => ({ ...prev, ...labels }));
         }
-      } catch (error) {
-        console.error('[BaseAISearchPage] 加载工具配置失败:', error);
-        // 出错时也回退到使用配置中的默认工具列表
-        setEnabledToolIds(config.enabledToolIds || []);
-        setDynamicLabelMap({});
       }
     };
-    loadEnabledToolsForPage();
-  }, [config.pageType, config.enabledToolIds, selectedWorkflowId]);
+
+    updateLabelsForWorkflow();
+  }, [selectedWorkflowId, config.pageType]);
 
   const handleWorkflowSelectionChange = useCallback(
     (workflowId: string) => {

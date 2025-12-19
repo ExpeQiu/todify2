@@ -29,7 +29,7 @@ const FieldMappingManagementPage: React.FC = () => {
   const [workflows, setWorkflows] = useState<AgentWorkflow[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null); // 格式: workflowId-pageType-featureType
   const [editingMapping, setEditingMapping] = useState<FieldMappingListItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -39,6 +39,7 @@ const FieldMappingManagementPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedFeatureType, setSelectedFeatureType] = useState<string>('ai-dialog');
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>('');
+  const [selectedRoleIdForMapping, setSelectedRoleIdForMapping] = useState<string>('');
   const urlPageType = searchParams.get('pageType');
   // 统一 pageType：将 'speech' 转换为 'press-release'
   const normalizedUrlPageType = urlPageType === 'speech' ? 'press-release' : urlPageType;
@@ -49,6 +50,35 @@ const FieldMappingManagementPage: React.FC = () => {
   const [customFeatureId, setCustomFeatureId] = useState<string>('');
   const [customFeatureLabel, setCustomFeatureLabel] = useState<string>('');
   const [selectedFeatureTypes, setSelectedFeatureTypes] = useState<string[]>([]);
+  const [customModules, setCustomModules] = useState<Array<{ id: string; label: string }>>([]);
+
+  // localStorage key for custom modules
+  const CUSTOM_MODULES_STORAGE_KEY = 'field-mapping-custom-modules';
+
+  // 从localStorage加载自定义模块
+  const loadCustomModulesFromStorage = (): Array<{ id: string; label: string }> => {
+    try {
+      const stored = localStorage.getItem(CUSTOM_MODULES_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((m: any) => m && m.id && m.label);
+        }
+      }
+    } catch (error) {
+      console.warn('加载自定义模块失败:', error);
+    }
+    return [];
+  };
+
+  // 保存自定义模块到localStorage
+  const saveCustomModulesToStorage = (modules: Array<{ id: string; label: string }>) => {
+    try {
+      localStorage.setItem(CUSTOM_MODULES_STORAGE_KEY, JSON.stringify(modules));
+    } catch (error) {
+      console.warn('保存自定义模块失败:', error);
+    }
+  };
 
   const toggleFeatureChecked = (key: string) => {
     setSelectedFeatureTypes(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
@@ -58,6 +88,11 @@ const FieldMappingManagementPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    // 加载已保存的自定义模块
+    const savedModules = loadCustomModulesFromStorage();
+    if (savedModules.length > 0) {
+      setCustomModules(savedModules);
+    }
   }, []);
 
   const FEATURE_LABELS: Record<string, string> = {
@@ -100,6 +135,8 @@ const FieldMappingManagementPage: React.FC = () => {
         aiRoleService.getAIRoles(),
       ]);
       const rows: FieldMappingListItem[] = [];
+      const seenKeys = new Set<string>(); // 用于去重
+      
       for (const mapping of mappingsData) {
         const featureObjects = Array.isArray(mapping.config.featureObjects)
           ? mapping.config.featureObjects
@@ -108,14 +145,41 @@ const FieldMappingManagementPage: React.FC = () => {
           for (const feature of featureObjects) {
             const workflowId = feature.workflowId || mapping.workflowId;
             const workflow = workflowsData.find((w) => w.id === workflowId);
+            const pageType = feature.pageType;
+            const featureType = feature.featureType;
+            
+            // 创建唯一键：workflowId + pageType + featureType
+            const uniqueKey = `${workflowId}-${pageType || 'no-page'}-${featureType}`;
+            
+            // 如果已经存在相同的配置，跳过（去重）
+            if (seenKeys.has(uniqueKey)) {
+              console.warn('[FieldMappingManagementPage] 发现重复配置，已跳过:', {
+                workflowId,
+                pageType,
+                featureType,
+                uniqueKey
+              });
+              continue;
+            }
+            
+            seenKeys.add(uniqueKey);
+            
+            // 尝试从工作流或AI角色中获取名称
+            let displayName = workflow?.name;
+            if (!displayName) {
+              // 如果找不到工作流，尝试从AI角色中查找
+              const role = rolesData.find((r: any) => r.id === workflowId);
+              displayName = role?.name || '未知配置';
+            }
+            
             rows.push({
               ...mapping,
               workflowId,
-              workflowName: workflow?.name || '未知工作流',
-              pageName: feature.pageType ? (PAGE_LABELS[feature.pageType as keyof typeof PAGE_LABELS] || PAGE_LABELS['tech-package']) : (FEATURE_PAGE_MAP[feature.featureType] || '技术包装'),
-              pageType: feature.pageType, // 添加 pageType 字段
-              featureType: feature.featureType,
-              featureLabel: (feature as any).label || FEATURE_LABELS[feature.featureType] || feature.featureType,
+              workflowName: displayName,
+              pageName: pageType ? (PAGE_LABELS[pageType as keyof typeof PAGE_LABELS] || PAGE_LABELS['tech-package']) : (FEATURE_PAGE_MAP[featureType] || '技术包装'),
+              pageType: pageType, // 添加 pageType 字段
+              featureType: featureType,
+              featureLabel: (feature as any).label || FEATURE_LABELS[featureType] || featureType,
               config: {
                 ...mapping.config,
                 inputMappings: feature.inputMappings || [],
@@ -125,9 +189,26 @@ const FieldMappingManagementPage: React.FC = () => {
           }
         } else {
           const workflow = workflowsData.find((w) => w.id === mapping.workflowId);
+          const uniqueKey = `${mapping.workflowId}-no-page-ai-dialog`;
+          
+          // 如果已经存在相同的配置，跳过（去重）
+          if (seenKeys.has(uniqueKey)) {
+            continue;
+          }
+          
+          seenKeys.add(uniqueKey);
+          
+          // 尝试从工作流或AI角色中获取名称
+          let displayName = workflow?.name;
+          if (!displayName) {
+            // 如果找不到工作流，尝试从AI角色中查找
+            const role = rolesData.find((r: any) => r.id === mapping.workflowId);
+            displayName = role?.name || '未知配置';
+          }
+          
           rows.push({
             ...mapping,
-            workflowName: workflow?.name || '未知工作流',
+            workflowName: displayName,
             pageName: FEATURE_PAGE_MAP['ai-dialog'],
             pageType: undefined, // 向后兼容：没有 pageType 的情况
             featureType: 'ai-dialog',
@@ -162,18 +243,26 @@ const FieldMappingManagementPage: React.FC = () => {
   // 当弹窗打开时，加载当前已配置的信息
   useEffect(() => {
     if (!showCreateModal) {
-      // 弹窗关闭时，重置表单状态
+      // 弹窗关闭时，重置表单状态（但保留自定义模块）
       setSelectedFeatureTypes([]);
       setSelectedFeatureType('');
       setCustomFeatureId('');
       setCustomFeatureLabel('');
       setShowCustomModuleForm(false);
+      // 不重置customModules，因为它们应该持久化显示
+      setSelectedRoleIdForMapping('');
       return;
     }
 
-    // 如果 workflows 还没加载，不执行
-    if (workflows.length === 0) {
-      console.log('[FieldMappingManagementPage] 等待工作流加载...');
+    // 弹窗打开时，从localStorage加载自定义模块
+    const savedModules = loadCustomModulesFromStorage();
+    if (savedModules.length > 0) {
+      setCustomModules(savedModules);
+    }
+
+    // 如果 roles 还没加载，不执行
+    if (roles.length === 0) {
+      console.log('[FieldMappingManagementPage] 等待AI角色加载...');
       return;
     }
 
@@ -203,8 +292,14 @@ const FieldMappingManagementPage: React.FC = () => {
             );
             
             if (hasMatchingPageType) {
-              console.log('[FieldMappingManagementPage] 找到匹配的工作流:', mapping.workflowId);
+              console.log('[FieldMappingManagementPage] 找到匹配的配置:', mapping.workflowId);
               setSelectedWorkflowId(mapping.workflowId);
+              // 尝试将workflowId匹配到AI角色
+              const matchingRole = roles.find((r: any) => r.id === mapping.workflowId);
+              if (matchingRole && matchingRole.enabled) {
+                setSelectedRoleIdForMapping(mapping.workflowId);
+              }
+              // 如果找不到匹配的角色，保持workflowId不变，但selectedRoleIdForMapping为空，用户需要手动选择
               
               // 加载该 pageType 已配置的 AI 模块
               const configuredFeatures = featureObjects
@@ -221,10 +316,12 @@ const FieldMappingManagementPage: React.FC = () => {
           }
         }
         
-        // 如果没有找到配置，但有工作流，使用第一个工作流作为默认值
-        if (workflows.length > 0) {
-          console.log('[FieldMappingManagementPage] 使用默认工作流:', workflows[0].id);
-          setSelectedWorkflowId(workflows[0].id);
+        // 如果没有找到配置，但有AI角色，使用第一个启用的AI角色作为默认值
+        const enabledRoles = roles.filter((r: any) => r.enabled);
+        if (enabledRoles.length > 0) {
+          console.log('[FieldMappingManagementPage] 使用默认AI角色:', enabledRoles[0].id);
+          setSelectedRoleIdForMapping(enabledRoles[0].id);
+          setSelectedWorkflowId(enabledRoles[0].id);
         }
       } catch (error) {
         console.error('[FieldMappingManagementPage] 加载配置信息失败:', error);
@@ -234,22 +331,56 @@ const FieldMappingManagementPage: React.FC = () => {
     loadExistingConfig();
     // 移除 selectedPageType 从依赖项，避免循环更新
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showCreateModal, workflows, normalizedUrlPageType]);
+  }, [showCreateModal, roles, normalizedUrlPageType]);
 
   const handleEdit = (mapping: FieldMappingListItem) => {
     setEditingMapping(mapping);
     setShowEditModal(true);
   };
 
-  const handleDelete = async (workflowId: string) => {
-    if (!confirm('确定要删除此字段映射配置吗？')) {
+  const handleDelete = async (mapping: FieldMappingListItem) => {
+    if (!confirm(`确定要删除"${mapping.pageName}"页面的"${mapping.featureLabel}"配置吗？`)) {
       return;
     }
 
     try {
-      setDeletingId(workflowId);
-      await aiSearchService.deleteFieldMappingConfig(workflowId);
-      setMessage({ type: 'success', text: '删除成功' });
+      const deleteKey = `${mapping.workflowId}-${mapping.pageType || 'no-page'}-${mapping.featureType}`;
+      setDeletingId(deleteKey);
+      
+      // 获取现有配置
+      const existing = await aiSearchService.getFieldMappingConfig(mapping.workflowId);
+      
+      if (!existing) {
+        setMessage({ type: 'error', text: '配置不存在' });
+        return;
+      }
+
+      const featureObjects = Array.isArray(existing.featureObjects) ? existing.featureObjects.slice() : [];
+      
+      // 移除匹配的 featureObject（根据 featureType 和 pageType）
+      const filteredFeatureObjects = featureObjects.filter((f: any) => {
+        // 如果当前配置有 pageType，必须同时匹配 featureType 和 pageType
+        if (mapping.pageType) {
+          return !(f.featureType === mapping.featureType && f.pageType === mapping.pageType);
+        }
+        // 如果当前配置没有 pageType（向后兼容），只匹配 featureType
+        return f.featureType !== mapping.featureType;
+      });
+
+      // 如果还有其他的 featureObjects，更新配置；否则删除整个配置
+      if (filteredFeatureObjects.length > 0) {
+        const updatedConfig: FieldMappingConfig = {
+          ...existing,
+          featureObjects: filteredFeatureObjects,
+        };
+        await aiSearchService.saveFieldMappingConfig(mapping.workflowId, updatedConfig);
+        setMessage({ type: 'success', text: '删除成功' });
+      } else {
+        // 如果没有其他配置了，删除整个配置记录
+        await aiSearchService.deleteFieldMappingConfig(mapping.workflowId);
+        setMessage({ type: 'success', text: '删除成功' });
+      }
+      
       await loadData();
     } catch (error) {
       console.error('删除失败:', error);
@@ -497,11 +628,11 @@ const FieldMappingManagementPage: React.FC = () => {
                               配置Agent角色
                             </button>
                             <button
-                              onClick={() => handleDelete(mapping.workflowId)}
-                              disabled={deletingId === mapping.workflowId}
+                              onClick={() => handleDelete(mapping)}
+                              disabled={deletingId === `${mapping.workflowId}-${mapping.pageType || 'no-page'}-${mapping.featureType}`}
                               className="text-red-600 hover:text-red-900 flex items-center gap-1 disabled:opacity-50"
                             >
-                              {deletingId === mapping.workflowId ? (
+                              {deletingId === `${mapping.workflowId}-${mapping.pageType || 'no-page'}-${mapping.featureType}` ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Trash2 className="w-4 h-4" />
@@ -549,19 +680,24 @@ const FieldMappingManagementPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <div className="text-sm text-gray-600 mb-2">选择工作流</div>
+                <div className="text-sm text-gray-600 mb-2">选择AI角色</div>
                 <select
-                  value={selectedWorkflowId}
-                  onChange={(e) => setSelectedWorkflowId(e.target.value)}
+                  value={selectedRoleIdForMapping}
+                  onChange={(e) => {
+                    setSelectedRoleIdForMapping(e.target.value);
+                    setSelectedWorkflowId(e.target.value); // 同时更新workflowId，因为后端使用workflowId作为主键
+                  }}
                   className="w-full border rounded-md px-3 py-2 text-sm"
                 >
-                  <option value="">请选择工作流（可选，将使用第一个可用工作流）</option>
-                  {workflows.map(w => (
-                    <option key={w.id} value={w.id}>{w.name}</option>
+                  <option value="">请选择AI角色（可选，将使用第一个可用AI角色）</option>
+                  {roles.filter((r: any) => r.enabled).map((role: any) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name} {role.description ? `- ${role.description}` : ''}
+                    </option>
                   ))}
                 </select>
-                {workflows.length === 0 && (
-                  <p className="text-xs text-red-500 mt-1">没有可用的工作流，请先创建工作流</p>
+                {roles.filter((r: any) => r.enabled).length === 0 && (
+                  <p className="text-xs text-red-500 mt-1">没有可用的AI角色，请先创建AI角色</p>
                 )}
               </div>
               <div>
@@ -611,6 +747,23 @@ const FieldMappingManagementPage: React.FC = () => {
                       />
                     </button>
                   ))}
+                  {/* 显示已添加的自定义模块 */}
+                  {customModules.map((module) => (
+                    <button
+                      key={module.id}
+                      onClick={() => { setSelectedFeatureType(module.id); setShowCustomModuleForm(false); }}
+                      className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${selectedFeatureType === module.id ? 'bg-blue-50 border-blue-500' : 'bg-white border-purple-300 hover:bg-gray-50 hover:border-purple-500'}`}
+                      title={module.label}
+                    >
+                      <Settings className="w-6 h-6 mb-2 text-purple-600" />
+                      <span className="text-xs text-gray-700 text-center">{module.label}</span>
+                      <div
+                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(module.id); }}
+                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border cursor-pointer ${isFeatureChecked(module.id) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
+                        aria-label={isFeatureChecked(module.id) ? '取消选择' : '选择模块'}
+                      />
+                    </button>
+                  ))}
                   <button
                     onClick={() => { setShowCustomModuleForm(true); setSelectedFeatureType(customFeatureId || ''); }}
                     className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${showCustomModuleForm ? 'bg-blue-50 border-blue-500' : 'bg-white border-red-400 hover:bg-gray-50 hover:border-blue-500'}`}
@@ -628,43 +781,106 @@ const FieldMappingManagementPage: React.FC = () => {
                   </button>
                 </div>
                 {showCustomModuleForm && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">模块标识</label>
-                      <input
-                        type="text"
-                        className="w-full border rounded-md px-3 py-2 text-sm"
-                        placeholder="如 custom-module"
-                        value={customFeatureId}
-                        onChange={(e) => setCustomFeatureId(e.target.value)}
-                      />
+                  <div className="mt-4 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">模块标识</label>
+                        <input
+                          type="text"
+                          className="w-full border rounded-md px-3 py-2 text-sm"
+                          placeholder="如 custom-module"
+                          value={customFeatureId}
+                          onChange={(e) => setCustomFeatureId(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">显示名称</label>
+                        <input
+                          type="text"
+                          className="w-full border rounded-md px-3 py-2 text-sm"
+                          placeholder="如 自定义模块"
+                          value={customFeatureLabel}
+                          onChange={(e) => setCustomFeatureLabel(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            if (!customFeatureId.trim()) {
+                              setMessage({ type: 'error', text: '请输入模块标识' });
+                              return;
+                            }
+                            // 检查是否已存在相同ID的模块
+                            if (customModules.some(m => m.id === customFeatureId.trim())) {
+                              setMessage({ type: 'error', text: '该模块标识已存在' });
+                              return;
+                            }
+                            // 添加到自定义模块列表
+                            const newModule = {
+                              id: customFeatureId.trim(),
+                              label: customFeatureLabel.trim() || customFeatureId.trim()
+                            };
+                            const updatedModules = [...customModules, newModule];
+                            setCustomModules(updatedModules);
+                            // 保存到localStorage
+                            saveCustomModulesToStorage(updatedModules);
+                            // 自动选中该模块
+                            setSelectedFeatureTypes(prev => prev.includes(newModule.id) ? prev : [...prev, newModule.id]);
+                            // 清空输入框，但保持表单打开状态
+                            setCustomFeatureId('');
+                            setCustomFeatureLabel('');
+                            setMessage(null);
+                          }}
+                          className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+                        >
+                          添加模块
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">显示名称</label>
-                      <input
-                        type="text"
-                        className="w-full border rounded-md px-3 py-2 text-sm"
-                        placeholder="如 自定义模块"
-                        value={customFeatureLabel}
-                        onChange={(e) => setCustomFeatureLabel(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <button
-                        onClick={() => {
-                          if (!customFeatureId.trim()) {
-                            setMessage({ type: 'error', text: '请输入模块标识' });
-                            return;
-                          }
-                          setSelectedFeatureType(customFeatureId.trim());
-                          setSelectedFeatureTypes(prev => prev.includes(customFeatureId.trim()) ? prev : [...prev, customFeatureId.trim()]);
-                          setMessage(null);
-                        }}
-                        className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm"
-                      >
-                        使用此模块
-                      </button>
-                    </div>
+                    {/* 显示已添加的自定义模块列表 */}
+                    {customModules.length > 0 && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                        <div className="text-xs text-gray-600 mb-2">已添加的自定义模块：</div>
+                        <div className="flex flex-wrap gap-2">
+                          {customModules.map((module) => (
+                            <div
+                              key={module.id}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm"
+                            >
+                              <span className="text-gray-700">{module.label}</span>
+                              <span className="text-gray-400">({module.id})</span>
+                              <button
+                                onClick={() => {
+                                  // 从列表中移除
+                                  const updatedModules = customModules.filter(m => m.id !== module.id);
+                                  setCustomModules(updatedModules);
+                                  // 保存到localStorage
+                                  saveCustomModulesToStorage(updatedModules);
+                                  // 从选中列表中移除
+                                  setSelectedFeatureTypes(prev => prev.filter(id => id !== module.id));
+                                }}
+                                className="text-red-500 hover:text-red-700 ml-1"
+                                title="删除"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFeatureChecked(module.id);
+                                }}
+                                className={`ml-2 w-4 h-4 rounded-full border cursor-pointer ${
+                                  isFeatureChecked(module.id)
+                                    ? 'border-red-500 bg-red-500'
+                                    : 'border-red-500 bg-white'
+                                }`}
+                                aria-label={isFeatureChecked(module.id) ? '取消选择' : '选择模块'}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -681,6 +897,7 @@ const FieldMappingManagementPage: React.FC = () => {
                     }
 
                     // 获取要绑定的功能类型（排除 ai-dialog）
+                    // selectedFeatureTypes 已经包含了所有选中的模块（包括自定义模块）
                     const featuresToBind = selectedFeatureTypes.length > 0 
                       ? selectedFeatureTypes.filter(ft => ft !== 'ai-dialog')
                       : (selectedFeatureType && selectedFeatureType !== 'ai-dialog' ? [selectedFeatureType] : []);
@@ -690,10 +907,12 @@ const FieldMappingManagementPage: React.FC = () => {
                       return;
                     }
 
-                    // 如果没有选择工作流，使用第一个可用工作流
-                    const workflowIdToUse = selectedWorkflowId || (workflows.length > 0 ? workflows[0].id : '');
+                    // 如果没有选择AI角色，使用第一个可用的AI角色
+                    const enabledRoles = roles.filter((r: any) => r.enabled);
+                    const roleIdToUse = selectedRoleIdForMapping || (enabledRoles.length > 0 ? enabledRoles[0].id : '');
+                    const workflowIdToUse = roleIdToUse; // 使用AI角色ID作为workflowId
                     if (!workflowIdToUse) {
-                      setMessage({ type: 'error', text: '没有可用的工作流，请先创建工作流' });
+                      setMessage({ type: 'error', text: '没有可用的AI角色，请先创建AI角色' });
                       return;
                     }
 
@@ -704,6 +923,7 @@ const FieldMappingManagementPage: React.FC = () => {
                     }
 
                     console.log('[FieldMappingManagementPage] 修改配置:', {
+                      roleId: roleIdToUse,
                       workflowId: workflowIdToUse,
                       pageType: selectedPageType,
                       features: featuresToBind,
@@ -736,22 +956,33 @@ const FieldMappingManagementPage: React.FC = () => {
                       })));
                       
                       // 2. 为当前 pageType 创建新的配置（基于用户选择）
-                      const newFeatures = featuresToBind.map(ft => {
+                      // 使用Map来确保每个featureType只保留一个配置（去重）
+                      const newFeaturesMap = new Map<string, any>();
+                      
+                      for (const ft of featuresToBind) {
                         // 检查是否已存在相同 featureType 和 pageType 的配置，如果有，保留原有的配置信息
                         const existingFeature = fo.find((f: any) => 
                           f.featureType === ft && f.pageType === normalizedPageType
                         );
                         
-                        return {
+                        // 查找自定义模块的标签
+                        const customModule = customModules.find(m => m.id === ft);
+                        const moduleLabel = customModule?.label || existingFeature?.label || FEATURE_LABELS[ft] || undefined;
+                        
+                        // 使用featureType作为key，确保每个featureType只保留一个配置
+                        newFeaturesMap.set(ft, {
                           featureType: ft as any,
                           workflowId: workflowIdToUse,
                           inputMappings: existingFeature?.inputMappings || [],
                           outputMappings: existingFeature?.outputMappings || [],
                           pageType: normalizedPageType,
-                          label: existingFeature?.label || FEATURE_LABELS[ft] || (ft === customFeatureId ? (customFeatureLabel || undefined) : undefined),
+                          label: moduleLabel,
                           agentId: existingFeature?.agentId,
-                        };
-                      });
+                        });
+                      }
+                      
+                      // 将Map转换为数组
+                      const newFeatures = Array.from(newFeaturesMap.values());
                       
                       // 3. 合并：其他 pageType 的配置 + 当前 pageType 的新配置
                       nextConfig = { 
@@ -767,14 +998,20 @@ const FieldMappingManagementPage: React.FC = () => {
                       })));
                     } else {
                       // 如果没有现有配置，创建新配置
-                      const featureObjects = featuresToBind.map(ft => ({
-                        featureType: ft as any,
-                        workflowId: workflowIdToUse,
-                        inputMappings: [],
-                        outputMappings: [],
-                        pageType: normalizedPageType,
-                        label: FEATURE_LABELS[ft] || (ft === customFeatureId ? (customFeatureLabel || undefined) : undefined),
-                      }));
+                      const featureObjects = featuresToBind.map(ft => {
+                        // 查找自定义模块的标签
+                        const customModule = customModules.find(m => m.id === ft);
+                        const moduleLabel = customModule?.label || FEATURE_LABELS[ft] || undefined;
+                        
+                        return {
+                          featureType: ft as any,
+                          workflowId: workflowIdToUse,
+                          inputMappings: [],
+                          outputMappings: [],
+                          pageType: normalizedPageType,
+                          label: moduleLabel,
+                        };
+                      });
                       
                       nextConfig = {
                         workflowId: workflowIdToUse,
@@ -789,12 +1026,13 @@ const FieldMappingManagementPage: React.FC = () => {
                     
                     setMessage({ type: 'success', text: `配置修改成功：已为 ${PAGE_LABELS[normalizedPageType]} 页面更新为 ${featuresToBind.length} 个AI模块` });
                     setShowCreateModal(false);
-                    // 重置表单状态
+                    // 重置表单状态（但保留自定义模块，因为它们应该持久化显示）
                     setSelectedFeatureTypes([]);
                     setSelectedFeatureType('');
                     setCustomFeatureId('');
                     setCustomFeatureLabel('');
                     setShowCustomModuleForm(false);
+                    // 不重置customModules，因为它们应该持久化显示
                     
                     // 重新加载数据
                     await loadData();
