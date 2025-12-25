@@ -20,7 +20,8 @@ import {
   Trash2,
   Layout,
   Settings,
-  Bot
+  Bot,
+  AlertCircle
 } from 'lucide-react';
 import { AIRoleConfig, DifyInputField, DirectAgentConfig, PromptVariable, ToolConfig, AgentCallConfig } from '../types/aiRole';
 import AIRoleChat from './AIRoleChat';
@@ -51,6 +52,7 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
   const [showApiKey, setShowApiKey] = useState(false);
   const [showChatDialog, setShowChatDialog] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<AIRoleConfig>>({
     name: '',
@@ -100,7 +102,7 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
   };
 
   // 表单验证
-  const validateForm = (): boolean => {
+  const validateForm = (): { isValid: boolean; errors: Record<string, string> } => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name?.trim()) {
@@ -134,7 +136,7 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return { isValid: Object.keys(newErrors).length === 0, errors: newErrors };
   };
 
   // 更新表单字段
@@ -257,22 +259,80 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
 
   // 保存角色
   const handleSave = async () => {
-    if (!validateForm()) {
+    console.log('🔵 [AIRoleEditModal] handleSave 被调用');
+    // 清除之前的错误
+    setSaveError(null);
+    
+    // 验证表单
+    const validation = validateForm();
+    console.log('🔵 [AIRoleEditModal] 验证结果:', validation);
+    if (!validation.isValid) {
+      // 验证失败，滚动到第一个错误字段
+      const firstErrorKey = Object.keys(validation.errors)[0];
+      if (firstErrorKey) {
+        // 根据错误字段切换到对应的section
+        if (firstErrorKey.startsWith('difyConfig')) {
+          setActiveSection('dify-config');
+        } else if (firstErrorKey.startsWith('agentConfig')) {
+          if (firstErrorKey.includes('llm')) {
+            setActiveSection('llm');
+          } else if (firstErrorKey.includes('prompt')) {
+            setActiveSection('prompt');
+          }
+        } else {
+          setActiveSection('basic');
+        }
+        // 延迟一下让section切换完成
+        setTimeout(() => {
+          const errorElement = document.querySelector(`[data-error-field="${firstErrorKey}"]`) || 
+                               document.querySelector(`input[name="${firstErrorKey}"], textarea[name="${firstErrorKey}"]`);
+          if (errorElement) {
+            errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (errorElement as HTMLElement).focus();
+          }
+        }, 100);
+      }
+      setSaveError('请检查并填写所有必填字段');
       return;
     }
 
     setSaving(true);
+    setSaveError(null);
     try {
+      // 确保所有字段都被正确合并，保留原有角色的字段作为后备
       const roleToSave: AIRoleConfig = {
-        ...formData as AIRoleConfig,
+        // 保留原有角色的字段作为后备
+        ...role,
+        // 用 formData 覆盖，确保最新的编辑内容被保存
+        ...formData,
+        // 确保嵌套对象也被正确合并
+        difyConfig: formData.difyConfig || role?.difyConfig || {
+          apiUrl: '/api/dify/chat-messages',
+          apiKey: '',
+          connectionType: 'chatflow',
+          inputFields: []
+        },
+        agentConfig: formData.agentConfig !== undefined ? formData.agentConfig : role?.agentConfig,
+        // 确保必需的字段存在
+        name: formData.name || role?.name || '',
+        description: formData.description || role?.description || '',
+        provider: formData.provider || role?.provider || 'dify',
+        enabled: formData.enabled !== undefined ? formData.enabled : (role?.enabled !== undefined ? role.enabled : true),
+        // 保留或设置元数据字段
         id: role?.id || `role-${Date.now()}`,
         createdAt: role?.createdAt || new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        source: formData.source !== undefined ? formData.source : role?.source,
+        avatar: formData.avatar !== undefined ? formData.avatar : role?.avatar,
+        systemPrompt: formData.systemPrompt !== undefined ? formData.systemPrompt : role?.systemPrompt
       };
       await onSave(roleToSave);
       onClose();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '保存失败，请稍后重试';
       console.error('保存失败:', error);
+      setSaveError(errorMessage);
+      // 不关闭模态框，让用户看到错误信息
     } finally {
       setSaving(false);
     }
@@ -280,7 +340,8 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
 
   // 测试连接
   const handleTest = async () => {
-    if (!validateForm() || !onTest) {
+    const validation = validateForm();
+    if (!validation.isValid || !onTest) {
       return;
     }
 
@@ -411,7 +472,7 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
                     className="mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="flex-1">
-                    <div className="font-bold text-gray-800 mb-1">Dify工作流</div>
+                    <div className="font-bold text-gray-800 mb-1">Dify驱动</div>
                     <div className="text-sm text-gray-600 leading-relaxed">
                       集成Dify平台的Workflow或Chatflow。适合需要复杂编排或已有Dify应用场景。
                     </div>
@@ -452,7 +513,7 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
                     className="mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="flex-1">
-                    <div className="font-bold text-gray-800 mb-1">独立Agent</div>
+                    <div className="font-bold text-gray-800 mb-1">LLM驱动</div>
                     <div className="text-sm text-gray-600 leading-relaxed">
                       直接配置LLM、Prompt和工具。适合快速构建轻量级Agent或完全自定义控制。
                     </div>
@@ -596,6 +657,16 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
               {renderContent()}
             </div>
 
+            {/* 错误提示 */}
+            {saveError && (
+              <div className="px-8 py-3 bg-red-50 border-t border-red-200">
+                <div className="flex items-center gap-2 text-red-700 text-sm">
+                  <AlertCircle size={16} />
+                  <span>{saveError}</span>
+                </div>
+              </div>
+            )}
+
             {/* 底部操作栏 */}
             <div className="px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -629,8 +700,13 @@ const AIRoleEditModal: React.FC<AIRoleEditModalProps> = ({
                   取消
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSave();
+                  }}
                   disabled={saving}
+                  type="button"
                   className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? (

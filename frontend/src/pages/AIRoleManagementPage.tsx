@@ -660,16 +660,36 @@ const AIRoleManagementPage: React.FC = () => {
     setSaving(true);
     try {
       let result;
+      const savedRoleId = role.id;
       if (isNewRole) {
         result = await aiRoleService.createAIRole(role as Omit<AIRoleConfig, 'id' | 'createdAt' | 'updatedAt'>);
       } else {
-        result = await aiRoleService.updateAIRole(role.id, role);
+        // 更新时，只传递需要更新的字段，排除元数据字段
+        const { id, createdAt, updatedAt, ...updateData } = role;
+        result = await aiRoleService.updateAIRole(role.id, updateData);
       }
 
-      if (result.success) {
+      if (result.success && result.data) {
         setMessage({ type: 'success', text: result.message || '保存成功' });
+        // 重新加载角色列表
         await loadRoles();
+        // 从重新加载的列表中获取最新的角色数据
+        const updatedRole = result.data as AIRoleConfig;
+        // 如果保存的角色是当前选中的角色，更新 selectedRole
+        if (selectedRole && selectedRole.id === savedRoleId) {
+          setSelectedRole(updatedRole);
+          setFormData(updatedRole);
+        } else if (isNewRole) {
+          // 如果是新建的角色，选中它
+          setSelectedRole(updatedRole);
+          setFormData(updatedRole);
+        }
+        // 如果角色被使用，重新加载使用情况
+        if (savedRoleId) {
+          await loadRoleUsage(savedRoleId);
+        }
         setShowEditModal(false);
+        setEditingRole(null);
       } else {
         setMessage({ type: 'error', text: result.error || '保存失败' });
         throw new Error(result.error || '保存失败');
@@ -681,7 +701,7 @@ const AIRoleManagementPage: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  }, [isNewRole]);
+  }, [isNewRole, selectedRole]);
 
   // 处理测试连接
   const handleTestConnection = useCallback(async (role: AIRoleConfig) => {
@@ -986,6 +1006,21 @@ const AIRoleManagementPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showEditModal, showChatDialog, selectedRoles, handleNewRole, handleBulkDelete]);
 
+  // 检查 avatar 是否是有效的 URL
+  const isValidAvatarUrl = (avatar: string | undefined): boolean => {
+    if (!avatar) return false;
+    // 如果包含 emoji 或不是以 http/https/data: 开头，则认为是无效 URL
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+    if (emojiRegex.test(avatar)) return false;
+    try {
+      const url = new URL(avatar);
+      return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'data:';
+    } catch {
+      // 如果不是有效的 URL，返回 false
+      return false;
+    }
+  };
+
   // 骨架屏组件
   const SkeletonCard = () => (
     <div className="bg-white rounded-lg border-2 border-gray-200 p-4 animate-pulse">
@@ -1035,6 +1070,19 @@ const AIRoleManagementPage: React.FC = () => {
           <span>{message.text}</span>
         </div>
       )}
+
+      {/* 编辑弹窗 */}
+      <AIRoleEditModal
+        isOpen={showEditModal}
+        role={editingRole}
+        isNew={isNewRole}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingRole(null);
+        }}
+        onSave={handleSaveRole}
+        onTest={handleTestConnection}
+      />
 
       <div className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-8">
@@ -1212,7 +1260,7 @@ const AIRoleManagementPage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-purple-500">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Dify工作流</p>
+                    <p className="text-sm text-gray-600">Dify驱动</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
                       {roles.filter(r => r.provider === 'dify' || !r.provider).length}
                     </p>
@@ -1330,8 +1378,29 @@ const AIRoleManagementPage: React.FC = () => {
                             <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                               {/* 角色信息 */}
                               <div className="col-span-3 flex items-center gap-3 min-w-0">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                                  <Bot className="w-6 h-6 text-white" />
+                                {role.avatar && isValidAvatarUrl(role.avatar) ? (
+                                  <img
+                                    src={role.avatar}
+                                    alt={role.name}
+                                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                    onError={(e) => {
+                                      // 如果图片加载失败，替换为默认图标
+                                      e.currentTarget.style.display = 'none';
+                                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                      if (fallback) fallback.style.display = 'flex';
+                                    }}
+                                  />
+                                ) : null}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  role.provider === 'direct-agent' 
+                                    ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
+                                    : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                } ${role.avatar && isValidAvatarUrl(role.avatar) ? 'hidden' : ''}`}>
+                                  {role.provider === 'direct-agent' ? (
+                                    <Cpu className="w-6 h-6 text-white" />
+                                  ) : (
+                                    <Workflow className="w-6 h-6 text-white" />
+                                  )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
@@ -1350,7 +1419,7 @@ const AIRoleManagementPage: React.FC = () => {
                                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
                                   role.provider === 'direct-agent' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                                 }`}>
-                                  {role.provider === 'direct-agent' ? '独立Agent' : 'Dify工作流'}
+                                  {role.provider === 'direct-agent' ? 'LLM驱动' : 'Dify驱动'}
                                 </span>
                               </div>
                               {/* 状态 */}
@@ -1679,17 +1748,30 @@ const AIRoleManagementPage: React.FC = () => {
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-4 flex-1">
-                              {role.avatar ? (
+                              {role.avatar && isValidAvatarUrl(role.avatar) ? (
                                 <img
                                   src={role.avatar}
                                   alt={role.name}
                                   className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200"
+                                  onError={(e) => {
+                                    // 如果图片加载失败，替换为默认图标
+                                    e.currentTarget.style.display = 'none';
+                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
                                 />
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center ring-2 ring-gray-200">
-                                  <Bot className="w-7 h-7 text-blue-600" />
-                                </div>
-                              )}
+                              ) : null}
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center ring-2 ring-gray-200 ${
+                                role.provider === 'direct-agent' 
+                                  ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
+                                  : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                              } ${role.avatar && isValidAvatarUrl(role.avatar) ? 'hidden' : ''}`}>
+                                {role.provider === 'direct-agent' ? (
+                                  <Cpu className="w-7 h-7 text-white" />
+                                ) : (
+                                  <Workflow className="w-7 h-7 text-white" />
+                                )}
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2.5 mb-1.5">
                                   <h3 className="font-semibold text-gray-900 truncate text-lg">
@@ -1730,7 +1812,7 @@ const AIRoleManagementPage: React.FC = () => {
                                     </span>
                                   ) : (
                                     <span className="text-sm text-gray-500">
-                                      独立Agent
+                                      LLM驱动
                                     </span>
                                   )}
                                   {/* 使用情况徽章 */}
@@ -1765,7 +1847,7 @@ const AIRoleManagementPage: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <Workflow size={18} className="text-blue-600" />
                                   <h3 className="font-semibold text-gray-800 text-base">
-                                    Dify 工作流 ({difyRoles.length})
+                                    Dify 驱动 ({difyRoles.length})
                                   </h3>
                                 </div>
                               </div>
@@ -1780,7 +1862,7 @@ const AIRoleManagementPage: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <Cpu size={18} className="text-purple-600" />
                                   <h3 className="font-semibold text-gray-800 text-base">
-                                    独立 Agent ({directAgentRoles.length})
+                                    LLM 驱动 ({directAgentRoles.length})
                                   </h3>
                                 </div>
                               </div>
@@ -1952,7 +2034,7 @@ const AIRoleManagementPage: React.FC = () => {
                           }}
                           className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Dify工作流</span>
+                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Dify驱动</span>
                       </label>
                       <label className="flex items-center gap-3 cursor-pointer group">
                         <input
@@ -1995,7 +2077,7 @@ const AIRoleManagementPage: React.FC = () => {
                           }}
                           className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">独立Agent</span>
+                        <span className="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">LLM驱动</span>
                       </label>
                     </div>
                   </div>
@@ -3436,19 +3518,6 @@ const AIRoleManagementPage: React.FC = () => {
         </div>
         )}
       </div>
-
-      {/* 编辑弹窗 */}
-      <AIRoleEditModal
-        isOpen={showEditModal}
-        role={editingRole}
-        isNew={isNewRole}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingRole(null);
-        }}
-        onSave={handleSaveRole}
-        onTest={handleTestConnection}
-      />
 
       {/* 对话测试对话框 */}
       {showChatDialog && selectedRole && (

@@ -21,6 +21,24 @@ import sourceService, { SourceCategory } from "../../services/sourceService";
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
 
+const areArraysEqual = (a: string[] | undefined, b: string[] | undefined) => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  const setA = new Set(a);
+  return b.every(item => setA.has(item));
+};
+
+const areObjectsEqual = (a: Record<string, string>, b: Record<string, string>) => {
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+};
+
 interface BaseAISearchPageProps {
   config: PageConfig;
 }
@@ -350,9 +368,48 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   // 使用ref缓存已加载的工具ID列表，避免重复请求
   const cachedToolIdsRef = useRef<Record<string, string[]>>({});
   const cachedMappingsRef = useRef<any[]>([]);
+  const isLoadingToolsRef = useRef<boolean>(false);
 
   // 提取加载工具配置的函数，以便在多个地方调用
-  const loadEnabledToolsForPage = useCallback(async () => {
+  const loadEnabledToolsForPage = useCallback(async (useCache = true) => {
+    // 如果正在加载，避免重复请求
+    if (isLoadingToolsRef.current && useCache) {
+      return;
+    }
+
+    // 如果有缓存，先立即使用缓存显示，提升用户体验
+    const hasCache = cachedToolIdsRef.current[config.pageType];
+    if (useCache && hasCache) {
+      const cachedToolIds = cachedToolIdsRef.current[config.pageType];
+      console.log('[BaseAISearchPage] 使用缓存工具配置，pageType:', config.pageType, '工具数量:', cachedToolIds.length);
+      setEnabledToolIds(prev => areArraysEqual(prev, cachedToolIds) ? prev : cachedToolIds);
+      // 如果有缓存的映射配置，也可以使用缓存的标签
+      if (cachedMappingsRef.current.length > 0) {
+        const pageKeys = config.pageType === 'press-release' 
+          ? ['press-release', 'speech'] 
+          : [config.pageType];
+        const labels: Record<string, string> = {};
+        for (const item of cachedMappingsRef.current) {
+          const fos = Array.isArray(item.config?.featureObjects) ? item.config.featureObjects : [];
+          for (const f of fos) {
+            if (f.featureType && f.featureType !== 'ai-dialog') {
+              const featurePageType = (f as any).pageType;
+              if (featurePageType && pageKeys.includes(featurePageType)) {
+                if ((f as any).label && !labels[f.featureType]) {
+                  labels[f.featureType] = (f as any).label as string;
+                }
+              }
+            }
+          }
+        }
+        if (Object.keys(labels).length > 0) {
+          setDynamicLabelMap(prev => areObjectsEqual(prev, labels) ? prev : labels);
+        }
+      }
+      // 继续在后台更新，但不阻塞UI
+    }
+
+    isLoadingToolsRef.current = true;
     try {
       console.log('[BaseAISearchPage] 加载工具配置，pageType:', config.pageType);
       
@@ -412,8 +469,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       // 如果字段映射配置中有工具，优先使用字段映射配置
       if (setIds.size > 0) {
         const toolIds = Array.from(setIds);
-        setEnabledToolIds(toolIds);
-        setDynamicLabelMap(labels);
+        setEnabledToolIds(prev => areArraysEqual(prev, toolIds) ? prev : toolIds);
+        setDynamicLabelMap(prev => areObjectsEqual(prev, labels) ? prev : labels);
         // 缓存工具ID
         cachedToolIdsRef.current[config.pageType] = toolIds;
         return;
@@ -423,8 +480,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const dbConfig = await pageToolConfigService.getByPageType(config.pageType);
       if (dbConfig && dbConfig.enabledToolIds && dbConfig.enabledToolIds.length > 0) {
         console.log('[BaseAISearchPage] 字段映射配置为空，从数据库配置加载工具:', dbConfig.enabledToolIds);
-        setEnabledToolIds(dbConfig.enabledToolIds);
-        setDynamicLabelMap(dbConfig.featureLabelMap || {});
+        setEnabledToolIds(prev => areArraysEqual(prev, dbConfig.enabledToolIds) ? prev : dbConfig.enabledToolIds);
+        setDynamicLabelMap(prev => areObjectsEqual(prev, dbConfig.featureLabelMap || {}) ? prev : (dbConfig.featureLabelMap || {}));
         // 缓存工具ID
         cachedToolIdsRef.current[config.pageType] = dbConfig.enabledToolIds;
         return;
@@ -433,17 +490,21 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       // 3. 如果都没有，回退到使用配置中的默认工具列表
       console.log('[BaseAISearchPage] 未找到字段映射配置和数据库配置，使用默认配置:', config.enabledToolIds);
       const defaultToolIds = config.enabledToolIds || [];
-      setEnabledToolIds(defaultToolIds);
-      setDynamicLabelMap({});
+      setEnabledToolIds(prev => areArraysEqual(prev, defaultToolIds) ? prev : defaultToolIds);
+      setDynamicLabelMap(prev => areObjectsEqual(prev, {}) ? prev : {});
       // 缓存默认工具ID
       cachedToolIdsRef.current[config.pageType] = defaultToolIds;
     } catch (error) {
       console.error('[BaseAISearchPage] 加载工具配置失败:', error);
-      // 出错时也回退到使用配置中的默认工具列表
-      const defaultToolIds = config.enabledToolIds || [];
-      setEnabledToolIds(defaultToolIds);
-      setDynamicLabelMap({});
-      cachedToolIdsRef.current[config.pageType] = defaultToolIds;
+      // 出错时也回退到使用配置中的默认工具列表（只有在没有缓存时才设置）
+      if (!cachedToolIdsRef.current[config.pageType]) {
+        const defaultToolIds = config.enabledToolIds || [];
+        setEnabledToolIds(prev => areArraysEqual(prev, defaultToolIds) ? prev : defaultToolIds);
+        setDynamicLabelMap(prev => areObjectsEqual(prev, {}) ? prev : {});
+        cachedToolIdsRef.current[config.pageType] = defaultToolIds;
+      }
+    } finally {
+      isLoadingToolsRef.current = false;
     }
   }, [config.pageType, config.enabledToolIds, selectedWorkflowId]);
 
@@ -465,7 +526,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       // 延迟一小段时间再加载，避免频繁请求
       reloadTimer = window.setTimeout(() => {
         console.log('[BaseAISearchPage] 页面重新获得焦点，重新加载工具配置');
-        loadEnabledToolsForPage();
+        // 页面重新获得焦点时强制刷新，不使用缓存
+        loadEnabledToolsForPage(false);
         reloadTimer = null;
       }, 500);
     };
@@ -629,7 +691,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         : undefined;
 
     const configId =
-      workflowConfig?.id && workflowIds.has(workflowConfig.id) ? workflowConfig.id : undefined;
+      selectedWorkflowId && workflowIds.has(selectedWorkflowId) ? selectedWorkflowId : undefined;
 
     // 优先级：对话特定 > 字段映射默认 > 配置ID > 存储的默认 > 第一个可用
     const fallback =
@@ -643,7 +705,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     if (fallback && fallback !== selectedWorkflowId) {
       setSelectedWorkflowId(fallback);
     }
-  }, [currentConversation?.id, workflowConfig?.id, availableWorkflows, selectedWorkflowId, defaultWorkflowFromMapping]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConversation?.id, availableWorkflows, defaultWorkflowFromMapping]);
 
   useEffect(() => {
     if (selectedWorkflowId) {

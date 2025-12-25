@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings, MessageSquare, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
@@ -109,63 +109,66 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     }
   };
 
-  // 所有可用的工具项
-  const allToolItems = [
-    {
-      id: 'five-view-analysis',
-      label: featureLabelMap['five-view-analysis'] || '技术转译',
-      icon: Eye,
-    },
-    {
-      id: 'three-fix-analysis',
-      label: featureLabelMap['three-fix-analysis'] || '用户场景挖掘',
-      icon: Target,
-    },
-    {
-      id: 'tech-matrix',
-      label: featureLabelMap['tech-matrix'] || '发布会场景化',
-      icon: Grid,
-    },
-    {
-      id: 'propagation-strategy',
-      label: featureLabelMap['propagation-strategy'] || '领导人口语化',
-      icon: Megaphone,
-    },
-    {
-      id: 'exhibition-video',
-      label: featureLabelMap['exhibition-video'] || '展具与视频',
-      icon: Video,
-    },
-    {
-      id: 'translation',
-      label: featureLabelMap['translation'] || '翻译',
-      icon: Languages,
-    },
-    {
-      id: 'ppt-outline',
-      label: featureLabelMap['ppt-outline'] || '技术讲稿',
-      icon: Presentation,
-    },
-    {
-      id: 'script',
-      label: featureLabelMap['script'] || '脚本',
+  // 使用 useMemo 优化工具项的计算，避免每次渲染都重新计算
+  const toolItems = useMemo(() => {
+    // 所有可用的工具项
+    const allToolItems = [
+      {
+        id: 'five-view-analysis',
+        label: featureLabelMap['five-view-analysis'] || '技术转译',
+        icon: Eye,
+      },
+      {
+        id: 'three-fix-analysis',
+        label: featureLabelMap['three-fix-analysis'] || '用户场景挖掘',
+        icon: Target,
+      },
+      {
+        id: 'tech-matrix',
+        label: featureLabelMap['tech-matrix'] || '发布会场景化',
+        icon: Grid,
+      },
+      {
+        id: 'propagation-strategy',
+        label: featureLabelMap['propagation-strategy'] || '领导人口语化',
+        icon: Megaphone,
+      },
+      {
+        id: 'exhibition-video',
+        label: featureLabelMap['exhibition-video'] || '展具与视频',
+        icon: Video,
+      },
+      {
+        id: 'translation',
+        label: featureLabelMap['translation'] || '翻译',
+        icon: Languages,
+      },
+      {
+        id: 'ppt-outline',
+        label: featureLabelMap['ppt-outline'] || '技术讲稿',
+        icon: Presentation,
+      },
+      {
+        id: 'script',
+        label: featureLabelMap['script'] || '脚本',
+        icon: FileText,
+      },
+    ];
+
+    // 扩展：为未在静态列表中的启用ID生成通用工具项
+    const staticFiltered = enabledToolIds
+      ? allToolItems.filter(item => enabledToolIds.includes(item.id))
+      : allToolItems;
+
+    const unknownIds = (enabledToolIds || []).filter(id => !allToolItems.some(item => item.id === id));
+    const unknownItems = unknownIds.map(id => ({
+      id,
+      label: featureLabelMap[id] || id,
       icon: FileText,
-    },
-  ];
+    }));
 
-  // 扩展：为未在静态列表中的启用ID生成通用工具项
-  const staticFiltered = enabledToolIds
-    ? allToolItems.filter(item => enabledToolIds.includes(item.id))
-    : allToolItems;
-
-  const unknownIds = (enabledToolIds || []).filter(id => !allToolItems.some(item => item.id === id));
-  const unknownItems = unknownIds.map(id => ({
-    id,
-    label: featureLabelMap[id] || id,
-    icon: FileText,
-  }));
-
-  const toolItems = enabledToolIds ? [...staticFiltered, ...unknownItems] : staticFiltered;
+    return enabledToolIds ? [...staticFiltered, ...unknownItems] : staticFiltered;
+  }, [enabledToolIds, featureLabelMap]);
 
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
