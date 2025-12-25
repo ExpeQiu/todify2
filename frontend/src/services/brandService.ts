@@ -1,56 +1,50 @@
 import api from './api';
-import {
-  Brand,
-  BrandFormData,
-  UpdateBrandFormData,
-  BrandSearchParams,
-  BrandStats,
-  ApiResponse,
-  PaginatedResponse
-} from '../types/brand';
+import { ApiResponse } from '../types/techPoint';
 
-const BRAND_BASE_URL = '/brands';
+export interface Brand {
+  id: number;
+  name: string;
+  name_en?: string;
+  [key: string]: any;
+}
 
 export const brandService = {
-  // 获取所有品牌
-  async getAll(params?: BrandSearchParams): Promise<PaginatedResponse<Brand>> {
-    const response = await api.get(BRAND_BASE_URL, { params });
-    return response.data;
+  getAll: async (): Promise<{ data?: Brand[] }> => {
+    try {
+      const response = await api.get('/brands');
+      return { data: response.data?.data || response.data || [] };
+    } catch (error) {
+      console.error('获取品牌列表失败:', error);
+      return { data: [] };
+    }
   },
 
-  // 根据ID获取品牌
-  async getById(id: number): Promise<ApiResponse<Brand>> {
-    const response = await api.get(`${BRAND_BASE_URL}/${id}`);
-    return response.data;
+  create: async (data: { name: string; name_en?: string }): Promise<ApiResponse<Brand>> => {
+    try {
+      const response = await api.post('/brands', data);
+      return response.data;
+    } catch (error) {
+      console.error('创建品牌失败:', error);
+      return {
+        success: false,
+        error: '创建品牌失败'
+      };
+    }
   },
 
-  // 根据名称获取品牌
-  async getByName(name: string): Promise<ApiResponse<Brand>> {
-    const response = await api.get(`${BRAND_BASE_URL}/name/${encodeURIComponent(name)}`);
-    return response.data;
+  delete: async (id: number): Promise<ApiResponse<void>> => {
+    try {
+      const response = await api.delete(`/brands/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('删除品牌失败:', error);
+      return {
+        success: false,
+        error: '删除品牌失败'
+      };
+    }
   },
-
-  // 创建品牌
-  async create(data: BrandFormData): Promise<ApiResponse<Brand>> {
-    const response = await api.post(BRAND_BASE_URL, data);
-    return response.data;
-  },
-
-  // 更新品牌
-  async update(id: number, data: UpdateBrandFormData): Promise<ApiResponse<Brand>> {
-    const response = await api.put(`${BRAND_BASE_URL}/${id}`, data);
-    return response.data;
-  },
-
-  // 删除品牌
-  async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await api.delete(`${BRAND_BASE_URL}/${id}`);
-    return response.data;
-  },
-
-  // 获取品牌统计
-  async getStats(): Promise<ApiResponse<BrandStats>> {
-    const response = await api.get(`${BRAND_BASE_URL}/stats`);
-    return response.data;
-  }
 };
+
+export default brandService;
+

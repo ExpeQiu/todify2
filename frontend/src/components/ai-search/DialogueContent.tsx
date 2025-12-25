@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus } from "lucide-react";
+import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, Settings, Check } from "lucide-react";
 import { Message, Conversation } from "../../types/aiSearch";
 import { Source } from "./SourceSidebar";
 import { aiSearchService } from "../../services/aiSearchService";
 import MessageItem from "./MessageItem";
+import { AIRoleConfig } from "../../types/aiRole";
+import aiRoleService from "../../services/aiRoleService";
+import { useNavigate } from "react-router-dom";
 
 interface DialogueContentProps {
   conversation: Conversation | null;
@@ -50,6 +53,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   dialogueTitle = "AI内容助手",
   pageType,
 }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +63,13 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastSubmissionRef = useRef<{ content: string; files: File[] } | null>(null);
+
+  // AI角色配置相关状态
+  const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [currentRoleName, setCurrentRoleName] = useState<string | null>(null);
+  const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
 
   // 同步对话消息
   useEffect(() => {
@@ -87,6 +98,61 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // 加载AI角色列表
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (showRoleSelector) {
+        setLoadingRoles(true);
+        try {
+          const roles = await aiRoleService.getAIRoles();
+          setAiRoles(roles.filter(role => role.enabled));
+        } catch (error) {
+          console.error('加载AI角色列表失败:', error);
+          setAiRoles([]);
+        } finally {
+          setLoadingRoles(false);
+        }
+      }
+    };
+    loadRoles();
+  }, [showRoleSelector]);
+
+  // 加载当前配置的角色名称
+  useEffect(() => {
+    const loadCurrentRole = async () => {
+      try {
+        // 从 localStorage 获取 Role ID（根据 pageType 使用不同的 key）
+        const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+        const storedRoleId = localStorage.getItem(storageKey);
+        if (storedRoleId) {
+          setCurrentRoleId(storedRoleId);
+          const role = await aiRoleService.getAIRole(storedRoleId);
+          if (role) {
+            setCurrentRoleName(role.name);
+          }
+        }
+      } catch (error) {
+        console.error('加载当前AI角色配置失败:', error);
+      }
+    };
+    loadCurrentRole();
+  }, [pageType]);
+
+  // 选择角色
+  const handleSelectRole = async (role: AIRoleConfig) => {
+    try {
+      const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+      localStorage.setItem(storageKey, role.id);
+      setCurrentRoleId(role.id);
+      setCurrentRoleName(role.name);
+      setShowRoleSelector(false);
+      alert('AI角色已更新，新的对话将使用该角色。');
+    } catch (error) {
+      console.error('配置角色失败:', error);
+      alert('配置角色失败，请重试');
+    }
+  };
 
   const handleSend = async (override?: { content: string; files: File[] }) => {
     const draftContent = override?.content ?? query.trim();
@@ -306,13 +372,26 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
               </div>
             </div>
           )}
+          {/* AI角色配置 */}
+          {currentRoleName && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
+              当前: {currentRoleName}
+            </span>
+          )}
+          <button
+            onClick={() => setShowRoleSelector(true)}
+            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-gray-700"
+            title="配置AI角色"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
           <button
             onClick={async () => {
               if (onCreateNewConversation) {
                 await onCreateNewConversation();
               }
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Plus className="w-4 h-4" />
             提出一个新问题
@@ -520,6 +599,113 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           </div>
         </div>
       </div>
+
+      {/* AI角色选择弹窗 */}
+      {showRoleSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">选择AI角色</h3>
+              <button
+                onClick={() => setShowRoleSelector(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-1">
+              <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-md text-sm">
+                <div className="font-medium mb-1">正在配置: {dialogueTitle}</div>
+                <div>请选择一个AI角色。该角色的配置将被应用到当前对话。</div>
+              </div>
+
+              {loadingRoles ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-600">加载角色中...</span>
+                </div>
+              ) : aiRoles.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>暂无可用角色</p>
+                  <button
+                    onClick={() => {
+                      setShowRoleSelector(false);
+                      navigate('/ai-roles');
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    前往创建角色
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {aiRoles.map(role => (
+                    <div
+                      key={role.id}
+                      onClick={() => handleSelectRole(role)}
+                      className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        currentRoleName === role.name
+                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mr-3 overflow-hidden">
+                        {role.avatar ? (
+                          <img src={role.avatar} alt={role.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Bot className="w-6 h-6 text-gray-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 truncate">{role.name}</h4>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            role.provider === 'dify' 
+                              ? 'bg-purple-100 text-purple-700' 
+                              : role.provider === 'direct-agent'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {role.provider === 'dify' ? 'Dify' : role.provider === 'direct-agent' ? 'Direct' : 'Unknown'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 truncate mt-0.5">
+                          {role.description || '暂无描述'}
+                        </p>
+                      </div>
+                      {currentRoleName === role.name && (
+                        <div className="ml-3 text-blue-600">
+                          <Check className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowRoleSelector(false);
+                  navigate('/ai-roles');
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline mr-auto"
+              >
+                管理所有角色
+              </button>
+              <button
+                onClick={() => setShowRoleSelector(false)}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors text-sm font-medium"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -9,8 +9,6 @@ import {
   User,
   ChevronDown,
 } from "lucide-react";
-import publicPageConfigService from "../services/publicPageConfigService";
-import { PublicPageConfig } from "../types/publicPageConfig";
 
 interface TopNavigationProps {
 }
@@ -33,26 +31,22 @@ const MAIN_NAV_ORDER = [
   { name: '技术通稿', icon: FileText, path: '/tech-article', address: 'tech-article' },
 ];
 
-// 管理功能的固定顺序和映射（合并为Agent配置）
+// 管理功能的固定顺序和映射
 const MANAGEMENT_NAV_ORDER = [
-  { name: 'Agent配置', icon: Settings, path: '/ai-management' },
+  { name: 'AI角色管理', icon: Settings, path: '/ai-roles' },
+  { name: '技术点管理', icon: Settings, path: '/tech-point-library' },
 ];
 
-// Agent配置相关的子页面路径
-const AGENT_CONFIG_PATHS = [
+// 管理功能相关的子页面路径
+const MANAGEMENT_PATHS = [
   '/ai-roles',
-  '/agent-workflow',
-  '/ai-chat-multi',
-  '/public-page-configs',
-  '/ai-management',
+  '/tech-point-library',
 ];
 
 
 const TopNavigation: React.FC<TopNavigationProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeConfigs, setActiveConfigs] = useState<PublicPageConfig[]>([]);
-  const [loading, setLoading] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [currentUsername, setCurrentUsername] = useState<string>('用户');
   
@@ -106,119 +100,17 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
     };
   }, []);
 
-  // 加载启用的公共页面配置
-  const loadActiveConfigs = async () => {
-    try {
-      console.log('[TopNavigation] 开始加载配置...');
-      setLoading(true);
-      const configs = await publicPageConfigService.getAllConfigs();
-      console.log('[TopNavigation] 获取到所有配置:', configs.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
-      // 过滤出已启用且有地址的配置
-      const enabled = configs.filter(
-        (config) => config.isActive && config.address
-      );
-      console.log('[TopNavigation] 过滤后的启用配置:', enabled.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
-      setActiveConfigs(enabled);
-    } catch (error: any) {
-      // 对于后端未运行的情况，静默处理
-      const errorStatus = error?.response?.status || 'N/A';
-      const errorCode = error?.code;
-      if (errorStatus === 500 || errorCode === 'ECONNREFUSED' || errorCode === 'ERR_NETWORK') {
-        return;
-      }
-      console.error('[TopNavigation] 加载配置失败:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // 初始加载
-    loadActiveConfigs();
-
-    // 监听配置更新事件
-    const handleConfigUpdate = (event?: Event) => {
-      console.log('[TopNavigation] 收到配置更新事件:', event);
-      loadActiveConfigs();
-    };
-
-    window.addEventListener('publicPageConfigUpdated', handleConfigUpdate);
-
-    // 监听storage变化（跨标签页通信）
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'publicPageConfigsRefresh') {
-        loadActiveConfigs();
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    
-    // 监听自定义刷新事件（同标签页触发）
-    const handleCustomRefresh = (event?: Event) => {
-      console.log('[TopNavigation] 收到自定义刷新事件:', event);
-      loadActiveConfigs();
-    };
-    window.addEventListener('publicPageConfigsRefresh', handleCustomRefresh);
-
-    return () => {
-      window.removeEventListener('publicPageConfigUpdated', handleConfigUpdate);
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('publicPageConfigsRefresh', handleCustomRefresh);
-    };
-  }, []);
-
-  // 动态生成主要功能导航项
+  // 生成主要功能导航项
   const mainItems: NavigationItem[] = useMemo(() => {
-    console.log('[TopNavigation] 重新计算 mainItems，activeConfigs:', activeConfigs.map(c => ({ id: c.id, name: c.name, isActive: c.isActive, address: c.address })));
-    const items: NavigationItem[] = [];
-
-    // 按照固定顺序生成主要功能项
-    MAIN_NAV_ORDER.forEach((navItem) => {
-      // 如果是项目管理，直接添加
-      if (navItem.name === '项目管理') {
-        items.push({
-          id: 'home',
-          label: navItem.name,
-          icon: navItem.icon,
-          path: navItem.path,
-          disabled: false,
-          category: 'main',
-        });
-        return;
-      }
-
-      // 其他功能：从配置中查找对应的配置
-      const config = activeConfigs.find(
-        (c) => c.address === navItem.address || c.name === navItem.name
-      );
-
-      if (config) {
-        console.log(`[TopNavigation] 找到配置 ${navItem.name}:`, config);
-        items.push({
-          id: config.id,
-          label: config.name,
-          icon: navItem.icon,
-          path: `/${config.address}`,
-          disabled: false,
-          category: 'main',
-          configId: config.id,
-        });
-      } else {
-        console.log(`[TopNavigation] 未找到配置 ${navItem.name}，将显示为禁用状态`);
-        // 如果配置不存在，仍然显示但禁用
-        items.push({
-          id: `placeholder-${navItem.address}`,
-          label: navItem.name,
-          icon: navItem.icon,
-          path: navItem.path,
-          disabled: true,
-          category: 'main',
-        });
-      }
-    });
-
-    console.log('[TopNavigation] 生成的 mainItems:', items.map(i => ({ id: i.id, label: i.label, disabled: i.disabled })));
-    return items;
-  }, [activeConfigs]);
+    return MAIN_NAV_ORDER.map((navItem) => ({
+      id: navItem.address || 'home',
+      label: navItem.name,
+      icon: navItem.icon,
+      path: navItem.path,
+      disabled: false,
+      category: 'main' as const,
+    }));
+  }, []);
 
   // 生成管理功能导航项
   const managementItems: NavigationItem[] = useMemo(() => {
@@ -271,10 +163,10 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
       // 检查是否是首页路径（忽略查询参数）
       return location.pathname === '/' || location.pathname === '/tech-package';
     }
-    // Agent配置特殊处理：如果当前路径是Agent配置的子页面，也认为是当前路径
-    if (path === '/ai-management') {
-      return AGENT_CONFIG_PATHS.some(agentPath => 
-        location.pathname === agentPath || location.pathname.startsWith(agentPath + '/')
+    // 管理功能特殊处理：如果当前路径是管理功能的子页面，也认为是当前路径
+    if (path === '/ai-roles' || path === '/tech-point-library') {
+      return MANAGEMENT_PATHS.some(managementPath => 
+        location.pathname === managementPath || location.pathname.startsWith(managementPath + '/')
       );
     }
     // 精确匹配
@@ -343,15 +235,8 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
 
           </div>
 
-          {/* 右侧：加载状态和用户标识 */}
+          {/* 右侧：用户标识和下拉菜单 */}
           <div className="flex items-center gap-4">
-            {/* 加载状态指示器 */}
-            {loading && (
-              <div className="flex items-center">
-                <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-
             {/* 用户标识和下拉菜单 */}
             <div className="relative flex items-center">
               <button

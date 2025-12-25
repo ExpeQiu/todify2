@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -14,19 +13,6 @@ export class ExecuteTechPackageUseCase {
       };
 
       const result = await DifyClient.techPackage(difyInputs);
-
-      try {
-        const userQuery = dto.inputs?.query || '技术包装请求';
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          userQuery,
-          'tech-package',
-          dto.inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存技术包装消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

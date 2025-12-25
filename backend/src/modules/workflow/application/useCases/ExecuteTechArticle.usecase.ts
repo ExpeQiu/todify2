@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -13,18 +12,6 @@ export class ExecuteTechArticleUseCase {
 
       const difyInputs = { input: content };
       const result = await DifyClient.techArticle(difyInputs);
-
-      try {
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          '技术通稿生成',
-          'tech-article',
-          inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存技术通稿消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

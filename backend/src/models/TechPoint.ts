@@ -584,6 +584,7 @@ export class TechPointModel {
 
   /**
    * 关联车型到技术点
+   * 注意：CarModel 功能已移除，此方法会返回错误
    */
   async associateCarModel(
     techPointId: number, 
@@ -592,54 +593,72 @@ export class TechPointModel {
     implementationDate?: string,
     notes?: string
   ): Promise<any> {
-    // 检查是否已存在关联
-    const existingSql = `
-      SELECT id FROM tech_point_car_models 
-      WHERE tech_point_id = ? AND car_model_id = ?
-    `;
-    const existing = await this.db.query(existingSql, [techPointId, carModelId]);
-    
-    if (existing.length > 0) {
-      throw new Error('该车型已与此技术点关联');
-    }
+    try {
+      // 检查是否已存在关联
+      const existingSql = `
+        SELECT id FROM tech_point_car_models 
+        WHERE tech_point_id = ? AND car_model_id = ?
+      `;
+      const existing = await this.db.query(existingSql, [techPointId, carModelId]);
+      
+      if (existing.length > 0) {
+        throw new Error('该车型已与此技术点关联');
+      }
 
-    const sql = `
-      INSERT INTO tech_point_car_models (
-        tech_point_id, car_model_id, application_status, 
-        implementation_date, notes, created_at
-      )
-      VALUES (?, ?, ?, ?, ?, datetime('now'))
-      RETURNING *
-    `;
-    
-    const values = [
-      techPointId,
-      carModelId,
-      applicationStatus || 'planned',
-      implementationDate || null,
-      notes || null
-    ];
-    
-    const result = await this.db.query(sql, values);
-    return result[0];
+      const sql = `
+        INSERT INTO tech_point_car_models (
+          tech_point_id, car_model_id, application_status, 
+          implementation_date, notes, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+        RETURNING *
+      `;
+      
+      const values = [
+        techPointId,
+        carModelId,
+        applicationStatus || 'planned',
+        implementationDate || null,
+        notes || null
+      ];
+      
+      const result = await this.db.query(sql, values);
+      return result[0];
+    } catch (error: any) {
+      console.warn('associateCarModel: CarModel table may not exist', error);
+      if (error.message?.includes('no such table')) {
+        throw new Error('车型关联功能已移除');
+      }
+      throw error;
+    }
   }
 
   /**
    * 取消车型与技术点的关联
+   * 注意：CarModel 功能已移除，此方法会返回 false
    */
   async disassociateCarModel(techPointId: number, carModelId: number): Promise<boolean> {
-    const sql = `
-      DELETE FROM tech_point_car_models 
-      WHERE tech_point_id = ? AND car_model_id = ?
-    `;
-    
-    const result = await this.db.query(sql, [techPointId, carModelId]);
-    // 对于DELETE操作，检查是否有行被影响
-    return Array.isArray(result) ? result.length > 0 : true;
+    try {
+      const sql = `
+        DELETE FROM tech_point_car_models 
+        WHERE tech_point_id = ? AND car_model_id = ?
+      `;
+      
+      const result = await this.db.query(sql, [techPointId, carModelId]);
+      // 对于DELETE操作，检查是否有行被影响
+      return Array.isArray(result) ? result.length > 0 : true;
+    } catch (error: any) {
+      console.warn('disassociateCarModel: CarModel table may not exist', error);
+      if (error.message?.includes('no such table')) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   /**
    * 更新车型关联信息
+   * 注意：CarModel 功能已移除，此方法会返回错误
    */
   async updateCarModelAssociation(
     techPointId: number,
@@ -648,27 +667,35 @@ export class TechPointModel {
     implementationDate?: string,
     notes?: string
   ): Promise<any> {
-    const sql = `
-      UPDATE tech_point_car_models 
-      SET 
-        application_status = COALESCE(?, application_status),
-        implementation_date = COALESCE(?, implementation_date),
-        notes = COALESCE(?, notes),
-        updated_at = datetime('now')
-      WHERE tech_point_id = ? AND car_model_id = ?
-      RETURNING *
+    try {
+      const sql = `
+        UPDATE tech_point_car_models 
+        SET 
+          application_status = COALESCE(?, application_status),
+          implementation_date = COALESCE(?, implementation_date),
+          notes = COALESCE(?, notes),
+          updated_at = datetime('now')
+        WHERE tech_point_id = ? AND car_model_id = ?
+        RETURNING *
     `;
     
-    const values = [
-      applicationStatus,
-      implementationDate,
-      notes,
-      techPointId,
-      carModelId
-    ];
-    
-    const result = await this.db.query(sql, values);
-    return result.length > 0 ? result[0] : null;
+      const values = [
+        applicationStatus,
+        implementationDate,
+        notes,
+        techPointId,
+        carModelId
+      ];
+      
+      const result = await this.db.query(sql, values);
+      return result.length > 0 ? result[0] : null;
+    } catch (error: any) {
+      console.warn('updateCarModelAssociation: CarModel table may not exist', error);
+      if (error.message?.includes('no such table')) {
+        throw new Error('车型关联功能已移除');
+      }
+      throw error;
+    }
   }
 
   /**

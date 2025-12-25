@@ -349,36 +349,58 @@ export class ProjectModel {
 
   /**
    * 获取项目关联的来源信息
+   * 注意：SourceInformation 功能已移除，此方法返回空数组
    */
   async getSourceInformations(projectId: number): Promise<SourceInformation[]> {
-    const sql = `
-      SELECT si.* FROM source_information si
-      INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
-      WHERE psi.project_id = ?
-    `;
-    const result = await this.db.query(sql, [projectId]);
-    return result.map((row: any) => this.parseSourceInformation(row));
+    try {
+      // 尝试查询，如果表不存在则返回空数组
+      const sql = `
+        SELECT si.* FROM source_information si
+        INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
+        WHERE psi.project_id = ?
+      `;
+      const result = await this.db.query(sql, [projectId]);
+      return result.map((row: any) => this.parseSourceInformation(row));
+    } catch (error) {
+      // 如果表不存在或查询失败，返回空数组
+      console.warn('getSourceInformations: SourceInformation table may not exist, returning empty array', error);
+      return [];
+    }
   }
 
   /**
    * 添加来源信息到项目
+   * 注意：SourceInformation 功能已移除，此方法返回 false
    */
   async addSourceInformation(projectId: number, sourceInformationId: number, notes?: string): Promise<boolean> {
-    const sql = `
-      INSERT OR IGNORE INTO project_source_informations (project_id, source_information_id, notes)
-      VALUES (?, ?, ?)
-    `;
-    const result = await this.db.query(sql, [projectId, sourceInformationId, notes || null]);
-    return (result as any).changes > 0 || (result as any).lastID !== undefined;
+    try {
+      const sql = `
+        INSERT OR IGNORE INTO project_source_informations (project_id, source_information_id, notes)
+        VALUES (?, ?, ?)
+      `;
+      const result = await this.db.query(sql, [projectId, sourceInformationId, notes || null]);
+      return (result as any).changes > 0 || (result as any).lastID !== undefined;
+    } catch (error) {
+      // 如果表不存在或操作失败，返回 false
+      console.warn('addSourceInformation: SourceInformation table may not exist, returning false', error);
+      return false;
+    }
   }
 
   /**
    * 从项目移除来源信息
+   * 注意：SourceInformation 功能已移除，此方法返回 false
    */
   async removeSourceInformation(projectId: number, sourceInformationId: number): Promise<boolean> {
-    const sql = 'DELETE FROM project_source_informations WHERE project_id = ? AND source_information_id = ?';
-    const result = await this.db.query(sql, [projectId, sourceInformationId]);
-    return (result as any).changes > 0;
+    try {
+      const sql = 'DELETE FROM project_source_informations WHERE project_id = ? AND source_information_id = ?';
+      const result = await this.db.query(sql, [projectId, sourceInformationId]);
+      return (result as any).changes > 0;
+    } catch (error) {
+      // 如果表不存在或操作失败，返回 false
+      console.warn('removeSourceInformation: SourceInformation table may not exist, returning false', error);
+      return false;
+    }
   }
 
   /**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Upload, Search, X, FileText, Trash2, Check, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus } from 'lucide-react';
+import { Upload, Search, X, FileText, Trash2, Check, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Project } from '../types/project';
@@ -54,13 +54,34 @@ const ProjectResourcesPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   
   // AI角色选择相关状态
-  const [aiRoles] = useState<AIRoleConfig[]>([]);
+  const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
-  const [loadingRoles] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(false);
   const [currentRoleName, setCurrentRoleName] = useState<string | null>(null);
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
+  const [roleConnectionStatus, setRoleConnectionStatus] = useState<boolean | null>(null);
+  const [testingConnection, setTestingConnection] = useState(false);
 
-  // 加载当前配置的角色名称
+  // 加载AI角色列表
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (showRoleSelector) {
+        setLoadingRoles(true);
+        try {
+          const roles = await aiRoleService.getAIRoles();
+          setAiRoles(roles.filter(role => role.enabled));
+        } catch (error) {
+          console.error('加载AI角色列表失败:', error);
+          setAiRoles([]);
+        } finally {
+          setLoadingRoles(false);
+        }
+      }
+    };
+    loadRoles();
+  }, [showRoleSelector]);
+
+  // 加载当前配置的角色名称并测试连接
   useEffect(() => {
     const loadCurrentRole = async () => {
       try {
@@ -72,6 +93,19 @@ const ProjectResourcesPage: React.FC = () => {
           const role = await aiRoleService.getAIRole(storedRoleId);
           if (role) {
             setCurrentRoleName(role.name);
+            // 测试连接状态
+            setTestingConnection(true);
+            try {
+              const testResult = await aiRoleService.testConnection(storedRoleId);
+              // 检查 data.success 或 data.data.success
+              const isConnected = testResult.data?.success === true || testResult.data?.data?.success === true;
+              setRoleConnectionStatus(isConnected);
+            } catch (error) {
+              console.error('测试连接失败:', error);
+              setRoleConnectionStatus(false);
+            } finally {
+              setTestingConnection(false);
+            }
             return;
           }
         }
@@ -80,6 +114,7 @@ const ProjectResourcesPage: React.FC = () => {
         const config = await configService.getDifyConfig('smart-workflow-ai-qa');
         if (config && config.enabled && config.name) {
           setCurrentRoleName(config.name);
+          setRoleConnectionStatus(null); // 旧配置无法测试连接状态
         }
       } catch (error) {
         console.error('加载当前AI角色配置失败:', error);
@@ -115,6 +150,20 @@ const ProjectResourcesPage: React.FC = () => {
            allConfigs.push(configToSave);
          }
          await configService.saveDifyConfigs(allConfigs);
+       }
+       
+       // 测试新角色的连接状态
+       setTestingConnection(true);
+       try {
+         const testResult = await aiRoleService.testConnection(role.id);
+         // 检查 data.success 或 data.data.success
+         const isConnected = testResult.data?.success === true || testResult.data?.data?.success === true;
+         setRoleConnectionStatus(isConnected);
+       } catch (error) {
+         console.error('测试连接失败:', error);
+         setRoleConnectionStatus(false);
+       } finally {
+         setTestingConnection(false);
        }
        
        setShowRoleSelector(false);
@@ -2181,10 +2230,47 @@ ${truncatedText}`;
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {currentRoleName && (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
-                        当前: {currentRoleName}
-                      </span>
+                    {currentRoleName ? (
+                      <button
+                        onClick={() => setShowRoleSelector(true)}
+                        className={`px-3 py-1.5 text-sm rounded-md transition-colors flex items-center gap-2 ${
+                          testingConnection
+                            ? 'bg-gray-100 text-gray-600 border border-gray-300'
+                            : roleConnectionStatus === true
+                            ? 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100'
+                            : roleConnectionStatus === false
+                            ? 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
+                            : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                        }`}
+                        title={testingConnection ? '测试连接中...' : roleConnectionStatus === true ? '连接正常' : roleConnectionStatus === false ? '连接异常' : '配置AI角色'}
+                        disabled={testingConnection}
+                      >
+                        {testingConnection ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>测试中...</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className={`w-2 h-2 rounded-full ${
+                              roleConnectionStatus === true
+                                ? 'bg-green-500'
+                                : roleConnectionStatus === false
+                                ? 'bg-red-500'
+                                : 'bg-gray-400'
+                            }`} />
+                            <span>{currentRoleName}</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowRoleSelector(true)}
+                        className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-gray-700"
+                        title="配置AI角色"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 </div>

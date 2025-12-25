@@ -1,5 +1,4 @@
 import { createContentConcatenationService } from '@/services/ContentConcatenationService';
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { db } from '@/config/database';
 import { logger } from '@/shared/lib/logger';
@@ -14,8 +13,6 @@ export class ExecuteAiSearchUseCase {
 
       const processedInputs = await this.processInputs(dto.inputs);
       const result = await DifyClient.aiSearch(dto.query, processedInputs, dto.conversationId ?? '');
-
-      await ChatMessageService.saveDifyChatResponse(result, dto.query, 'ai-search', processedInputs);
 
       return success(result);
     } catch (error) {

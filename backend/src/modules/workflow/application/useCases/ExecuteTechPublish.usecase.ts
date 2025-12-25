@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -9,18 +8,6 @@ export class ExecuteTechPublishUseCase {
   async execute(dto: ExecuteTechPublishDTO): Promise<Result<unknown>> {
     try {
       const result = await DifyClient.techPublish(dto.inputs, dto.conversationId);
-
-      try {
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          '技术发布生成',
-          'tech-publish',
-          dto.inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存技术发布消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

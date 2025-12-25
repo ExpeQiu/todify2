@@ -6,24 +6,19 @@ import { logger } from '@/shared/lib/logger';
 
 import techCategoriesRouter from './techCategories';
 import techPointsRouter from './techPoints';
-import carSeriesRouter from './carSeries';
 import knowledgePointsRouter from './knowledgePointRoutes';
-import chatRouter from './chat';
-import workflowStatsRouter from './workflowStats';
 import difyProxyRouter from './dify-proxy';
 import aiRoleRouter from './aiRole';
-import agentWorkflowRouter from './agentWorkflow';
-import workflowExecutionRouter from './workflowExecution';
-import workflowTemplateRouter from './workflowTemplate';
-import publicPageConfigRouter from './publicPageConfig';
-import pageToolConfigRouter from './pageToolConfig';
-import sourceInformationRouter from './sourceInformationRoutes';
 import projectsRouter from './projects';
-import publicKnowledgeRouter from './publicKnowledge';
 import techPackagingRouter from './techPackaging';
 import techPromotionRouter from './techPromotion';
 import techPressRouter from './techPress';
+import publicKnowledgeRouter from './publicKnowledge';
 import bochaWebSearchRouter from './bochaWebSearch';
+import brandsRouter from './brands';
+import carModelsRouter from './carModels';
+import carSeriesRouter from './carSeries';
+import technologiesRouter from './technologies';
 
 const router = Router();
 
@@ -44,26 +39,21 @@ router.use((req, res, next) => {
 // 注册路由
 router.use('/tech-categories', techCategoriesRouter);
 router.use('/tech-points', techPointsRouter);
-router.use('/car-series', carSeriesRouter);
 router.use('/workflow', workflowModuleRouter);
 router.use('/knowledge-points', knowledgePointsRouter);
-router.use('/chat', chatRouter);
-router.use('/workflow-stats', workflowStatsRouter);
 router.use('/dify', difyProxyRouter);
 router.use('/ai-roles', aiRoleRouter);
-router.use('/agent-workflows', agentWorkflowRouter);
-router.use('/executions', workflowExecutionRouter);
-router.use('/workflow-templates', workflowTemplateRouter);
-router.use('/public-page-configs', publicPageConfigRouter);
-router.use('/page-tool-configs', pageToolConfigRouter);
-router.use('/source-information', sourceInformationRouter);
 router.use('/projects', projectsRouter);
-router.use('/public-knowledge', publicKnowledgeRouter);
 router.use('/tech-packaging', techPackagingRouter);
 router.use('/tech-promotion', techPromotionRouter);
 router.use('/tech-press', techPressRouter);
 router.use('/ai-search', aiSearchModuleRouter);
+router.use('/public-knowledge', publicKnowledgeRouter);
 router.use('/bocha', bochaWebSearchRouter);
+router.use('/brands', brandsRouter);
+router.use('/car-models', carModelsRouter);
+router.use('/car-series', carSeriesRouter);
+router.use('/technologies', technologiesRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

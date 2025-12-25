@@ -1089,29 +1089,6 @@ const AIRoleManagementPage: React.FC = () => {
           <div className="flex-1">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">AI角色管理</h1>
             <p className="text-gray-600 mt-2 text-xl font-medium">创建和管理您的AI对话角色</p>
-            {/* 快速导航 */}
-            <div className="flex items-center gap-4 mt-5 flex-wrap text-base md:text-lg">
-              <a
-                href="/agent-workflow"
-                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
-              >
-                → 管理工作流
-              </a>
-              <span className="text-gray-300">|</span>
-              <a
-                href="/ai-chat-multi"
-                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
-              >
-                → 多窗口对话
-              </a>
-              <span className="text-gray-300">|</span>
-              <a
-                href="/public-page-configs"
-                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
-              >
-                → 公开页面配置
-              </a>
-            </div>
           </div>
           <div className="flex items-center gap-3">
             {/* 后端连接状态指示 */}
@@ -1432,14 +1409,19 @@ const AIRoleManagementPage: React.FC = () => {
                               </div>
                               {/* 来源 */}
                               <div className="col-span-2">
-                                {role.source ? (
-                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                    role.source === 'smart-workflow' ? 'bg-blue-100 text-blue-700' :
-                                    role.source === 'independent-page' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {role.source === 'smart-workflow' ? '智能工作流' :
-                                     role.source === 'independent-page' ? '独立页面' : '自定义'}
-                                  </span>
+                                {usage && usage.totalUsageCount > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {usage.locations.slice(0, 3).map((location, idx) => (
+                                      <span key={idx} className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                        {location.name}
+                                      </span>
+                                    ))}
+                                    {usage.locations.length > 3 && (
+                                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                        +{usage.locations.length - 3}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : (
                                   <span className="text-xs text-gray-400">-</span>
                                 )}
@@ -1773,25 +1755,30 @@ const AIRoleManagementPage: React.FC = () => {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2.5 mb-1.5">
+                                <div className="flex items-center gap-2.5 mb-1.5 flex-wrap">
                                   <h3 className="font-semibold text-gray-900 truncate text-lg">
                                     {role.name}
                                   </h3>
-                                  {role.source && (
-                                    <span className={`text-sm px-2 py-0.5 rounded flex-shrink-0 ${
-                                      role.source === 'smart-workflow' 
-                                        ? 'bg-blue-100 text-blue-700' 
-                                        : role.source === 'independent-page'
-                                        ? 'bg-green-100 text-green-700'
-                                        : role.source === 'agent-workflow'
-                                        ? 'bg-indigo-100 text-indigo-700'
-                                        : 'bg-gray-100 text-gray-700'
-                                    }`}>
-                                      {role.source === 'smart-workflow' ? '智能工作流' : 
-                                       role.source === 'independent-page' ? '独立页面' : 
-                                       role.source === 'agent-workflow' ? '自编工作流' : '自定义'}
-                                    </span>
-                                  )}
+                                  {roleUsages.has(role.id) && (() => {
+                                    const usage = roleUsages.get(role.id)!;
+                                    if (usage.totalUsageCount > 0) {
+                                      return (
+                                        <>
+                                          {usage.locations.slice(0, 2).map((location, idx) => (
+                                            <span key={idx} className="text-sm px-2 py-0.5 rounded flex-shrink-0 bg-blue-100 text-blue-700">
+                                              {location.name}
+                                            </span>
+                                          ))}
+                                          {usage.locations.length > 2 && (
+                                            <span className="text-sm px-2 py-0.5 rounded flex-shrink-0 bg-gray-100 text-gray-600">
+                                              +{usage.locations.length - 2}
+                                            </span>
+                                          )}
+                                        </>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
                                 </div>
                                 <p className="text-sm text-gray-600 mt-2.5 line-clamp-2 leading-relaxed">
                                   {role.description}

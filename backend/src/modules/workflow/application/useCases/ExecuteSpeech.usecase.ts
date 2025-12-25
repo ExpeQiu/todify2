@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -20,18 +19,6 @@ export class ExecuteSpeechUseCase {
       }
 
       const result = await DifyClient.techPublish(speechInputs, dto.conversationId);
-
-      try {
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          '发布会稿生成',
-          'speech-generation',
-          inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存发布会稿消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

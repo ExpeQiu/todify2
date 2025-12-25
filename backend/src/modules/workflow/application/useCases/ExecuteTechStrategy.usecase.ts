@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -18,18 +17,6 @@ export class ExecuteTechStrategyUseCase {
       };
 
       const result = await DifyClient.techStrategy(difyInputs);
-
-      try {
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          '技术策略生成',
-          'tech-strategy',
-          dto.inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存技术策略消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

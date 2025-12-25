@@ -196,6 +196,19 @@ export const techPointService = {
     }
   },
 
+  async deleteTechCategory(id: number): Promise<ApiResponse<void>> {
+    try {
+      const response = await api.delete(`${TECH_CATEGORY_BASE_URL}/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('删除技术分类失败:', error);
+      return {
+        success: false,
+        error: '删除技术分类失败'
+      };
+    }
+  },
+
   // 车型相关API
   async getCarModels(): Promise<ApiResponse<CarModel[]>> {
     try {

@@ -246,12 +246,14 @@ const TechPointLibraryPage: React.FC = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 80,
+      width: 70,
+      fixed: 'left' as const,
     },
     {
       title: '技术点名称',
       dataIndex: 'name',
       key: 'name',
+      width: 280,
       ellipsis: true,
       render: (text: string, record: TechPoint) => (
         isSelectMode ? (
@@ -273,33 +275,17 @@ const TechPointLibraryPage: React.FC = () => {
       title: '技术领域',
       dataIndex: 'category_id',
       key: 'category',
-      width: 150,
+      width: 180,
       render: (categoryId: number) => {
         const category = techCategories.find(c => c.id === categoryId);
         return category ? <Tag color="blue">{category.name}</Tag> : '-';
       },
     },
     {
-      title: '技术类型',
-      dataIndex: 'tech_type',
-      key: 'tech_type',
-      width: 120,
-      render: (type: TechType) => {
-        const typeMap: Record<TechType, { label: string; color: string }> = {
-          feature: { label: '功能特性', color: 'green' },
-          improvement: { label: '改进优化', color: 'blue' },
-          innovation: { label: '创新技术', color: 'purple' },
-          technology: { label: '核心技术', color: 'red' },
-        };
-        const typeInfo = typeMap[type] || { label: type, color: 'default' };
-        return <Tag color={typeInfo.color}>{typeInfo.label}</Tag>;
-      },
-    },
-    {
       title: '关联技术IP',
       dataIndex: 'technology_id',
       key: 'technology_id',
-      width: 150,
+      width: 180,
       render: (technologyId: number | undefined) => {
         if (!technologyId) {
           return <Tag color="default">未关联</Tag>;
@@ -312,50 +298,10 @@ const TechPointLibraryPage: React.FC = () => {
         );
       },
     },
-    {
-      title: '优先级',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 100,
-      render: (priority: TechPriority) => {
-        const priorityMap: Record<TechPriority, { label: string; color: string }> = {
-          low: { label: '低', color: 'default' },
-          medium: { label: '中', color: 'orange' },
-          high: { label: '高', color: 'red' },
-        };
-        const priorityInfo = priorityMap[priority] || { label: priority, color: 'default' };
-        return <Tag color={priorityInfo.color}>{priorityInfo.label}</Tag>;
-      },
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (status: TechStatus) => {
-        const statusMap: Record<TechStatus, { label: string; color: string }> = {
-          draft: { label: '草稿', color: 'default' },
-          active: { label: '启用', color: 'green' },
-          inactive: { label: '禁用', color: 'orange' },
-          archived: { label: '归档', color: 'red' },
-        };
-        const statusInfo = statusMap[status] || { label: status, color: 'default' };
-        return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
-      },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      width: 180,
-      render: (date: string) => {
-        return date ? new Date(date).toLocaleString('zh-CN') : '-';
-      },
-    },
     ...(!isSelectMode ? [{
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 180,
       fixed: 'right' as const,
       render: (_: any, record: TechPoint) => (
         <Space size="small">
@@ -608,7 +554,7 @@ const TechPointLibraryPage: React.FC = () => {
               setPageSize(size || 10);
             },
           }}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 900 }}
         />
       </Card>
 

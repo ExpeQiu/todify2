@@ -64,7 +64,7 @@ const HomePage: React.FC = () => {
         const allResponse = await projectService.getProjects({
           page: 1,
           pageSize: 100,
-          orderBy: sortBy === 'recent' ? 'last_opened_at' : sortBy === 'name' ? 'name' : 'created_at',
+          orderBy: sortBy === 'recent' ? 'updated_at' : sortBy === 'name' ? 'name' : 'created_at',
           orderDirection: sortBy === 'recent' ? 'DESC' : 'ASC'
         });
         if (allResponse.success && allResponse.data) {
@@ -256,7 +256,7 @@ const HomePage: React.FC = () => {
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
                       <button
                         onClick={() => {
-                          navigate('/ai-management');
+                          navigate('/ai-roles');
                           setUserMenuOpen(false);
                         }}
                         className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"

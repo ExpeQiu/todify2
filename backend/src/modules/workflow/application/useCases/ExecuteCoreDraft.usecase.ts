@@ -1,4 +1,3 @@
-import { ChatMessageService } from '@/services/ChatMessageService';
 import DifyClient from '@/services/DifyClient';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
@@ -17,18 +16,6 @@ export class ExecuteCoreDraftUseCase {
       };
 
       const result = await DifyClient.coreDraft(formattedInputs);
-
-      try {
-        await ChatMessageService.saveDifyWorkflowResponse(
-          result,
-          '核心稿件生成',
-          'core-draft',
-          dto.inputs,
-          dto.conversationId
-        );
-      } catch (error) {
-        logger.warn('保存核心稿件消息失败', { error });
-      }
 
       return success(result);
     } catch (error) {

@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Button, Space, message, Empty, DatePicker, Divider, Row, Col } from 'antd';
-import { ImportOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, Select, Button, Space, message, Empty, DatePicker, Divider, Row, Col, Card, Typography, Tooltip } from 'antd';
+import { ImportOutlined, InfoCircleOutlined, BulbOutlined, ExperimentOutlined, SafetyCertificateOutlined, BarChartOutlined, CarOutlined, LinkOutlined, PlusOutlined } from '@ant-design/icons';
 import type { TechPoint, TechCategory } from '../../types/techPoint';
 import { techPointService } from '../../services/techPointService';
 import { brandService } from '../../services/brandService';
 import { carModelService } from '../../services/carModelService';
 import { carSeriesService } from '../../services/carSeriesService';
+import { technologyService, Technology } from '../../services/technologyService';
 import type { Brand } from '../../types/brand';
 import type { CarModel } from '../../types/carModel';
 import type { CarSeries } from '../../types/carSeries';
 import CarModelAssociation from './CarModelAssociation';
+import SelectableOptionSelector, { Option } from '../common/SelectableOptionSelector';
 import dayjs from 'dayjs';
 
 interface TechPointEditModalProps {
@@ -30,6 +32,7 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [techCategories, setTechCategories] = useState<TechCategory[]>([]);
+  const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importJsonText, setImportJsonText] = useState('');
   
@@ -37,9 +40,9 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
   const [brands, setBrands] = useState<Brand[]>([]);
   const [carModels, setCarModels] = useState<CarModel[]>([]);
   const [carSeries, setCarSeries] = useState<CarSeries[]>([]);
-  const [selectedBrandId, setSelectedBrandId] = useState<number | null>(null);
-  const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
-  const [selectedSeriesId, setSelectedSeriesId] = useState<number | null>(null);
+  const [selectedBrandId, setSelectedBrandId] = useState<(number | string)[]>([]);
+  const [selectedModelId, setSelectedModelId] = useState<(number | string)[]>([]);
+  const [selectedSeriesId, setSelectedSeriesId] = useState<(number | string)[]>([]);
   const [brandsLoading, setBrandsLoading] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [seriesLoading, setSeriesLoading] = useState(false);
@@ -47,15 +50,16 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
   useEffect(() => {
     if (visible) {
       loadTechCategories();
+      loadTechnologies();
       loadBrands();
       if (techPoint) {
         // 重新从后端获取最新数据，确保所有字段都正确加载
         loadTechPointDataFromServer();
       } else {
         form.resetFields();
-        setSelectedBrandId(null);
-        setSelectedModelId(null);
-        setSelectedSeriesId(null);
+        setSelectedBrandId([]);
+        setSelectedModelId([]);
+        setSelectedSeriesId([]);
         setCarModels([]);
         setCarSeries([]);
       }
@@ -155,8 +159,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
       form.setFieldsValue({
         name: data.name,
         description: data.description || '',
-        category_id: data.category_id,
-        technology_id: data.technology_id || undefined,
+        category_id: Array.isArray(data.category_id) ? data.category_id : (data.category_id ? [data.category_id] : undefined),
+        technology_id: Array.isArray(data.technology_id) ? data.technology_id : (data.technology_id ? [data.technology_id] : undefined),
         tech_principle: techPrinciple,
         tech_value: techValue,
         tech_boundary: techBoundary,
@@ -200,6 +204,99 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
     }
   };
 
+  // 加载技术IP列表
+  const loadTechnologies = async () => {
+    try {
+      const response = await technologyService.getAll();
+      if (response.data) {
+        setTechnologies(response.data);
+      } else {
+        setTechnologies([]);
+      }
+    } catch (error) {
+      console.error('加载技术IP列表失败:', error);
+      setTechnologies([]);
+    }
+  };
+
+  // 创建技术IP
+  const handleCreateTechnology = async (name: string): Promise<Option | null> => {
+    try {
+      const response = await technologyService.create({ name });
+      if (response.success && response.data) {
+        const newTechnology = response.data;
+        setTechnologies([...technologies, newTechnology]);
+        return { id: newTechnology.id, name: newTechnology.name };
+      }
+      return null;
+    } catch (error) {
+      console.error('创建技术IP失败:', error);
+      return null;
+    }
+  };
+
+  // 删除技术IP
+  const handleDeleteTechnology = async (id: number | string): Promise<boolean> => {
+    try {
+      const response = await technologyService.delete(Number(id));
+      if (response.success) {
+        setTechnologies(technologies.filter(tech => tech.id !== id));
+        // 如果删除的是当前选中的，从选择中移除
+        const currentValue = form.getFieldValue('technology_id');
+        if (Array.isArray(currentValue)) {
+          const newValues = currentValue.filter(v => v !== id);
+          form.setFieldsValue({ technology_id: newValues.length > 0 ? newValues : undefined });
+        } else if (currentValue === id) {
+          form.setFieldsValue({ technology_id: undefined });
+        }
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除失败：该技术IP可能有关联的技术点');
+      return false;
+    }
+  };
+
+  // 创建技术领域
+  const handleCreateCategory = async (name: string): Promise<Option | null> => {
+    try {
+      const response = await techPointService.createTechCategory({ name });
+      if (response.success && response.data) {
+        const newCategory = response.data;
+        setTechCategories([...techCategories, newCategory]);
+        return { id: newCategory.id, name: newCategory.name };
+      }
+      return null;
+    } catch (error) {
+      console.error('创建技术领域失败:', error);
+      return null;
+    }
+  };
+
+  // 删除技术领域
+  const handleDeleteCategory = async (id: number | string): Promise<boolean> => {
+    try {
+      const response = await techPointService.deleteTechCategory(Number(id));
+      if (response.success) {
+        setTechCategories(techCategories.filter(cat => cat.id !== id));
+        // 如果删除的是当前选中的，从选择中移除
+        const currentValue = form.getFieldValue('category_id');
+        if (Array.isArray(currentValue)) {
+          const newValues = currentValue.filter(v => v !== id);
+          form.setFieldsValue({ category_id: newValues.length > 0 ? newValues : undefined });
+        } else if (currentValue === id) {
+          form.setFieldsValue({ category_id: undefined });
+        }
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除失败：该技术领域可能有关联的技术点');
+      return false;
+    }
+  };
+
   // 加载品牌列表
   const loadBrands = async () => {
     setBrandsLoading(true);
@@ -212,6 +309,47 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
       console.error('加载品牌列表失败:', error);
     } finally {
       setBrandsLoading(false);
+    }
+  };
+
+  // 创建品牌
+  const handleCreateBrand = async (name: string): Promise<Option | null> => {
+    try {
+      const response = await brandService.create({ name });
+      if (response.success && response.data) {
+        const newBrand = response.data;
+        setBrands([...brands, newBrand]);
+        return { id: newBrand.id, name: newBrand.name };
+      }
+      return null;
+    } catch (error) {
+      console.error('创建品牌失败:', error);
+      return null;
+    }
+  };
+
+  // 删除品牌
+  const handleDeleteBrand = async (id: number | string): Promise<boolean> => {
+    try {
+      const response = await brandService.delete(Number(id));
+      if (response.success) {
+        setBrands(brands.filter(brand => brand.id !== id));
+        // 如果删除的是当前选中的，从选择中移除
+        const newBrandIds = selectedBrandId.filter(brandId => brandId !== id);
+        setSelectedBrandId(newBrandIds);
+        // 如果删除后没有选中的品牌，清空车型和车系
+        if (newBrandIds.length === 0) {
+          setCarModels([]);
+          setCarSeries([]);
+          setSelectedModelId([]);
+          setSelectedSeriesId([]);
+        }
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除失败：该品牌可能有关联的车型');
+      return false;
     }
   };
 
@@ -233,6 +371,50 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
     }
   };
 
+  // 创建车型
+  const handleCreateCarModel = async (name: string): Promise<Option | null> => {
+    if (selectedBrandId.length === 0) {
+      message.warning('请先选择品牌');
+      return null;
+    }
+    // 使用第一个选中的品牌
+    try {
+      const response = await carModelService.create({ name, brand_id: Number(selectedBrandId[0]) });
+      if (response.success && response.data) {
+        const newModel = response.data;
+        setCarModels([...carModels, newModel]);
+        return { id: newModel.id, name: newModel.name };
+      }
+      return null;
+    } catch (error) {
+      console.error('创建车型失败:', error);
+      return null;
+    }
+  };
+
+  // 删除车型
+  const handleDeleteCarModel = async (id: number | string): Promise<boolean> => {
+    try {
+      const response = await carModelService.delete(Number(id));
+      if (response.success) {
+        setCarModels(carModels.filter(model => model.id !== id));
+        // 如果删除的是当前选中的，从选择中移除
+        const newModelIds = selectedModelId.filter(modelId => modelId !== id);
+        setSelectedModelId(newModelIds);
+        // 如果删除后没有选中的车型，清空车系
+        if (newModelIds.length === 0) {
+          setCarSeries([]);
+          setSelectedSeriesId([]);
+        }
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除失败：该车型可能有关联的车系');
+      return false;
+    }
+  };
+
   // 根据车型加载车系列表
   const loadCarSeriesByModel = async (modelId: number) => {
     setSeriesLoading(true);
@@ -251,29 +433,104 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
     }
   };
 
+  // 创建车系
+  const handleCreateCarSeries = async (name: string): Promise<Option | null> => {
+    if (selectedModelId.length === 0) {
+      message.warning('请先选择车型');
+      return null;
+    }
+    // 使用第一个选中的车型
+    try {
+      const response = await carSeriesService.create({ name, model_id: Number(selectedModelId[0]) });
+      if (response.success && response.data) {
+        const newSeries = response.data;
+        setCarSeries([...carSeries, newSeries]);
+        return { id: newSeries.id, name: newSeries.name };
+      }
+      return null;
+    } catch (error) {
+      console.error('创建车系失败:', error);
+      return null;
+    }
+  };
+
+  // 删除车系
+  const handleDeleteCarSeries = async (id: number | string): Promise<boolean> => {
+    try {
+      const response = await carSeriesService.delete(Number(id));
+      if (response.success) {
+        setCarSeries(carSeries.filter(series => series.id !== id));
+        // 如果删除的是当前选中的，从选择中移除
+        const newSeriesIds = selectedSeriesId.filter(seriesId => seriesId !== id);
+        setSelectedSeriesId(newSeriesIds);
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除失败');
+      return false;
+    }
+  };
+
   // 品牌变化处理
   useEffect(() => {
-    if (selectedBrandId) {
-      loadCarModelsByBrand(selectedBrandId);
+    if (selectedBrandId.length > 0) {
+      // 加载所有选中品牌的车型
+      const loadAllModels = async () => {
+        setModelsLoading(true);
+        try {
+          const allModels: CarModel[] = [];
+          for (const brandId of selectedBrandId) {
+            const response = await carModelService.getByBrand(Number(brandId));
+            if (response.data) {
+              allModels.push(...response.data);
+            }
+          }
+          setCarModels(allModels);
+        } catch (error) {
+          console.error('加载车型列表失败:', error);
+        } finally {
+          setModelsLoading(false);
+        }
+      };
+      loadAllModels();
       setCarSeries([]);
-      setSelectedModelId(null);
-      setSelectedSeriesId(null);
+      setSelectedModelId([]);
+      setSelectedSeriesId([]);
     } else {
       setCarModels([]);
       setCarSeries([]);
-      setSelectedModelId(null);
-      setSelectedSeriesId(null);
+      setSelectedModelId([]);
+      setSelectedSeriesId([]);
     }
   }, [selectedBrandId]);
 
   // 车型变化处理
   useEffect(() => {
-    if (selectedModelId) {
-      loadCarSeriesByModel(selectedModelId);
-      setSelectedSeriesId(null);
+    if (selectedModelId.length > 0) {
+      // 加载所有选中车型的车系
+      const loadAllSeries = async () => {
+        setSeriesLoading(true);
+        try {
+          const allSeries: CarSeries[] = [];
+          for (const modelId of selectedModelId) {
+            const response = await carSeriesService.getByModel(Number(modelId));
+            if (response.data) {
+              allSeries.push(...response.data);
+            }
+          }
+          setCarSeries(allSeries);
+        } catch (error) {
+          console.error('加载车系列表失败:', error);
+        } finally {
+          setSeriesLoading(false);
+        }
+      };
+      loadAllSeries();
+      setSelectedSeriesId([]);
     } else {
       setCarSeries([]);
-      setSelectedSeriesId(null);
+      setSelectedSeriesId([]);
     }
   }, [selectedModelId]);
 
@@ -351,8 +608,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
       form.setFieldsValue({
         name: techPoint.name,
         description: techPoint.description || '',
-        category_id: techPoint.category_id,
-        technology_id: techPoint.technology_id || undefined,
+        category_id: Array.isArray(techPoint.category_id) ? techPoint.category_id : (techPoint.category_id ? [techPoint.category_id] : undefined),
+        technology_id: Array.isArray(techPoint.technology_id) ? techPoint.technology_id : (techPoint.technology_id ? [techPoint.technology_id] : undefined),
         tech_principle: techPrinciple,
         tech_value: techValue,
         tech_boundary: techBoundary,
@@ -389,8 +646,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
         const updatePayload: any = {
           name: values.name,
           description: values.description || '',
-          category_id: values.category_id || null,
-          technology_id: values.technology_id || null,
+          category_id: Array.isArray(values.category_id) ? (values.category_id.length > 0 ? values.category_id[0] : null) : (values.category_id || null),
+          technology_id: Array.isArray(values.technology_id) ? (values.technology_id.length > 0 ? values.technology_id[0] : null) : (values.technology_id || null),
           tech_principle: values.tech_principle || null,
           tech_value: values.tech_value || null,
           tech_boundary: values.tech_boundary || null,
@@ -416,8 +673,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
         const createPayload: any = {
           name: values.name,
           description: values.description || '',
-          technology_id: values.technology_id || null,
-          category_id: values.category_id,
+          technology_id: Array.isArray(values.technology_id) ? (values.technology_id.length > 0 ? values.technology_id[0] : null) : (values.technology_id || null),
+          category_id: Array.isArray(values.category_id) ? (values.category_id.length > 0 ? values.category_id[0] : null) : (values.category_id || null),
           tech_type: values.tech_type || 'feature',
           priority: values.priority || 'medium',
           status: values.status || 'draft',
@@ -561,9 +818,8 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
       ]}
       destroyOnHidden
       style={{ top: 20 }}
-      bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+      styles={{ body: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', padding: '24px' } }}
     >
-      <Divider style={{ margin: '0 0 24px 0' }} />
       <Form
         form={form}
         layout="vertical"
@@ -578,223 +834,550 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
         }}
       >
         {/* 基本信息 */}
-        <div style={{ marginBottom: 16 }}>
-          <h4 style={{ marginBottom: 16, fontSize: 14, fontWeight: 500 }}>基本信息</h4>
+        <Card 
+          size="small" 
+          title={
+            <Space>
+              <InfoCircleOutlined style={{ color: '#1890ff' }} />
+              <span>基本信息</span>
+            </Space>
+          }
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
           <Form.Item
             name="name"
-            label="技术点名称"
+            label={
+              <Space>
+                <span>技术点名称</span>
+                <Tooltip title="技术点的核心名称，应简洁明了">
+                  <InfoCircleOutlined style={{ color: '#999', fontSize: 12 }} />
+                </Tooltip>
+              </Space>
+            }
             rules={[{ required: true, message: '请输入技术点名称' }]}
           >
-            <Input placeholder="请输入技术点名称" />
+            <Input 
+              placeholder="请输入技术点名称" 
+              size="large"
+              style={{ borderRadius: 6 }}
+            />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="描述"
+            label={
+              <Space>
+                <span>描述</span>
+                <Tooltip title="简要描述技术点的核心功能和特点">
+                  <InfoCircleOutlined style={{ color: '#999', fontSize: 12 }} />
+                </Tooltip>
+              </Space>
+            }
             rules={[{ required: true, message: '请输入描述' }]}
           >
-            <Input.TextArea rows={3} placeholder="请输入技术点描述" />
+            <Input.TextArea 
+              rows={3} 
+              placeholder="请输入技术点描述，建议包含核心功能、应用场景等" 
+              showCount
+              maxLength={500}
+              style={{ borderRadius: 6 }}
+            />
           </Form.Item>
-        </div>
-
-        <Divider />
+        </Card>
 
         {/* 技术详情 */}
-        <div style={{ marginBottom: 16 }}>
-          <h4 style={{ marginBottom: 16, fontSize: 14, fontWeight: 500 }}>技术详情</h4>
+        <Card 
+          size="small" 
+          title={
+            <Space>
+              <ExperimentOutlined style={{ color: '#52c41a' }} />
+              <span>技术详情</span>
+            </Space>
+          }
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
           <Form.Item
             name="tech_principle"
-            label="技术原理"
+            label={
+              <Space>
+                <span>技术原理</span>
+                <Tooltip title="详细说明技术的工作原理和实现方式">
+                  <InfoCircleOutlined style={{ color: '#999', fontSize: 12 }} />
+                </Tooltip>
+              </Space>
+            }
           >
-            <Input.TextArea rows={3} placeholder="请输入技术原理" id="tech_principle" />
+            <Input.TextArea 
+              rows={4} 
+              placeholder="请输入技术原理，详细说明技术的工作原理和实现方式" 
+              showCount
+              maxLength={1000}
+              style={{ borderRadius: 6 }}
+              id="tech_principle" 
+            />
           </Form.Item>
 
           <Form.Item
             name="tech_value"
-            label="价值"
+            label={
+              <Space>
+                <span>价值</span>
+                <Tooltip title="说明技术带来的价值和优势">
+                  <InfoCircleOutlined style={{ color: '#999', fontSize: 12 }} />
+                </Tooltip>
+              </Space>
+            }
           >
-            <Input.TextArea rows={3} placeholder="请输入价值" id="tech_value" />
+            <Input.TextArea 
+              rows={4} 
+              placeholder="请输入价值，说明技术带来的价值和优势" 
+              showCount
+              maxLength={1000}
+              style={{ borderRadius: 6 }}
+              id="tech_value" 
+            />
           </Form.Item>
 
           <Form.Item
             name="tech_boundary"
-            label="适用边界"
+            label={
+              <Space>
+                <span>适用边界</span>
+                <Tooltip title="说明技术的适用范围和限制条件">
+                  <InfoCircleOutlined style={{ color: '#999', fontSize: 12 }} />
+                </Tooltip>
+              </Space>
+            }
           >
-            <Input.TextArea rows={3} placeholder="请输入适用边界" id="tech_boundary" />
+            <Input.TextArea 
+              rows={4} 
+              placeholder="请输入适用边界，说明技术的适用范围和限制条件" 
+              showCount
+              maxLength={1000}
+              style={{ borderRadius: 6 }}
+              id="tech_boundary" 
+            />
           </Form.Item>
-        </div>
+        </Card>
 
-        <Divider />
+        {/* 技术亮点和证据 */}
+        <Card 
+          size="small" 
+          title={
+            <Space>
+              <BulbOutlined style={{ color: '#faad14' }} />
+              <span>技术亮点与证据</span>
+            </Space>
+          }
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
+          <Form.List name="highlights">
+            {(fields, { add, remove }) => (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Space>
+                    <BulbOutlined style={{ color: '#faad14' }} />
+                    <span style={{ fontWeight: 500 }}>技术亮点</span>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      （最多5条，已添加 {fields.length} 条）
+                    </Typography.Text>
+                  </Space>
+                  <Button 
+                    size="small" 
+                    disabled={fields.length >= 5} 
+                    onClick={() => add()} 
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                  >
+                    添加
+                  </Button>
+                </div>
+                {fields.length === 0 && (
+                  <div style={{ 
+                    padding: '16px', 
+                    background: '#fafafa', 
+                    borderRadius: 6, 
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: 13
+                  }}>
+                    暂无技术亮点，点击"添加"按钮添加
+                  </div>
+                )}
+                {fields.map(field => {
+                  const { key, ...fieldProps } = field;
+                  return (
+                    <div key={key} style={{ 
+                      marginBottom: 12, 
+                      padding: '12px', 
+                      background: '#fafafa', 
+                      borderRadius: 6,
+                      border: '1px solid #f0f0f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <Form.Item 
+                        {...fieldProps} 
+                        name={[field.name]} 
+                        rules={[{ max: 200, message: '最多200字' }]}
+                        style={{ flex: 1, marginBottom: 0, minWidth: 0 }}
+                      >
+                        <Input 
+                          placeholder="如：多级热防护与电芯级隔离" 
+                          showCount
+                          maxLength={200}
+                          style={{ borderRadius: 6 }}
+                        />
+                      </Form.Item>
+                      <Button 
+                        onClick={() => remove(field.name)} 
+                        size="small"
+                        danger
+                        type="text"
+                        style={{ flexShrink: 0 }}
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Form.List>
+
+          <Divider style={{ margin: '20px 0' }} />
+
+          <Form.List name="evidence_measured">
+            {(fields, { add, remove }) => (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Space>
+                    <ExperimentOutlined style={{ color: '#1890ff' }} />
+                    <span style={{ fontWeight: 500 }}>证据-实测</span>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      （最多5条，已添加 {fields.length} 条）
+                    </Typography.Text>
+                  </Space>
+                  <Button 
+                    size="small" 
+                    disabled={fields.length >= 5} 
+                    onClick={() => add()} 
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                  >
+                    添加
+                  </Button>
+                </div>
+                {fields.length === 0 && (
+                  <div style={{ 
+                    padding: '16px', 
+                    background: '#fafafa', 
+                    borderRadius: 6, 
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: 13
+                  }}>
+                    暂无实测证据，点击"添加"按钮添加
+                  </div>
+                )}
+                {fields.map(field => {
+                  const { key, ...fieldProps } = field;
+                  return (
+                    <div key={key} style={{ 
+                      marginBottom: 12, 
+                      padding: '12px', 
+                      background: '#fafafa', 
+                      borderRadius: 6,
+                      border: '1px solid #f0f0f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <Form.Item 
+                        {...fieldProps} 
+                        name={[field.name]} 
+                        rules={[{ max: 200, message: '最多200字' }]}
+                        style={{ flex: 1, marginBottom: 0, minWidth: 0 }}
+                      >
+                        <Input 
+                          placeholder="如：冬测衰减≤X%" 
+                          showCount
+                          maxLength={200}
+                          style={{ borderRadius: 6 }}
+                        />
+                      </Form.Item>
+                      <Button 
+                        onClick={() => remove(field.name)} 
+                        size="small"
+                        danger
+                        type="text"
+                        style={{ flexShrink: 0 }}
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Form.List>
+
+          <Divider style={{ margin: '20px 0' }} />
+
+          <Form.List name="evidence_certified">
+            {(fields, { add, remove }) => (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Space>
+                    <SafetyCertificateOutlined style={{ color: '#52c41a' }} />
+                    <span style={{ fontWeight: 500 }}>证据-认证</span>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      （最多5条，已添加 {fields.length} 条）
+                    </Typography.Text>
+                  </Space>
+                  <Button 
+                    size="small" 
+                    disabled={fields.length >= 5} 
+                    onClick={() => add()} 
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                  >
+                    添加
+                  </Button>
+                </div>
+                {fields.length === 0 && (
+                  <div style={{ 
+                    padding: '16px', 
+                    background: '#fafafa', 
+                    borderRadius: 6, 
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: 13
+                  }}>
+                    暂无认证证据，点击"添加"按钮添加
+                  </div>
+                )}
+                {fields.map(field => {
+                  const { key, ...fieldProps } = field;
+                  return (
+                    <div key={key} style={{ 
+                      marginBottom: 12, 
+                      padding: '12px', 
+                      background: '#fafafa', 
+                      borderRadius: 6,
+                      border: '1px solid #f0f0f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <Form.Item 
+                        {...fieldProps} 
+                        name={[field.name]} 
+                        rules={[{ max: 200, message: '最多200字' }]}
+                        style={{ flex: 1, marginBottom: 0, minWidth: 0 }}
+                      >
+                        <Input 
+                          placeholder="如：通过XXXX针刺/挤压测试" 
+                          showCount
+                          maxLength={200}
+                          style={{ borderRadius: 6 }}
+                        />
+                      </Form.Item>
+                      <Button 
+                        onClick={() => remove(field.name)} 
+                        size="small"
+                        danger
+                        type="text"
+                        style={{ flexShrink: 0 }}
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Form.List>
+
+          <Divider style={{ margin: '20px 0' }} />
+
+          <Form.List name="evidence_comparison">
+            {(fields, { add, remove }) => (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Space>
+                    <BarChartOutlined style={{ color: '#722ed1' }} />
+                    <span style={{ fontWeight: 500 }}>证据-对比</span>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      （最多5条，已添加 {fields.length} 条）
+                    </Typography.Text>
+                  </Space>
+                  <Button 
+                    size="small" 
+                    disabled={fields.length >= 5} 
+                    onClick={() => add()} 
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                  >
+                    添加
+                  </Button>
+                </div>
+                {fields.length === 0 && (
+                  <div style={{ 
+                    padding: '16px', 
+                    background: '#fafafa', 
+                    borderRadius: 6, 
+                    textAlign: 'center',
+                    color: '#999',
+                    fontSize: 13
+                  }}>
+                    暂无对比证据，点击"添加"按钮添加
+                  </div>
+                )}
+                {fields.map(field => {
+                  const { key, ...fieldProps } = field;
+                  return (
+                    <div key={key} style={{ 
+                      marginBottom: 12, 
+                      padding: '12px', 
+                      background: '#fafafa', 
+                      borderRadius: 6,
+                      border: '1px solid #f0f0f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <Form.Item 
+                        {...fieldProps} 
+                        name={[field.name]} 
+                        rules={[{ max: 200, message: '最多200字' }]}
+                        style={{ flex: 1, marginBottom: 0, minWidth: 0 }}
+                      >
+                        <Input 
+                          placeholder="如：同级能量密度领先X%" 
+                          showCount
+                          maxLength={200}
+                          style={{ borderRadius: 6 }}
+                        />
+                      </Form.Item>
+                      <Button 
+                        onClick={() => remove(field.name)} 
+                        size="small"
+                        danger
+                        type="text"
+                        style={{ flexShrink: 0 }}
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Form.List>
+        </Card>
 
         {/* 车型信息选择 */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>车型信息（可选）</label>
+        <Card 
+          size="small" 
+          title={
+            <Space>
+              <CarOutlined style={{ color: '#13c2c2' }} />
+              <span>车型信息（可选）</span>
+            </Space>
+          }
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item label="品牌">
-                <Select
-                  placeholder="请选择品牌"
+                <SelectableOptionSelector
                   value={selectedBrandId}
+                  options={brands.map(brand => ({ id: brand.id, name: brand.name }))}
+                  placeholder="请选择品牌"
+                  onCreate={handleCreateBrand}
+                  onDelete={handleDeleteBrand}
                   onChange={(value) => {
-                    setSelectedBrandId(value);
+                    const brandIds = Array.isArray(value) ? value : (value ? [value] : []);
+                    setSelectedBrandId(brandIds);
                     form.setFieldsValue({ car_model_id: undefined, car_series_id: undefined });
                   }}
-                  loading={brandsLoading}
                   allowClear
-                >
-                  {brands.map(brand => (
-                    <Select.Option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </Select.Option>
-                  ))}
-                </Select>
+                  mode="multiple"
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="车型">
-                <Select
-                  placeholder="请选择车型"
+                <SelectableOptionSelector
                   value={selectedModelId}
+                  options={carModels.map(model => ({ id: model.id, name: model.name }))}
+                  placeholder="请选择车型"
+                  onCreate={handleCreateCarModel}
+                  onDelete={handleDeleteCarModel}
                   onChange={(value) => {
-                    setSelectedModelId(value);
+                    const modelIds = Array.isArray(value) ? value : (value ? [value] : []);
+                    setSelectedModelId(modelIds);
                     form.setFieldsValue({ car_series_id: undefined });
                   }}
-                  disabled={!selectedBrandId}
-                  loading={modelsLoading}
+                  disabled={selectedBrandId.length === 0}
                   allowClear
-                >
-                  {carModels.map(model => (
-                    <Select.Option key={model.id} value={model.id}>
-                      {model.name}
-                    </Select.Option>
-                  ))}
-                </Select>
+                  mode="multiple"
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="车系">
-                <Select
-                  placeholder="请选择车系"
+                <SelectableOptionSelector
                   value={selectedSeriesId}
-                  onChange={(value) => setSelectedSeriesId(value)}
-                  disabled={!selectedModelId}
-                  loading={seriesLoading}
+                  options={carSeries.map(series => ({ id: series.id, name: series.name }))}
+                  placeholder="请选择车系"
+                  onCreate={handleCreateCarSeries}
+                  onDelete={handleDeleteCarSeries}
+                  onChange={(value) => {
+                    const seriesIds = Array.isArray(value) ? value : (value ? [value] : []);
+                    setSelectedSeriesId(seriesIds);
+                  }}
+                  disabled={selectedModelId.length === 0}
                   allowClear
-                >
-                  {carSeries.map(series => (
-                    <Select.Option key={series.id} value={series.id}>
-                      {series.name}
-                    </Select.Option>
-                  ))}
-                </Select>
+                  mode="multiple"
+                />
               </Form.Item>
             </Col>
           </Row>
-          {techPoint && (
-            <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
-              <div style={{ marginBottom: 8, fontWeight: 500 }}>关联车型管理</div>
-              <p style={{ margin: 0, fontSize: 12, color: '#666' }}>
-                技术点创建后，可在详情页面管理关联车型。当前技术点ID: {techPoint.id}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <Divider />
-
-        <Form.List name="highlights">
-          {(fields, { add, remove }) => (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label>技术亮点（最多5条）</label>
-                <Button size="small" disabled={fields.length >= 5} onClick={() => add()} type="dashed">添加</Button>
-              </div>
-              {fields.map(field => (
-                <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item {...field} name={[field.name]} rules={[{ max: 200, message: '最多200字' }]}>
-                    <Input placeholder="如：多级热防护与电芯级隔离" style={{ width: 600 }} />
-                  </Form.Item>
-                  <Button onClick={() => remove(field.name)} size="small">移除</Button>
-                </Space>
-              ))}
-            </div>
-          )}
-        </Form.List>
-
-        <Form.List name="evidence_measured">
-          {(fields, { add, remove }) => (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label>证据-实测（最多5条）</label>
-                <Button size="small" disabled={fields.length >= 5} onClick={() => add()} type="dashed">添加</Button>
-              </div>
-              {fields.map(field => (
-                <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item {...field} name={[field.name]} rules={[{ max: 200, message: '最多200字' }]}>
-                    <Input placeholder="如：冬测衰减≤X%" style={{ width: 600 }} />
-                  </Form.Item>
-                  <Button onClick={() => remove(field.name)} size="small">移除</Button>
-                </Space>
-              ))}
-            </div>
-          )}
-        </Form.List>
-
-        <Form.List name="evidence_certified">
-          {(fields, { add, remove }) => (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label>证据-认证（最多5条）</label>
-                <Button size="small" disabled={fields.length >= 5} onClick={() => add()} type="dashed">添加</Button>
-              </div>
-              {fields.map(field => (
-                <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item {...field} name={[field.name]} rules={[{ max: 200, message: '最多200字' }]}>
-                    <Input placeholder="如：通过XXXX针刺/挤压测试" style={{ width: 600 }} />
-                  </Form.Item>
-                  <Button onClick={() => remove(field.name)} size="small">移除</Button>
-                </Space>
-              ))}
-            </div>
-          )}
-        </Form.List>
-
-        <Form.List name="evidence_comparison">
-          {(fields, { add, remove }) => (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label>证据-对比（最多5条）</label>
-                <Button size="small" disabled={fields.length >= 5} onClick={() => add()} type="dashed">添加</Button>
-              </div>
-              {fields.map(field => (
-                <Space key={field.key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item {...field} name={[field.name]} rules={[{ max: 200, message: '最多200字' }]}>
-                    <Input placeholder="如：同级能量密度领先X%" style={{ width: 600 }} />
-                  </Form.Item>
-                  <Button onClick={() => remove(field.name)} size="small">移除</Button>
-                </Space>
-              ))}
-            </div>
-          )}
-        </Form.List>
-
-        <Divider />
+        </Card>
 
         {/* 关联信息 */}
-        <Row gutter={16} style={{ marginTop: 16 }}>
+        <Card 
+          size="small" 
+          title={
+            <Space>
+              <LinkOutlined style={{ color: '#eb2f96' }} />
+              <span>关联信息</span>
+            </Space>
+          }
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
+          <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               name="technology_id"
               label="关联的技术IP"
             >
-              <Select
+              <SelectableOptionSelector
+                options={technologies.map(tech => ({ id: tech.id, name: tech.name }))}
                 placeholder="请选择技术IP"
-                showSearch
+                onCreate={handleCreateTechnology}
+                onDelete={handleDeleteTechnology}
                 allowClear
-                disabled
-              >
-                {/* 技术IP功能暂未实现 */}
-              </Select>
+                mode="multiple"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -803,26 +1386,27 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
               label="关联技术领域"
               rules={[{ required: true, message: '请选择技术领域' }]}
             >
-              <Select
+              <SelectableOptionSelector
+                options={techCategories.map(cat => ({ id: cat.id, name: cat.name }))}
                 placeholder="请选择技术领域"
-                showSearch
-                optionFilterProp="label"
+                onCreate={handleCreateCategory}
+                onDelete={handleDeleteCategory}
                 allowClear
-              >
-                {Array.isArray(techCategories) && techCategories.map(category => (
-                  <Select.Option key={category.id} value={category.id} label={category.name}>
-                    {category.name}
-                  </Select.Option>
-                ))}
-              </Select>
+                mode="multiple"
+              />
             </Form.Item>
           </Col>
         </Row>
-
-        <Divider />
+        </Card>
 
         {/* 日期信息 */}
-        <Row gutter={16}>
+        <Card 
+          size="small" 
+          title="日期信息"
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
+          <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="release_date" label="发布日期">
               <DatePicker style={{ width: '100%' }} placeholder="请选择发布日期" />
@@ -851,9 +1435,16 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
             </>
           )}
         </Row>
+        </Card>
 
-        <Divider />
-        <Row gutter={16}>
+        {/* 分类与状态 */}
+        <Card 
+          size="small" 
+          title="分类与状态"
+          style={{ marginBottom: 16 }}
+          styles={{ body: { padding: '16px 20px' } }}
+        >
+          <Row gutter={16}>
           <Col span={8}>
             <Form.Item
               name="tech_type"
@@ -896,6 +1487,7 @@ const TechPointEditModal: React.FC<TechPointEditModalProps> = ({
             </Form.Item>
           </Col>
         </Row>
+        </Card>
       </Form>
     </Modal>
 

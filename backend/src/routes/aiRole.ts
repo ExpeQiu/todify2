@@ -4,13 +4,12 @@ import path from 'path';
 import fs from 'fs';
 import DifyClient from '../services/DifyClient';
 import { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';
-import { aiRoleModel, agentWorkflowModel } from '../models';
+import { aiRoleModel } from '../models';
 import { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';
 import { OpenAIProvider } from '../services/llm/OpenAIProvider';
 import { ChatMessage } from '../services/llm/types';
 import { AgentOrchestrator } from '../services/agent/AgentOrchestrator';
 import { FileService } from '../services/FileService';
-import { agentWorkflowService } from '../services/AgentWorkflowService';
 
 const router = express.Router();
 
@@ -402,28 +401,10 @@ router.post('/:id/chat', upload.array('files', 10), async (req, res) => {
     }
     
     // 获取角色配置
-    let role = await aiRoleModel.getById(id);
-    let isWorkflow = false;
+    const role = await aiRoleModel.getById(id);
     
     if (!role) {
-      // 尝试查找工作流
-      const workflow = await agentWorkflowModel.getById(id);
-      if (workflow) {
-        isWorkflow = true;
-        role = {
-          id: workflow.id,
-          name: workflow.name,
-          description: workflow.description || '',
-          provider: 'agent-workflow', // Special provider type
-          enabled: true,
-          createdAt: workflow.created_at ? new Date(workflow.created_at) : new Date(),
-          updatedAt: workflow.updated_at ? new Date(workflow.updated_at) : new Date(),
-        } as any;
-      }
-    }
-    
-    if (!role) {
-      return res.status(404).json(formatApiResponse(false, null, 'AI角色或工作流不存在'));
+      return res.status(404).json(formatApiResponse(false, null, 'AI角色不存在'));
     }
     
     if (!role.enabled) {
@@ -448,45 +429,6 @@ router.post('/:id/chat', upload.array('files', 10), async (req, res) => {
     
     // 根据 provider 类型选择不同的处理逻辑
     const provider = role.provider || 'dify';
-
-    if ((provider as any) === 'agent-workflow') {
-       // 工作流执行模式
-       const workflowInput = {
-         input: query,
-         query: query,
-         ...inputs
-       };
-       
-       const result = await agentWorkflowService.executeWorkflow(id, workflowInput);
-       
-       // 优先从 data.outputs 中提取实际内容，而不是使用 message（message 可能是 "工作流执行完成"）
-       let answer = result.message;
-       if (result.data?.outputs) {
-         // 按优先级尝试多个字段：answer > text > content > output
-         answer = result.data.outputs.answer || 
-                  result.data.outputs.text || 
-                  result.data.outputs.content || 
-                  (typeof result.data.outputs.output === 'string' ? result.data.outputs.output : null) ||
-                  answer;
-       }
-       
-       // 如果提取的内容是默认消息且没有实际内容，保持原样
-       // 否则使用提取的内容
-       const finalAnswer = (answer && answer !== '工作流执行完成' && answer !== '工作流执行成功') 
-         ? answer 
-         : (result.data?.outputs?.answer || result.data?.outputs?.text || result.data?.outputs?.content || answer);
-       
-       res.json(formatApiResponse(true, {
-         answer: finalAnswer,
-         result: finalAnswer, // 同时提供 result 字段，兼容前端的不同提取方式
-         conversation_id: result.data?.outputs?.conversation_id || result.executionId, // 优先使用 outputs 中的 conversation_id
-         metadata: {
-            executionId: result.executionId,
-            ...(result.data || {})
-         }
-       }, '对话成功'));
-       return;
-    }
     
     if (provider === 'direct-agent') {
       // Direct Agent 模式
@@ -816,54 +758,7 @@ router.get('/:id/usage', async (req, res) => {
       }
     }
 
-    // 检查Agent工作流使用情况
-    try {
-      const { agentWorkflowModel } = await import('../models');
-      const workflows = await agentWorkflowModel.getAll();
-      
-      for (const workflow of workflows) {
-        const nodesData = typeof workflow.nodes === 'string' ? JSON.parse(workflow.nodes) : workflow.nodes;
-        const nodesUsingRole = (nodesData || []).filter(
-          (node: any) => node.agentId === role.id
-        );
-
-        if (nodesUsingRole.length > 0) {
-          usage.locations.push({
-            type: 'agent-workflow',
-            name: workflow.name || '未命名工作流',
-            path: '/agent-workflow',
-            description: `${nodesUsingRole.length}个节点使用此角色`,
-          });
-        }
-      }
-    } catch (error) {
-      console.warn('检查工作流使用情况失败:', error);
-    }
-
-    // 检查是否在智能工作流中使用
-    if (role.source === 'smart-workflow') {
-      const alreadyInWorkflow = usage.locations.some(
-        (loc: any) => loc.type === 'agent-workflow'
-      );
-      if (!alreadyInWorkflow) {
-        usage.locations.push({
-          type: 'agent-workflow',
-          name: '智能工作流',
-          path: '/agent-workflow',
-          description: '标记为智能工作流角色',
-        });
-      }
-    }
-
-    // 检查是否可以在多窗口对话中使用
-    if (role.enabled) {
-      usage.locations.push({
-        type: 'multi-chat',
-        name: '多窗口对话',
-        path: '/multi-chat',
-        description: '可以在多窗口对话功能中使用',
-      });
-    }
+    // Agent工作流和多窗口对话功能已移除，不再检查这些使用情况
 
     usage.totalUsageCount = usage.locations.length;
 

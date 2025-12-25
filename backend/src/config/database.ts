@@ -84,8 +84,9 @@ class SQLiteManager {
       throw new Error('数据库未连接');
     }
 
-    console.log('SQLiteManager.query - SQL:', sql);
-    console.log('SQLiteManager.query - Params:', params);
+    // 注释掉调试日志以减少输出
+    // console.log('SQLiteManager.query - SQL:', sql);
+    // console.log('SQLiteManager.query - Params:', params);
 
     return new Promise((resolve, reject) => {
       if (sql.trim().toLowerCase().startsWith('select')) {
@@ -94,8 +95,8 @@ class SQLiteManager {
             console.error('SQLiteManager.query - Error:', err);
             reject(err);
           } else {
-            console.log('SQLiteManager.query - Rows returned:', rows.length);
-            console.log('SQLiteManager.query - First few rows:', rows.slice(0, 3));
+            // console.log('SQLiteManager.query - Rows returned:', rows.length);
+            // console.log('SQLiteManager.query - First few rows:', rows.slice(0, 3));
             resolve(rows);
           }
         });
@@ -105,7 +106,7 @@ class SQLiteManager {
             console.error('SQLiteManager.query - Error:', err);
             reject(err);
           } else {
-            console.log('SQLiteManager.query - Changes:', this.changes, 'LastID:', this.lastID);
+            // console.log('SQLiteManager.query - Changes:', this.changes, 'LastID:', this.lastID);
             resolve({ 
               lastID: this.lastID, 
               changes: this.changes 

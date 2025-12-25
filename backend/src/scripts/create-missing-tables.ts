@@ -253,6 +253,28 @@ async function createTechTables(): Promise<void> {
     await executeSQL(sql);
     console.log('✅ tech_points 表创建成功');
   }
+
+  if (await tableExists('technologies')) {
+    console.log('✅ technologies 表已存在');
+  } else {
+    const sql = `
+      CREATE TABLE IF NOT EXISTS technologies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        name_en TEXT,
+        description TEXT,
+        version TEXT,
+        status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'draft', 'archived')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_technologies_name ON technologies(name);
+      CREATE INDEX IF NOT EXISTS idx_technologies_status ON technologies(status);
+    `;
+    await executeSQL(sql);
+    console.log('✅ technologies 表创建成功');
+  }
 }
 
 /**

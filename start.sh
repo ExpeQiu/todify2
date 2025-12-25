@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Todify3 本地启动脚本
+# Todify4 本地启动脚本
 # 用于同时启动前端和后端服务
 
-echo "🚀 启动 Todify3 项目..."
+echo "🚀 启动 Todify4 项目..."
 
 # 检查是否安装了 Node.js
 if ! command -v node &> /dev/null; then
@@ -220,7 +220,7 @@ PORT=3003
 
 # 数据库配置
 DB_TYPE=sqlite
-SQLITE_DB_PATH=./data/todify2.db
+SQLITE_DB_PATH=./data/todify3.db
 
 # 服务器配置
 NODE_ENV=development
@@ -247,7 +247,7 @@ cd "$SCRIPT_DIR/backend"
 # 确保数据库目录存在
 if [ -f ".env" ]; then
     # 从 .env 文件中读取数据库路径
-    DB_PATH=$(grep "^SQLITE_DB_PATH=" .env | cut -d '=' -f2 | tr -d '"' | tr -d "'" | xargs || echo "./data/todify2.db")
+    DB_PATH=$(grep "^SQLITE_DB_PATH=" .env | cut -d '=' -f2 | tr -d '"' | tr -d "'" | xargs || echo "./data/todify3.db")
     # 如果路径是相对路径，确保相对于 backend 目录
     if [[ "$DB_PATH" != /* ]]; then
         DB_PATH="$SCRIPT_DIR/backend/$DB_PATH"
@@ -336,10 +336,17 @@ sleep 3
 
 echo ""
 echo "=========================================="
-echo "🎉 Todify3 启动完成!"
+echo "🎉 Todify4 启动完成!"
 echo "=========================================="
 echo "📱 前端地址: http://localhost:$FRONTEND_PORT"
 echo "🔧 后端地址: http://localhost:$BACKEND_PORT"
+echo ""
+echo "📋 核心功能:"
+echo "   - 项目管理"
+echo "   - AI问答"
+echo "   - AI技术包装/策略/通稿"
+echo "   - 技术点管理"
+echo "   - AI角色管理"
 echo ""
 echo "📋 日志文件:"
 echo "   后端: $BACKEND_LOG"

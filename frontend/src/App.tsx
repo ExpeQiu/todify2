@@ -1,36 +1,16 @@
 // import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import WorkflowPage from "./pages/WorkflowPage";
-import ConfigPage from "./pages/ConfigPage";
-import TechPointManagement from "./pages/TechPointManagement";
-import CarSeriesManagement from "./pages/CarSeriesManagement";
-import CarSeriesDetailPage from "./components/carSeries/CarSeriesDetailPage";
-import CarSeriesEditPage from "./pages/CarSeriesEditPage";
-import AIChatPage from "./pages/AIChatPage";
-import WorkflowStatsPage from "./pages/WorkflowStatsPage";
-import EnhancedWorkflowStatsPage from "./pages/EnhancedWorkflowStatsPage";
-import SearchHistoryPage from "./pages/SearchHistoryPage";
-import SearchHistoryDetailPage from "./pages/SearchHistoryDetailPage";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
-import MultiChatContainer from "./components/MultiChatContainer";
-import AgentWorkflowPage from "./pages/AgentWorkflowPage";
-import AgentWorkflowGuidePage from "./pages/AgentWorkflowGuidePage";
-import PublicPageConfigManagementPage from "./pages/PublicPageConfigManagementPage";
-import PublicChatPage from "./pages/PublicChatPage";
-import AIUnifiedManagementPage from "./pages/AIUnifiedManagementPage";
-import AddressPage from "./pages/AddressPage";
-import TemplateManagementPage from "./pages/TemplateManagementPage";
-import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
 import TechStrategyPage from "./pages/TechStrategyPage";
 import TechArticlePage from "./pages/TechArticlePage";
-import PressReleasePage from "./pages/PressReleasePage";
 import AIQAPage from "./pages/AIQAPage";
 import HomePage from "./pages/HomePage";
-import PublicKnowledgePage from "./pages/PublicKnowledge";
 import ProjectResourcesPage from "./pages/ProjectResourcesPage";
 import TechPointLibraryPage from "./pages/TechPointLibraryPage";
 import TechPointLibraryDetailPage from "./pages/TechPointLibraryDetailPage";
+import PublicKnowledgePage from "./pages/PublicKnowledge";
+import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 
 function App() {
   return (
@@ -55,108 +35,8 @@ function App() {
           />
 
           <Route
-            path="/workflow"
-            element={<WorkflowPage data-oid="ojq0g3o" />}
-            data-oid="b5mu_kh"
-          />
-
-
-          <Route
-            path="/config"
-            element={<ConfigPage data-oid="t8gx4lq" />}
-            data-oid=".72ul5z"
-          />
-
-          <Route
-            path="/tech-points"
-            element={<TechPointManagement data-oid="m:0gwfg" />}
-            data-oid="g8262:b"
-          />
-
-          <Route
-            path="/car-series"
-            element={<CarSeriesManagement data-oid="gt6ik1i" />}
-            data-oid="0oxdg_2"
-          />
-
-          <Route
-            path="/car-series/:id"
-            element={<CarSeriesDetailPage data-oid="w0rd_p4" />}
-            data-oid="h-y4qhs"
-          />
-
-          <Route
-            path="/car-series/:id/edit"
-            element={<CarSeriesEditPage data-oid="78nbk2x" />}
-            data-oid="c59v1ao"
-          />
-
-          <Route
-            path="/ai-chat"
-            element={<AIChatPage data-oid="aichat001" />}
-            data-oid="aichat002"
-          />
-
-          <Route
-            path="/workflow-stats"
-            element={<WorkflowStatsPage />}
-            data-oid="workflow-stats"
-          />
-
-          <Route
-            path="/enhanced-workflow-stats"
-            element={<EnhancedWorkflowStatsPage />}
-            data-oid="enhanced-workflow-stats"
-          />
-
-          <Route
-            path="/history"
-            element={<SearchHistoryPage />}
-          />
-
-          <Route
-            path="/history/:id"
-            element={<SearchHistoryDetailPage />}
-          />
-
-          <Route
             path="/ai-roles"
             element={<AIRoleManagementPage />}
-          />
-
-          <Route
-            path="/ai-chat-multi"
-            element={<MultiChatContainer />}
-          />
-
-          <Route
-            path="/agent-workflow"
-            element={<AgentWorkflowPage />}
-          />
-
-          <Route
-            path="/agent-workflow/guide"
-            element={<AgentWorkflowGuidePage />}
-          />
-
-          <Route
-            path="/public-page-configs"
-            element={<PublicPageConfigManagementPage />}
-          />
-
-          <Route
-            path="/template-management"
-            element={<TemplateManagementPage />}
-          />
-
-          <Route
-            path="/ai-management"
-            element={<AIUnifiedManagementPage />}
-          />
-
-          <Route
-            path="/public-chat/:token"
-            element={<PublicChatPage />}
           />
 
           {/* 标准独立页面路由 */}
@@ -175,30 +55,10 @@ function App() {
             element={<TechArticlePage />}
           />
 
-          <Route
-            path="/press-release"
-            element={<PressReleasePage />}
-          />
-
           {/* 向后兼容的路由重定向 */}
           <Route
             path="/ai-search"
             element={<Navigate to="/tech-package" replace />}
-          />
-
-          <Route
-            path="/tech-publish"
-            element={<Navigate to="/press-release" replace />}
-          />
-
-          <Route
-            path="/field-mapping-management"
-            element={<FieldMappingManagementPage />}
-          />
-
-          <Route
-            path="/public-knowledge"
-            element={<PublicKnowledgePage />}
           />
 
           <Route
@@ -216,10 +76,14 @@ function App() {
             element={<TechPointLibraryDetailPage />}
           />
 
-          {/* 根据地址配置的动态路由（需要放在具体路由之后） */}
           <Route
-            path="/:address"
-            element={<AddressPage />}
+            path="/public-knowledge"
+            element={<PublicKnowledgePage />}
+          />
+
+          <Route
+            path="/field-mapping-management"
+            element={<FieldMappingManagementPage />}
           />
         </Routes>
       </div>

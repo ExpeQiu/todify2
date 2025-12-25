@@ -5,10 +5,9 @@ import path from 'path';
 import apiRoutes from './routes';
 import difyProxyRoutes from './routes/dify-proxy';
 import { testConnection } from './config/database';
-import { publicPageConfigModel, aiRoleModel } from './models';
+import { aiRoleModel } from './models';
 import { logger } from './shared/lib/logger';
 import { errorTracking } from './shared/infrastructure/monitoring/errorTracking';
-import { SourceInformationService } from './services/sourceInformationService';
 
 // 导入监控模块
 import { performanceMonitor as _performanceMonitor } from './shared/infrastructure/monitoring/performanceMonitor';
@@ -68,170 +67,6 @@ app.use('/api/v1', apiRoutes);
 // Dify API 代理路由
 app.use('/api/dify', difyProxyRoutes);
 
-// 公开访问接口（通过token获取配置和角色）
-app.get('/api/v1/public/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const config = await publicPageConfigModel.getByAccessToken(token);
-    
-    if (!config) {
-      return res.status(404).json({ success: false, message: '配置不存在或已禁用', data: null });
-    }
-
-    // 获取角色列表
-    let roles: any[] = [];
-    
-    if (config.displayMode === 'all') {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => r.enabled);
-    } else if (config.displayMode === 'workflow' && config.workflowId) {
-      // 从工作流中提取角色
-      const { agentWorkflowModel } = await import('./models');
-      const workflow = await agentWorkflowModel.getById(config.workflowId);
-      if (workflow) {
-        const workflowNodes = JSON.parse(workflow.nodes);
-        const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-        const allRoles = await aiRoleModel.getAll();
-        roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
-      }
-    } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
-    }
-    
-    res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
-  } catch (error) {
-    logger.error('获取公开配置失败', { error });
-    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
-      context: { metadata: { token: req.params.token } },
-    });
-    res.status(500).json({
-      success: false,
-      message: '获取公开配置失败',
-      error: error instanceof Error ? error.message : '未知错误',
-      data: null
-    });
-  }
-});
-
-// 公开访问接口（通过address获取配置和角色）
-app.get('/api/v1/public-by-address/:address', async (req, res) => {
-  try {
-    const { address } = req.params;
-    const config = await publicPageConfigModel.getByAddress(address);
-    
-    if (!config) {
-      return res.status(404).json({ success: false, message: '配置不存在或已禁用', data: null });
-    }
-
-    // 获取角色列表
-    let roles: any[] = [];
-    
-    if (config.displayMode === 'all') {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => r.enabled);
-    } else if (config.displayMode === 'workflow' && config.workflowId) {
-      // 从工作流中提取角色
-      const { agentWorkflowModel } = await import('./models');
-      const workflow = await agentWorkflowModel.getById(config.workflowId);
-      if (workflow) {
-        try {
-          const workflowNodes = typeof workflow.nodes === 'string' 
-            ? JSON.parse(workflow.nodes) 
-            : workflow.nodes;
-          if (Array.isArray(workflowNodes)) {
-            const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-            const allRoles = await aiRoleModel.getAll();
-            roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
-          }
-        } catch (parseError) {
-          logger.warn('解析工作流节点失败', { 
-            workflowId: config.workflowId, 
-            error: parseError 
-          });
-          // 解析失败时返回空角色列表，不抛出错误
-        }
-      }
-    } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
-    } else if (config.displayMode === 'role' && config.roleIds && config.roleIds.length > 0) {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
-    }
-    
-    res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
-  } catch (error) {
-    logger.error('获取公开配置失败', { error });
-    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
-      context: { metadata: { address: req.params.address } },
-    });
-    res.status(500).json({
-      success: false,
-      message: '获取公开配置失败',
-      error: error instanceof Error ? error.message : '未知错误',
-      data: null
-    });
-  }
-});
-
-// 公开访问接口（通过configId获取配置和角色）
-app.get('/api/v1/public-config/:configId', async (req, res) => {
-  try {
-    const { configId } = req.params;
-    const config = await publicPageConfigModel.getById(configId);
-    
-    if (!config || !config.isActive) {
-      return res.status(404).json({ success: false, message: '配置不存在或已禁用', data: null });
-    }
-
-    // 获取角色列表
-    let roles: any[] = [];
-    
-    if (config.displayMode === 'all') {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => r.enabled);
-    } else if (config.displayMode === 'workflow' && config.workflowId) {
-      // 从工作流中提取角色
-      const { agentWorkflowModel } = await import('./models');
-      const workflow = await agentWorkflowModel.getById(config.workflowId);
-      if (workflow) {
-        try {
-          const workflowNodes = typeof workflow.nodes === 'string' 
-            ? JSON.parse(workflow.nodes) 
-            : workflow.nodes;
-          if (Array.isArray(workflowNodes)) {
-            const agentIds = workflowNodes.map((node: any) => node.agentId).filter(Boolean);
-            const allRoles = await aiRoleModel.getAll();
-            roles = allRoles.filter(r => agentIds.includes(r.id) && r.enabled);
-          }
-        } catch (parseError) {
-          logger.warn('解析工作流节点失败', { 
-            workflowId: config.workflowId, 
-            error: parseError 
-          });
-          // 解析失败时返回空角色列表，不抛出错误
-        }
-      }
-    } else if (config.displayMode === 'custom' && config.roleIds && config.roleIds.length > 0) {
-      const allRoles = await aiRoleModel.getAll();
-      roles = allRoles.filter(r => config.roleIds!.includes(r.id) && r.enabled);
-    }
-    
-    res.json({ success: true, message: '获取公开配置成功', data: { config, roles } });
-  } catch (error) {
-    logger.error('获取公开配置失败', { error });
-    errorTracking.captureException(error instanceof Error ? error : new Error(String(error)), {
-      context: { metadata: { configId: req.params.configId } },
-    });
-    res.status(500).json({
-      success: false,
-      message: '获取公开配置失败',
-      error: error instanceof Error ? error.message : '未知错误',
-      data: null
-    });
-  }
-});
 
 // API 健康检查
 app.get('/api/health', (req, res) => {
@@ -374,36 +209,6 @@ async function startServer() {
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
-    // 初始化Agent工作流数据库表
-    try {
-      const { agentWorkflowModel } = await import('./models');
-      await agentWorkflowModel.initializeTable();
-      logger.info('Agent工作流数据库表初始化成功');
-    } catch (error) {
-      logger.warn('Agent工作流数据库表初始化警告', { error });
-      // 不阻止服务器启动，表会在首次使用时自动创建
-    }
-    
-    // 初始化公开页面配置数据库表
-    try {
-      const { publicPageConfigModel } = await import('./models');
-      await publicPageConfigModel.initializeTable();
-      logger.info('公开页面配置数据库表初始化成功');
-    } catch (error) {
-      logger.warn('公开页面配置数据库表初始化警告', { error });
-      // 不阻止服务器启动，表会在首次使用时自动创建
-    }
-    
-    // 初始化来源信息数据库表
-    try {
-      const sourceInformationService = new SourceInformationService();
-      await sourceInformationService.initializeTable();
-      logger.info('来源信息数据库表初始化成功');
-    } catch (error) {
-      logger.warn('来源信息数据库表初始化警告', { error });
-      // 不阻止服务器启动，表会在首次使用时自动创建
-    }
-    
     // 初始化公共知识库数据库表
     try {
       const { publicKnowledgeModel } = await import('./models');
@@ -414,15 +219,6 @@ async function startServer() {
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
-    // 初始化页面工具配置数据库表
-    try {
-      const { pageToolConfigModel } = await import('./models');
-      await pageToolConfigModel.initializeTable();
-      logger.info('页面工具配置数据库表初始化成功');
-    } catch (error) {
-      logger.warn('页面工具配置数据库表初始化警告', { error });
-      // 不阻止服务器启动，表会在首次使用时自动创建
-    }
     
     const server = app.listen(port, "0.0.0.0", () => {
       logger.info('Backend server 已启动', { url: `http://0.0.0.0:${port}` });

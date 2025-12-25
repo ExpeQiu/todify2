@@ -1,5 +1,4 @@
 import api from './api';
-import { agentWorkflowService } from './agentWorkflowService';
 import { techPointService } from './techPointService';
 import { knowledgePointService } from './knowledgePointService';
 import {
@@ -31,32 +30,24 @@ class AiSearchService {
    */
   async getWorkflowConfig(pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article'): Promise<WorkflowConfig | null> {
     try {
-      // 先尝试从API获取配置的工作流ID，传递pageType参数
+      // 先尝试从API获取配置的工作流，传递pageType参数
       const params = pageType ? `?pageType=${pageType}` : '';
       const response = await api.get(`/ai-search/workflow${params}`);
       if (response.data.success && response.data.data) {
-        const workflowId = response.data.data.workflowId;
-        // 获取工作流详情
-        const workflows = await agentWorkflowService.getAllWorkflows();
-        const workflow = workflows.find((w) => w.id === workflowId);
-        if (workflow) {
-          return this.convertWorkflowToConfig(workflow);
+        // 如果API返回了完整的配置，直接使用
+        if (response.data.data.config) {
+          return response.data.data.config;
+        }
+        // 如果只返回了workflowId，需要从API获取工作流详情
+        if (response.data.data.workflowId) {
+          const workflowResponse = await api.get(`/workflow/${response.data.data.workflowId}`);
+          if (workflowResponse.data.success && workflowResponse.data.data) {
+            return this.convertWorkflowToConfig(workflowResponse.data.data);
+          }
         }
       }
       
-      // 如果没有配置，尝试查找默认工作流（根据页面类型）
-      const workflows = await agentWorkflowService.getAllWorkflows();
-      const defaultWorkflowName = pageType === 'press-release' ? '发布会稿工作流' : '智能工作流';
-      const defaultWorkflow = workflows.find((w) => w.name === defaultWorkflowName);
-      if (defaultWorkflow) {
-        return this.convertWorkflowToConfig(defaultWorkflow);
-      }
-      
-      // 返回第一个工作流
-      if (workflows.length > 0) {
-        return this.convertWorkflowToConfig(workflows[0]);
-      }
-      
+      // 如果没有配置，返回null，让调用方处理
       return null;
     } catch (error) {
       console.error('获取工作流配置失败:', error);
