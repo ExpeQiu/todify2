@@ -147,6 +147,8 @@ const AIRoleManagementPage: React.FC = () => {
           new Map(loadedRoles.map(role => [role.id, role])).values()
         );
         setRoles(uniqueRoles);
+        // 批量加载所有角色的使用情况
+        await loadAllRoleUsages(uniqueRoles);
       } catch (error) {
         // 如果加载失败（后端未运行），继续检查迁移状态
       }
@@ -294,6 +296,8 @@ const AIRoleManagementPage: React.FC = () => {
         new Map(roleList.map(role => [role.id, role])).values()
       );
       setRoles(uniqueRoles);
+      // 批量加载所有角色的使用情况
+      await loadAllRoleUsages(uniqueRoles);
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || '未知错误';
       const errorStatus = error?.response?.status;
@@ -375,16 +379,23 @@ const AIRoleManagementPage: React.FC = () => {
       if (usage) {
         setRoleUsages(prev => new Map(prev).set(roleId, usage));
       } else {
-        // 如果没有使用情况，清除缓存中的旧数据
-        setRoleUsages(prev => {
-          const next = new Map(prev);
-          next.delete(roleId);
-          return next;
-        });
+        // 如果没有使用情况，也设置一个空的使用情况对象
+        setRoleUsages(prev => new Map(prev).set(roleId, {
+          roleId,
+          roleName: '',
+          locations: [],
+          totalUsageCount: 0
+        }));
       }
     } catch (error) {
       console.error(`加载角色 ${roleId} 使用情况失败:`, error);
-      // 加载失败时，不清除缓存（可能是网络错误）
+      // 加载失败时，设置空的使用情况
+      setRoleUsages(prev => new Map(prev).set(roleId, {
+        roleId,
+        roleName: '',
+        locations: [],
+        totalUsageCount: 0
+      }));
     } finally {
       setLoadingUsages(prev => {
         const next = new Set(prev);
@@ -393,6 +404,16 @@ const AIRoleManagementPage: React.FC = () => {
       });
     }
   };
+
+  // 批量加载所有角色的使用情况
+  const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) => {
+    // 并行加载所有角色的使用情况，但限制并发数
+    const batchSize = 5; // 每批加载5个
+    for (let i = 0; i < roleList.length; i += batchSize) {
+      const batch = roleList.slice(i, i + batchSize);
+      await Promise.all(batch.map(role => loadRoleUsage(role.id)));
+    }
+  }, [loadRoleUsage]);
 
   // 统一的角色和工作流项目类型
   type UnifiedItem = {
@@ -1087,8 +1108,8 @@ const AIRoleManagementPage: React.FC = () => {
       <div className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-8">
           <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">AI角色管理</h1>
-            <p className="text-gray-600 mt-2 text-xl font-medium">创建和管理您的AI对话角色</p>
+            <h1 className="text-3xl font-bold text-gray-900">AI角色管理</h1>
+            <p className="text-gray-600 mt-1">创建和管理您的AI对话角色</p>
           </div>
           <div className="flex items-center gap-3">
             {/* 后端连接状态指示 */}
@@ -1409,7 +1430,9 @@ const AIRoleManagementPage: React.FC = () => {
                               </div>
                               {/* 来源 */}
                               <div className="col-span-2">
-                                {usage && usage.totalUsageCount > 0 ? (
+                                {loadingUsages.has(role.id) ? (
+                                  <span className="text-xs text-gray-400">加载中...</span>
+                                ) : usage && usage.totalUsageCount > 0 ? (
                                   <div className="flex flex-wrap gap-1">
                                     {usage.locations.slice(0, 3).map((location, idx) => (
                                       <span key={idx} className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
@@ -1422,6 +1445,8 @@ const AIRoleManagementPage: React.FC = () => {
                                       </span>
                                     )}
                                   </div>
+                                ) : usage ? (
+                                  <span className="text-xs text-gray-400">-</span>
                                 ) : (
                                   <span className="text-xs text-gray-400">-</span>
                                 )}

@@ -19,6 +19,14 @@ import brandsRouter from './brands';
 import carModelsRouter from './carModels';
 import carSeriesRouter from './carSeries';
 import technologiesRouter from './technologies';
+import sourceInformationRouter from './sourceInformationRoutes';
+import agentWorkflowRouter from './agentWorkflow';
+import chatRouter from './chat';
+import workflowTemplateRouter from './workflowTemplate';
+import workflowStatsRouter from './workflowStats';
+import pageToolConfigRouter from './pageToolConfig';
+import publicPageConfigRouter from './publicPageConfig';
+import workflowExecutionRouter from './workflowExecution';
 
 const router = Router();
 
@@ -54,6 +62,14 @@ router.use('/brands', brandsRouter);
 router.use('/car-models', carModelsRouter);
 router.use('/car-series', carSeriesRouter);
 router.use('/technologies', technologiesRouter);
+router.use('/source-information', sourceInformationRouter);
+router.use('/agent-workflows', agentWorkflowRouter);
+router.use('/chat', chatRouter);
+router.use('/workflow-templates', workflowTemplateRouter);
+router.use('/workflow-stats', workflowStatsRouter);
+router.use('/page-tool-configs', pageToolConfigRouter);
+router.use('/public-page-configs', publicPageConfigRouter);
+router.use('/workflow-executions', workflowExecutionRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

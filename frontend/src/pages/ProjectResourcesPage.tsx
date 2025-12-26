@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Upload, Search, X, FileText, Trash2, Check, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings } from 'lucide-react';
+import { Upload, Search, X, FileText, Trash2, Check, FileCode, Eye, Save, Send, Loader2, User, Bot, Brain, History, MessageSquare, Package, Target, Newspaper, Sparkles, Download, Plus, Settings, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Project } from '../types/project';
@@ -51,6 +51,7 @@ const ProjectResourcesPage: React.FC = () => {
   const [knowledgePoints, setKnowledgePoints] = useState<KnowledgePoint[]>([]);
   const [publicKnowledgeFiles, setPublicKnowledgeFiles] = useState<PublicKnowledgeFile[]>([]);
   const [selectedPublicFiles, setSelectedPublicFiles] = useState<number[]>([]);
+  const [tempSelectedPublicFiles, setTempSelectedPublicFiles] = useState<number[]>([]); // 临时选择状态（弹窗内）
   const [isUploading, setIsUploading] = useState(false);
   
   // AI角色选择相关状态
@@ -193,6 +194,7 @@ const ProjectResourcesPage: React.FC = () => {
   const [reviewContent, setReviewContent] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showFileUploadModal, setShowFileUploadModal] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [showKnowledgePointModal, setShowKnowledgePointModal] = useState(false);
   const [showInternetInfoModal, setShowInternetInfoModal] = useState(false);
   const [internetInfoTab, setInternetInfoTab] = useState<'search' | 'web'>('web'); // 'search' 检索信息, 'web' Web Search
@@ -820,21 +822,23 @@ const ProjectResourcesPage: React.FC = () => {
       
       if (response.data.success && response.data.data) {
         const loadedSources = response.data.data as SourceInformation[];
+        console.log('[加载来源] 加载到的来源数量:', loadedSources.length);
         
-        // 只有当数据真正变化时才更新状态（避免不必要的重新渲染）
-        setSources((prevSources: SourceInformation[]) => {
-          // 简单比较：如果数量相同且ID列表相同，则不更新
-          if (prevSources.length === loadedSources.length) {
-            const prevIds = new Set(prevSources.map(s => s.id));
-            const newIds = new Set(loadedSources.map((s: SourceInformation) => s.id));
-            if (prevIds.size === newIds.size && 
-                Array.from(prevIds).every(id => id !== undefined && newIds.has(id))) {
-              // 数据没有变化，返回原状态避免重新渲染
-              return prevSources;
-            }
-          }
-          return loadedSources;
-        });
+        // 统计各类来源数量
+        const filesCount = loadedSources.filter(s => {
+          const urlStr = s.url?.trim() || '';
+          return urlStr.startsWith('/uploads/') || urlStr.startsWith('uploads/') || /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr);
+        }).length;
+        const internetInfoCount = loadedSources.filter(s => {
+          const urlStr = s.url?.trim() || '';
+          const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
+          return isHttpUrl && !urlStr.startsWith('/uploads/') && !urlStr.startsWith('uploads/');
+        }).length;
+        const knowledgeBaseCount = loadedSources.filter(s => s.type === 'knowledge_base').length;
+        console.log('[加载来源] 统计 - 文件:', filesCount, '互联网信息:', internetInfoCount, '知识库:', knowledgeBaseCount);
+        
+        // 直接更新状态，确保新添加的数据能正确显示
+        setSources(loadedSources);
       } else {
         console.warn('[加载来源] API返回失败或没有数据:', response.data);
       }
@@ -1217,16 +1221,40 @@ ${conversationContent}
   }, [sources, publicKnowledgeFiles]);
 
   const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0 || !projectId) return;
+    if (!files || files.length === 0) {
+      alert('请选择要上传的文件');
+      return;
+    }
+    
+    if (!projectId) {
+      alert('项目ID不存在，无法上传文件');
+      return;
+    }
     
     setIsUploading(true);
+    setUploadError(null); // 清除之前的错误状态
     try {
       const fileArray = Array.from(files);
       console.log('[文件上传] 开始上传文件:', fileArray.map(f => f.name));
       
       // 上传文件
-      const uploadedFiles = await aiSearchService.uploadFiles(fileArray, undefined);
-      console.log('[文件上传] 文件上传成功:', uploadedFiles);
+      let uploadedFiles;
+      try {
+        uploadedFiles = await aiSearchService.uploadFiles(fileArray, undefined);
+        console.log('[文件上传] 文件上传成功:', uploadedFiles);
+      } catch (uploadError) {
+        console.error('[文件上传] 文件上传到服务器失败:', uploadError);
+        const errorMessage = uploadError instanceof Error ? uploadError.message : '文件上传失败';
+        setUploadError(`文件上传失败: ${errorMessage}`);
+        setIsUploading(false);
+        return; // 直接返回，不再抛出错误
+      }
+      
+      if (!uploadedFiles || uploadedFiles.length === 0) {
+        setUploadError('服务器未返回文件信息');
+        setIsUploading(false);
+        return;
+      }
       
       // 创建来源信息记录
       const createdSources: SourceInformation[] = [];
@@ -1257,8 +1285,18 @@ ${conversationContent}
         
         try {
           const response = await api.post('/source-information', sourceData);
+          
+          if (!response.data || !response.data.success) {
+            throw new Error(response.data?.error || response.data?.message || '创建来源信息失败');
+          }
+          
           console.log('[文件上传] 来源信息创建成功:', response.data);
           const createdData = response.data.data as SourceInformation;
+          
+          if (!createdData) {
+            throw new Error('服务器返回的数据格式不正确');
+          }
+          
           console.log('[文件上传] 创建后的数据:', {
             id: createdData?.id,
             source_id: createdData?.source_id,
@@ -1269,22 +1307,27 @@ ${conversationContent}
             status: createdData?.status
           });
           
-          // 立即验证：使用source_id查询刚创建的记录
-          if (createdData?.source_id) {
-            try {
-              const verifyResponse = await api.get(`/source-information/source-id/${createdData.source_id}`);
-              console.log('[文件上传] 验证查询结果:', verifyResponse.data);
-            } catch (verifyError) {
-              console.warn('[文件上传] 验证查询失败（可能API不存在）:', verifyError);
+          createdSources.push(createdData);
+        } catch (sourceError) {
+          console.error(`[文件上传] 创建来源信息失败 (文件: ${uploadedFile.name}):`, sourceError);
+          
+          // 尝试获取更详细的错误信息
+          let errorMessage = '未知错误';
+          if (sourceError instanceof Error) {
+            errorMessage = sourceError.message;
+            console.error('[文件上传] 错误详情:', sourceError.message, sourceError.stack);
+          } else if (typeof sourceError === 'object' && sourceError !== null) {
+            const errorObj = sourceError as any;
+            if (errorObj.response?.data?.error) {
+              errorMessage = errorObj.response.data.error;
+            } else if (errorObj.response?.data?.message) {
+              errorMessage = errorObj.response.data.message;
+            } else if (errorObj.message) {
+              errorMessage = errorObj.message;
             }
           }
           
-          createdSources.push(createdData);
-        } catch (sourceError) {
-          console.error('[文件上传] 创建来源信息失败:', sourceError);
-          if (sourceError instanceof Error) {
-            console.error('[文件上传] 错误详情:', sourceError.message, sourceError.stack);
-          }
+          console.error(`[文件上传] 文件 ${uploadedFile.name} 保存失败: ${errorMessage}`);
           // 继续处理其他文件，不中断整个流程
         }
       }
@@ -1335,14 +1378,14 @@ ${conversationContent}
       }
       
       // 等待一小段时间确保数据库已更新，然后重新加载来源列表
-      console.log('[文件上传] 等待300ms后重新加载...');
-      await new Promise(resolve => setTimeout(resolve, 300));
+      console.log('[文件上传] 等待500ms后重新加载...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadSources();
       console.log('[文件上传] 来源列表已重新加载');
       
       // 再次等待并重新加载一次，确保数据同步
-      console.log('[文件上传] 等待500ms后二次重新加载...');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('[文件上传] 等待800ms后二次重新加载...');
+      await new Promise(resolve => setTimeout(resolve, 800));
       await loadSources();
       console.log('[文件上传] 来源列表二次重新加载完成');
       
@@ -1352,13 +1395,31 @@ ${conversationContent}
       }
       
       // 显示成功提示
-      if (createdSources.length > 0) {
-        alert(`成功上传 ${createdSources.length} 个文件`);
+      const successCount = createdSources.length;
+      const failCount = uploadedFiles.length - successCount;
+      
+      if (successCount > 0) {
+        if (failCount > 0) {
+          // 部分成功，关闭上传弹窗并显示提示
+          setShowFileUploadModal(false);
+          setTimeout(() => {
+            alert(`成功上传 ${successCount} 个文件，${failCount} 个文件保存失败`);
+          }, 100);
+        } else {
+          // 全部成功，关闭上传弹窗
+          setShowFileUploadModal(false);
+          setTimeout(() => {
+            alert(`成功上传 ${successCount} 个文件`);
+          }, 100);
+        }
+      } else {
+        // 所有文件都失败，显示错误模态框
+        setUploadError('文件都未能保存到项目');
       }
     } catch (error) {
       console.error('[文件上传] 文件上传失败:', error);
       const errorMessage = error instanceof Error ? error.message : '未知错误';
-      alert(`文件上传失败: ${errorMessage}`);
+      setUploadError(`文件上传失败: ${errorMessage}\n\n请检查：\n1. 文件格式是否支持\n2. 文件大小是否超过限制（10MB）\n3. 网络连接是否正常`);
     } finally {
       setIsUploading(false);
     }
@@ -1419,6 +1480,84 @@ ${conversationContent}
     );
   };
 
+  // 在弹窗内切换文件选择（只改变临时状态）
+  const togglePublicFileInModal = (fileId: number) => {
+    setTempSelectedPublicFiles(prev => 
+      prev.includes(fileId)
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+
+  // 处理确认选择：将临时选择同步到实际选择并添加到项目
+  const handleConfirmPublicFiles = async () => {
+    if (!projectId) return;
+
+    try {
+      // 找出需要添加的文件（在临时选择中但不在实际选择中）
+      const filesToAdd = tempSelectedPublicFiles.filter(id => !selectedPublicFiles.includes(id));
+      // 找出需要删除的文件（在实际选择中但不在临时选择中）
+      const filesToRemove = selectedPublicFiles.filter(id => !tempSelectedPublicFiles.includes(id));
+
+      // 添加新选择的文件
+      for (const fileId of filesToAdd) {
+        const file = publicKnowledgeFiles.find(f => f.id === fileId);
+        if (file) {
+          try {
+            await api.post('/source-information', {
+              source_id: `public_kb_${file.id}`,
+              title: file.description || file.name,
+              type: 'knowledge_base',
+              url: file.file_url || file.file_path,
+              description: file.name,
+              page_type: `project-${projectId}`,
+              conversation_id: null
+            });
+          } catch (error) {
+            console.error(`添加文件 ${file.name} 失败:`, error);
+          }
+        }
+      }
+
+      // 删除取消选择的文件
+      for (const fileId of filesToRemove) {
+        const sourceToDelete = sources.find(s => 
+          s.type === 'knowledge_base' && 
+          s.source_id === `public_kb_${fileId}`
+        );
+        if (sourceToDelete) {
+          try {
+            await handleDeleteSource(sourceToDelete.id);
+          } catch (error) {
+            console.error(`删除文件 ${fileId} 失败:`, error);
+          }
+        }
+      }
+
+      // 重新加载来源列表（会自动同步到 selectedPublicFiles）
+      await loadSources();
+      
+      // 关闭弹窗并重置临时选择状态
+      setShowPublicKnowledgeModal(false);
+      setTempSelectedPublicFiles([]);
+    } catch (error) {
+      console.error('确认选择失败:', error);
+    }
+  };
+
+  // 打开弹窗时初始化临时选择状态
+  const handleOpenPublicKnowledgeModal = () => {
+    setTempSelectedPublicFiles([...selectedPublicFiles]);
+    setShowPublicKnowledgeModal(true);
+  };
+
+  // 关闭弹窗时重置临时选择状态
+  const handleClosePublicKnowledgeModal = () => {
+    setShowPublicKnowledgeModal(false);
+    setTempSelectedPublicFiles([]);
+  };
+
+  // 保留原有的 togglePublicFile 函数用于其他地方（如果还有使用）
   const togglePublicFile = async (fileId: number) => {
     if (selectedPublicFiles.includes(fileId)) {
       // 取消选择：从selectedPublicFiles中移除，并从项目中删除对应的来源
@@ -1748,7 +1887,8 @@ ${truncatedText}`;
           title: saveResult.data.title,
         });
         
-        // 刷新来源列表
+        // 等待一小段时间确保数据库已更新，然后刷新来源列表
+        await new Promise(resolve => setTimeout(resolve, 300));
         await loadSources();
         
         // 清空输入并关闭弹窗
@@ -1824,29 +1964,59 @@ ${truncatedText}`;
       const pageType = `project-${projectId}`;
       const selectedResults = Array.from(selectedSearchResults).map(index => webSearchResults[index]);
       
+      console.log('[Web Search] 开始保存搜索结果:', selectedResults.length, '个');
+      
       // 批量保存选中的搜索结果
+      const savedSources: SourceInformation[] = [];
+      const failedResults: string[] = [];
+      
       for (const result of selectedResults) {
-        const sourceId = `web_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const description = `${result.snippet || ''}\n\n${result.summary ? `摘要：${result.summary}` : ''}\n\n来源：${result.siteName || ''}`.trim();
-        
-        const source: Source = {
-          id: sourceId,
-          title: result.name || '未命名网页',
-          type: 'external',
-          url: result.url,
-          description: description,
-          category: 'web-search',
-        };
+        try {
+          const sourceId = `web_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          const description = `${result.snippet || ''}\n\n${result.summary ? `摘要：${result.summary}` : ''}\n\n来源：${result.siteName || ''}`.trim();
+          
+          const source: Source = {
+            id: sourceId,
+            title: result.name || '未命名网页',
+            type: 'external',
+            url: result.url,
+            description: description,
+            category: 'web-search',
+          };
 
-        await sourceService.saveSourceInformation(
-          source,
-          pageType,
-          aiConversationId || undefined
-        );
+          console.log('[Web Search] 保存来源信息:', source.title);
+          const saveResult = await sourceService.saveSourceInformation(
+            source,
+            pageType,
+            aiConversationId || undefined
+          );
+          
+          if (saveResult.success && saveResult.data) {
+            savedSources.push(saveResult.data);
+            console.log('[Web Search] 保存成功:', saveResult.data.title);
+          } else {
+            failedResults.push(result.name || '未命名网页');
+            console.error('[Web Search] 保存失败:', saveResult.error, '结果:', result.name);
+          }
+        } catch (error) {
+          failedResults.push(result.name || '未命名网页');
+          console.error('[Web Search] 保存过程出错:', error, '结果:', result.name);
+        }
       }
 
-      // 刷新来源列表
+      console.log('[Web Search] 保存完成，成功:', savedSources.length, '失败:', failedResults.length);
+
+      // 等待一小段时间确保数据库已更新，然后刷新来源列表
+      console.log('[Web Search] 等待500ms后重新加载来源列表...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       await loadSources();
+      console.log('[Web Search] 来源列表已重新加载');
+      
+      // 再次等待并重新加载一次，确保数据同步
+      console.log('[Web Search] 等待800ms后二次重新加载...');
+      await new Promise(resolve => setTimeout(resolve, 800));
+      await loadSources();
+      console.log('[Web Search] 来源列表二次重新加载完成');
       
       // 清空状态并关闭弹窗
       setWebSearchQuery('');
@@ -1854,10 +2024,20 @@ ${truncatedText}`;
       setSelectedSearchResults(new Set());
       setShowInternetInfoModal(false);
       
-      alert(`成功添加 ${selectedResults.length} 个搜索结果`);
+      // 显示结果
+      if (savedSources.length > 0) {
+        if (failedResults.length > 0) {
+          alert(`成功添加 ${savedSources.length} 个搜索结果，${failedResults.length} 个失败`);
+        } else {
+          alert(`成功添加 ${savedSources.length} 个搜索结果`);
+        }
+      } else {
+        alert(`添加失败：所有搜索结果都未能保存\n\n请检查网络连接或稍后重试`);
+      }
     } catch (error) {
       console.error('[ProjectResources] 保存 Web Search 结果失败:', error);
-      alert('保存失败，请重试');
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      alert(`保存失败: ${errorMessage}\n\n请检查网络连接或稍后重试`);
     } finally {
       setIsAddingInternetInfo(false);
     }
@@ -2534,7 +2714,7 @@ ${truncatedText}`;
                     已选择知识点 ({ragKnowledgeItems.length + manualKnowledgeItems.length})
                   </h3>
                   <button
-                    onClick={() => setShowPublicKnowledgeModal(true)}
+                    onClick={handleOpenPublicKnowledgeModal}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     title="添加知识库"
                   >
@@ -2544,7 +2724,7 @@ ${truncatedText}`;
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {ragKnowledgeItems.length === 0 && manualKnowledgeItems.length === 0 ? (
                     <div
-                      onClick={() => setShowPublicKnowledgeModal(true)}
+                      onClick={handleOpenPublicKnowledgeModal}
                       className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
                     >
                       暂无知识库（点击添加）
@@ -2795,7 +2975,10 @@ ${truncatedText}`;
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">上传文件</h2>
               <button
-                onClick={() => setShowFileUploadModal(false)}
+                onClick={() => {
+                  setShowFileUploadModal(false);
+                  setUploadError(null);
+                }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -2817,9 +3000,22 @@ ${truncatedText}`;
                 onDrop={async (e) => {
                   e.preventDefault();
                   e.currentTarget.classList.remove('border-blue-500');
-                  await handleFileUpload(e.dataTransfer.files);
-                  // 上传完成后再关闭弹窗
-                  setShowFileUploadModal(false);
+                  
+                  const files = e.dataTransfer.files;
+                  if (!files || files.length === 0) {
+                    return;
+                  }
+                  
+                  try {
+                    await handleFileUpload(files);
+                    // 上传成功后，等待一小段时间确保数据已加载，然后关闭弹窗
+                    setTimeout(() => {
+                      setShowFileUploadModal(false);
+                    }, 1000);
+                  } catch (error) {
+                    // 上传失败时不关闭弹窗，让用户看到错误信息
+                    console.error('[文件上传] 拖拽上传过程出错:', error);
+                  }
                 }}
               >
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -2835,16 +3031,39 @@ ${truncatedText}`;
                   multiple
                   className="hidden"
                   onChange={async (e) => {
-                    await handleFileUpload(e.target.files);
-                    // 上传完成后再关闭弹窗
-                    setShowFileUploadModal(false);
+                    const files = e.target.files;
+                    if (!files || files.length === 0) {
+                      return;
+                    }
+                    
+                    try {
+                      await handleFileUpload(files);
+                      // 上传成功后，等待一小段时间确保数据已加载，然后关闭弹窗
+                      setTimeout(() => {
+                        setShowFileUploadModal(false);
+                      }, 1000);
+                    } catch (error) {
+                      // 上传失败时不关闭弹窗，让用户看到错误信息
+                      console.error('[文件上传] 上传过程出错:', error);
+                    } finally {
+                      // 清空文件输入，允许重新选择
+                      if (fileInputRefModal.current) {
+                        fileInputRefModal.current.value = '';
+                      }
+                    }
                   }}
                   accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
                 />
               </div>
               {isUploading && (
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  上传中...
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">正在上传文件，请稍候...</span>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2 text-center">
+                    请不要关闭此窗口
+                  </p>
                 </div>
               )}
             </div>
@@ -2852,11 +3071,41 @@ ${truncatedText}`;
             {/* 弹窗底部 */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowFileUploadModal(false)}
+                onClick={() => {
+                  setShowFileUploadModal(false);
+                  setUploadError(null);
+                }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 关闭
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 上传错误模态框 */}
+      {uploadError && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-gray-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  文件上传失败:所有
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  {uploadError}
+                </p>
+                <button
+                  onClick={() => setUploadError(null)}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  OK
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -3204,7 +3453,7 @@ ${truncatedText}`;
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">选择知识库</h2>
               <button
-                onClick={() => setShowPublicKnowledgeModal(false)}
+                onClick={handleClosePublicKnowledgeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -3232,9 +3481,9 @@ ${truncatedText}`;
                   filteredPublicFiles.map((file) => (
                     <div
                       key={file.id}
-                      onClick={() => togglePublicFile(file.id)}
+                      onClick={() => togglePublicFileInModal(file.id)}
                       className={`flex items-start justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedPublicFiles.includes(file.id)
+                        tempSelectedPublicFiles.includes(file.id)
                           ? 'bg-blue-50 border-2 border-blue-500'
                           : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
                       }`}
@@ -3245,7 +3494,7 @@ ${truncatedText}`;
                           <h3 className="text-sm font-medium text-gray-900 truncate">
                             {file.name}
                           </h3>
-                          {selectedPublicFiles.includes(file.id) && (
+                          {tempSelectedPublicFiles.includes(file.id) && (
                             <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
                           )}
                         </div>
@@ -3264,10 +3513,10 @@ ${truncatedText}`;
                   ))
                 )}
               </div>
-              {selectedPublicFiles.length > 0 && (
+              {tempSelectedPublicFiles.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600 mb-2">
-                    已选择 {selectedPublicFiles.length} 个文件
+                    已选择 {tempSelectedPublicFiles.length} 个文件
                   </p>
                 </div>
               )}
@@ -3276,10 +3525,16 @@ ${truncatedText}`;
             {/* 弹窗底部 */}
             <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
               <button
-                onClick={() => setShowPublicKnowledgeModal(false)}
+                onClick={handleClosePublicKnowledgeModal}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 关闭
+              </button>
+              <button
+                onClick={handleConfirmPublicFiles}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                确认
               </button>
             </div>
           </div>

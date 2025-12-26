@@ -142,24 +142,28 @@ const SelectableOptionSelector: React.FC<SelectableOptionSelectorProps> = ({
     
     if (!onDelete) return;
 
-    // 如果删除的是当前选中的选项，从选择中移除
-    if (onChange) {
-      if (isMultiple) {
-        const newValues = selectedValues.filter(v => v !== option.id);
-        onChange(newValues);
-      } else if (value === option.id) {
-        onChange(null);
-      }
-    }
-
     setIsDeleting(true);
     try {
       const success = await onDelete(option.id);
       if (success) {
+        // 删除成功后，如果删除的是当前选中的选项，从选择中移除
+        if (onChange) {
+          if (isMultiple) {
+            const newValues = selectedValues.filter(v => v !== option.id);
+            onChange(newValues);
+          } else if (value === option.id) {
+            onChange(null);
+          }
+        }
         message.success('删除成功');
+        // 关闭编辑菜单
+        setEditingOption(null);
+        setEditMenuVisible(false);
         if (isOpen) {
           setIsOpen(false);
         }
+      } else {
+        message.error('删除失败');
       }
     } catch (error) {
       message.error('删除失败');
@@ -237,11 +241,7 @@ const SelectableOptionSelector: React.FC<SelectableOptionSelectorProps> = ({
                 {onDelete && (
                   <div
                     className="selectable-option-delete-item"
-                    onClick={(e) => {
-                      handleDelete(editingOption, e);
-                      setEditingOption(null);
-                      setEditMenuVisible(false);
-                    }}
+                    onClick={(e) => handleDelete(editingOption, e)}
                   >
                     <DeleteOutlined />
                     <span>删除</span>

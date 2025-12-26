@@ -109,6 +109,12 @@ export class TechPointModel {
       });
     }
 
+    // 如果没有明确指定状态筛选，默认排除已归档的记录
+    if (!options.where || !options.where.status) {
+      conditions.push('status != ?');
+      values.push(Status.ARCHIVED);
+    }
+
     if (conditions.length > 0) {
       sql += ' WHERE ' + conditions.join(' AND ');
     }

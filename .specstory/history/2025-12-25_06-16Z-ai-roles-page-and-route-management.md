@@ -1215,3 +1215,913 @@ Tool call timed out after 5s
 
 ---
 
+_**User (2025-12-25 03:19Z)**_
+
+DOM Path: div#root > div.App > div.min-h-.creen bg-gray-50 text-[15px] md:text-ba.e leading-relaxed > div.container mx-auto px-4 py-10 > div.flex item.-center ju.tify-between mb-8 > div.flex-1
+Position: top=105px, left=117px, width=924px, height=88px
+React Component: AIRoleManagementPage
+HTML Element: <div class="flex-1" data-cursor-element-id="cursor-el-1468">AI角色管理 创建和管理您的AI对话角色</div> 缩小字体大小，保持与项目字体风格的一致性
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+
+---
+
+
+查看当前的字体大小设置，并参考项目中其他页面的字体风格：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "h1 title font size text-4xl text-5xl heading style" • **14** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `frontend/src/pages/AIUnifiedManagementPage.tsx` | L8-243 |
+| `frontend/src/pages/WorkflowPage.css` | L295-428 |
+| `frontend/src/pages/WorkflowPage.css` | L688-735 |
+| `frontend/src/pages/AIChatPage.tsx` | L22-524 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | L52-3545 |
+| `frontend/src/pages/AgentWorkflowGuidePage.tsx` | L1-113 |
+| `frontend/src/pages/WorkflowPage.css` | L783-843 |
+| `frontend/src/pages/FieldMappingManagementPage.tsx` | L21-1125 |
+| `frontend/src/pages/TemplateManagementPage.tsx` | L18-1075 |
+| `frontend/src/pages/WorkflowPage.css` | L839-889 |
+| `frontend/src/pages/TechPointLibraryPage.tsx` | L29-582 |
+| `frontend/src/pages/EnhancedWorkflowStatsPage.tsx` | L35-508 |
+| `frontend/src/pages/ProjectResourcesPage.tsx` | L21-3743 |
+| `frontend/src/pages/PublicKnowledge/index.tsx` | L15-238 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "text-4xl|text-5xl|text-3xl.*font-bold" in "frontend/src/pages" • 9 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">AI角色管理</h1>` | L1090 |
+| `frontend/src/pages/WorkflowStatsPage.tsx` | `<h1 className="text-3xl font-bold text-gray-900">智能工作流统计</h1>` | L112 |
+| `frontend/src/pages/TemplateManagementPage.tsx` | `<h1 className="text-3xl font-bold text-gray-900">页面模板管理</h1>` | L795 |
+| `frontend/src/pages/PublicPageConfigManagementPage.tsx` | `<h1 className="text-3xl font-bold text-gray-900">公开页面配置管理</h1>` | L821 |
+| `frontend/src/pages/PublicKnowledge/index.tsx` | `<h1 className="text-3xl font-bold text-gray-900">公共知识库</h1>` | L183 |
+| `frontend/src/pages/EnhancedWorkflowStatsPage.tsx` | `<h1 className="text-3xl font-bold text-gray-900">智能工作流统计分析</h1>` | L213 |
+| `frontend/src/pages/CarSeriesEditPage.tsx` | `<h1 className="text-3xl font-bold text-gray-900">编辑车系</h1>` | L285 |
+| `frontend/src/pages/AIUnifiedManagementPage.tsx` | `<h1 className="text-4xl font-bold text-gray-900">AI统一管理平台</h1>` | L128 |
+| `frontend/src/pages/AIUnifiedManagementPage.tsx` | `<h2 className="text-3xl font-bold mb-6 flex items-center gap-3">` | L219 |
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+查看其他类似页面的字体样式：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/TemplateManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/PublicPageConfigManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 2, lines removed: 2
+
+```diff
+@@ -1088,6 +1088,6 @@
+          &lt;div className="flex items-center justify-between mb-8"&gt;
+            &lt;div className="flex-1"&gt;
+-             &lt;h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3"&gt;AI角色管理&lt;/h1&gt;
+-             &lt;p className="text-gray-600 mt-2 text-xl font-medium"&gt;创建和管理您的AI对话角色&lt;/p&gt;
++             &lt;h1 className="text-3xl font-bold text-gray-900"&gt;AI角色管理&lt;/h1&gt;
++             &lt;p className="text-gray-600 mt-1"&gt;创建和管理您的AI对话角色&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className="flex items-center gap-3"&gt;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
+
+- `frontend/src/pages/AIRoleManagementPage.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+已将标题和描述字体大小调整为与其他管理页面一致：
+
+- 标题：从 `text-4xl md:text-5xl` 改为 `text-3xl`
+- 描述：从 `text-xl font-medium` 改为 `text-gray-600 mt-1`，并移除了 `mb-3`
+
+已与项目中其他管理页面（如 TemplateManagementPage、PublicPageConfigManagementPage）保持一致。
+
+---
+
+_**User (2025-12-25 03:19Z)**_
+
+分析来源项DOM Path: div#root > div.App > div.min-h-.creen bg-gray-50 text-[15px] md:text-ba.e leading-relaxed > div.container mx-auto px-4 py-10 > div.pace-y-6 > div.bg-white rounded-lg .hadow-md overflow-hidden > div.divide-y divide-gray-200 > div.px-4 py-3 hover:bg-gray-50 tran.ition-color[15] > div.flex item.-center gap-4 > div.flex-1 grid grid-col.-12 gap-4 item.-center > div.col-.pan-2[2]
+Position: top=646px, left=865px, width=184px, height=24px
+React Component: AIRoleManagementPage
+HTML Element: <div class="col-span-2" data-cursor-element-id="cursor-el-2391">-</div>，已经被选用的AIrole需显示其被使用页面名称的标签 
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+
+---
+
+
+检查“来源”列的显示逻辑，确保已使用的AI角色正确显示使用页面名称：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "loadRoleUsage fetchRoleUsage getRoleUsage usage loading" • **2** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | L52-3545 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | L49-3545 |
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "loadRoleUsage|fetchRoleUsage|getRoleUsage|roleUsages\.set|usage.*get" in "frontend/src/pages/AIRoleManagementPage.tsx" • 10 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const loadRoleUsage = async (roleId: string) => \{` | L365 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const usage = await aiRoleService.getRoleUsage(roleId);` | L374 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `loadRoleUsage(role.id);` | L543 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoleUsage(savedRoleId);` | L689 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoleUsage(savedRoleId);` | L880 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const usage = roleUsages?.get(role.id);` | L1342 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `usage=\{roleUsages.get(role.id)\}` | L1567 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const usage = roleUsages.get(role.id)!;` | L1763 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const usage = roleUsages.get(role.id)!;` | L1807 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const usage = roleUsages.get(selectedRole.id)!;` | L1901 |
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+查看是否有批量加载usage的逻辑，以及角色列表加载时是否自动加载usage：
+
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "useEffect.*roles|loadRoles.*usage|roles\.map.*loadRoleUsage" in "frontend/src/pages/AIRoleManagementPage.tsx" • 1 match</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `// 使用useEffect监听roles变化来更新selectedRole，或者直接从result.data获取` | L873 |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "批量加载所有角色使用情况 batch load all roles usage" • **11** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `frontend/src/utils/aiRoleUsageAnalyzer.ts` | L82-191 |
+| `frontend/src/utils/aiRoleUsageAnalyzer.ts` | L119-203 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | L52-3545 |
+| `frontend/src/utils/aiRoleUsageAnalyzer.ts` | L30-164 |
+| `frontend/src/components/MultiChatContainer.tsx` | L48-1180 |
+| `frontend/src/components/MultiChatContainer.tsx` | L31-1180 |
+| `frontend/src/components/RoleList.tsx` | L262 |
+| `frontend/src/pages/FieldMappingManagementPage.tsx` | L21-1125 |
+| `frontend/src/components/management/FieldMappingConfigManager.tsx` | L18-728 |
+| `frontend/src/components/RoleList.tsx` | L28-262 |
+| `frontend/src/components/AIRoleConfigInfoBox.tsx` | L42-736 |
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+查看是否有批量加载usage的方法，并添加在角色列表加载后批量加载所有角色usage的逻辑：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/services/aiRoleService.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "useEffect.*\[roles\]|useEffect.*loadRoles" in "frontend/src/pages/AIRoleManagementPage.tsx" • 0 matches</summary>
+
+Output mode: content
+
+
+_No matches found_
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+
+
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "useEffect|loadRoles\(\)" in "frontend/src/pages/AIRoleManagementPage.tsx" • 7 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `import React, \{ useState, useEffect, useMemo, useCallback \} from 'react';` | L1 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `useEffect(() => \{` | L134 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoles();` | L213 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoles();` | L260 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoles();` | L596 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoles();` | L620 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadRoles();` | L638 |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+查看useEffect的完整实现，添加批量加载所有角色usage的逻辑：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 14, lines removed: 7
+
+```diff
+@@ -376,14 +376,21 @@
+          setRoleUsages(prev =&gt; new Map(prev).set(roleId, usage));
+        } else {
+-         // 如果没有使用情况，清除缓存中的旧数据
+-         setRoleUsages(prev =&gt; {
+-           const next = new Map(prev);
+-           next.delete(roleId);
+-           return next;
+-         });
++         // 如果没有使用情况，也设置一个空的使用情况对象
++         setRoleUsages(prev =&gt; new Map(prev).set(roleId, {
++           roleId,
++           roleName: '',
++           locations: [],
++           totalUsageCount: 0
++         }));
+        }
+      } catch (error) {
+        console.error(&#96;加载角色 ${roleId} 使用情况失败:&#96;, error);
+-       // 加载失败时，不清除缓存（可能是网络错误）
++       // 加载失败时，设置空的使用情况
++       setRoleUsages(prev =&gt; new Map(prev).set(roleId, {
++         roleId,
++         roleName: '',
++         locations: [],
++         totalUsageCount: 0
++       }));
+      } finally {
+        setLoadingUsages(prev =&gt; {
+```
+
+**Chunk 2**
+Lines added: 10, lines removed: undefined
+
+```diff
+@@ -394,4 +401,14 @@
+      }
+    };
++ 
++   // 批量加载所有角色的使用情况
++   const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) =&gt; {
++     // 并行加载所有角色的使用情况，但限制并发数
++     const batchSize = 5; // 每批加载5个
++     for (let i = 0; i &lt; roleList.length; i += batchSize) {
++       const batch = roleList.slice(i, i + batchSize);
++       await Promise.all(batch.map(role =&gt; loadRoleUsage(role.id)));
++     }
++   }, []);
+  
+    // 统一的角色和工作流项目类型
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+在角色列表加载后批量加载所有角色的usage，并修复函数依赖关系：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 10, lines removed: undefined
+
+```diff
+@@ -284,4 +284,14 @@
+      }
+    };
++ 
++   // 批量加载所有角色的使用情况
++   const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) =&gt; {
++     // 并行加载所有角色的使用情况，但限制并发数
++     const batchSize = 5; // 每批加载5个
++     for (let i = 0; i &lt; roleList.length; i += batchSize) {
++       const batch = roleList.slice(i, i + batchSize);
++       await Promise.all(batch.map(role =&gt; loadRoleUsage(role.id)));
++     }
++   }, []);
+  
+    // 加载角色列表
+```
+
+**Chunk 2**
+Lines added: 2, lines removed: undefined
+
+```diff
+@@ -295,4 +305,6 @@
+        );
+        setRoles(uniqueRoles);
++       // 批量加载所有角色的使用情况
++       await loadAllRoleUsages(uniqueRoles);
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.message || error?.message || '未知错误';
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+Model supplied an ambiguous edit
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 2, lines removed: undefined
+
+```diff
+@@ -148,4 +148,6 @@
+          );
+          setRoles(uniqueRoles);
++         // 批量加载所有角色的使用情况
++         await loadAllRoleUsages(uniqueRoles);
+        } catch (error) {
+          // 如果加载失败（后端未运行），继续检查迁移状态
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "const loadRoleUsage" in "frontend/src/pages/AIRoleManagementPage.tsx" • 1 match</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const loadRoleUsage = async (roleId: string) => \{` | L379 |
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+检查代码结构，修复依赖关系问题：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "loadAllRoleUsages" in "frontend/src/pages/AIRoleManagementPage.tsx" • 4 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadAllRoleUsages(uniqueRoles);` | L151 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) => \{` | L290 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `await loadAllRoleUsages(uniqueRoles);` | L310 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) => \{` | L419 |
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+发现 `loadAllRoleUsages` 被定义了两次。检查并修复重复定义：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: undefined, lines removed: 10
+
+```diff
+@@ -286,14 +286,4 @@
+      }
+    };
+- 
+-   // 批量加载所有角色的使用情况
+-   const loadAllRoleUsages = useCallback(async (roleList: AIRoleConfig[]) =&gt; {
+-     // 并行加载所有角色的使用情况，但限制并发数
+-     const batchSize = 5; // 每批加载5个
+-     for (let i = 0; i &lt; roleList.length; i += batchSize) {
+-       const batch = roleList.slice(i, i + batchSize);
+-       await Promise.all(batch.map(role =&gt; loadRoleUsage(role.id)));
+-     }
+-   }, []);
+  
+    // 加载角色列表
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -414,5 +414,5 @@
+        await Promise.all(batch.map(role =&gt; loadRoleUsage(role.id)));
+      }
+-   }, []);
++   }, [loadRoleUsage]);
+  
+    // 统一的角色和工作流项目类型
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+修复函数定义的顺序问题，确保依赖关系正确：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+The string to replace was not found in the file.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
+
+- `frontend/src/pages/AIRoleManagementPage.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+检查 `loadRoleUsage` 是否需要改为 `useCallback`，以及显示逻辑是否正确：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "usage && usage\.totalUsageCount > 0" in "frontend/src/pages/AIRoleManagementPage.tsx" • 2 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `\{usage && usage.totalUsageCount > 0 ? (` | L1433 |
+| `frontend/src/pages/AIRoleManagementPage.tsx` | `\{usage && usage.totalUsageCount > 0 ? (` | L1452 |
+
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+检查 `usage` 的获取逻辑，确保正确显示：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+**Chunk 1**
+Lines added: 3, lines removed: 1
+
+```diff
+@@ -1431,5 +1431,7 @@
+                                {/* 来源 */}
+                                &lt;div className="col-span-2"&gt;
+-                                 {usage &amp;&amp; usage.totalUsageCount &gt; 0 ? (
++                                 {loadingUsages.has(role.id) ? (
++                                   &lt;span className="text-xs text-gray-400"&gt;加载中...&lt;/span&gt;
++                                 ) : usage &amp;&amp; usage.totalUsageCount &gt; 0 ? (
+                                    &lt;div className="flex flex-wrap gap-1"&gt;
+                                      {usage.locations.slice(0, 3).map((location, idx) =&gt; (
+```
+
+**Chunk 2**
+Lines added: 2, lines removed: undefined
+
+```diff
+@@ -1444,4 +1446,6 @@
+                                      )}
+                                    &lt;/div&gt;
++                                 ) : usage ? (
++                                   &lt;span className="text-xs text-gray-400"&gt;-&lt;/span&gt;
+                                  ) : (
+                                    &lt;span className="text-xs text-gray-400"&gt;-&lt;/span&gt;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: frontend/src/pages/AIRoleManagementPage.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
+
+- `frontend/src/pages/AIRoleManagementPage.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+已完成以下修改：
+
+1. **添加批量加载逻辑**：在 `loadRoles` 和初始化 `useEffect` 中，加载完角色列表后批量加载所有角色的使用情况。
+
+2. **修改显示逻辑**：在“来源”列中：
+   - 如果正在加载，显示“加载中...”
+   - 如果有使用情况（`usage.totalUsageCount > 0`），显示具体使用的页面名称标签
+   - 如果没有使用情况，显示 "-"
+
+3. **确保 usage 数据被加载**：所有角色的 usage 数据会在角色列表加载后自动批量加载，这样列表中的“来源”列就能显示使用页面名称。
+
+现在已被使用的 AI 角色会在“来源”列显示其被使用的页面名称标签（如"AI问答"、"智能工作流"、"多窗口对话"等），而不是显示 "-"。
+
+---
+
