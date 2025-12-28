@@ -119,6 +119,7 @@ export interface DirectAgentConfig {
     temperature: number;
     maxTokens: number;
     topP?: number;
+    stream?: boolean;  // 是否使用流式响应
   };
   prompt: {
     systemPrompt: string;

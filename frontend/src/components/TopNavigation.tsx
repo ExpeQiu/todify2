@@ -8,6 +8,7 @@ import {
   Settings,
   User,
   ChevronDown,
+  BookOpen,
 } from "lucide-react";
 
 interface TopNavigationProps {
@@ -288,6 +289,21 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
                         </button>
                       );
                     })}
+                    {/* 分隔线 */}
+                    <div className="border-t border-gray-200 my-1" />
+                    {/* 技术文档入口 */}
+                    <button
+                      onClick={() => {
+                        // 在新窗口打开技术文档
+                        const docPath = '/guide/AGENT_ARCHITECTURE_ANALYSIS.html';
+                        window.open(docPath, '_blank');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>技术文档</span>
+                    </button>
                   </div>
                 </>
               )}

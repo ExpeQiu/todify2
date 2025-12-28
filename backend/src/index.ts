@@ -111,13 +111,15 @@ app.get('/metrics', async (req, res) => {
   }
 });
 
-// 公共知识库文件服务
-const publicKnowledgeUploadDir = path.join(__dirname, '../uploads/public-knowledge');
-app.use('/api/v1/public-knowledge/files', express.static(publicKnowledgeUploadDir, {
-  maxAge: 86400000, // 1 day
-  etag: true,
-  lastModified: true,
-}));
+// 公共知识库文件服务（注释掉，统一使用预览API）
+// 静态文件服务会与预览API路由冲突，所以移除静态文件服务
+// 所有文件访问都通过预览API: /api/v1/public-knowledge/files/:id/preview
+// const publicKnowledgeUploadDir = path.join(__dirname, '../uploads/public-knowledge');
+// app.use('/api/v1/public-knowledge/files', express.static(publicKnowledgeUploadDir, {
+//   maxAge: 86400000, // 1 day
+//   etag: true,
+//   lastModified: true,
+// }));
 
 // 生产环境静态文件服务：直接从 frontend/dist 提供资源
 // 注意：必须在 API 路由之后，否则会拦截 API 请求

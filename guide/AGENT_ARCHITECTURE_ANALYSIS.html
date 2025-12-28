@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent架构与信息处理链路分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 3rem;
+            scroll-margin-top: 80px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.5rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card h4 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .architecture-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .architecture-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .architecture-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .architecture-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .architecture-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .architecture-card li:last-child {
+            border-bottom: none;
+        }
+
+        .architecture-card li::before {
+            content: "▸ ";
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .mermaid-container {
+            background: white;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            line-height: 2;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-implemented {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e83e8c;
+        }
+
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .feature-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .limitation {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        .improvement {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 2rem 0;
+        }
+
+        .summary h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #667eea;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #764ba2;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Agent架构与信息处理链路分析</h1>
+            <p>混合式双引擎架构 · 完整信息流转 · 可视化说明</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">整体架构</a></li>
+                <li><a href="#components">核心组件</a></li>
+                <li><a href="#flow">信息链路</a></li>
+                <li><a href="#data">数据流转</a></li>
+                <li><a href="#patterns">设计模式</a></li>
+                <li><a href="#performance">性能限制</a></li>
+                <li><a href="#improvements">改进方向</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- 一、整体架构概览 -->
+            <section id="overview">
+                <h2>一、整体架构概览</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 2rem;">项目采用<strong>混合式双引擎架构</strong>，支持两种Agent执行模式：</p>
+                
+                <div class="mermaid-container">
+                    <div class="mermaid">
+graph TB
+    subgraph "用户层"
+        User[用户输入]
+    end
+    
+    subgraph "前端层"
+        Frontend[前端页面组件]
+        FrontendService[前端服务层]
+    end
+    
+    subgraph "后端API层"
+        API[后端API路由]
+    end
+    
+    subgraph "Direct Agent引擎"
+        Orchestrator[AgentOrchestrator<br/>编排器]
+        PromptMgr[PromptManager<br/>Prompt管理]
+        ContextMgr[ContextManager<br/>上下文管理]
+        ToolExec[ToolExecutor<br/>工具执行器]
+        LLM[LLM Provider]
+    end
+    
+    subgraph "Dify Agent引擎"
+        DifyClient[DifyClient<br/>客户端]
+        DifyGateway[DifyGateway<br/>网关]
+        DifyPlatform[Dify平台]
+    end
+    
+    subgraph "工作流引擎"
+        LangGraph[LangGraphEngine<br/>工作流引擎]
+        WorkflowNodes[工作流节点]
+    end
+    
+    User --> Frontend
+    Frontend --> FrontendService
+    FrontendService --> API
+    
+    API -->|Direct Agent| Orchestrator
+    Orchestrator --> PromptMgr
+    Orchestrator --> ContextMgr
+    Orchestrator --> ToolExec
+    Orchestrator --> LLM
+    ToolExec --> Orchestrator
+    
+    API -->|Dify Agent| DifyClient
+    DifyClient --> DifyGateway
+    DifyGateway --> DifyPlatform
+    
+    API -->|工作流| LangGraph
+    LangGraph --> WorkflowNodes
+    WorkflowNodes --> DifyGateway
+    
+    style Orchestrator fill:#667eea,color:#fff
+    style DifyClient fill:#764ba2,color:#fff
+    style LangGraph fill:#f093fb,color:#fff
+                    </div>
+                </div>
+
+                <div class="architecture-grid">
+                    <div class="architecture-card">
+                        <h4>1. Direct Agent（内部引擎）</h4>
+                        <ul>
+                            <li><strong>核心组件</strong>: AgentOrchestrator</li>
+                            <li><strong>特点</strong>: 直接调用LLM，支持Function Calling</li>
+                            <li><strong>适用场景</strong>: 精细控制、工具调用、多轮对话</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>2. Dify Agent（外部引擎）</h4>
+                        <ul>
+                            <li><strong>核心组件</strong>: DifyClient + DifyGateway</li>
+                            <li><strong>特点</strong>: 依赖Dify平台，支持复杂业务流程</li>
+                            <li><strong>适用场景</strong>: 预定义的复杂业务流程</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>3. 工作流引擎</h4>
+                        <ul>
+                            <li><strong>核心组件</strong>: LangGraphEngine</li>
+                            <li><strong>特点</strong>: 基于拓扑排序的DAG执行器</li>
+                            <li><strong>适用场景</strong>: 多节点编排、条件分支</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 二、核心组件架构 -->
+            <section id="components">
+                <h2>二、核心组件架构</h2>
+
+                <div class="card">
+                    <h3>2.1 AgentOrchestrator（Agent编排器）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/agent/AgentOrchestrator.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>执行Direct Agent类型的AI角色</li>
+                        <li>管理完整的Agent生命周期</li>
+                        <li>协调Prompt、Context、Tool的执行</li>
+                    </ul>
+
+                    <h4>核心方法</h4>
+                    <pre><code class="language-typescript">async executeAgent(
+  roleId: string,
+  query: string,
+  conversationId: string = '',
+  context: Record&lt;string, any&gt; = {}
+): Promise&lt;AgentExecutionResult&gt;</code></pre>
+
+                    <h4>执行流程</h4>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    Start[开始执行] --> GetConfig[获取Agent配置]
+    GetConfig --> GenConvId[生成/使用conversationId]
+    GenConvId --> RenderPrompt[渲染System Prompt]
+    RenderPrompt --> GetContext[获取上下文消息]
+    GetContext --> BuildMessages[构建完整消息列表]
+    BuildMessages --> PrepareTools[准备工具定义]
+    PrepareTools --> CallLLM[调用LLM]
+    CallLLM --> CheckTools{有工具调用?}
+    CheckTools -->|是| ExecuteTools[执行工具]
+    ExecuteTools --> AddResults[将结果加入消息历史]
+    AddResults --> CheckIter{达到最大迭代?}
+    CheckIter -->|否| CallLLM
+    CheckIter -->|是| SaveMessages
+    CheckTools -->|否| SaveMessages[保存消息历史]
+    SaveMessages --> Return[返回结果]
+    
+    style Start fill:#667eea,color:#fff
+    style Return fill:#28a745,color:#fff
+    style CheckTools fill:#ffc107,color:#000
+    style CheckIter fill:#ffc107,color:#000
+                        </div>
+                    </div>
+
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <strong>超时控制</strong>
+                            6分钟总体超时，每个工具60秒超时
+                        </div>
+                        <div class="feature-item">
+                            <strong>工具调用循环</strong>
+                            最多10轮迭代，防止无限循环
+                        </div>
+                        <div class="feature-item">
+                            <strong>上下文策略</strong>
+                            支持窗口、摘要、混合三种策略
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>2.2 PromptManager（Prompt管理器）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/agent/PromptManager.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>Prompt模板渲染</li>
+                        <li>变量替换（支持<code>{{variable}}</code>和<code>{variable}</code>格式）</li>
+                        <li>嵌套属性解析（如<code>user.profile.name</code>）</li>
+                    </ul>
+
+                    <h4>变量类型</h4>
+                    <ul>
+                        <li><code>static</code>: 静态值</li>
+                        <li><code>dynamic</code>: 从上下文动态获取</li>
+                        <li><code>context</code>: 直接使用上下文中的值</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>2.3 ContextManager（上下文管理器）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/agent/ContextManager.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>管理对话历史</li>
+                        <li>实现不同的上下文策略</li>
+                        <li>Token估算和优化</li>
+                    </ul>
+
+                    <h4>支持的策略</h4>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <strong>窗口策略（Window）</strong>
+                            保留最近N条消息，简单高效，适合短对话
+                        </div>
+                        <div class="feature-item">
+                            <strong>摘要策略（Summary）</strong>
+                            旧消息压缩为摘要，保留最近消息完整内容，适合长对话
+                        </div>
+                        <div class="feature-item">
+                            <strong>混合策略（Hybrid）</strong>
+                            结合消息数量和Token限制，智能平衡上下文长度和质量
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>2.4 ToolExecutor（工具执行器）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/agent/ToolExecutor.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>执行各种类型的工具调用</li>
+                        <li>参数验证和类型检查</li>
+                        <li>工具结果格式化</li>
+                    </ul>
+
+                    <h4>支持的工具类型</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>类型</th>
+                                <th>功能</th>
+                                <th>实现状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>搜索工具</td>
+                                <td><span class="status-badge status-pending">占位符（待实现）</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>calculation</code></td>
+                                <td>数学计算</td>
+                                <td><span class="status-badge status-implemented">✅ 已实现</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>time</code></td>
+                                <td>时间获取</td>
+                                <td><span class="status-badge status-implemented">✅ 已实现</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>api</code></td>
+                                <td>HTTP API调用</td>
+                                <td><span class="status-badge status-implemented">✅ 已实现</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>workflow</code></td>
+                                <td>工作流调用</td>
+                                <td><span class="status-badge status-implemented">✅ 已实现</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>agent</code></td>
+                                <td>Agent嵌套调用</td>
+                                <td><span class="status-badge status-pending">占位符（待实现）</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>2.5 DifyClient（Dify客户端）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/DifyClient.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>封装Dify平台API调用</li>
+                        <li>管理不同应用的Gateway实例</li>
+                        <li>统一响应格式转换</li>
+                    </ul>
+
+                    <h4>支持的应用类型</h4>
+                    <div class="feature-list">
+                        <div class="feature-item"><strong>ai-search</strong> AI搜索</div>
+                        <div class="feature-item"><strong>tech-package</strong> 技术包装</div>
+                        <div class="feature-item"><strong>tech-strategy</strong> 技术策略</div>
+                        <div class="feature-item"><strong>tech-article</strong> 技术通稿</div>
+                        <div class="feature-item"><strong>core-draft</strong> 核心稿件</div>
+                        <div class="feature-item"><strong>tech-publish</strong> 技术发布</div>
+                    </div>
+
+                    <h4>调用模式</h4>
+                    <ul>
+                        <li><strong>Chatflow模式</strong>: 对话式应用，支持多轮对话</li>
+                        <li><strong>Workflow模式</strong>: 工作流应用，结构化输出</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>2.6 LangGraphEngine（工作流引擎）</h3>
+                    <p><strong>位置</strong>: <code>backend/src/services/workflow/langgraph/LangGraphEngine.ts</code></p>
+                    
+                    <h4>职责</h4>
+                    <ul>
+                        <li>执行基于DAG的工作流</li>
+                        <li>拓扑排序节点执行顺序</li>
+                        <li>管理共享上下文（sharedContext）</li>
+                    </ul>
+
+                    <h4>支持的节点类型</h4>
+                    <div class="feature-list">
+                        <div class="feature-item"><code>input</code> 输入节点</div>
+                        <div class="feature-item"><code>agent</code> Agent节点</div>
+                        <div class="feature-item"><code>output</code> 输出节点</div>
+                        <div class="feature-item"><code>condition</code> 条件判断节点</div>
+                        <div class="feature-item"><code>assign</code> 变量赋值节点</div>
+                        <div class="feature-item"><code>transform</code> 数据转换节点</div>
+                        <div class="feature-item"><code>merge</code> 数据合并节点</div>
+                        <div class="feature-item"><code>memory</code> 文本记忆节点</div>
+                    </div>
+
+                    <div class="limitation">
+                        <h4>局限性</h4>
+                        <ul>
+                            <li>不支持循环（Cycles）</li>
+                            <li>节点扩展性差（硬编码switch-case）</li>
+                            <li>状态管理简单（仅依靠sharedContext）</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 三、信息处理链路 -->
+            <section id="flow">
+                <h2>三、信息处理链路</h2>
+
+                <div class="card">
+                    <h3>3.1 Direct Agent执行链路</h3>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    User[用户输入] --> Frontend[前端页面组件]
+    Frontend --> FrontendService[前端服务层<br/>aiRoleService.chatWithRole]
+    FrontendService --> API[后端API路由<br/>POST /api/ai-roles/:id/chat]
+    API --> Orchestrator[AgentOrchestrator.executeAgent]
+    
+    Orchestrator --> PromptMgr[PromptManager.renderPrompt]
+    Orchestrator --> ContextMgr[ContextManager.getContextMessages]
+    Orchestrator --> BuildMsg[构建消息列表<br/>system + history + user]
+    Orchestrator --> PrepareTools[准备工具定义]
+    Orchestrator --> ExecuteTools[executeWithTools<br/>LLM调用循环]
+    
+    ExecuteTools --> LLM[LLM Provider.chat]
+    LLM --> CheckTool{有工具调用?}
+    CheckTool -->|是| ToolExec[ToolExecutor.executeTool]
+    ToolExec --> AddResult[将工具结果加入消息历史]
+    AddResult --> CheckIter{达到最大迭代?}
+    CheckIter -->|否| LLM
+    CheckIter -->|是| SaveMsg
+    CheckTool -->|否| SaveMsg[ChatMessageService.saveMessages]
+    SaveMsg --> Return[返回结果给前端]
+    
+    style User fill:#667eea,color:#fff
+    style Return fill:#28a745,color:#fff
+    style CheckTool fill:#ffc107,color:#000
+    style CheckIter fill:#ffc107,color:#000
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>3.2 Dify Agent执行链路</h3>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    User[用户输入] --> Frontend[前端页面组件]
+    Frontend --> FrontendService[前端服务层<br/>workflowAPI/aiRoleService]
+    FrontendService --> API[后端API路由]
+    API --> DifyClient[DifyClient<br/>aiSearch/techPackage等]
+    DifyClient --> DifyGateway[DifyGateway<br/>executeChat/executeWorkflow]
+    DifyGateway --> DifyPlatform[Dify平台API]
+    DifyPlatform --> Format[格式转换]
+    Format --> Return[返回结果给前端]
+    
+    style User fill:#667eea,color:#fff
+    style Return fill:#28a745,color:#fff
+    style DifyPlatform fill:#764ba2,color:#fff
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>3.3 工作流执行链路</h3>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    Trigger[工作流触发] --> LangGraph[LangGraphEngine.execute]
+    LangGraph --> TopoSort[拓扑排序节点]
+    TopoSort --> ExecuteLevel[按层级执行节点]
+    
+    ExecuteLevel --> ExecuteNode[executeNode<br/>根据节点类型执行]
+    ExecuteNode --> Input[input: 提取输入参数]
+    ExecuteNode --> Agent[agent: 调用AI角色]
+    ExecuteNode --> Condition[condition: 条件判断]
+    ExecuteNode --> Assign[assign: 变量赋值]
+    ExecuteNode --> Transform[transform: 数据转换]
+    ExecuteNode --> Merge[merge: 数据合并]
+    ExecuteNode --> Memory[memory: 文本记忆]
+    ExecuteNode --> Output[output: 提取输出]
+    
+    ExecuteLevel --> EvaluateGate[评估入边条件 gating]
+    ExecuteLevel --> UpdateContext[更新sharedContext]
+    ExecuteLevel --> RecordResult[记录节点结果]
+    
+    RecordResult --> ExtractText[提取最终文本]
+    ExtractText --> UpdateExec[更新执行记录]
+    UpdateExec --> Return[返回结果]
+    
+    style Trigger fill:#667eea,color:#fff
+    style Return fill:#28a745,color:#fff
+    style ExecuteNode fill:#f093fb,color:#fff
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>3.4 工具调用链路（嵌套）</h3>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    LLMResponse[LLM响应包含工具调用] --> ExecuteTools[AgentOrchestrator.executeTools]
+    ExecuteTools --> LoopTools[遍历工具调用列表]
+    LoopTools --> ToolExec[ToolExecutor.executeTool]
+    
+    ToolExec --> ToolType{工具类型}
+    ToolType -->|search| Search[执行搜索<br/>待实现]
+    ToolType -->|calculation| Calc[执行计算]
+    ToolType -->|time| Time[获取时间]
+    ToolType -->|api| API[HTTP请求]
+    ToolType -->|workflow| Workflow[调用工作流<br/>AgentWorkflowService]
+    ToolType -->|agent| Agent[嵌套Agent调用<br/>待实现<br/>AgentOrchestrator.executeAgent递归]
+    
+    Search --> Result
+    Calc --> Result
+    Time --> Result
+    API --> Result
+    Workflow --> Result
+    Agent --> Result
+    
+    Result[返回工具执行结果<br/>JSON格式] --> AddHistory[将结果加入消息历史]
+    AddHistory --> ContinueLoop[继续LLM调用循环]
+    
+    style LLMResponse fill:#667eea,color:#fff
+    style ContinueLoop fill:#28a745,color:#fff
+    style ToolType fill:#ffc107,color:#000
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>3.5 多轮对话上下文管理链路</h3>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    UserMsg[用户发送消息] --> CheckConv{检查conversationId}
+    CheckConv -->|存在| LoadHistory[加载历史消息]
+    CheckConv -->|不存在| GenConvId[生成新的conversationId]
+    
+    LoadHistory --> ContextMgr[ContextManager.getContextMessages]
+    GenConvId --> ContextMgr
+    
+    ContextMgr --> Strategy{策略类型}
+    Strategy -->|window| Window[保留最近N条]
+    Strategy -->|summary| Summary[旧消息摘要 + 最近消息]
+    Strategy -->|hybrid| Hybrid[Token限制 + 消息数量限制]
+    
+    Window --> BuildMsg
+    Summary --> BuildMsg
+    Hybrid --> BuildMsg
+    
+    BuildMsg[构建消息列表<br/>system prompt可选<br/>历史消息<br/>当前用户消息] --> SendLLM[发送给LLM]
+    SendLLM --> SaveHistory[保存消息历史<br/>用户消息<br/>助手回复]
+    SaveHistory --> Return[返回结果<br/>包含conversationId]
+    
+    style UserMsg fill:#667eea,color:#fff
+    style Return fill:#28a745,color:#fff
+    style CheckConv fill:#ffc107,color:#000
+    style Strategy fill:#ffc107,color:#000
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 四、数据流转 -->
+            <section id="data">
+                <h2>四、数据流转</h2>
+
+                <div class="card">
+                    <h3>4.1 消息数据结构</h3>
+                    
+                    <h4>ChatMessage</h4>
+                    <pre><code class="language-typescript">{
+  role: 'system' | 'user' | 'assistant' | 'tool',
+  content: string,
+  name?: string,  // 工具名称
+  tool_call_id?: string  // 工具调用ID
+}</code></pre>
+
+                    <h4>AgentExecutionResult</h4>
+                    <pre><code class="language-typescript">{
+  content: string,
+  conversationId: string,
+  usage: {
+    promptTokens: number,
+    completionTokens: number,
+    totalTokens: number
+  },
+  metadata?: {
+    model: string,
+    finishReason: string,
+    toolCalls: number
+  }
+}</code></pre>
+                </div>
+
+                <div class="card">
+                    <h3>4.2 上下文数据结构</h3>
+                    
+                    <h4>sharedContext (工作流)</h4>
+                    <pre><code class="language-typescript">{
+  workflowInput: any,  // 工作流输入
+  nodeOutputs: {       // 节点输出
+    [nodeId]: any
+  },
+  [variableName]: any  // 自定义变量
+}</code></pre>
+                </div>
+
+                <div class="card">
+                    <h3>4.3 工具调用数据结构</h3>
+                    
+                    <h4>ToolCall</h4>
+                    <pre><code class="language-typescript">{
+  id: string,
+  function: {
+    name: string,
+    arguments: string  // JSON字符串
+  }
+}</code></pre>
+
+                    <h4>ToolConfig</h4>
+                    <pre><code class="language-typescript">{
+  id: string,
+  name: string,
+  description: string,
+  type: 'search' | 'api' | 'calculation' | 'workflow' | 'agent' | 'time',
+  enabled: boolean,
+  parameters: ToolParameter[],
+  implementation?: {
+    endpoint?: string,
+    method?: string,
+    headers?: Record&lt;string, string&gt;,
+    workflowId?: string,
+    agentId?: string
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- 五、关键设计模式 -->
+            <section id="patterns">
+                <h2>五、关键设计模式</h2>
+
+                <div class="architecture-grid">
+                    <div class="architecture-card">
+                        <h4>5.1 策略模式</h4>
+                        <ul>
+                            <li><strong>上下文策略</strong>: Window、Summary、Hybrid</li>
+                            <li><strong>工具执行策略</strong>: 根据工具类型选择执行方式</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>5.2 责任链模式</h4>
+                        <ul>
+                            <li><strong>工具调用链</strong>: LLM → Tool → Result → LLM（循环）</li>
+                            <li><strong>工作流节点链</strong>: 按拓扑顺序执行</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>5.3 适配器模式</h4>
+                        <ul>
+                            <li><strong>Dify响应适配</strong>: 统一不同Dify应用的响应格式</li>
+                            <li><strong>工具格式适配</strong>: 将ToolConfig转换为OpenAI Function格式</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>5.4 工厂模式</h4>
+                        <ul>
+                            <li><strong>LLM Provider工厂</strong>: 根据配置创建不同的Provider实例</li>
+                            <li><strong>DifyGateway工厂</strong>: 根据应用类型创建Gateway实例</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 六、性能与限制 -->
+            <section id="performance">
+                <h2>六、性能与限制</h2>
+
+                <div class="architecture-grid">
+                    <div class="architecture-card">
+                        <h4>6.1 超时控制</h4>
+                        <ul>
+                            <li><strong>总体超时</strong>: 6分钟（Agent执行）</li>
+                            <li><strong>工具超时</strong>: 60秒（单个工具调用）</li>
+                            <li><strong>LLM调用</strong>: 由Provider控制</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>6.2 迭代限制</h4>
+                        <ul>
+                            <li><strong>工具调用循环</strong>: 最多10轮</li>
+                            <li><strong>防止无限循环</strong>: 达到限制后返回最后一次响应</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>6.3 Token管理</h4>
+                        <ul>
+                            <li><strong>上下文策略</strong>: 通过Token估算控制上下文长度</li>
+                            <li><strong>摘要生成</strong>: 超过限制时自动生成摘要</li>
+                        </ul>
+                    </div>
+
+                    <div class="architecture-card">
+                        <h4>6.4 并发控制</h4>
+                        <ul>
+                            <li><strong>工作流节点</strong>: 同一层节点可并行执行</li>
+                            <li><strong>工具调用</strong>: 串行执行（保证顺序）</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 七、扩展点与改进方向 -->
+            <section id="improvements">
+                <h2>七、扩展点与改进方向</h2>
+
+                <div class="card">
+                    <h3>7.1 当前限制</h3>
+                    <div class="limitation">
+                        <ol>
+                            <li><strong>LangGraphEngine不支持循环</strong>: 无法实现迭代优化流程</li>
+                            <li><strong>节点扩展性差</strong>: 硬编码switch-case，难以动态扩展</li>
+                            <li><strong>工具类型不完整</strong>: search和agent工具为占位符</li>
+                            <li><strong>AgentWorkflowService已移除</strong>: 工作流功能受限</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>7.2 改进建议</h3>
+                    <div class="improvement">
+                        <ol>
+                            <li><strong>升级LangGraphEngine</strong>: 从DAG执行器升级为真正的图状态机</li>
+                            <li><strong>插件化节点系统</strong>: 支持动态注册节点类型</li>
+                            <li><strong>完善工具生态</strong>: 实现search和agent工具</li>
+                            <li><strong>增强错误处理</strong>: 更细粒度的错误分类和恢复机制</li>
+                            <li><strong>性能优化</strong>: 支持工具调用的并行执行（安全场景下）</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 八、总结 -->
+            <section>
+                <div class="summary">
+                    <h3>八、总结</h3>
+                    <p style="font-size: 1.1rem; line-height: 1.8;">
+                        项目采用混合式架构，同时支持内部Direct Agent和外部Dify Agent，通过工作流引擎实现复杂业务流程编排。
+                        信息处理链路清晰，从用户输入到AI响应的每个环节都有明确的职责分工。
+                        当前架构在功能完整性上还有提升空间，特别是在工具生态和工作流循环支持方面。
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // 代码高亮
+        hljs.highlightAll();
+
+        // 平滑滚动
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 返回顶部按钮
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
+

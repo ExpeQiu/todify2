@@ -40,6 +40,11 @@ export class OpenAIProvider implements ILLMProvider {
       requestBody.top_p = config.topP;
     }
 
+    // 支持 stream 参数
+    if (config.stream !== undefined) {
+      requestBody.stream = config.stream;
+    }
+
     // 添加工具定义（如果提供）
     if (tools && tools.length > 0) {
       requestBody.tools = tools;

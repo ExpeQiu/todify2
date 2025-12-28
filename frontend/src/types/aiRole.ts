@@ -91,6 +91,7 @@ export interface DirectAgentConfig {
     temperature: number;  // 0-2
     maxTokens: number;    // 最大生成token数
     topP?: number;        // 0-1
+    stream?: boolean;     // 是否使用流式响应
   };
   
   // Prompt配置

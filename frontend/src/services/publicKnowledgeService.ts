@@ -22,10 +22,15 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
+    config.headers = config.headers || {};
     config.headers = {
       ...config.headers,
       Authorization: `Bearer ${token}`,
     };
+  }
+  // 如果是 FormData，删除 Content-Type，让浏览器自动设置（包含 boundary）
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers['Content-Type'];
   }
   return config;
 });
@@ -116,15 +121,23 @@ class PublicKnowledgeService {
   }
 
   /**
-   * 上传文件
+   * 上传文件（支持单个或多个文件）
    */
-  async uploadFile(file: File, data?: CreateFileDTO): Promise<ApiResponse<PublicKnowledgeFile>> {
+  async uploadFile(files: File | File[], data?: CreateFileDTO): Promise<ApiResponse<PublicKnowledgeFile | PublicKnowledgeFile[]>> {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      const fileArray = Array.isArray(files) ? files : [files];
+      
+      // 后端期望的字段名是 'files'（复数）
+      fileArray.forEach(file => {
+        formData.append('files', file);
+      });
+      
       if (data) {
+        // category_id 可能是 number | null | undefined
+        // null 表示无分类，需要发送 'null' 字符串；undefined 表示不设置，不发送字段
         if (data.category_id !== undefined) {
-          formData.append('category_id', data.category_id?.toString() || '');
+          formData.append('category_id', data.category_id === null ? 'null' : data.category_id.toString());
         }
         if (data.description) {
           formData.append('description', data.description);
@@ -134,11 +147,8 @@ class PublicKnowledgeService {
         }
       }
 
-      const response = await api.post<ApiResponse<PublicKnowledgeFile>>('/public-knowledge/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // 上传文件时，拦截器会自动删除 Content-Type，让浏览器自动设置（包含 boundary）
+      const response = await api.post<ApiResponse<PublicKnowledgeFile | PublicKnowledgeFile[]>>('/public-knowledge/upload', formData);
       return response.data;
     } catch (error: any) {
       console.error('上传文件失败:', error);
@@ -162,6 +172,30 @@ class PublicKnowledgeService {
         success: false,
         message: error.response?.data?.message || error.message || '删除文件失败',
       };
+    }
+  }
+
+  /**
+   * 获取文件URL（用于预览）
+   * 始终使用预览 API，因为预览 API 会通过数据库查询文件并确保文件存在
+   */
+  getFileUrl(file: PublicKnowledgeFile): string {
+    // 始终使用预览 API，通过文件ID查询，这样更可靠
+    return `${API_BASE_URL}/public-knowledge/files/${file.id}/preview`;
+  }
+
+  /**
+   * 下载文件
+   */
+  async downloadFile(id: number): Promise<Blob> {
+    try {
+      const response = await api.get(`/public-knowledge/files/${id}/download`, {
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('下载文件失败:', error);
+      throw error;
     }
   }
 }

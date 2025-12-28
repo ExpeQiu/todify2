@@ -2514,6 +2514,34 @@ const AIRoleManagementPage: React.FC = () => {
                               className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
+
+                          <div>
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={formData.agentConfig?.llm?.stream || false}
+                                onChange={(e) => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    agentConfig: {
+                                      ...prev.agentConfig!,
+                                      llm: {
+                                        ...prev.agentConfig!.llm,
+                                        stream: e.target.checked
+                                      }
+                                    }
+                                  }));
+                                }}
+                                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-base font-medium text-gray-700">
+                                启用流式响应 (Stream)
+                              </span>
+                            </label>
+                            <p className="mt-1 ml-8 text-sm text-gray-500">
+                              启用后，API 请求将包含 stream: true 参数，支持流式返回响应
+                            </p>
+                          </div>
                         </div>
                       )}
 

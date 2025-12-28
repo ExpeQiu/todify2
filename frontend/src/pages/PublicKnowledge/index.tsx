@@ -132,14 +132,14 @@ const PublicKnowledgePage: React.FC = () => {
   };
 
   // 上传文件
-  const handleUploadFile = async (file: File, data?: CreateFileDTO) => {
+  const handleUploadFile = async (files: File[], data?: CreateFileDTO) => {
     try {
-      const response = await publicKnowledgeService.uploadFile(file, {
+      const response = await publicKnowledgeService.uploadFile(files, {
         ...data,
         category_id: selectedCategoryId,
       });
       if (response.success) {
-        toast.success('文件上传成功');
+        toast.success(files.length === 1 ? '文件上传成功' : `成功上传 ${files.length} 个文件`);
         setShowUploadModal(false);
         await loadFiles(selectedCategoryId);
       } else {
