@@ -27,7 +27,6 @@ import workflowStatsRouter from './workflowStats';
 import pageToolConfigRouter from './pageToolConfig';
 import publicPageConfigRouter from './publicPageConfig';
 import workflowExecutionRouter from './workflowExecution';
-import agentRouter from './agent';
 
 const router = Router();
 
@@ -71,7 +70,6 @@ router.use('/workflow-stats', workflowStatsRouter);
 router.use('/page-tool-configs', pageToolConfigRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
 router.use('/workflow-executions', workflowExecutionRouter);
-router.use('/agent', agentRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

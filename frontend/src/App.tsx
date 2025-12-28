@@ -7,7 +7,6 @@ import TechArticlePage from "./pages/TechArticlePage";
 import AIQAPage from "./pages/AIQAPage";
 import HomePage from "./pages/HomePage";
 import ProjectResourcesPage from "./pages/ProjectResourcesPage";
-import ContentEditorPage from "./pages/ContentEditorPage";
 import TechPointLibraryPage from "./pages/TechPointLibraryPage";
 import TechPointLibraryDetailPage from "./pages/TechPointLibraryDetailPage";
 import PublicKnowledgePage from "./pages/PublicKnowledge";
@@ -65,11 +64,6 @@ function App() {
           <Route
             path="/project/:projectId/resources"
             element={<ProjectResourcesPage />}
-          />
-
-          <Route
-            path="/project/:projectId/content-editor/:executionId"
-            element={<ContentEditorPage />}
           />
 
           <Route

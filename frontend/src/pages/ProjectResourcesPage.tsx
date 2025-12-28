@@ -20,8 +20,6 @@ import sourceService, { Source, SourceCategory, SourceInformation } from '../ser
 import { AIRoleConfig } from '../types/aiRole';
 import aiRoleService from '../services/aiRoleService';
 import TopNavigation from '../components/TopNavigation';
-import GenerateConfirmModal, { ExtractedRequirement } from '../components/GenerateConfirmModal';
-import RequirementExtractionHint from '../components/RequirementExtractionHint';
 
 const ProjectResourcesPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -247,12 +245,6 @@ const ProjectResourcesPage: React.FC = () => {
   const [showTechPointPreview, setShowTechPointPreview] = useState(false);
   const [extractedTechPointData, setExtractedTechPointData] = useState<any>(null);
   const [extractingSourceId, setExtractingSourceId] = useState<number | null>(null);
-
-  // 多Agent生成相关状态
-  const [extractedRequirement, setExtractedRequirement] = useState<ExtractedRequirement | null>(null);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [extractingRequirement, setExtractingRequirement] = useState(false);
-  const [showRequirementHint, setShowRequirementHint] = useState(true);
 
   useEffect(() => {
     if (projectId) {
@@ -627,90 +619,6 @@ const ProjectResourcesPage: React.FC = () => {
     } catch (error) {
       console.error('[ProjectResources] 自动保存对话摘要失败:', error);
       // 不抛出错误，避免影响用户体验
-    }
-  };
-
-  // 分析需求并启动生成
-  const handleStartGeneration = async () => {
-    if (!projectId) {
-      alert('项目ID不存在');
-      return;
-    }
-
-    if (aiMessages.length === 0) {
-      alert('请先进行AI问答，然后再生成内容');
-      return;
-    }
-
-    try {
-      setExtractingRequirement(true);
-
-      // 转换对话历史格式
-      const conversationHistory = aiMessages.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      }));
-
-      // 1. 从对话历史提取需求
-      const response = await api.post('/agent/extract-requirement', {
-        projectId: parseInt(projectId),
-        conversationHistory,
-        selectedResources: {
-          techPointIds: selectedTechPoints,
-          knowledgePointIds: selectedKnowledgePoints,
-          sourceIds: sources.map(s => s.id || 0).filter(id => id > 0)
-        }
-      });
-
-      if (response.data.success && response.data.data) {
-        const requirement = response.data.data;
-        setExtractedRequirement(requirement);
-        setShowGenerateModal(true);
-      } else {
-        alert('需求提取失败：' + (response.data.error || '未知错误'));
-      }
-    } catch (error: any) {
-      console.error('需求提取失败:', error);
-      alert('需求提取失败：' + (error.response?.data?.error || error.message || '未知错误'));
-    } finally {
-      setExtractingRequirement(false);
-    }
-  };
-
-  // 确认并启动多Agent生成
-  const handleConfirmGeneration = async (scene: string) => {
-    if (!projectId || !extractedRequirement) {
-      return;
-    }
-
-    try {
-      setExtractingRequirement(true);
-
-      // 启动多Agent执行
-      const response = await api.post('/agent/multi-agent/execute', {
-        projectId: parseInt(projectId),
-        scene,
-        requirement: extractedRequirement
-      });
-
-      if (response.data.success && response.data.data) {
-        const executionResult = response.data.data;
-        const executionId = executionResult.executionId;
-        
-        // 将执行结果存储到sessionStorage，以便ContentEditorPage加载
-        sessionStorage.setItem(`execution-${executionId}`, JSON.stringify(executionResult));
-        
-        // 进入阶段3: 初稿展示和工具调整
-        navigate(`/project/${projectId}/content-editor/${executionId}`);
-      } else {
-        alert('生成失败：' + (response.data.error || '未知错误'));
-      }
-    } catch (error: any) {
-      console.error('生成失败:', error);
-      alert('生成失败：' + (error.response?.data?.error || error.message || '未知错误'));
-    } finally {
-      setExtractingRequirement(false);
-      setShowGenerateModal(false);
     }
   };
 
@@ -2550,14 +2458,6 @@ ${truncatedText}`;
 
               {/* 消息区域 */}
               <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-                {/* 需求提取提示 */}
-                <RequirementExtractionHint
-                  visible={showRequirementHint && aiMessages.length > 0}
-                  messageCount={aiMessages.length}
-                  onDismiss={() => setShowRequirementHint(false)}
-                  onExtract={aiMessages.length >= 3 ? handleStartGeneration : undefined}
-                />
-                
                 {aiMessages.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-center">
                     <div className="text-gray-400">
@@ -2663,44 +2563,9 @@ ${truncatedText}`;
                     )}
                   </button>
                 </div>
-                
-                {/* 生成内容按钮 */}
-                {aiMessages.length > 0 && (
-                  <div className="mt-3">
-                    <button
-                      onClick={handleStartGeneration}
-                      disabled={extractingRequirement}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg transition-all flex items-center justify-center space-x-2 font-medium shadow-sm hover:shadow-md"
-                    >
-                      {extractingRequirement ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>分析需求中...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4" />
-                          <span>基于对话生成内容</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
-
-          {/* 场景确认弹窗 */}
-          {showGenerateModal && extractedRequirement && (
-            <GenerateConfirmModal
-              requirement={extractedRequirement}
-              onConfirm={handleConfirmGeneration}
-              onCancel={() => {
-                setShowGenerateModal(false);
-                setExtractedRequirement(null);
-              }}
-            />
-          )}
 
           {/* 右侧：已关联技术信息 */}
           <div className="lg:col-span-4 space-y-6 flex flex-col">
