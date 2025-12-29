@@ -72,15 +72,22 @@ export class SourceInformationService {
    * 创建来源信息
    */
   async createSourceInformation(data: CreateSourceInformationDTO): Promise<SourceInformation> {
-    // 检查source_id是否已存在
+    // 检查source_id是否已存在（只检查活跃状态的记录）
     const existing = await this.model.findBySourceId(data.source_id);
-    if (existing) {
-      // 如果已存在，更新而不是创建
+    if (existing && existing.status === 'active') {
+      // 如果已存在且是活跃状态，更新而不是创建
       const updated = await this.model.updateBySourceId(data.source_id, data);
       if (!updated) {
         throw new Error('更新来源信息失败');
       }
       return updated;
+    }
+    
+    // 如果记录不存在或者是已删除状态，创建新记录
+    // 如果已删除的记录存在，先物理删除它，然后创建新记录
+    if (existing && existing.status === 'deleted') {
+      // 物理删除已删除的记录，避免重复
+      await this.model.hardDelete(existing.id);
     }
     
     return await this.model.create(data);

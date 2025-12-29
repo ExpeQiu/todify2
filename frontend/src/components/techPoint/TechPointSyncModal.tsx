@@ -10,11 +10,20 @@ import {
   Alert,
   Typography,
   Divider,
+  Select,
+  Tooltip,
+  Input,
+  Form,
+  Switch,
+  Table,
+  Popconfirm,
 } from 'antd';
-import { SyncOutlined, ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { SyncOutlined, ArrowRightOutlined, ArrowLeftOutlined, SettingOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { techPointSyncService } from '../../services/techPointSyncService';
+import { tpdApiConfigService, TPDAPIConfig } from '../../services/tpdApiConfigService';
 
 const { Text, Paragraph } = Typography;
+const { Option } = Select;
 
 interface TechPointSyncModalProps {
   visible: boolean;
@@ -43,6 +52,32 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
     errors: number;
   } | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [apiConfigs, setApiConfigs] = useState<TPDAPIConfig[]>([]);
+  const [selectedApiConfigId, setSelectedApiConfigId] = useState<string>('');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+
+  // 加载 API 配置
+  useEffect(() => {
+    if (visible) {
+      loadApiConfigs();
+    }
+  }, [visible]);
+
+  const loadApiConfigs = async () => {
+    try {
+      const configs = await tpdApiConfigService.getConfigs();
+      setApiConfigs(configs);
+      
+      // 自动选择默认启用的配置
+      const defaultConfig = configs.find(config => config.enabled) || configs[0];
+      if (defaultConfig) {
+        setSelectedApiConfigId(defaultConfig.id);
+      }
+    } catch (error) {
+      console.error('加载 API 配置失败:', error);
+      message.error('加载 API 配置失败');
+    }
+  };
 
   useEffect(() => {
     if (!visible) {
@@ -52,10 +87,23 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
       setSyncProgress(null);
       setSyncResult(null);
       setSyncError(null);
+      setShowConfigModal(false);
     }
   }, [visible]);
 
   const handleSync = async () => {
+    // 验证 API 配置
+    if (!selectedApiConfigId) {
+      message.warning('请选择 API 配置');
+      return;
+    }
+
+    const selectedConfig = apiConfigs.find(config => config.id === selectedApiConfigId);
+    if (!selectedConfig) {
+      message.error('选择的 API 配置不存在');
+      return;
+    }
+
     setSyncing(true);
     setSyncError(null);
     setSyncResult(null);
@@ -67,10 +115,15 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
         // 从 TPD2 同步到当前项目
         result = await techPointSyncService.syncFromTPD2({
           fullSync: true,
+          apiBaseUrl: selectedConfig.apiBaseUrl,
+          apiKey: selectedConfig.apiKey,
         });
       } else {
         // 从当前项目同步到 TPD2
-        result = await techPointSyncService.syncToTPD2();
+        result = await techPointSyncService.syncToTPD2(undefined, {
+          apiBaseUrl: selectedConfig.apiBaseUrl,
+          apiKey: selectedConfig.apiKey,
+        });
       }
 
       if (result.success && result.data) {
@@ -137,6 +190,48 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text strong>API 配置：</Text>
+            <Tooltip title="管理 API 配置">
+              <Button
+                type="link"
+                size="small"
+                icon={<SettingOutlined />}
+                onClick={() => setShowConfigModal(true)}
+                disabled={syncing}
+              >
+                管理配置
+              </Button>
+            </Tooltip>
+          </div>
+          <Select
+            value={selectedApiConfigId}
+            onChange={setSelectedApiConfigId}
+            style={{ width: '100%' }}
+            disabled={syncing}
+            placeholder="请选择 API 配置"
+          >
+            {apiConfigs.map(config => (
+              <Option key={config.id} value={config.id} disabled={!config.enabled}>
+                {config.name} {!config.enabled && '(已禁用)'}
+                {config.enabled && (
+                  <Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+                    ({config.apiBaseUrl})
+                  </Text>
+                )}
+              </Option>
+            ))}
+          </Select>
+          {selectedApiConfigId && (
+            <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: 'block' }}>
+              {apiConfigs.find(c => c.id === selectedApiConfigId)?.description}
+            </Text>
+          )}
+        </div>
+
+        <Divider style={{ margin: '8px 0' }} />
+
+        <div>
           <Text strong>选择同步方向：</Text>
           <Radio.Group
             value={syncDirection}
@@ -156,15 +251,14 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
                   </Text>
                 </Space>
               </Radio>
-              <Radio value="to_tpd2" style={{ width: '100%', padding: '12px' }} disabled>
+              <Radio value="to_tpd2" style={{ width: '100%', padding: '12px' }}>
                 <Space direction="vertical" size="small" style={{ width: '100%' }}>
                   <Space>
                     <ArrowLeftOutlined />
                     <Text strong>从当前项目同步到 TPD2</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>(暂未实现)</Text>
                   </Space>
                   <Text type="secondary" style={{ fontSize: 12, marginLeft: 24 }}>
-                    将当前项目中的技术点数据同步到 TPD2 项目（此功能将在后续版本中提供）
+                    将当前项目中的技术点数据同步到 TPD2 项目，覆盖或创建 TPD2 中的技术点
                   </Text>
                 </Space>
               </Radio>
@@ -253,7 +347,283 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
           showIcon
         />
       </Space>
+
+      {/* API 配置管理模态框 */}
+      <Modal
+        title="API 配置管理"
+        open={showConfigModal}
+        onCancel={() => setShowConfigModal(false)}
+        width={800}
+        footer={[
+          <Button key="close" onClick={() => setShowConfigModal(false)}>
+            关闭
+          </Button>,
+        ]}
+      >
+        <ApiConfigManager
+          configs={apiConfigs}
+          onConfigChange={loadApiConfigs}
+          onSelectConfig={(configId) => {
+            setSelectedApiConfigId(configId);
+            setShowConfigModal(false);
+          }}
+        />
+      </Modal>
     </Modal>
+  );
+};
+
+// API 配置管理组件
+interface ApiConfigManagerProps {
+  configs: TPDAPIConfig[];
+  onConfigChange: () => void;
+  onSelectConfig: (configId: string) => void;
+}
+
+const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
+  configs,
+  onConfigChange,
+  onSelectConfig,
+}) => {
+  const [form] = Form.useForm();
+  const [editingConfig, setEditingConfig] = useState<TPDAPIConfig | null>(null);
+  const [testingConfigId, setTestingConfigId] = useState<string | null>(null);
+
+  const handleAdd = () => {
+    setEditingConfig({
+      id: '',
+      name: '',
+      description: '',
+      apiBaseUrl: '',
+      enabled: true,
+    });
+    form.resetFields();
+  };
+
+  const handleEdit = (config: TPDAPIConfig) => {
+    setEditingConfig(config);
+    form.setFieldsValue(config);
+  };
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+      
+      if (editingConfig?.id && editingConfig.id !== '') {
+        // 更新现有配置
+        await tpdApiConfigService.updateConfig(editingConfig.id, values);
+        message.success('配置更新成功');
+      } else {
+        // 添加新配置
+        await tpdApiConfigService.addConfig(values);
+        message.success('配置添加成功');
+      }
+      
+      setEditingConfig(null);
+      form.resetFields();
+      onConfigChange();
+    } catch (error) {
+      console.error('保存配置失败:', error);
+      message.error('保存配置失败');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await tpdApiConfigService.deleteConfig(id);
+      message.success('配置删除成功');
+      onConfigChange();
+    } catch (error) {
+      console.error('删除配置失败:', error);
+      message.error('删除配置失败');
+    }
+  };
+
+  const handleTest = async (config: TPDAPIConfig) => {
+    setTestingConfigId(config.id);
+    try {
+      const result = await tpdApiConfigService.testConnection(config);
+      if (result.success) {
+        message.success(result.message);
+      } else {
+        message.error(result.message);
+      }
+    } catch (error) {
+      message.error('测试连接失败');
+    } finally {
+      setTestingConfigId(null);
+    }
+  };
+
+  const handleToggleEnabled = async (config: TPDAPIConfig) => {
+    try {
+      await tpdApiConfigService.updateConfig(config.id, {
+        enabled: !config.enabled,
+      });
+      message.success(`配置已${config.enabled ? '禁用' : '启用'}`);
+      onConfigChange();
+    } catch (error) {
+      message.error('更新配置失败');
+    }
+  };
+
+  const columns = [
+    {
+      title: '名称',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'API 地址',
+      dataIndex: 'apiBaseUrl',
+      key: 'apiBaseUrl',
+      ellipsis: true,
+    },
+    {
+      title: '状态',
+      key: 'enabled',
+      render: (_: any, record: TPDAPIConfig) => (
+        <Switch
+          checked={record.enabled}
+          onChange={() => handleToggleEnabled(record)}
+          size="small"
+        />
+      ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_: any, record: TPDAPIConfig) => (
+        <Space>
+          <Button
+            type="link"
+            size="small"
+            icon={<CheckCircleOutlined />}
+            onClick={() => onSelectConfig(record.id)}
+          >
+            使用
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          >
+            编辑
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            loading={testingConfigId === record.id}
+            onClick={() => handleTest(record)}
+          >
+            测试
+          </Button>
+          {!record.id.startsWith('default-') && (
+            <Popconfirm
+              title="确定要删除这个配置吗？"
+              onConfirm={() => handleDelete(record.id)}
+            >
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                删除
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text strong>API 配置列表</Text>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
+        >
+          添加配置
+        </Button>
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={configs}
+        rowKey="id"
+        pagination={false}
+        size="small"
+      />
+
+      {editingConfig && (
+        <Modal
+          title={editingConfig.id ? '编辑配置' : '添加配置'}
+          open={!!editingConfig}
+          onOk={handleSave}
+          onCancel={() => {
+            setEditingConfig(null);
+            form.resetFields();
+          }}
+          width={600}
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={editingConfig}
+          >
+            <Form.Item
+              name="name"
+              label="配置名称"
+              rules={[{ required: true, message: '请输入配置名称' }]}
+            >
+              <Input placeholder="例如：TPD2 生产环境" />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <Input.TextArea
+                rows={2}
+                placeholder="配置的简要描述"
+              />
+            </Form.Item>
+            <Form.Item
+              name="apiBaseUrl"
+              label="API 基础地址"
+              rules={[
+                { required: true, message: '请输入 API 基础地址' },
+                { type: 'url', message: '请输入有效的 URL' },
+              ]}
+            >
+              <Input placeholder="例如：http://localhost:3004/api/external/v1" />
+            </Form.Item>
+            <Form.Item
+              name="apiKey"
+              label="API Key（可选）"
+            >
+              <Input.Password placeholder="如果需要认证，请输入 API Key" />
+            </Form.Item>
+            <Form.Item
+              name="enabled"
+              label="启用"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
+    </Space>
   );
 };
 

@@ -769,38 +769,43 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
             const dbSources = sourceResult.success && sourceResult.data ? sourceResult.data : [];
             const conversationSources = detail.sources || [];
             
-            // 合并所有来源：现有来源 + 对话来源 + 数据库来源
+            // 创建数据库来源的ID集合，用于过滤已删除的来源
+            const dbSourceIds = new Set(dbSources.map(s => s.id));
+            
+            // 合并所有来源：现有来源 + 数据库来源（优先）+ 对话来源（仅当不在数据库中时）
             setSources(prev => {
               const sourceMap = new Map<string, Source>();
               
               // 1. 先添加现有的来源（包括页面类型的来源）
               prev.forEach(s => sourceMap.set(s.id, s));
               
-              // 2. 添加对话中的来源
-              conversationSources.forEach(s => sourceMap.set(s.id, s));
-              
-              // 3. 添加数据库中的来源（会覆盖重复的）
+              // 2. 添加数据库中的来源（优先，因为已经过滤了已删除的记录）
               dbSources.forEach(s => sourceMap.set(s.id, s));
+              
+              // 3. 添加对话中的来源（仅当不在数据库中时，避免重新添加已删除的来源）
+              conversationSources.forEach(s => {
+                // 如果来源不在数据库中，说明可能已被删除，不添加
+                // 如果来源在数据库中，说明是活跃的，已经在步骤2中添加了
+                if (!dbSourceIds.has(s.id)) {
+                  // 不在数据库中，可能是已删除的来源，不添加
+                  console.log('[SourceInfo] 跳过对话中的已删除来源:', s.id, s.title);
+                }
+              });
               
               const merged = Array.from(sourceMap.values());
               console.log('[SourceInfo] 合并后的来源数量:', merged.length, {
                 prev: prev.length,
                 conversation: conversationSources.length,
-                db: dbSources.length
+                db: dbSources.length,
+                filtered: conversationSources.filter(s => !dbSourceIds.has(s.id)).length
               });
               return merged;
             });
           } catch (error) {
             console.error("[SourceInfo] 加载对话来源信息失败:", error);
-            // 如果加载失败，至少保留对话中的来源
-            if (detail.sources && detail.sources.length > 0) {
-              setSources(prev => {
-                const sourceMap = new Map<string, Source>();
-                prev.forEach(s => sourceMap.set(s.id, s));
-                detail.sources!.forEach(s => sourceMap.set(s.id, s));
-                return Array.from(sourceMap.values());
-              });
-            }
+            // 如果加载失败，不添加对话中的来源，因为可能包含已删除的来源
+            // 只保留现有的来源（包括页面类型的来源）
+            console.warn("[SourceInfo] 加载对话来源失败，保留现有来源，不添加对话中的来源（可能包含已删除的记录）");
           }
         }
         

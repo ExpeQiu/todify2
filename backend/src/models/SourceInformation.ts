@@ -253,7 +253,7 @@ export class SourceInformationModel {
     const sql = `
       UPDATE source_information 
       SET status = 'deleted', updated_at = CURRENT_TIMESTAMP
-      WHERE source_id = ?
+      WHERE source_id = ? AND status != 'deleted'
     `;
     
     const result = await this.db.query(sql, [sourceId]);

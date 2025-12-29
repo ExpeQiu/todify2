@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, Plus, Settings, Loader2, AlertCircle, CheckCircle, X, Eye, Target, Grid3x3, Megaphone, Video as VideoIcon, Languages, Presentation, FileText } from 'lucide-react';
+import { Trash2, Plus, Settings, Loader2, AlertCircle, CheckCircle, X, Eye, Target, Grid3x3, Megaphone, Video as VideoIcon, Languages, Presentation, FileText } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopNavigation from '../components/TopNavigation';
 import { aiSearchService } from '../services/aiSearchService';
@@ -7,7 +7,6 @@ import { agentWorkflowService } from '../services/agentWorkflowService';
 import aiRoleService from '../services/aiRoleService';
 import { AgentWorkflow } from '../types/agentWorkflow';
 import { FieldMappingConfig } from '../types/aiSearch';
-import FieldMappingConfigModal from '../components/ai-search/FieldMappingConfigModal';
 
 interface FieldMappingListItem {
   workflowId: string;
@@ -30,8 +29,6 @@ const FieldMappingManagementPage: React.FC = () => {
   const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null); // 格式: workflowId-pageType-featureType
-  const [editingMapping, setEditingMapping] = useState<FieldMappingListItem | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [editingMappingForAgent, setEditingMappingForAgent] = useState<FieldMappingListItem | null>(null);
@@ -333,11 +330,6 @@ const FieldMappingManagementPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showCreateModal, roles, normalizedUrlPageType]);
 
-  const handleEdit = (mapping: FieldMappingListItem) => {
-    setEditingMapping(mapping);
-    setShowEditModal(true);
-  };
-
   const handleDelete = async (mapping: FieldMappingListItem) => {
     if (!confirm(`确定要删除"${mapping.pageName}"页面的"${mapping.featureLabel}"配置吗？`)) {
       return;
@@ -388,13 +380,6 @@ const FieldMappingManagementPage: React.FC = () => {
     } finally {
       setDeletingId(null);
     }
-  };
-
-  const handleSave = async () => {
-    setMessage({ type: 'success', text: '保存成功' });
-    setShowEditModal(false);
-    setEditingMapping(null);
-    await loadData();
   };
 
   const openAgentModal = (mapping: FieldMappingListItem) => {
@@ -614,13 +599,6 @@ const FieldMappingManagementPage: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleEdit(mapping)}
-                              className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                              编辑
-                            </button>
-                            <button
                               onClick={() => openAgentModal(mapping)}
                               className="text-gray-700 hover:text-gray-900 flex items-center gap-1"
                             >
@@ -650,24 +628,6 @@ const FieldMappingManagementPage: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* 编辑弹窗 */}
-      {showEditModal && editingMapping && (
-        <FieldMappingConfigModal
-          workflowId={editingMapping.workflowId}
-          featureType={editingMapping.featureType as any}
-          pageType={editingMapping.pageName === '技术包装' ? 'tech-package' :
-                    editingMapping.pageName === '技术策略' ? 'tech-strategy' :
-                    editingMapping.pageName === '技术通稿' ? 'tech-article' :
-                    editingMapping.pageName === '发布稿' || editingMapping.pageName === '发布会稿' ? 'press-release' : undefined}
-          mappingsOnly={true}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingMapping(null);
-          }}
-          onSave={handleSave}
-        />
-      )}
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6">
