@@ -43,7 +43,19 @@ export class SourceInformationService {
         `CREATE INDEX IF NOT EXISTS idx_source_information_page_type ON source_information(page_type)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_conversation_id ON source_information(conversation_id)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_status ON source_information(status)`,
-        `CREATE INDEX IF NOT EXISTS idx_source_information_created_at ON source_information(created_at)`
+        `CREATE INDEX IF NOT EXISTS idx_source_information_created_at ON source_information(created_at)`,
+        // 创建项目与来源信息关联表
+        `CREATE TABLE IF NOT EXISTS project_source_informations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          project_id INTEGER NOT NULL,
+          source_information_id INTEGER NOT NULL,
+          notes TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(project_id, source_information_id)
+        )`,
+        `CREATE INDEX IF NOT EXISTS idx_project_source_informations_project_id ON project_source_informations(project_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_project_source_informations_source_information_id ON project_source_informations(source_information_id)`
       ];
       
       for (const sql of statements) {
@@ -80,6 +92,12 @@ export class SourceInformationService {
       if (!updated) {
         throw new Error('更新来源信息失败');
       }
+      
+      // 如果提供了 project_id，确保关联存在
+      if (data.project_id && updated.id) {
+        await this.model.createProjectAssociation(data.project_id, updated.id);
+      }
+      
       return updated;
     }
     
@@ -90,7 +108,14 @@ export class SourceInformationService {
       await this.model.hardDelete(existing.id);
     }
     
-    return await this.model.create(data);
+    const created = await this.model.create(data);
+    
+    // 如果提供了 project_id，创建项目关联
+    if (data.project_id && created.id) {
+      await this.model.createProjectAssociation(data.project_id, created.id);
+    }
+    
+    return created;
   }
 
   /**
@@ -126,6 +151,20 @@ export class SourceInformationService {
    */
   async getSourceInformationByPageType(pageType: string): Promise<SourceInformation[]> {
     return await this.model.findByPageType(pageType);
+  }
+
+  /**
+   * 根据项目ID获取来源信息列表
+   */
+  async getSourceInformationByProjectId(projectId: number): Promise<SourceInformation[]> {
+    return await this.model.findByProjectId(projectId);
+  }
+
+  /**
+   * 根据项目ID和分类获取来源信息列表
+   */
+  async getSourceInformationByProjectIdAndCategory(projectId: number, category: string): Promise<SourceInformation[]> {
+    return await this.model.findByProjectIdAndCategory(projectId, category);
   }
 
   /**

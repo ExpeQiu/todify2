@@ -111,6 +111,23 @@ router.get('/', async (req: Request, res: Response) => {
     const conversationId = req.query.conversationId as string;
     const type = req.query.type as string;
     const status = req.query.status as string || 'active';
+    const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
+
+    // 如果提供了 projectId，使用项目级查询
+    if (projectId) {
+      const sourceInformationList = await sourceInformationService.getSourceInformationByProjectId(projectId);
+      res.json({
+        success: true,
+        data: sourceInformationList,
+        pagination: {
+          page: 1,
+          pageSize: sourceInformationList.length,
+          total: sourceInformationList.length,
+          totalPages: 1
+        }
+      });
+      return;
+    }
 
     const where: Record<string, any> = {};
     if (pageType) where.page_type = pageType;
@@ -176,6 +193,46 @@ router.get('/conversation/:conversationId', async (req: Request, res: Response) 
     res.status(500).json({
       success: false,
       message: '获取对话来源信息列表失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+// 根据项目ID获取来源信息列表（必须在 /:id 之前）
+router.get('/project/:projectId', async (req: Request, res: Response) => {
+  try {
+    // 确保表已初始化
+    try {
+      await sourceInformationService.initializeTable();
+    } catch (initError: any) {
+      // 如果表已存在，忽略错误
+      if (!initError?.message?.includes('already exists') && 
+          !initError?.message?.includes('duplicate')) {
+        console.warn('初始化表时出现警告，继续执行:', initError?.message);
+      }
+    }
+
+    const projectId = parseInt(req.params.projectId);
+    
+    if (isNaN(projectId)) {
+      return res.status(400).json({
+        success: false,
+        message: '无效的项目ID'
+      });
+    }
+
+    const sourceInformationList = await sourceInformationService.getSourceInformationByProjectId(projectId);
+    
+    res.json({
+      success: true,
+      data: sourceInformationList
+    });
+  } catch (error) {
+    console.error('获取项目来源信息列表失败:', error);
+    console.error('错误详情:', error instanceof Error ? error.stack : error);
+    res.status(500).json({
+      success: false,
+      message: '获取项目来源信息列表失败',
       error: error instanceof Error ? error.message : '未知错误'
     });
   }

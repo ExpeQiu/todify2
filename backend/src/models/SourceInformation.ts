@@ -21,9 +21,9 @@ export class SourceInformationModel {
     const sql = `
       INSERT INTO source_information (
         source_id, title, type, url, description, page_type, 
-        conversation_id, metadata, status, created_by
+        conversation_id, project_id, metadata, status, created_by
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const values = [
@@ -34,6 +34,7 @@ export class SourceInformationModel {
       data.description || null,
       data.page_type || null,
       data.conversation_id || null,
+      data.project_id || null,
       data.metadata ? JSON.stringify(data.metadata) : null,
       data.status || 'active',
       data.created_by || null
@@ -160,6 +161,59 @@ export class SourceInformationModel {
     const result = await this.db.query(sql, [pageType]);
     const rows = Array.isArray(result) ? result : [result];
     return rows.map((row: any) => this.parseJsonFields(row)) as SourceInformation[];
+  }
+
+  /**
+   * 根据项目ID获取来源信息列表（通过关联表）
+   */
+  async findByProjectId(projectId: number): Promise<SourceInformation[]> {
+    const sql = `
+      SELECT si.* FROM source_information si
+      INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
+      WHERE psi.project_id = ? AND si.status = 'active'
+      ORDER BY si.created_at DESC
+    `;
+    
+    const result = await this.db.query(sql, [projectId]);
+    const rows = Array.isArray(result) ? result : [result];
+    return rows.map((row: any) => this.parseJsonFields(row)) as SourceInformation[];
+  }
+
+  /**
+   * 根据项目ID和分类获取来源信息列表
+   */
+  async findByProjectIdAndCategory(projectId: number, category: string): Promise<SourceInformation[]> {
+    const sql = `
+      SELECT si.* FROM source_information si
+      INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
+      WHERE psi.project_id = ? 
+        AND si.status = 'active'
+        AND json_extract(si.metadata, '$.category') = ?
+      ORDER BY si.created_at DESC
+    `;
+    
+    const result = await this.db.query(sql, [projectId, category]);
+    const rows = Array.isArray(result) ? result : [result];
+    return rows.map((row: any) => this.parseJsonFields(row)) as SourceInformation[];
+  }
+
+  /**
+   * 创建项目-来源关联
+   */
+  async createProjectAssociation(projectId: number, sourceInformationId: number, notes?: string): Promise<boolean> {
+    const sql = `
+      INSERT OR IGNORE INTO project_source_informations 
+      (project_id, source_information_id, notes, created_at, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `;
+    
+    try {
+      await this.db.query(sql, [projectId, sourceInformationId, notes || null]);
+      return true;
+    } catch (error) {
+      console.error('创建项目-来源关联失败:', error);
+      return false;
+    }
   }
 
   /**

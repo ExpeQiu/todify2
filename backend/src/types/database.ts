@@ -405,6 +405,7 @@ export interface SourceInformation extends BaseEntity {
   description?: string;
   page_type?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
   conversation_id?: string;
+  project_id?: number;  // 关联的项目ID（可选）
   metadata?: Record<string, any>;
   status: 'active' | 'archived' | 'deleted';
   created_by?: string;

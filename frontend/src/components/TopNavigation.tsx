@@ -127,34 +127,68 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
 
   const handleNavigation = (path: string, disabled?: boolean, itemId?: string) => {
     if (disabled) {
+      console.log('[TopNavigation] 导航被禁用:', path);
       return;
     }
+    
+    console.log('[TopNavigation] 开始导航:', { path, itemId, currentPath: location.pathname, currentSearch: location.search });
+    
     // 如果是项目管理（首页），添加 tab=all 参数
     if (path === '/' && itemId === 'home') {
-      navigate('/?tab=all');
-    } else {
-      // 检查当前 URL 是否有 projectId 参数
-      const searchParams = new URLSearchParams(location.search);
-      const projectId = searchParams.get('projectId');
-      const newConversation = searchParams.get('newConversation');
+      const targetUrl = '/?tab=all';
+      console.log('[TopNavigation] 跳转到首页:', targetUrl);
+      navigate(targetUrl);
+      return;
+    }
+    
+    // 检查当前 URL 是否有 projectId 参数
+    const searchParams = new URLSearchParams(location.search);
+    const projectId = searchParams.get('projectId');
+    const newConversation = searchParams.get('newConversation');
+    
+    // 如果有 projectId，在跳转时带上它
+    if (projectId) {
+      let targetUrl = path;
+      const targetParams = new URLSearchParams();
+      targetParams.append('projectId', projectId);
       
-      // 如果有 projectId，在跳转时带上它
-      if (projectId) {
-        let targetUrl = path;
-        const targetParams = new URLSearchParams();
-        targetParams.append('projectId', projectId);
-        
-        // 如果是技术包装、技术策略、技术通稿之间的跳转，且当前有 newConversation，也带上它
-        const isTechPage = ['/tech-package', '/tech-strategy', '/tech-article'].includes(path);
-        if (isTechPage && newConversation) {
-          targetParams.append('newConversation', newConversation);
-        }
-        
-        targetUrl += `?${targetParams.toString()}`;
+      // 如果是技术包装、技术策略、技术通稿之间的跳转，且当前有 newConversation，也带上它
+      const isTechPage = ['/tech-package', '/tech-strategy', '/tech-article'].includes(path);
+      if (isTechPage && newConversation) {
+        targetParams.append('newConversation', newConversation);
+      }
+      
+      targetUrl += `?${targetParams.toString()}`;
+      
+      const currentUrl = `${location.pathname}${location.search}`;
+      console.log('[TopNavigation] 跳转（带projectId）:', targetUrl, '当前URL:', currentUrl);
+      
+      // 如果目标 URL 与当前 URL 完全相同，跳过
+      if (currentUrl === targetUrl) {
+        console.log('[TopNavigation] 目标URL与当前URL完全相同，跳过跳转');
+        return;
+      }
+      
+      // 如果路径不同，直接使用 navigate
+      // 如果路径相同但查询参数不同，也使用 navigate（React Router 应该能处理）
+      if (location.pathname !== path) {
+        // 路径不同，正常跳转
+        console.log('[TopNavigation] 路径不同，执行跳转');
         navigate(targetUrl);
       } else {
-        navigate(path);
+        // 路径相同但查询参数不同，使用 replace 更新 URL
+        console.log('[TopNavigation] 路径相同但查询参数不同，更新 URL');
+        navigate(targetUrl, { replace: true });
       }
+    } else {
+      // 如果目标路径与当前路径相同，且没有查询参数，跳过跳转
+      if (location.pathname === path && !location.search) {
+        console.log('[TopNavigation] 目标路径与当前路径相同且无查询参数，跳过跳转:', path);
+        return;
+      }
+      
+      console.log('[TopNavigation] 跳转（无projectId）:', path);
+      navigate(path);
     }
   };
 
@@ -185,7 +219,13 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
           return (
             <React.Fragment key={item.id}>
               <button
-                onClick={() => handleNavigation(item.path, item.disabled, item.id)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[TopNavigation] 按钮点击:', item.label, item.path, '当前路径:', location.pathname);
+                  handleNavigation(item.path, item.disabled, item.id);
+                }}
                 disabled={item.disabled}
                 className={`
                   relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium

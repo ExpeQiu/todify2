@@ -809,19 +809,33 @@ const ProjectResourcesPage: React.FC = () => {
   const loadSources = async () => {
     if (!projectId) return;
     try {
-      const pageType = `project-${projectId}`;
+      const projectIdNum = parseInt(projectId);
+      if (isNaN(projectIdNum)) {
+        console.error('[加载来源] 无效的项目ID:', projectId);
+        return;
+      }
       
-      // 获取项目的来源信息
-      const response = await api.get('/source-information', {
-        params: {
-          pageType: pageType,
-          page: 1,
-          pageSize: 100
-        }
-      });
+      // 使用项目级查询API
+      const result = await sourceService.loadSourceInformationByProjectId(projectIdNum);
       
-      if (response.data.success && response.data.data) {
-        const loadedSources = response.data.data as SourceInformation[];
+      if (result.success && result.data) {
+        // 将 Source[] 转换为 SourceInformation[]
+        const loadedSources: SourceInformation[] = result.data.map(s => ({
+          id: undefined,
+          source_id: s.id,
+          title: s.title,
+          type: s.type,
+          url: s.url,
+          description: s.description,
+          page_type: undefined,
+          conversation_id: undefined,
+          metadata: s.category ? { category: s.category } : undefined,
+          category: s.category,
+          status: 'active',
+          created_at: undefined,
+          updated_at: undefined,
+        }));
+        
         console.log('[加载来源] 加载到的来源数量:', loadedSources.length);
         
         // 统计各类来源数量
@@ -840,7 +854,7 @@ const ProjectResourcesPage: React.FC = () => {
         // 直接更新状态，确保新添加的数据能正确显示
         setSources(loadedSources);
       } else {
-        console.warn('[加载来源] API返回失败或没有数据:', response.data);
+        console.warn('[加载来源] API返回失败或没有数据:', result.error);
       }
     } catch (error) {
       console.error('[加载来源] 加载来源信息失败:', error);
@@ -852,38 +866,39 @@ const ProjectResourcesPage: React.FC = () => {
     if (!projectId) return;
     setCheckingHistory(true);
     try {
-      // 获取项目的所有来源信息
-      const response = await api.get('/source-information', {
-        params: {
-          pageType: `project-${projectId}`,
-          page: 1,
-          pageSize: 1000
-        }
-      });
-      if (response.data.success && response.data.data) {
-        // 过滤出历史记录（AI问答、技术包装、技术策略、技术通稿）
+      const projectIdNum = parseInt(projectId);
+      if (isNaN(projectIdNum)) {
+        console.error('[检查历史记录] 无效的项目ID:', projectId);
+        return;
+      }
+      
+      // 使用项目级查询API获取所有来源信息
+      const result = await sourceService.loadSourceInformationByProjectId(projectIdNum);
+      
+      if (result.success && result.data) {
+        // 将 Source[] 转换为 SourceInformation[] 并过滤出历史记录
         const historyCategories = ['ai-qa-summary', 'tech-package-qa', 'tech-strategy-qa', 'tech-article-qa', 'technical-translation'];
-        const filtered = (response.data.data as SourceInformation[]).filter((source: SourceInformation) => {
-          // 从 metadata 中解析 category
-          let category: string | undefined;
-          if (source.metadata) {
-            if (typeof source.metadata === 'string') {
-              try {
-                const parsed = JSON.parse(source.metadata);
-                category = parsed.category || parsed.sourceCategory;
-              } catch (e) {
-                // 忽略解析错误
-              }
-            } else if (typeof source.metadata === 'object') {
-              category = source.metadata.category || source.metadata.sourceCategory;
-            }
-          }
-          // 也检查直接设置的 category
-          if (source.category) {
-            category = source.category;
-          }
-          return category && historyCategories.includes(category);
-        });
+        const filtered: SourceInformation[] = result.data
+          .filter((source) => {
+            const category = source.category;
+            return category && historyCategories.includes(category);
+          })
+          .map((source) => ({
+            id: undefined,
+            source_id: source.id,
+            title: source.title,
+            type: source.type,
+            url: source.url,
+            description: source.description,
+            page_type: undefined,
+            conversation_id: undefined,
+            metadata: source.category ? { category: source.category } : undefined,
+            category: source.category,
+            status: 'active',
+            created_at: undefined,
+            updated_at: undefined,
+          }));
+        
         setHistoryRecords(filtered);
         // 只有在 autoSwitchView 为 true 时才自动切换视图
         // 这样可以避免在AI共创过程中保存对话后强制跳回历史记录页面
@@ -911,38 +926,38 @@ const ProjectResourcesPage: React.FC = () => {
     if (!projectId) return;
     setHistoryLoading(true);
     try {
-      // 获取项目的所有来源信息
-      const response = await api.get('/source-information', {
-        params: {
-          pageType: `project-${projectId}`,
-          page: 1,
-          pageSize: 1000
-        }
-      });
-      if (response.data.success && response.data.data) {
+      const projectIdNum = parseInt(projectId);
+      if (isNaN(projectIdNum)) {
+        console.error('[加载历史记录] 无效的项目ID:', projectId);
+        return;
+      }
+      
+      // 使用项目级查询API获取所有来源信息
+      const result = await sourceService.loadSourceInformationByProjectId(projectIdNum);
+      
+      if (result.success && result.data) {
         // 过滤出历史记录（AI问答、技术包装、技术策略、技术通稿）
         const historyCategories = ['ai-qa-summary', 'tech-package-qa', 'tech-strategy-qa', 'tech-article-qa', 'technical-translation'];
-        const filtered = (response.data.data as SourceInformation[]).filter((source: SourceInformation) => {
-          // 从 metadata 中解析 category
-          let category: string | undefined;
-          if (source.metadata) {
-            if (typeof source.metadata === 'string') {
-              try {
-                const parsed = JSON.parse(source.metadata);
-                category = parsed.category || parsed.sourceCategory;
-              } catch (e) {
-                // 忽略解析错误
-              }
-            } else if (typeof source.metadata === 'object') {
-              category = source.metadata.category || source.metadata.sourceCategory;
-            }
-          }
-          // 也检查直接设置的 category
-          if (source.category) {
-            category = source.category;
-          }
-          return category && historyCategories.includes(category);
-        });
+        const filtered: SourceInformation[] = result.data
+          .filter((source) => {
+            const category = source.category;
+            return category && historyCategories.includes(category);
+          })
+          .map((source) => ({
+            id: undefined,
+            source_id: source.id,
+            title: source.title,
+            type: source.type,
+            url: source.url,
+            description: source.description,
+            page_type: undefined,
+            conversation_id: undefined,
+            metadata: source.category ? { category: source.category } : undefined,
+            category: source.category,
+            status: 'active',
+            created_at: undefined,
+            updated_at: undefined,
+          }));
         setHistoryRecords(filtered);
       }
     } catch (error) {
@@ -1815,11 +1830,13 @@ ${truncatedText}`;
         category: 'ai-qa-summary', // AI问答总结信息
       };
 
-      // 保存到数据库
+      // 保存到数据库，传递 projectId 确保项目隔离
+      const projectIdNum = projectId ? parseInt(projectId) : undefined;
       const saveResult = await sourceService.saveSourceInformation(
         source,
         pageType,
-        aiConversationId || undefined
+        aiConversationId || undefined,
+        projectIdNum
       );
 
       if (saveResult.success && saveResult.data) {
@@ -1872,12 +1889,13 @@ ${truncatedText}`;
         category: 'internet-search', // 互联网搜索信息
       };
 
-      // 保存到数据库
-      const pageType = `project-${projectId}`;
+      // 保存到数据库，传递 projectId 确保项目隔离
+      const projectIdNum = projectId ? parseInt(projectId) : undefined;
       const saveResult = await sourceService.saveSourceInformation(
         source,
-        pageType,
-        aiConversationId || undefined
+        undefined, // pageType 不再使用 project-{id} 格式
+        aiConversationId || undefined,
+        projectIdNum
       );
 
       if (saveResult.success && saveResult.data) {
@@ -1961,7 +1979,7 @@ ${truncatedText}`;
 
     setIsAddingInternetInfo(true);
     try {
-      const pageType = `project-${projectId}`;
+      const projectIdNum = projectId ? parseInt(projectId) : undefined;
       const selectedResults = Array.from(selectedSearchResults).map(index => webSearchResults[index]);
       
       console.log('[Web Search] 开始保存搜索结果:', selectedResults.length, '个');
@@ -1987,8 +2005,9 @@ ${truncatedText}`;
           console.log('[Web Search] 保存来源信息:', source.title);
           const saveResult = await sourceService.saveSourceInformation(
             source,
-            pageType,
-            aiConversationId || undefined
+            undefined, // pageType 不再使用 project-{id} 格式
+            aiConversationId || undefined,
+            projectIdNum
           );
           
           if (saveResult.success && saveResult.data) {

@@ -355,6 +355,7 @@ class AiSearchService {
           hasMoreMessages: Boolean(payload.hasMoreMessages),
           nextCursor: payload.nextCursor || undefined,
           difyConversationId: payload.difyConversationId || undefined,
+          pageType: payload.pageType || payload.page_type,
         };
       }
       return null;
@@ -564,6 +565,81 @@ class AiSearchService {
     } catch (error) {
       console.error('获取输出内容列表失败:', error);
       return [];
+    }
+  }
+
+  /**
+   * 跨页面获取对话列表（支持多个pageType）
+   */
+  async getConversationsAcrossPages(pageTypes: string[]): Promise<Conversation[]> {
+    try {
+      const allConversations: Conversation[] = [];
+      await Promise.all(
+        pageTypes.map(async (pageType) => {
+          const conversations = await this.getConversations(pageType);
+          allConversations.push(...conversations);
+        })
+      );
+      // 按更新时间排序
+      return allConversations.sort(
+        (a, b) => {
+          const timeA = a.updatedAt instanceof Date ? a.updatedAt.getTime() : new Date(a.updatedAt).getTime();
+          const timeB = b.updatedAt instanceof Date ? b.updatedAt.getTime() : new Date(b.updatedAt).getTime();
+          return timeB - timeA;
+        }
+      );
+    } catch (error) {
+      console.error('跨页面获取对话列表失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 跨页面获取输出内容列表（支持多个pageType）
+   */
+  async getOutputsAcrossPages(pageTypes: string[]): Promise<OutputContent[]> {
+    try {
+      const allOutputs: OutputContent[] = [];
+      await Promise.all(
+        pageTypes.map(async (pageType) => {
+          const outputs = await this.getOutputs(undefined, pageType);
+          allOutputs.push(...outputs);
+        })
+      );
+      // 按创建时间排序
+      return allOutputs.sort(
+        (a, b) => {
+          const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+          const timeB = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+          return timeB - timeA;
+        }
+      );
+    } catch (error) {
+      console.error('跨页面获取输出内容列表失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 聚合生成技术通稿
+   */
+  async aggregateTechArticle(params: {
+    conversationIds: string[];
+    outputIds?: string[];
+    articleTypes: ('media_release' | 'internal_memo' | 'social_media')[];
+    tone?: string;
+    targetAudience?: string;
+    workflowId?: string;
+  }): Promise<any> {
+    try {
+      const response = await api.post('/ai-search/tech-article/aggregate', params);
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      throw new Error(response.data.error || '聚合生成技术通稿失败');
+    } catch (error) {
+      console.error('聚合生成技术通稿失败:', error);
+      throw error;
     }
   }
 

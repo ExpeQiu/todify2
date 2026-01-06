@@ -221,6 +221,16 @@ async function startServer() {
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
     
+    // 初始化头脑风暴数据库表
+    try {
+      const { brainstormSessionModel } = await import('./models');
+      await brainstormSessionModel.initializeTable();
+      logger.info('头脑风暴数据库表初始化成功');
+    } catch (error) {
+      logger.warn('头脑风暴数据库表初始化警告', { error });
+      // 不阻止服务器启动，表会在首次使用时自动创建
+    }
+    
     
     const server = app.listen(port, "0.0.0.0", () => {
       logger.info('Backend server 已启动', { url: `http://0.0.0.0:${port}` });

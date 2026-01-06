@@ -2,7 +2,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
-import TechStrategyPage from "./pages/TechStrategyPage";
 import TechArticlePage from "./pages/TechArticlePage";
 import AIQAPage from "./pages/AIQAPage";
 import HomePage from "./pages/HomePage";
@@ -11,6 +10,7 @@ import TechPointLibraryPage from "./pages/TechPointLibraryPage";
 import TechPointLibraryDetailPage from "./pages/TechPointLibraryDetailPage";
 import PublicKnowledgePage from "./pages/PublicKnowledge";
 import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
+import BrainstormPage from "./pages/BrainstormPage";
 
 function App() {
   return (
@@ -47,7 +47,7 @@ function App() {
 
           <Route
             path="/tech-strategy"
-            element={<TechStrategyPage />}
+            element={<BrainstormPage />}
           />
 
           <Route
@@ -84,6 +84,11 @@ function App() {
           <Route
             path="/field-mapping-management"
             element={<FieldMappingManagementPage />}
+          />
+
+          <Route
+            path="/brainstorm"
+            element={<BrainstormPage />}
           />
         </Routes>
       </div>

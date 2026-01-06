@@ -17,6 +17,8 @@ import { AgentWorkflow } from "../../types/agentWorkflow";
 import { PageConfig } from "../../configs/pageConfigs";
 import { pageToolConfigService } from "../../services/pageToolConfigService";
 import sourceService, { SourceCategory } from "../../services/sourceService";
+import { projectService } from "../../services/projectService";
+import { Project } from "../../types/project";
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
@@ -66,14 +68,24 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [globalErrorDetail, setGlobalErrorDetail] = useState<string | null>(null);
   const [enabledToolIds, setEnabledToolIds] = useState<string[] | undefined>(config.enabledToolIds);
   const [dynamicLabelMap, setDynamicLabelMap] = useState<Record<string, string>>({});
+  const [project, setProject] = useState<Project | null>(null);
   const triggerStatusTimerRef = useRef<number | null>(null);
   const workflowSelectionRef = useRef<Record<string, string>>({});
   
   // 使用 ref 来追踪 currentConversation，避免 loadConversations 循环依赖导致无限请求
   const currentConversationRef = useRef(currentConversation);
+  
+  // 使用 ref 来追踪是否正在加载来源信息，防止重复请求
+  const isLoadingSourcesRef = useRef(false);
+  const sourcesRef = useRef<Source[]>([]);
   useEffect(() => {
     currentConversationRef.current = currentConversation;
   }, [currentConversation]);
+  
+  // 同步 sources 到 ref
+  useEffect(() => {
+    sourcesRef.current = sources;
+  }, [sources]);
 
   const loadWorkflowSelectionFromStorage = useCallback(() => {
     if (typeof window === "undefined") {
@@ -165,26 +177,58 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const projectId = searchParams.get('projectId');
   const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
   
+  // 加载项目信息
+  useEffect(() => {
+    const loadProject = async () => {
+      if (projectId) {
+        const projectIdNum = parseInt(projectId);
+        if (!isNaN(projectIdNum)) {
+          try {
+            const result = await projectService.getProjectById(projectIdNum);
+            if (result.success && result.data) {
+              setProject(result.data);
+            }
+          } catch (error) {
+            console.error('加载项目信息失败:', error);
+          }
+        }
+      } else {
+        setProject(null);
+      }
+    };
+    loadProject();
+  }, [projectId]);
+  
+  // 计算有效的 pageType（包含项目ID，用于项目隔离）
+  // 规则：如果有 projectId，则是 {pageType}-project-{projectId}，否则使用 config.pageType
+  const effectivePageType = useMemo(() => {
+    return projectId ? `${config.pageType}-project-${projectId}` : config.pageType;
+  }, [projectId, config.pageType]);
+  
   // 根据项目ID调整 pageType，确保不同项目的对话相互独立
   // 项目隔离规则：
-  // - 非关联项目（无 projectId）：使用默认 pageType（如 tech-package、tech-strategy、tech-article）
-  // - 关联项目（有 projectId）：使用 pageType-project-{projectId}（如 tech-package-project-3）
-  // 这样确保不同项目下的技术包装、技术策略、技术通稿的对话、记录、来源信息等都保持独立
-  const effectivePageType = useMemo(() => {
-    if (projectId) {
-      // 如果有项目ID，使用项目特定的 pageType，例如：tech-package-project-3
-      return `${config.pageType}-project-${projectId}`;
-    }
-    // 无项目ID时，使用默认 pageType，对应"非关联项目"
-    return config.pageType;
-  }, [config.pageType, projectId]);
-
-  // 加载页面类型的来源信息（作为基础来源，始终保留）
+  // 加载来源信息（根据是否有 projectId 选择不同的查询方式）
   const loadPageTypeSources = useCallback(async () => {
+    // 防止重复请求
+    if (isLoadingSourcesRef.current) {
+      console.log('[SourceInfo] 正在加载中，跳过重复请求');
+      return;
+    }
+    
+    isLoadingSourcesRef.current = true;
     try {
-      // 使用有效的 pageType（可能包含项目ID），确保项目隔离
-      console.log('[SourceInfo] 开始加载页面类型来源信息:', effectivePageType);
-      const sourceResult = await sourceService.loadSourceInformationByPageType(effectivePageType);
+      let sourceResult;
+      
+      if (projectId) {
+        // 如果有项目ID，使用项目级查询
+        console.log('[SourceInfo] 开始加载项目来源信息:', projectId);
+        sourceResult = await sourceService.loadSourceInformationByProjectId(projectId);
+      } else {
+        // 如果没有项目ID，使用页面类型查询
+        console.log('[SourceInfo] 开始加载页面类型来源信息:', config.pageType);
+        sourceResult = await sourceService.loadSourceInformationByPageType(config.pageType);
+      }
+      
       console.log('[SourceInfo] 加载结果:', {
         success: sourceResult.success,
         count: sourceResult.data?.length || 0,
@@ -209,78 +253,101 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
             fileSources: fileSources.length,
             pageTypeSources: pageTypeSources.length
           });
+          sourcesRef.current = merged;
           return merged;
         });
       } else if (sourceResult.error) {
         console.warn('[SourceInfo] 加载失败:', sourceResult.error);
         // 即使加载失败，也要清除其他页面的来源，只保留文件来源
-        setSources(prev => prev.filter(s => s.id.startsWith('file_')));
+        setSources(prev => {
+          const filtered = prev.filter(s => s.id.startsWith('file_'));
+          sourcesRef.current = filtered;
+          return filtered;
+        });
       } else {
-        console.log('[SourceInfo] 没有找到页面类型的来源信息');
+        console.log('[SourceInfo] 没有找到来源信息');
         // 没有找到来源时，只保留文件来源
-        setSources(prev => prev.filter(s => s.id.startsWith('file_')));
+        setSources(prev => {
+          const filtered = prev.filter(s => s.id.startsWith('file_'));
+          sourcesRef.current = filtered;
+          return filtered;
+        });
       }
     } catch (error) {
-      console.error("[SourceInfo] 加载页面类型来源信息失败:", error);
+      console.error("[SourceInfo] 加载来源信息失败:", error);
       // 不阻止页面加载，只记录错误
+    } finally {
+      isLoadingSourcesRef.current = false;
     }
-  }, [effectivePageType]);
+  }, [projectId, config.pageType]);
 
   // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
   useEffect(() => {
     const urlSourceIds = searchParams.getAll('sourceId'); // 获取所有的 sourceId 参数
-    if (urlSourceIds.length > 0) {
-      console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds, '当前来源数量:', sources.length);
-      
-      // 如果来源列表为空，可能需要等待加载，先不处理
-      if (sources.length === 0) {
-        console.log('[SourceInfo] 来源列表为空，等待加载...');
-        return;
+    if (urlSourceIds.length === 0) {
+      return;
+    }
+    
+    // 使用 ref 获取最新的 sources，避免依赖 sources 导致循环
+    const currentSources = sourcesRef.current;
+    console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds, '当前来源数量:', currentSources.length);
+    
+    // 如果来源列表为空，可能需要等待加载，先不处理
+    if (currentSources.length === 0) {
+      console.log('[SourceInfo] 来源列表为空，等待加载...');
+      // 如果正在加载，等待加载完成；否则触发一次加载
+      if (!isLoadingSourcesRef.current) {
+        setTimeout(() => {
+          loadPageTypeSources();
+        }, 500);
       }
-      
-      const newSelectedIds: string[] = [];
-      let hasNewSelection = false;
-      const missingSourceIds: string[] = [];
-      
-      // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
-      urlSourceIds.forEach(sourceId => {
-        const foundSource = sources.find(s => s.id === sourceId);
-        if (foundSource) {
-          console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
-          newSelectedIds.push(sourceId);
-          hasNewSelection = true;
-        } else {
-          console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
-          missingSourceIds.push(sourceId);
-        }
+      return;
+    }
+    
+    const newSelectedIds: string[] = [];
+    let hasNewSelection = false;
+    const missingSourceIds: string[] = [];
+    
+    // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
+    urlSourceIds.forEach(sourceId => {
+      const foundSource = currentSources.find(s => s.id === sourceId);
+      if (foundSource) {
+        console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
+        newSelectedIds.push(sourceId);
+        hasNewSelection = true;
+      } else {
+        console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
+        missingSourceIds.push(sourceId);
+      }
+    });
+    
+    // 如果有新的选中项，更新选中列表
+    if (hasNewSelection) {
+      setSelectedSourceIds(prev => {
+        const combined = [...prev];
+        newSelectedIds.forEach(id => {
+          if (!combined.includes(id)) {
+            combined.push(id);
+          }
+        });
+        return combined;
       });
       
-      // 如果有新的选中项，更新选中列表
-      if (hasNewSelection) {
-        setSelectedSourceIds(prev => {
-          const combined = [...prev];
-          newSelectedIds.forEach(id => {
-            if (!combined.includes(id)) {
-              combined.push(id);
-            }
-          });
-          return combined;
-        });
-        
-        // 清除 URL 参数，避免刷新时重复选中
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.delete('sourceId');
-        setSearchParams(newSearchParams, { replace: true });
-      } else if (missingSourceIds.length > 0) {
-        // 如果所有 sourceId 都不存在，可能是新保存的来源还未加载
-        // 等待一段时间后重新加载页面类型的来源
-        console.log('[SourceInfo] 等待新保存的来源加载...');
+      // 清除 URL 参数，避免刷新时重复选中
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('sourceId');
+      setSearchParams(newSearchParams, { replace: true });
+    } else if (missingSourceIds.length > 0) {
+      // 如果所有 sourceId 都不存在，可能是新保存的来源还未加载
+      // 等待一段时间后重新加载页面类型的来源（但只加载一次）
+      console.log('[SourceInfo] 等待新保存的来源加载...');
+      if (!isLoadingSourcesRef.current) {
         setTimeout(async () => {
           await loadPageTypeSources();
         }, 500);
       }
     }
-  }, [sources, searchParams, setSearchParams, loadPageTypeSources]);
+  }, [searchParams, setSearchParams, loadPageTypeSources]);
 
   const loadFiles = useCallback(async () => {
     try {
@@ -311,8 +378,18 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   }, [effectivePageType]);
 
-  // 加载对话历史和输出内容
+  // 使用 ref 追踪是否已初始化，避免重复初始化
+  const isInitializedRef = useRef(false);
+  
+  // 加载对话历史和输出内容（仅在组件挂载时执行一次）
   useEffect(() => {
+    // 如果已经初始化过，跳过（除非页面类型或项目ID变化，那会由另一个useEffect处理）
+    if (isInitializedRef.current) {
+      return;
+    }
+    
+    isInitializedRef.current = true;
+    
     // 如果 URL 中有 newConversation 参数，清除当前对话，确保创建新对话
     if (shouldCreateNewConversation && currentConversation) {
       console.log('[ConversationDebug] 检测到 newConversation 参数，清除当前对话');
@@ -948,8 +1025,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
       if (uniqueConversations.length === 0) {
         setCurrentConversation(null);
-        // 如果没有对话，确保加载页面类型的来源信息
-        await loadPageTypeSources();
+        // 如果没有对话，不需要额外加载来源信息（已经在初始化时加载过了）
         return;
       }
 
@@ -998,13 +1074,38 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   };
 
+  // 使用 ref 追踪上次的 pageType 和 projectId，避免不必要的重新加载
+  const lastPageTypeRef = useRef<string | null>(null);
+  const lastProjectIdRef = useRef<string | null>(null);
+  
   // 当页面类型或项目ID变化时，重新加载所有信息
   useEffect(() => {
+    const currentPageType = config.pageType;
+    const currentProjectId = projectId;
+    
+    // 如果 pageType 和 projectId 都没有变化，跳过
+    if (lastPageTypeRef.current === currentPageType && lastProjectIdRef.current === currentProjectId) {
+      return;
+    }
+    
+    // 更新 ref
+    lastPageTypeRef.current = currentPageType;
+    lastProjectIdRef.current = currentProjectId;
+    
+    console.log('[BaseAISearchPage] 页面类型或项目ID变化，重新加载数据:', {
+      pageType: currentPageType,
+      projectId: currentProjectId
+    });
+    
     // 清空状态，防止跨项目数据污染
     setSources([]);
     setConversations([]);
     setOutputs([]);
     setCurrentConversation(null);
+    // 重置加载标志和初始化标志
+    isLoadingSourcesRef.current = false;
+    hasHandledNewConversationRef.current = false;
+    isInitializedRef.current = false; // 允许重新初始化
 
     // 重新加载所有数据
     loadPageTypeSources();
@@ -1310,9 +1411,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         category: category,
       };
 
-      // 保存到数据库，使用 effectivePageType 确保项目隔离
-      // 先检查是否已存在该对话的记录
-      const existingSources = sources.filter(s => s.id === sourceId);
+      // 保存到数据库，传递 projectId 确保项目隔离
+      // 先检查是否已存在该对话的记录（使用 ref 避免依赖 sources）
+      const existingSources = sourcesRef.current.filter(s => s.id === sourceId);
       
       if (existingSources.length > 0) {
         // 如果已存在，更新它（通过删除旧的后创建新的）
@@ -1325,8 +1426,9 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
 
       const saveResult = await sourceService.saveSourceInformation(
         source,
-        effectivePageType,
-        conversation.id
+        config.pageType,
+        conversation.id,
+        projectId || undefined
       );
 
       if (saveResult.success && saveResult.data) {
@@ -1334,10 +1436,11 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           id: saveResult.data.id,
           sourceId: saveResult.data.source_id,
           title: saveResult.data.title,
-          pageType: effectivePageType
+          pageType: config.pageType,
+          projectId: projectId
         });
         
-        // 刷新来源列表
+        // 刷新来源列表（但不依赖 sources，避免循环）
         await loadPageTypeSources();
       } else {
         console.error('[SourceInfo] 自动保存对话失败:', saveResult.error);
@@ -1346,7 +1449,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       console.error('[SourceInfo] 自动保存对话异常:', error);
       // 不抛出错误，避免影响用户体验
     }
-  }, [config.pageType, effectivePageType, sources, loadPageTypeSources]);
+  }, [config.pageType, projectId, loadPageTypeSources]);
 
   const handleMessageSent = async (_message: any) => {
     clearGlobalError();
@@ -1468,19 +1571,30 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     }
   };
 
+  // 使用 ref 追踪是否已经处理过 newConversation，避免重复创建
+  const hasHandledNewConversationRef = useRef(false);
+  
   useEffect(() => {
-    // 如果 URL 中有 newConversation 参数，强制创建新对话
-    if (shouldCreateNewConversation && !currentConversation) {
+    // 如果 URL 中有 newConversation 参数，强制创建新对话（只执行一次）
+    if (shouldCreateNewConversation && !currentConversation && !hasHandledNewConversationRef.current) {
       console.log('[ConversationDebug] 检测到 newConversation 参数，强制创建新对话');
+      hasHandledNewConversationRef.current = true;
       handleCreateConversation();
       return;
     }
     
+    // 如果 newConversation 参数已清除，重置标志
+    if (!shouldCreateNewConversation) {
+      hasHandledNewConversationRef.current = false;
+    }
+    
     // 正常情况：当没有当前对话且有来源被选中时，创建新对话
-    if (!currentConversation && sources.length > 0 && selectedSourceIds.length > 0) {
+    // 使用 ref 获取最新的 sources，避免依赖 sources 导致循环
+    const currentSources = sourcesRef.current;
+    if (!currentConversation && currentSources.length > 0 && selectedSourceIds.length > 0) {
       handleCreateConversation();
     }
-  }, [currentConversation, sources, selectedSourceIds, handleCreateConversation, shouldCreateNewConversation]);
+  }, [currentConversation, selectedSourceIds, handleCreateConversation, shouldCreateNewConversation]);
 
   useEffect(() => {
     return () => {
@@ -1556,15 +1670,13 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
         category: category,
       };
 
-      // 保存到数据库，使用目标页面的 pageType
-      const targetPageTypeWithProject = projectId 
-        ? `${targetPageType}-project-${projectId}` 
-        : targetPageType;
-      
+      // 保存到数据库，传递 projectId 确保项目隔离
+      const projectIdNum = projectId ? parseInt(projectId) : undefined;
       const saveResult = await sourceService.saveSourceInformation(
         source,
-        targetPageTypeWithProject,
-        currentConversation.id
+        targetPageType,
+        currentConversation.id,
+        projectIdNum
       );
 
       if (saveResult.success && saveResult.data) {
@@ -1572,7 +1684,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           id: saveResult.data.id,
           sourceId: saveResult.data.source_id,
           title: saveResult.data.title,
-          pageType: targetPageTypeWithProject
+          pageType: targetPageType,
+          projectId: projectIdNum
         });
         // 返回 source_id（字符串），用于 URL 参数
         return saveResult.data.source_id || null;
@@ -1589,6 +1702,17 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <TopNavigation />
+      {project && (
+        <div className="mx-4 mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-blue-900">项目编号：</span>
+            <span className="text-blue-700">{project.id}</span>
+            <span className="text-blue-400">|</span>
+            <span className="font-medium text-blue-900">项目名称：</span>
+            <span className="text-blue-700">{project.name}</span>
+          </div>
+        </div>
+      )}
       {globalError && (
         <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
           <div className="flex items-start justify-between gap-3">
@@ -1615,6 +1739,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           onSourcesChange={handleSourcesChange}
           onSelectionChange={handleSelectionChange}
           pageType={config.pageType as any}
+          projectId={projectId || undefined}
           currentConversation={currentConversation}
           onSummarizeAndNavigate={summarizeAndSaveConversationForNavigation}
         />

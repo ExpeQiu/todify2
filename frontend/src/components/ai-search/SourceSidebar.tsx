@@ -23,6 +23,7 @@ interface SourceSidebarProps {
   onSourcesChange?: (sources: Source[]) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
   pageType?: 'tech-package' | 'press-release' | 'tech-strategy' | 'tech-article';
+  projectId?: number;  // 关联的项目ID（可选）
   currentConversation?: Conversation | null;
   onSummarizeAndNavigate?: (targetPageType: 'tech-strategy' | 'tech-article') => Promise<string | null>;
 }
@@ -82,6 +83,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   onSourcesChange,
   onSelectionChange,
   pageType,
+  projectId,
   currentConversation,
   onSummarizeAndNavigate,
 }) => {

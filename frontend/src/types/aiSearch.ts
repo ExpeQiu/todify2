@@ -31,6 +31,7 @@ export interface Conversation {
   hasMoreMessages?: boolean;
   nextCursor?: string;
   difyConversationId?: string; // Dify返回的conversation_id，用于多轮对话
+  pageType?: string; // 页面类型，如 'ai-qa', 'tech-package', 'tech-strategy'
 }
 
 /**
@@ -44,6 +45,7 @@ export interface OutputContent {
   messageId: string;
   conversationId: string;
   createdAt: Date;
+  pageType?: string; // 页面类型，如 'ai-qa', 'tech-package', 'tech-strategy'
 }
 
 /**

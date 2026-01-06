@@ -7,6 +7,7 @@ import { TechPackagingMaterialModel } from './TechPackagingMaterial';
 import { TechPromotionStrategyModel } from './TechPromotionStrategy';
 import { TechPressReleaseModel } from './TechPressRelease';
 import { PublicKnowledgeModel } from './PublicKnowledge';
+import { BrainstormSessionModel, BrainstormParticipantModel, BrainstormMessageModel } from './Brainstorm';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例
@@ -18,6 +19,9 @@ export const techPackagingMaterialModel = new TechPackagingMaterialModel(db);
 export const techPromotionStrategyModel = new TechPromotionStrategyModel(db);
 export const techPressReleaseModel = new TechPressReleaseModel(db);
 export const publicKnowledgeModel = new PublicKnowledgeModel(db);
+export const brainstormSessionModel = new BrainstormSessionModel(db);
+export const brainstormParticipantModel = new BrainstormParticipantModel(db);
+export const brainstormMessageModel = new BrainstormMessageModel(db);
 
 // 导出模型类
 export { TechCategoryModel } from './TechCategory';
@@ -28,6 +32,7 @@ export { TechPackagingMaterialModel } from './TechPackagingMaterial';
 export { TechPromotionStrategyModel } from './TechPromotionStrategy';
 export { TechPressReleaseModel } from './TechPressRelease';
 export { PublicKnowledgeModel } from './PublicKnowledge';
+export { BrainstormSessionModel, BrainstormParticipantModel, BrainstormMessageModel } from './Brainstorm';
 
 // 导出数据库管理器
 export { DatabaseManager } from '../config/database';

@@ -1,17 +1,27 @@
-# Todify3 - 智能文档生成平台
+# Todify4 - 智能文档生成平台
 
 ## 项目简介
 
-Todify3 是一个基于 AI 的智能文档生成平台，支持多种文档类型和工作流配置。
+Todify4 是一个基于 AI 的智能文档生成平台，支持多种文档类型和工作流配置。平台集成了 Dify AI 工作流，提供技术IP挖掘、技术通稿撰写、发布会演讲稿撰写等核心功能。
+
+## 核心功能
+
+- **AI角色管理**: 创建和管理AI对话角色，关联Dify工作流配置
+- **Agent工作流**: 基于AI角色进行流程编排，创建智能工作流
+- **多窗口对话**: 创建AI对话窗口，支持多窗口并发对话
+- **公开页面配置**: 配置公开访问的AI对话页面
+- **项目管理**: 项目级的内容管理和来源追踪
+- **技术点管理**: 技术知识点的创建、管理和关联
 
 ## 快速开始
 
 ### 本地开发
 
 ```bash
-# 安装依赖
-npm install
+# 使用启动脚本（推荐）
+./start.sh
 
+# 或手动启动
 # 启动后端服务
 cd backend
 npm install
@@ -25,7 +35,7 @@ npm run dev
 
 ### 服务器部署
 
-详细部署指南请参考 [部署文档](docs/DEPLOYMENT_STANDARD_GUIDE.md)
+详细部署指南请参考 [部署文档](guide/docs/DEPLOYMENT_STANDARD_GUIDE.md)
 
 ## 自动启动配置
 
@@ -68,22 +78,44 @@ reboot
 pm2 list
 ```
 
-详细说明请参考 [自动启动指南](docs/AUTOSTART_GUIDE.md)
+详细说明请参考 [自动启动指南](guide/docs/AUTOSTART_GUIDE.md)
 
 ## 项目结构
 
 ```
-todify3/
-├── backend/          # 后端服务
-├── frontend/         # 前端应用
-├── scripts/          # 脚本文件
+todify4/
+├── backend/              # 后端服务 (Express + TypeScript)
+│   ├── src/             # 源代码
+│   │   ├── controllers/ # 控制器层
+│   │   ├── models/      # 数据模型
+│   │   ├── routes/      # 路由定义
+│   │   ├── services/    # 业务逻辑层
+│   │   └── modules/     # 功能模块
+│   ├── data/            # 数据库文件
+│   └── uploads/         # 上传文件存储
+├── frontend/            # 前端应用 (React + TypeScript + Vite)
+│   ├── src/
+│   │   ├── components/  # UI组件
+│   │   ├── pages/       # 页面组件
+│   │   ├── services/    # API服务
+│   │   └── features/    # 功能模块
+│   └── public/          # 静态资源
+├── guide/               # 项目文档
+│   ├── docs/           # 使用文档
+│   ├── architecture-guide/ # 架构文档
+│   ├── database/        # 数据库设计
+│   └── workflow/        # 工作流配置
+├── scripts/             # 脚本文件
 │   ├── start-services.sh    # 服务管理脚本
-│   └── test-autostart.sh     # 自动启动测试脚本
-├── docs/             # 文档
-│   ├── AUTOSTART_GUIDE.md    # 自动启动指南
-│   └── DEPLOYMENT_STANDARD_GUIDE.md  # 部署指南
-├── setup-autostart.sh # 自动启动配置脚本
-└── ecosystem.config.js # PM2配置文件
+│   ├── backup-database.sh   # 数据库备份脚本
+│   └── check-logs.sh        # 日志检查脚本
+├── archive/             # 归档文件
+│   ├── development-plans/   # 开发计划文件
+│   ├── duplicate-docs/      # 重复文档
+│   └── deployment-packages/  # 部署包
+├── docker/              # Docker配置
+├── deploy/              # 部署相关
+└── start.sh             # 本地启动脚本
 ```
 
 ## 服务端口
@@ -94,9 +126,20 @@ todify3/
 
 ## 相关文档
 
-- [自动启动配置指南](docs/AUTOSTART_GUIDE.md)
-- [部署标准指南](docs/DEPLOYMENT_STANDARD_GUIDE.md)
-- [故障排查指南](docs/TROUBLESHOOTING_KNOWLEDGE_BASE.md)
+### 使用文档
+- [自动启动配置指南](guide/docs/AUTOSTART_GUIDE.md)
+- [部署标准指南](guide/docs/DEPLOYMENT_STANDARD_GUIDE.md)
+- [故障排查指南](guide/docs/TROUBLESHOOTING_KNOWLEDGE_BASE.md)
+- [API文档](guide/docs/API_DOCUMENTATION.md)
+
+### 架构文档
+- [系统架构](guide/architecture-guide/system-architecture.md)
+- [数据库设计](guide/database/database-design-v2.md)
+- [Agent架构分析](guide/AGENT_ARCHITECTURE_ANALYSIS.md)
+
+### 开发文档
+- [项目文件结构](guide/项目文件结构详解.md)
+- [工作流配置](guide/workflow/)
 
 ## 许可证
 

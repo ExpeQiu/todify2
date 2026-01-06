@@ -29,6 +29,8 @@ import { GetFieldMappingConfigUseCase } from '../application/useCases/GetFieldMa
 import { SaveFieldMappingConfigUseCase } from '../application/useCases/SaveFieldMappingConfig.usecase';
 import { GetAllFieldMappingConfigsUseCase } from '../application/useCases/GetAllFieldMappingConfigs.usecase';
 import { DeleteFieldMappingConfigUseCase } from '../application/useCases/DeleteFieldMappingConfig.usecase';
+import { AggregateTechArticleUseCase } from '../application/useCases/AggregateTechArticle.usecase';
+import { AggregateTechArticleSchema } from '../application/dto/AggregateTechArticle.dto';
 
 const router = Router();
 
@@ -105,6 +107,7 @@ const getFieldMappingConfigUseCase = new GetFieldMappingConfigUseCase(fieldMappi
 const saveFieldMappingConfigUseCase = new SaveFieldMappingConfigUseCase(fieldMappingService);
 const getAllFieldMappingConfigsUseCase = new GetAllFieldMappingConfigsUseCase(fieldMappingService);
 const deleteFieldMappingConfigUseCase = new DeleteFieldMappingConfigUseCase(fieldMappingService);
+const aggregateTechArticleUseCase = new AggregateTechArticleUseCase(aiSearchService);
 // 延迟初始化标记，避免在数据库未连接时初始化
 let tablesInitialized = false;
 
@@ -936,6 +939,40 @@ router.delete('/field-mappings/:workflowId', ensureTablesInitialized, async (req
         false,
         null,
         '删除字段映射配置失败',
+        error instanceof Error ? error.message : '未知错误'
+      )
+    );
+  }
+});
+
+/**
+ * 聚合生成技术通稿
+ * POST /api/v1/ai-search/tech-article/aggregate
+ */
+router.post('/tech-article/aggregate', ensureTablesInitialized, async (req: Request, res: Response) => {
+  try {
+    const dto = validateDTO(AggregateTechArticleSchema, req.body);
+    const result = await aggregateTechArticleUseCase.execute(dto);
+
+    if (!result.success) {
+      return res.status(500).json(
+        formatApiResponse(false, null, '聚合生成技术通稿失败', result.error.message)
+      );
+    }
+
+    res.json(formatApiResponse(true, result.value, '技术通稿生成成功'));
+  } catch (error) {
+    if (error instanceof ValidationException) {
+      const failure = formatValidationFailure(error);
+      return res.status(400).json(failure);
+    }
+
+    logger.error('聚合生成技术通稿失败', { error });
+    res.status(500).json(
+      formatApiResponse(
+        false,
+        null,
+        '聚合生成技术通稿失败',
         error instanceof Error ? error.message : '未知错误'
       )
     );

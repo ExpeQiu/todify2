@@ -793,12 +793,17 @@ CREATE TABLE IF NOT EXISTS source_information (
     description TEXT, -- 来源描述/内容
     page_type TEXT CHECK (page_type IN ('tech-package', 'press-release', 'tech-strategy', 'tech-article')),
     conversation_id TEXT, -- 关联的对话ID
+    project_id INTEGER, -- 关联的项目ID（可选）
     metadata TEXT, -- 元数据（JSON格式）
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
     created_by TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 );
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_source_information_project_id ON source_information(project_id);
 
 -- ==============================================
 -- 公共知识库相关表

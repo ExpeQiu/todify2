@@ -28,6 +28,7 @@ export interface SourceInformation {
   description?: string;
   page_type?: "tech-package" | "press-release" | "tech-strategy" | "tech-article";
   conversation_id?: string;
+  project_id?: number;  // 关联的项目ID（可选）
   metadata?: Record<string, any>;
   category?: SourceCategory;
   status?: "active" | "archived" | "deleted";
@@ -214,7 +215,8 @@ const sourceService = {
   async saveSourceInformation(
     source: Source,
     pageType?: string,
-    conversationId?: string
+    conversationId?: string,
+    projectId?: number
   ): Promise<{
     success: boolean;
     data?: SourceInformation;
@@ -235,6 +237,7 @@ const sourceService = {
         description: source.description,
         page_type: pageType as any,
         conversation_id: conversationId,
+        project_id: projectId,
         status: "active",
         metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       };
@@ -392,6 +395,54 @@ const sourceService = {
       };
     } catch (error: any) {
       console.error("[SourceService] 加载来源信息失败:", error);
+      console.error("[SourceService] 错误详情:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "加载来源信息失败",
+      };
+    }
+  },
+
+  /**
+   * 根据项目ID加载来源信息
+   */
+  async loadSourceInformationByProjectId(
+    projectId: number
+  ): Promise<{
+    success: boolean;
+    data?: Source[];
+    error?: string;
+  }> {
+    try {
+      console.log('[SourceService] 加载项目来源信息:', projectId);
+      const response = await api.get(`/source-information/project/${projectId}`);
+      const resData = response.data as any;
+      console.log('[SourceService] 加载响应:', {
+        success: resData.success,
+        dataCount: resData.data?.length || 0,
+        error: resData.error,
+        rawData: resData
+      });
+      
+      if (resData.success && resData.data) {
+        // 将数据库格式转换为前端Source格式
+        const sources: Source[] = (resData.data as any[]).map(convertToSource);
+        console.log('[SourceService] 转换后的来源:', sources.map(s => ({ id: s.id, title: s.title, category: s.category })));
+        return {
+          success: true,
+          data: sources,
+        };
+      }
+      return {
+        success: false,
+        error: resData.error || "加载来源信息失败",
+      };
+    } catch (error: any) {
+      console.error("[SourceService] 加载项目来源信息失败:", error);
       console.error("[SourceService] 错误详情:", {
         message: error.message,
         response: error.response?.data,
