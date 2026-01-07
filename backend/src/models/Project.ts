@@ -223,17 +223,39 @@ export class ProjectModel {
     const project = await this.findById(projectId);
     if (!project) return null;
 
+    // 使用 Promise.all 并行获取所有关联数据，每个查询都有独立的错误处理
     const [techPoints, knowledgePoints, files, sourceInformations, packagingMaterials, promotionStrategies, pressReleases] = await Promise.all([
-      this.getTechPoints(projectId),
-      this.getKnowledgePoints(projectId),
-      this.getFiles(projectId),
-      this.getSourceInformations(projectId),
-      this.getPackagingMaterials(projectId),
-      this.getPromotionStrategies(projectId),
-      this.getPressReleases(projectId)
+      this.getTechPoints(projectId).catch(err => {
+        console.error('getTechPoints error:', err);
+        return [];
+      }),
+      this.getKnowledgePoints(projectId).catch(err => {
+        console.error('getKnowledgePoints error:', err);
+        return [];
+      }),
+      this.getFiles(projectId).catch(err => {
+        console.error('getFiles error:', err);
+        return [];
+      }),
+      this.getSourceInformations(projectId).catch(err => {
+        console.error('getSourceInformations error:', err);
+        return [];
+      }),
+      this.getPackagingMaterials(projectId).catch(err => {
+        console.error('getPackagingMaterials error:', err);
+        return [];
+      }),
+      this.getPromotionStrategies(projectId).catch(err => {
+        console.error('getPromotionStrategies error:', err);
+        return [];
+      }),
+      this.getPressReleases(projectId).catch(err => {
+        console.error('getPressReleases error:', err);
+        return [];
+      })
     ]);
 
-    return {
+    const result = {
       ...project,
       techPoints,
       knowledgePoints,
@@ -243,6 +265,50 @@ export class ProjectModel {
       promotionStrategies,
       pressReleases
     };
+
+    // 序列化日期对象为字符串，确保 JSON 响应正常
+    return this.serializeDates(result);
+  }
+
+  /**
+   * 序列化对象中的日期为字符串
+   * 防止循环引用导致的问题
+   */
+  private serializeDates(obj: any, visited = new WeakSet()): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (obj instanceof Date) {
+      return obj.toISOString();
+    }
+
+    if (typeof obj !== 'object') {
+      return obj;
+    }
+
+    // 防止循环引用
+    if (visited.has(obj)) {
+      return null;
+    }
+    visited.add(obj);
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.serializeDates(item, visited));
+    }
+
+    const serialized: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        try {
+          serialized[key] = this.serializeDates(obj[key], visited);
+        } catch (error) {
+          // 如果序列化某个字段失败，跳过该字段
+          console.warn(`Failed to serialize field ${key}:`, error);
+        }
+      }
+    }
+    return serialized;
   }
 
   /**

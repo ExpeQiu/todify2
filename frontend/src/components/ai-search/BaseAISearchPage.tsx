@@ -8,7 +8,6 @@ import TopNavigation from "../TopNavigation";
 import SourceSidebar, { Source } from "./SourceSidebar";
 import DialogueContent from "./DialogueContent";
 import StudioSidebar from "./StudioSidebar";
-import ConversationList from "./ConversationList";
 import FieldMappingConfig from "./FieldMappingConfig";
 import { Conversation, OutputContent, WorkflowConfig, FieldMappingConfig as FieldMappingConfigType } from "../../types/aiSearch";
 import { aiSearchService } from "../../services/aiSearchService";
@@ -43,9 +42,17 @@ const areObjectsEqual = (a: Record<string, string>, b: Record<string, string>) =
 
 interface BaseAISearchPageProps {
   config: PageConfig;
+  embeddedMode?: boolean;      // 是否嵌入模式
+  projectId?: string;           // 项目ID（嵌入模式必需）
+  hideTopNavigation?: boolean;  // 是否隐藏顶部导航
 }
 
-const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
+const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ 
+  config, 
+  embeddedMode = false,
+  projectId: propProjectId,
+  hideTopNavigation = false 
+}) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
@@ -54,7 +61,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [outputs, setOutputs] = useState<OutputContent[]>([]);
-  const [showConversationList, setShowConversationList] = useState(false);
+  const [showSourceSidebar, setShowSourceSidebar] = useState(false);
+  const [showStudioSidebar, setShowStudioSidebar] = useState(embeddedMode); // 嵌入模式下默认显示右侧工具栏
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
   const [showFieldMappingConfig, setShowFieldMappingConfig] = useState(false);
   const [triggeringFeatureId, setTriggeringFeatureId] = useState<string | null>(null);
@@ -174,7 +182,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   };
 
   // 获取项目ID和是否创建新对话的标志
-  const projectId = searchParams.get('projectId');
+  // 嵌入模式：从props读取；独立模式：从URL参数读取
+  const projectId = embeddedMode ? propProjectId : searchParams.get('projectId');
   const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
   
   // 加载项目信息
@@ -1231,11 +1240,21 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       const selectedSources = sources.filter((s) => selectedSourceIds.includes(s.id));
       console.log('[ConversationDebug] 创建新对话，来源数量:', selectedSources.length);
 
-      const conversation = await aiSearchService.createConversation({
+      const conversationRequest: any = {
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: selectedSources,
         pageType: effectivePageType, // 使用包含项目ID的 pageType
-      });
+      };
+      
+      // 如果提供了projectId，添加到请求中
+      if (projectId) {
+        const projectIdNum = parseInt(projectId);
+        if (!isNaN(projectIdNum)) {
+          conversationRequest.projectId = projectIdNum;
+        }
+      }
+      
+      const conversation = await aiSearchService.createConversation(conversationRequest);
 
       console.log('[ConversationDebug] 新对话已创建:', conversation.id);
 
@@ -1268,11 +1287,21 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       setSelectedSourceIds([]);
       setSentSourceIds([]);
       
-      const conversation = await aiSearchService.createConversation({
+      const conversationRequest: any = {
         title: `对话 ${new Date().toLocaleString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/')}`,
         sources: [], // 新对话不附带来源，等用户勾选后首次发送时传递
         pageType: effectivePageType, // 使用包含项目ID的 pageType
-      });
+      };
+      
+      // 如果提供了projectId，添加到请求中
+      if (projectId) {
+        const projectIdNum = parseInt(projectId);
+        if (!isNaN(projectIdNum)) {
+          conversationRequest.projectId = projectIdNum;
+        }
+      }
+      
+      const conversation = await aiSearchService.createConversation(conversationRequest);
 
       if (selectedWorkflowId) {
         persistWorkflowSelection(selectedWorkflowId, conversation.id);
@@ -1309,7 +1338,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
     if (selectedWorkflowId) {
       persistWorkflowSelection(selectedWorkflowId, conversation.id);
     }
-    setShowConversationList(false);
   };
 
   const ensureActiveConversation = useCallback(async (): Promise<Conversation | null> => {
@@ -1700,19 +1728,8 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
   }, [currentConversation, projectId]);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <TopNavigation />
-      {project && (
-        <div className="mx-4 mt-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-blue-900">项目编号：</span>
-            <span className="text-blue-700">{project.id}</span>
-            <span className="text-blue-400">|</span>
-            <span className="font-medium text-blue-900">项目名称：</span>
-            <span className="text-blue-700">{project.name}</span>
-          </div>
-        </div>
-      )}
+    <div className={embeddedMode ? "h-full flex flex-col bg-gray-50" : "h-screen flex flex-col bg-gray-50"}>
+      {!hideTopNavigation && <TopNavigation />}
       {globalError && (
         <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
           <div className="flex items-start justify-between gap-3">
@@ -1733,16 +1750,19 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
       )}
       
       <div className="flex-1 flex overflow-hidden">
-        <SourceSidebar
-          sources={sources}
-          selectedSources={selectedSourceIds}
-          onSourcesChange={handleSourcesChange}
-          onSelectionChange={handleSelectionChange}
-          pageType={config.pageType as any}
-          projectId={projectId || undefined}
-          currentConversation={currentConversation}
-          onSummarizeAndNavigate={summarizeAndSaveConversationForNavigation}
-        />
+        {showSourceSidebar && (
+          <SourceSidebar
+            sources={sources}
+            selectedSources={selectedSourceIds}
+            onSourcesChange={handleSourcesChange}
+            onSelectionChange={handleSelectionChange}
+            pageType={config.pageType as any}
+            projectId={projectId || undefined}
+            currentConversation={currentConversation}
+            onSummarizeAndNavigate={summarizeAndSaveConversationForNavigation}
+            onClose={() => setShowSourceSidebar(false)}
+          />
+        )}
 
         <DialogueContent
           conversation={currentConversation}
@@ -1765,33 +1785,29 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({ config }) => {
           isWorkflowLoading={isWorkflowLoading}
           dialogueTitle={config.dialogueTitle}
           pageType={config.pageType as any}
+          onShowSourceSidebar={() => setShowSourceSidebar(true)}
+          onShowConversationList={() => setShowStudioSidebar(true)}
         />
 
-        <StudioSidebar
-          outputs={outputs}
-          conversations={conversations}
-          onShowConversationList={() => setShowConversationList(true)}
-          onTriggerFeature={handleTriggerFeature}
-          executingFeatureId={triggeringFeatureId}
-          statusMessage={triggeringStatus || undefined}
-          onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
-          studioTitle={config.studioTitle}
-          featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
-          enabledToolIds={enabledToolIds}
-          pageType={config.pageType as any}
-          onDeleteConversation={handleDeleteConversation}
-        />
+        {showStudioSidebar && (
+          <StudioSidebar
+            outputs={outputs}
+            conversations={conversations}
+            onTriggerFeature={handleTriggerFeature}
+            executingFeatureId={triggeringFeatureId}
+            statusMessage={triggeringStatus || undefined}
+            onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
+            studioTitle={config.studioTitle}
+            featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
+            enabledToolIds={enabledToolIds}
+            pageType={config.pageType as any}
+            onDeleteConversation={handleDeleteConversation}
+            onClose={() => setShowStudioSidebar(false)}
+            currentConversationId={currentConversation?.id}
+            onSelectConversation={handleSelectConversation}
+          />
+        )}
       </div>
-
-      {showConversationList && (
-        <ConversationList
-          conversations={conversations}
-          currentConversationId={currentConversation?.id}
-          onSelectConversation={handleSelectConversation}
-          onDeleteConversation={handleDeleteConversation}
-          onClose={() => setShowConversationList(false)}
-        />
-      )}
 
       {showFieldMappingConfig && workflowConfig && (
         <FieldMappingConfig

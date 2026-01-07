@@ -72,6 +72,7 @@ export class TPDSyncService {
       while (hasMore) {
         try {
           // 从 TPD2 获取技术点列表
+          logger.debug(`正在获取第 ${page} 页技术点数据...`);
           const response = await axios.get(`${apiBaseUrl}/tech-points`, {
             headers,
             params: {
@@ -83,19 +84,49 @@ export class TPDSyncService {
             timeout: 30000,
           });
 
-          if (response.data.code !== 200 || !response.data.data) {
-            logger.error('TPD2 API 返回错误:', response.data);
-            break;
+          let techPoints: any[] = [];
+
+          // 处理不同的响应格式（兼容 docker TPD2 项目）
+          if (response.data.code === 200 && response.data.data) {
+            // 格式: { code: 200, data: { data: [...], total: ... } }
+            const paginatedData = response.data.data;
+            techPoints = paginatedData.data || [];
+          } else if (Array.isArray(response.data)) {
+            // 格式: [...]
+            techPoints = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            // 格式: { data: [...] }
+            techPoints = response.data.data;
+          } else if (response.data.success && response.data.data) {
+            // 格式: { success: true, data: { data: [...], total: ... } }
+            const paginatedData = response.data.data;
+            techPoints = Array.isArray(paginatedData) ? paginatedData : (paginatedData.data || []);
+          } else if (response.data.code === 200 && Array.isArray(response.data.data)) {
+            // 格式: { code: 200, data: [...] }
+            techPoints = response.data.data;
+          } else {
+            logger.warn('TPD2 API 返回了未知格式的响应:', {
+              hasCode: !!response.data.code,
+              hasData: !!response.data.data,
+              hasSuccess: !!response.data.success,
+              isArray: Array.isArray(response.data),
+              responseKeys: Object.keys(response.data || {}),
+            });
+            // 尝试直接使用响应数据
+            if (Array.isArray(response.data)) {
+              techPoints = response.data;
+            } else if (response.data && typeof response.data === 'object') {
+              techPoints = [];
+            }
           }
 
-          const paginatedData = response.data.data;
-          const techPoints = paginatedData.data || [];
-
           if (techPoints.length === 0) {
+            logger.debug(`第 ${page} 页没有更多数据，停止获取`);
             hasMore = false;
             break;
           }
 
+          logger.debug(`第 ${page} 页获取到 ${techPoints.length} 个技术点`);
           stats.total += techPoints.length;
 
           // 处理每个技术点
@@ -119,10 +150,33 @@ export class TPDSyncService {
           } else {
             page++;
           }
-        } catch (error) {
-          logger.error(`获取第 ${page} 页数据失败:`, error);
-          stats.errors++;
-          hasMore = false;
+        } catch (error: any) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const statusCode = error.response?.status;
+          const errorData = error.response?.data;
+
+          logger.error(`获取第 ${page} 页数据失败:`, {
+            message: errorMessage,
+            statusCode,
+            errorData,
+            apiUrl: `${apiBaseUrl}/tech-points`,
+          });
+
+          // 如果是404或400，可能没有更多数据了
+          if (statusCode === 404 || statusCode === 400) {
+            logger.info('API 返回 404/400，停止获取更多数据');
+            hasMore = false;
+          } else {
+            stats.errors++;
+            // 对于其他错误，可以选择继续或停止
+            // 这里选择继续尝试下一页，但限制最大页数
+            if (page >= 100) {
+              logger.warn('已达到最大页数限制（100页），停止获取');
+              hasMore = false;
+            } else {
+              page++;
+            }
+          }
         }
       }
 
@@ -167,6 +221,7 @@ export class TPDSyncService {
       }
 
       // 获取技术点详情（包含关联数据）
+      logger.debug(`获取技术点详情: ${tpdTechPoint.id}`);
       const detailResponse = await axios.get(
         `${baseUrl}/tech-points/${tpdTechPoint.id}`,
         {
@@ -178,16 +233,47 @@ export class TPDSyncService {
         }
       );
 
-      if (detailResponse.data.code !== 200 || !detailResponse.data.data) {
-        throw new Error('获取技术点详情失败');
+      let techPointDetail: any = null;
+
+      // 处理不同的响应格式（兼容 docker TPD2 项目）
+      if (detailResponse.data.code === 200 && detailResponse.data.data) {
+        // 格式: { code: 200, data: {...} }
+        techPointDetail = detailResponse.data.data;
+      } else if (detailResponse.data.success && detailResponse.data.data) {
+        // 格式: { success: true, data: {...} }
+        techPointDetail = detailResponse.data.data;
+      } else if (detailResponse.data.data) {
+        // 格式: { data: {...} }
+        techPointDetail = detailResponse.data.data;
+      } else if (detailResponse.data.code === 200) {
+        // 格式: { code: 200, ... } (数据直接在根级别)
+        techPointDetail = detailResponse.data;
+      } else {
+        // 尝试直接使用响应数据
+        techPointDetail = detailResponse.data;
       }
 
-      const techPointDetail = detailResponse.data.data;
+      if (!techPointDetail || !techPointDetail.id) {
+        logger.warn(`技术点详情格式异常，使用列表数据: ${tpdTechPoint.id}`, {
+          responseKeys: Object.keys(detailResponse.data || {}),
+          hasCode: !!detailResponse.data?.code,
+          hasData: !!detailResponse.data?.data,
+        });
+        // 如果详情获取失败，使用列表数据
+        techPointDetail = tpdTechPoint;
+      }
 
       // 转换车型数据为 CarModelInfo 格式
       const carModelsInfo: CarModelInfo[] = [];
-      if (techPointDetail.carModels && Array.isArray(techPointDetail.carModels)) {
-        for (const carModel of techPointDetail.carModels) {
+      // 支持多种字段名（兼容不同的 API 响应格式）
+      const carModels = techPointDetail.carModels || 
+                       techPointDetail.car_models || 
+                       techPointDetail.associated_car_models ||
+                       techPointDetail.associatedCarModels ||
+                       [];
+      
+      if (Array.isArray(carModels) && carModels.length > 0) {
+        for (const carModel of carModels) {
           carModelsInfo.push({
             id: carModel.id || carModel.car_model_id,
             name: carModel.name || carModel.model_name || '',
@@ -206,8 +292,14 @@ export class TPDSyncService {
 
       // 转换资源数据为 ResourceInfo 格式
       const resourcesInfo: ResourceInfo[] = [];
-      if (techPointDetail.resources && Array.isArray(techPointDetail.resources)) {
-        for (const resource of techPointDetail.resources) {
+      // 支持多种字段名（兼容不同的 API 响应格式）
+      const resources = techPointDetail.resources || 
+                       techPointDetail.resources_info ||
+                       techPointDetail.associated_resources ||
+                       [];
+      
+      if (Array.isArray(resources) && resources.length > 0) {
+        for (const resource of resources) {
           resourcesInfo.push({
             type: resource.type || 'other',
             name: resource.name || resource.title || '',
@@ -223,9 +315,15 @@ export class TPDSyncService {
 
       // 转换知识点数据为 KnowledgeInfo 格式
       let knowledgeInfo: KnowledgeInfo | null = null;
-      if (techPointDetail.knowledgePoints && Array.isArray(techPointDetail.knowledgePoints) && techPointDetail.knowledgePoints.length > 0) {
+      // 支持多种字段名（兼容不同的 API 响应格式）
+      const knowledgePoints = techPointDetail.knowledgePoints || 
+                             techPointDetail.knowledge_points ||
+                             techPointDetail.associated_knowledge_points ||
+                             [];
+      
+      if (Array.isArray(knowledgePoints) && knowledgePoints.length > 0) {
         // 如果有多个知识点，取第一个或合并
-        const firstKnowledge = techPointDetail.knowledgePoints[0];
+        const firstKnowledge = knowledgePoints[0];
         knowledgeInfo = {
           title: firstKnowledge.title,
           content: firstKnowledge.content,
@@ -237,9 +335,9 @@ export class TPDSyncService {
           examples: firstKnowledge.examples,
           references: firstKnowledge.references
         };
-      } else if (techPointDetail.knowledge_info) {
+      } else if (techPointDetail.knowledge_info || techPointDetail.knowledgeInfo) {
         // 如果直接有 knowledge_info 字段
-        knowledgeInfo = techPointDetail.knowledge_info;
+        knowledgeInfo = techPointDetail.knowledge_info || techPointDetail.knowledgeInfo;
       }
 
       // 准备技术点数据

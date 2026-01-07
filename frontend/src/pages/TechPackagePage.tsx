@@ -7,7 +7,7 @@ import BaseAISearchPage from "../components/ai-search/BaseAISearchPage";
 import { techPackageConfig } from "../configs/pageConfigs";
 
 const TechPackagePage: React.FC = () => {
-  return <BaseAISearchPage config={techPackageConfig} />;
+  return <BaseAISearchPage key="tech-package" config={techPackageConfig} />;
 };
 
 export default TechPackagePage;

@@ -164,19 +164,100 @@ export class SourceInformationModel {
   }
 
   /**
-   * 根据项目ID获取来源信息列表（通过关联表）
+   * 根据项目ID获取来源信息列表
+   * 支持三种方式：
+   * 1. 通过 project_id 字段查询（主要方式）
+   * 2. 通过关联表 project_source_informations 查询（补充方式）
+   * 3. 通过 page_type = 'project-{projectId}' 查询（兼容旧数据）
    */
   async findByProjectId(projectId: number): Promise<SourceInformation[]> {
-    const sql = `
-      SELECT si.* FROM source_information si
-      INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
-      WHERE psi.project_id = ? AND si.status = 'active'
-      ORDER BY si.created_at DESC
-    `;
+    const pageType = `project-${projectId}`;
+    const results: SourceInformation[] = [];
+    const seenIds = new Set<number>();
     
-    const result = await this.db.query(sql, [projectId]);
-    const rows = Array.isArray(result) ? result : [result];
-    return rows.map((row: any) => this.parseJsonFields(row)) as SourceInformation[];
+    try {
+      // 方式1: 通过 project_id 字段查询
+      try {
+        const sql1 = `
+          SELECT * FROM source_information
+          WHERE project_id = ? AND status = 'active'
+          ORDER BY created_at DESC
+        `;
+        const result1 = await this.db.query(sql1, [projectId]);
+        const rows1 = Array.isArray(result1) ? result1 : [result1];
+        for (const row of rows1) {
+          const parsed = this.parseJsonFields(row) as SourceInformation;
+          if (parsed.id && !seenIds.has(parsed.id)) {
+            results.push(parsed);
+            seenIds.add(parsed.id);
+          }
+        }
+      } catch (error: any) {
+        // 如果 project_id 字段不存在，忽略错误
+        if (!error?.message?.includes('no such column: project_id') && 
+            !error?.message?.includes('column "project_id" does not exist')) {
+          console.warn('查询 project_id 字段失败:', error?.message);
+        }
+      }
+      
+      // 方式2: 通过关联表查询
+      try {
+        const sql2 = `
+          SELECT si.* FROM source_information si
+          INNER JOIN project_source_informations psi ON si.id = psi.source_information_id
+          WHERE psi.project_id = ? AND si.status = 'active'
+          ORDER BY si.created_at DESC
+        `;
+        const result2 = await this.db.query(sql2, [projectId]);
+        const rows2 = Array.isArray(result2) ? result2 : [result2];
+        for (const row of rows2) {
+          const parsed = this.parseJsonFields(row) as SourceInformation;
+          if (parsed.id && !seenIds.has(parsed.id)) {
+            results.push(parsed);
+            seenIds.add(parsed.id);
+          }
+        }
+      } catch (error: any) {
+        // 如果关联表不存在，忽略错误
+        if (!error?.message?.includes('no such table: project_source_informations') &&
+            !error?.message?.includes('relation "project_source_informations" does not exist')) {
+          console.warn('查询关联表失败:', error?.message);
+        }
+      }
+      
+      // 方式3: 通过 page_type 查询（兼容旧数据）
+      try {
+        const sql3 = `
+          SELECT * FROM source_information
+          WHERE page_type = ? AND status = 'active'
+          ORDER BY created_at DESC
+        `;
+        const result3 = await this.db.query(sql3, [pageType]);
+        const rows3 = Array.isArray(result3) ? result3 : [result3];
+        for (const row of rows3) {
+          const parsed = this.parseJsonFields(row) as SourceInformation;
+          if (parsed.id && !seenIds.has(parsed.id)) {
+            results.push(parsed);
+            seenIds.add(parsed.id);
+          }
+        }
+      } catch (error: any) {
+        console.warn('查询 page_type 失败:', error?.message);
+      }
+      
+      // 按创建时间排序
+      results.sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+      
+      return results;
+    } catch (error: any) {
+      console.error('查询项目来源信息失败:', error);
+      // 如果所有查询都失败，返回空数组而不是抛出错误
+      return [];
+    }
   }
 
   /**

@@ -99,6 +99,8 @@ export interface FileUploadResponse {
 export interface CreateConversationRequest {
   title?: string;
   sources: Source[];
+  pageType?: string;
+  projectId?: number;
 }
 
 /**

@@ -228,11 +228,33 @@ class TPDAPIConfigService {
       if (response) {
         if (response.ok) {
           const data = await response.json().catch(() => null);
-          return {
-            success: true,
-            message: `连接测试成功 (${responseTime}ms)`,
-            responseTime,
-          };
+          
+          // 验证响应格式（兼容 docker TPD2 项目的不同响应格式）
+          let isValidResponse = false;
+          if (data) {
+            // 支持多种响应格式
+            if (data.code === 200 || 
+                data.success === true || 
+                Array.isArray(data) || 
+                (data.data && (Array.isArray(data.data) || typeof data.data === 'object'))) {
+              isValidResponse = true;
+            }
+          }
+          
+          if (isValidResponse || data !== null) {
+            return {
+              success: true,
+              message: `连接测试成功 (${responseTime}ms)`,
+              responseTime,
+            };
+          } else {
+            return {
+              success: false,
+              message: `连接测试失败: API 返回了无效的响应格式 (${responseTime}ms)`,
+              responseTime,
+              error: 'Invalid response format',
+            };
+          }
         } else {
           const errorText = await response.text().catch(() => 'Unknown error');
           return {

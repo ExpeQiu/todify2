@@ -27,9 +27,7 @@ interface NavigationItem {
 // 主要功能的固定顺序和映射
 const MAIN_NAV_ORDER = [
   { name: '项目管理', icon: Home, path: '/', address: null },
-  { name: '技术包装', icon: MessageCircle, path: '/tech-package', address: 'tech-package' },
-  { name: '技术策略', icon: Target, path: '/tech-strategy', address: 'tech-strategy' },
-  { name: '技术通稿', icon: FileText, path: '/tech-article', address: 'tech-article' },
+  // 技术包装、技术策略、技术通稿已移至项目资源页面的Tab中，不再显示在顶部导航
 ];
 
 // 管理功能的固定顺序和映射
@@ -148,7 +146,6 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
     
     // 如果有 projectId，在跳转时带上它
     if (projectId) {
-      let targetUrl = path;
       const targetParams = new URLSearchParams();
       targetParams.append('projectId', projectId);
       
@@ -158,8 +155,7 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
         targetParams.append('newConversation', newConversation);
       }
       
-      targetUrl += `?${targetParams.toString()}`;
-      
+      const targetUrl = `${path}?${targetParams.toString()}`;
       const currentUrl = `${location.pathname}${location.search}`;
       console.log('[TopNavigation] 跳转（带projectId）:', targetUrl, '当前URL:', currentUrl);
       
@@ -172,13 +168,19 @@ const TopNavigation: React.FC<TopNavigationProps> = () => {
       // 如果路径不同，直接使用 navigate
       // 如果路径相同但查询参数不同，也使用 navigate（React Router 应该能处理）
       if (location.pathname !== path) {
-        // 路径不同，正常跳转
+        // 路径不同，正常跳转 - 使用对象形式确保 React Router 正确处理
         console.log('[TopNavigation] 路径不同，执行跳转');
-        navigate(targetUrl);
+        navigate({
+          pathname: path,
+          search: targetParams.toString(),
+        }, { replace: false });
       } else {
         // 路径相同但查询参数不同，使用 replace 更新 URL
         console.log('[TopNavigation] 路径相同但查询参数不同，更新 URL');
-        navigate(targetUrl, { replace: true });
+        navigate({
+          pathname: path,
+          search: targetParams.toString(),
+        }, { replace: true });
       }
     } else {
       // 如果目标路径与当前路径相同，且没有查询参数，跳过跳转

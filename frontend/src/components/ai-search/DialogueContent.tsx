@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, Settings, Check } from "lucide-react";
+import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, Settings, Check, History } from "lucide-react";
 import { Message, Conversation } from "../../types/aiSearch";
 import { Source } from "./SourceSidebar";
 import { aiSearchService } from "../../services/aiSearchService";
@@ -29,6 +29,9 @@ interface DialogueContentProps {
   isWorkflowLoading?: boolean;
   dialogueTitle?: string;
   pageType?: string;
+  onHideSidebar?: () => void;
+  onShowSourceSidebar?: () => void; // 显示左侧来源边栏的回调
+  onShowConversationList?: () => void; // 显示对话历史列表的回调
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -52,6 +55,9 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   isWorkflowLoading = false,
   dialogueTitle = "AI内容助手",
   pageType,
+  onHideSidebar,
+  onShowSourceSidebar,
+  onShowConversationList,
 }) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -396,6 +402,17 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
             <Plus className="w-4 h-4" />
             提出一个新问题
           </button>
+          {/* 历史记录按钮 */}
+          {onShowConversationList && (
+            <button
+              onClick={onShowConversationList}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+              title="历史记录"
+            >
+              <History className="w-4 h-4" />
+              历史记录
+            </button>
+          )}
         </div>
       </div>
 
@@ -537,7 +554,11 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
             />
             {pageType !== 'tech-package' && pageType !== 'tech-strategy' && pageType !== 'tech-article' && (
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  onShowSourceSidebar?.();
+                  onHideSidebar?.();
+                }}
                 className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
                 title="添加文件"
               >

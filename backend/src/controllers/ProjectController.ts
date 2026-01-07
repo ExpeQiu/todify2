@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { projectModel } from '../models';
 import { CreateProjectDTO, UpdateProjectDTO, ProjectStatus, ProjectType } from '../types/database';
+import { ChatMessageService } from '../services/ChatMessageService';
 
 export class ProjectController {
   /**
@@ -91,10 +92,14 @@ export class ProjectController {
       });
     } catch (error) {
       console.error('Get project details error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       res.status(500).json({
         success: false,
         message: '获取项目详情失败',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        ...(process.env.NODE_ENV !== 'production' && {
+          stack: error instanceof Error ? error.stack : undefined
+        })
       });
     }
   }
@@ -449,6 +454,38 @@ export class ProjectController {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '删除项目失败'
+      });
+    }
+  }
+
+  /**
+   * 获取项目的对话记录列表
+   */
+  async getConversations(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: '无效的项目ID'
+        });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      const conversations = await ChatMessageService.getConversationsByProjectId(id, limit, offset);
+
+      res.json({
+        success: true,
+        data: conversations,
+        message: '获取项目对话记录成功'
+      });
+    } catch (error) {
+      console.error('Get project conversations error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '获取项目对话记录失败'
       });
     }
   }

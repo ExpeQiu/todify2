@@ -8,7 +8,7 @@ import RecentProjectList from '../components/project/RecentProjectList';
 import NewProjectModal from '../components/project/NewProjectModal';
 import NewProjectCard from '../components/project/NewProjectCard';
 import ProjectCard from '../components/project/ProjectCard';
-import { Plus, List, Grid, ChevronDown, Search, User, Settings } from 'lucide-react';
+import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database } from 'lucide-react';
 
 type TabType = 'all' | 'my' | 'featured';
 
@@ -93,8 +93,8 @@ const HomePage: React.FC = () => {
   const handleProjectClick = async (project: Project) => {
     // 更新最后打开时间
     await projectService.updateLastOpenedAt(project.id);
-    // 导航到项目资源管理页面，并传递当前标签页作为返回时的上下文
-    navigate(`/project/${project.id}/resources`, { state: { fromTab: activeTab } });
+    // 导航到项目独立管理页面（左侧展示关联资源，右侧展示对话记录）
+    navigate(`/project/${project.id}/management`, { state: { fromTab: activeTab } });
   };
 
   const handleProjectMenuClick = (e: React.MouseEvent, project: Project) => {
@@ -254,6 +254,16 @@ const HomePage: React.FC = () => {
                     />
                     {/* 下拉菜单内容 */}
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      <button
+                        onClick={() => {
+                          navigate('/source-management');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <Database className="w-4 h-4" />
+                        <span>来源管理</span>
+                      </button>
                       <button
                         onClick={() => {
                           navigate('/ai-roles');

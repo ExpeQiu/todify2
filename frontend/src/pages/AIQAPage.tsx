@@ -7,7 +7,7 @@ import BaseAISearchPage from "../components/ai-search/BaseAISearchPage";
 import { aiQaConfig } from "../configs/pageConfigs";
 
 const AIQAPage: React.FC = () => {
-  return <BaseAISearchPage config={aiQaConfig} />;
+  return <BaseAISearchPage key="ai-qa" config={aiQaConfig} />;
 };
 
 export default AIQAPage;

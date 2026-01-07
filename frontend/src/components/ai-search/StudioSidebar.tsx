@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings, MessageSquare, Trash2 } from "lucide-react";
+import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings, MessageSquare, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
 import { OutputContent, Conversation, Message } from "../../types/aiSearch";
@@ -18,6 +18,9 @@ interface StudioSidebarProps {
   enabledToolIds?: string[]; // 启用的工具ID列表
   pageType?: string; // 当前页面类型，用于跳转到字段映射管理页面时过滤
   onDeleteConversation?: (id: string) => void; // 删除对话的回调
+  onClose?: () => void; // 关闭边栏的回调
+  currentConversationId?: string; // 当前选中的对话ID
+  onSelectConversation?: (conversation: Conversation) => void; // 选择对话的回调
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -33,6 +36,9 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   enabledToolIds,
   pageType,
   onDeleteConversation,
+  onClose,
+  currentConversationId,
+  onSelectConversation,
 }) => {
   const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -72,8 +78,12 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   };
 
   const handleConversationClick = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-    setShowDetailModal(true);
+    if (onSelectConversation) {
+      onSelectConversation(conversation);
+    } else {
+      setSelectedConversation(conversation);
+      setShowDetailModal(true);
+    }
   };
 
   const handleDeleteClick = (e: React.MouseEvent, conversationId: string) => {
@@ -172,80 +182,125 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
-      {/* 标题 */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
-        <div className="flex-1 flex flex-col justify-center">
-          <h2 className="text-lg font-semibold text-gray-900">{studioTitle}</h2>
-          {statusMessage ? (
-            <p className="text-xs text-gray-500 mt-1">{statusMessage}</p>
-          ) : (
-            <div className="text-xs text-transparent mt-1">占位</div>
+      {/* 标题 - 仅在有工具时显示 */}
+      {toolItems.length > 0 && (
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-900">{studioTitle}</h2>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  title="关闭"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              )}
+            </div>
+            {statusMessage ? (
+              <p className="text-xs text-gray-500 mt-1">{statusMessage}</p>
+            ) : (
+              <div className="text-xs text-transparent mt-1">占位</div>
+            )}
+          </div>
+          {onShowFieldMappingConfig && (
+            <button
+              onClick={() => {
+                // 传递当前 pageType 到字段映射管理页面，用于过滤显示
+                navigate(`/field-mapping-management${pageType ? `?pageType=${pageType}` : ''}`);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
+              title="字段映射管理"
+            >
+              <Settings className="w-4 h-4" />
+              字段映射
+            </button>
           )}
         </div>
-        {onShowFieldMappingConfig && (
-          <button
-            onClick={() => {
-              // 传递当前 pageType 到字段映射管理页面，用于过滤显示
-              navigate(`/field-mapping-management${pageType ? `?pageType=${pageType}` : ''}`);
-            }}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
-            title="字段映射管理"
-          >
-            <Settings className="w-4 h-4" />
-            字段映射
-          </button>
-        )}
-      </div>
+      )}
 
-      {/* 工具网格 */}
-      <div className="p-4 border-b border-gray-200">
-        <StudioTools
-          items={toolItems}
-          onTrigger={onTriggerFeature}
-          executingId={executingFeatureId}
-        />
-      </div>
+      {/* 工具网格 - 仅在有工具时显示 */}
+      {toolItems.length > 0 && (
+        <div className="p-4 border-b border-gray-200">
+          <StudioTools
+            items={toolItems}
+            onTrigger={onTriggerFeature}
+            executingId={executingFeatureId}
+          />
+        </div>
+      )}
 
       {/* 对话记录 */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">对话记录</h3>
-          {conversations.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              暂无对话记录
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        {/* 当没有工具时，在顶部显示对话记录标题 */}
+        {toolItems.length === 0 && (
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">对话记录</h2>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  title="关闭"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              )}
             </div>
-          ) : (
-            <div className="space-y-2">
-              {conversations.map((conversation) => {
-                const firstQuestion = getFirstQuestion(conversation);
-                const messageCount = conversation.messages?.length || 0;
-                return (
-                  <div
-                    key={conversation.id}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
-                    onClick={() => handleConversationClick(conversation)}
-                  >
-                    <MessageSquare className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 truncate">{firstQuestion}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {messageCount} 条消息 · {formatDaysAgo(conversation.updatedAt)}
-                      </p>
+          </div>
+        )}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            {toolItems.length > 0 && (
+              <h3 className="text-sm font-medium text-gray-700 mb-3">对话记录</h3>
+            )}
+            {conversations.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-sm">
+                暂无对话记录
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {conversations.map((conversation) => {
+                  const firstQuestion = getFirstQuestion(conversation);
+                  const messageCount = conversation.messages?.length || 0;
+                  const isCurrent = currentConversationId === conversation.id;
+                  return (
+                    <div
+                      key={conversation.id}
+                      className={`flex items-start gap-3 p-3 rounded-lg transition-colors group cursor-pointer ${
+                        isCurrent
+                          ? "bg-blue-50 border border-blue-200"
+                          : "hover:bg-gray-50 border border-transparent"
+                      }`}
+                      onClick={() => handleConversationClick(conversation)}
+                    >
+                      <MessageSquare className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        isCurrent ? "text-blue-600" : "text-gray-400"
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm truncate ${
+                          isCurrent ? "text-blue-900 font-medium" : "text-gray-900"
+                        }`}>{firstQuestion}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {messageCount} 条消息 · {formatDaysAgo(conversation.updatedAt)}
+                        </p>
+                      </div>
+                      {onDeleteConversation && (
+                        <button
+                          onClick={(e) => handleDeleteClick(e, conversation.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 rounded transition-all flex-shrink-0"
+                          title="删除对话"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </button>
+                      )}
                     </div>
-                    {onDeleteConversation && (
-                      <button
-                        onClick={(e) => handleDeleteClick(e, conversation.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 rounded transition-all flex-shrink-0"
-                        title="删除对话"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

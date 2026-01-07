@@ -7,7 +7,7 @@ import BaseAISearchPage from "../components/ai-search/BaseAISearchPage";
 import { pressReleaseConfig } from "../configs/pageConfigs";
 
 const PressReleasePage: React.FC = () => {
-  return <BaseAISearchPage config={pressReleaseConfig} />;
+  return <BaseAISearchPage key="press-release" config={pressReleaseConfig} />;
 };
 
 export default PressReleasePage;

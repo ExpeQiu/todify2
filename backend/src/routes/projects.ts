@@ -16,6 +16,7 @@ router.get('/featured', projectController.getFeatured.bind(projectController));
 router.get('/recent', projectController.getRecent.bind(projectController));
 router.get('/:id', projectController.getById.bind(projectController));
 router.get('/:id/details', projectController.getProjectDetails.bind(projectController));
+router.get('/:id/conversations', projectController.getConversations.bind(projectController));
 router.put('/:id', projectController.update.bind(projectController));
 router.put('/:id/last-opened', projectController.updateLastOpenedAt.bind(projectController));
 router.post('/:id/relations', projectController.addProjectRelation.bind(projectController));

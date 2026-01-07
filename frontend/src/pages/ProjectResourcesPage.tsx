@@ -19,7 +19,11 @@ import { configService } from '../services/configService';
 import sourceService, { Source, SourceCategory, SourceInformation } from '../services/sourceService';
 import { AIRoleConfig } from '../types/aiRole';
 import aiRoleService from '../services/aiRoleService';
-import TopNavigation from '../components/TopNavigation';
+import ResourceManagementPanel from '../components/ResourceManagementPanel';
+import EmbeddedAIQAPage from '../components/embedded-pages/EmbeddedAIQAPage';
+import EmbeddedTechPackagePage from '../components/embedded-pages/EmbeddedTechPackagePage';
+import EmbeddedTechStrategyPage from '../components/embedded-pages/EmbeddedTechStrategyPage';
+import EmbeddedTechArticlePage from '../components/embedded-pages/EmbeddedTechArticlePage';
 
 const ProjectResourcesPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -62,6 +66,28 @@ const ProjectResourcesPage: React.FC = () => {
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
   const [roleConnectionStatus, setRoleConnectionStatus] = useState<boolean | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
+
+  // Tab导航状态
+  type TabType = 'ai-qa' | 'tech-package' | 'tech-strategy' | 'tech-article';
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (!projectId) return 'ai-qa';
+    try {
+      const stored = localStorage.getItem(`project-${projectId}-activeTab`);
+      if (stored && ['ai-qa', 'tech-package', 'tech-strategy', 'tech-article'].includes(stored)) {
+        return stored as TabType;
+      }
+    } catch (error) {
+      console.error('恢复Tab状态失败:', error);
+    }
+    return 'ai-qa';
+  });
+
+  // 保存Tab状态到localStorage
+  useEffect(() => {
+    if (projectId && activeTab) {
+      localStorage.setItem(`project-${projectId}-activeTab`, activeTab);
+    }
+  }, [activeTab, projectId]);
 
   // 加载AI角色列表
   useEffect(() => {
@@ -1292,7 +1318,8 @@ ${conversationContent}
           url: uploadedFile.url,
           description: description,
           page_type: pageType,
-          conversation_id: null
+          conversation_id: null,
+          project_id: projectId ? Number(projectId) : null  // 明确传递 project_id
         };
         
         console.log('[文件上传] 创建来源信息:', sourceData);
@@ -1302,7 +1329,8 @@ ${conversationContent}
           const response = await api.post('/source-information', sourceData);
           
           if (!response.data || !response.data.success) {
-            throw new Error(response.data?.error || response.data?.message || '创建来源信息失败');
+            const errorMsg = typeof response.data?.error === 'string' ? response.data.error : response.data?.message || '创建来源信息失败';
+            throw new Error(errorMsg);
           }
           
           console.log('[文件上传] 来源信息创建成功:', response.data);
@@ -2221,770 +2249,113 @@ ${truncatedText}`;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNavigation />
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
       {/* 头部 */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => {
-                    const fromTab = (location.state as any)?.fromTab;
-                    if (fromTab) {
-                      navigate(`/?tab=${fromTab}`);
-                    } else {
-                      navigate('/');
-                    }
-                  }}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  ← 返回
-                </button>
-                <div>
-                  <h1 className="text-xl font-semibold text-gray-900">{project.name}</h1>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                    <span>{formatDate(project.created_at)}</span>
-                    <span>{sources.length}个来源</span>
-                  </div>
+      <div className="bg-white border-b border-gray-200 z-40 shadow-sm flex-shrink-0">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          {/* 第一行：返回按钮、项目信息和Tab导航 */}
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-6">
+              <button
+                onClick={() => {
+                  const fromTab = (location.state as any)?.fromTab;
+                  if (fromTab) {
+                    navigate(`/?tab=${fromTab}`);
+                  } else {
+                    navigate('/');
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium"
+              >
+                <span className="text-lg">←</span>
+                <span>返回</span>
+              </button>
+              <div className="h-12 w-px bg-gray-200"></div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">{project.name}</h1>
+                <div className="flex items-center space-x-5 text-sm text-gray-500">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                    {formatDate(project.created_at)}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" />
+                    {sources.length}个来源
+                  </span>
                 </div>
               </div>
+            </div>
+            
+            {/* Tab导航按钮 - 放置在右侧 */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setActiveTab('ai-qa')}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                  activeTab === 'ai-qa'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Brain className="w-4 h-4" />
+                  <span>AI问答助手</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('tech-strategy')}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                  activeTab === 'tech-strategy'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Target className="w-4 h-4" />
+                  <span>技术策略</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('tech-package')}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                  activeTab === 'tech-package'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Package className="w-4 h-4" />
+                  <span>技术包装</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('tech-article')}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                  activeTab === 'tech-article'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Newspaper className="w-4 h-4" />
+                  <span>技术通稿</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 内容区域 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tab 入口 */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="flex space-x-4 h-12" aria-label="Tabs">
-            {/* AI共创 Tab */}
-            <button
-              onClick={handleSwitchToAICreation}
-              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors h-full ${
-                !showHistoryView
-                  ? 'border-green-600 text-green-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Brain className={`w-5 h-5 ${!showHistoryView ? 'text-green-600' : 'text-gray-400'}`} />
-              <span>AI共创</span>
-            </button>
-
-            {/* 历史记录 Tab */}
-            <button
-              onClick={handleSwitchToHistory}
-              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors h-full ${
-                showHistoryView
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <History className={`w-5 h-5 ${showHistoryView ? 'text-blue-600' : 'text-gray-400'}`} />
-              <span>历史记录</span>
-            </button>
-          </nav>
-        </div>
-
-        {showHistoryView ? (
-          /* 历史记录视图 */
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            {historyLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">加载中...</span>
-              </div>
-            ) : (() => {
-              const grouped = groupedHistoryRecords();
-              const categoryOrder = ['ai-qa-summary', 'tech-package-qa', 'tech-strategy-qa', 'tech-article-qa', 'technical-translation'];
-              const hasRecords = categoryOrder.some(cat => grouped[cat] && grouped[cat].length > 0);
-
-              if (!hasRecords) {
-                return (
-                  <div className="text-center py-12 text-gray-500">
-                    <History className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>暂无历史记录</p>
-                    <p className="text-sm mt-2">开始使用AI问答、技术包装、技术策略或技术通稿功能，历史记录将显示在这里</p>
-                    <button
-                      onClick={handleSwitchToAICreation}
-                      className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                    >
-                      开始AI共创
-                    </button>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="space-y-6">
-                  {categoryOrder.map(category => {
-                    const records = grouped[category] || [];
-                    if (records.length === 0) return null;
-
-                    const categoryName = getCategoryDisplayName(category as SourceCategory);
-                    const Icon = getCategoryIcon(category as SourceCategory);
-
-                    return (
-                      <div key={category} className="border border-gray-200 rounded-lg">
-                        {/* 分类标题 */}
-                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center space-x-2">
-                          <div className="text-blue-600">{Icon}</div>
-                          <h3 className="text-lg font-semibold text-gray-900">{categoryName}</h3>
-                          <span className="ml-2 text-sm text-gray-500">({records.length})</span>
-                        </div>
-
-                        {/* 记录列表 */}
-                        <div className="divide-y divide-gray-200">
-                          {records.map((record) => (
-                            <div
-                              key={record.id}
-                              className="p-4 hover:bg-gray-50 transition-colors"
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-medium text-gray-900 mb-1">
-                                    {record.title}
-                                  </h4>
-                                  {record.description && (
-                                    <div className="text-xs text-gray-600 mb-2 line-clamp-3">
-                                      {record.description.length > 200
-                                        ? record.description.substring(0, 200) + '...'
-                                        : record.description}
-                                    </div>
-                                  )}
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                    <span>{formatDate(record.created_at)}</span>
-                                    {record.url && (
-                                      <a
-                                        href={record.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-800 truncate max-w-xs"
-                                      >
-                                        {record.url}
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  {/* 提炼为技术点按钮 */}
-                                  {getSourceCategory(record) === 'ai-qa-summary' && (
-                                    <button
-                                      onClick={() => handleExtractTechPoint(record)}
-                                      disabled={extractingTechPoint}
-                                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
-                                      title="提炼为技术点"
-                                    >
-                                      {extractingTechPoint && extractingSourceId === record.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        <Sparkles className="w-4 h-4" />
-                                      )}
-                                    </button>
-                                  )}
-                                  {/* 删除按钮 */}
-                                  <button
-                                    onClick={async () => {
-                                      if (confirm('确定要删除这条历史记录吗？')) {
-                                        await handleDeleteSource(record.id);
-                                        // 删除后重新加载历史记录，但不自动切换视图
-                                        await loadHistoryRecords();
-                                        await checkHistoryRecords(false);
-                                      }
-                                    }}
-                                    className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
-        ) : (
-          /* AI共创视图 */
-          <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-stretch">
-          {/* 左侧：AI问答 */}
-          <div className="lg:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
-              {/* AI问答头部 */}
-              <div className="mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">AI问答助手</h2>
-                      <p className="text-sm text-gray-500">基于项目资源进行智能问答</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {currentRoleName ? (
-                      <button
-                        onClick={() => setShowRoleSelector(true)}
-                        className={`px-3 py-1.5 text-sm rounded-md transition-colors flex items-center gap-2 ${
-                          testingConnection
-                            ? 'bg-gray-100 text-gray-600 border border-gray-300'
-                            : roleConnectionStatus === true
-                            ? 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100'
-                            : roleConnectionStatus === false
-                            ? 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
-                            : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
-                        }`}
-                        title={testingConnection ? '测试连接中...' : roleConnectionStatus === true ? '连接正常' : roleConnectionStatus === false ? '连接异常' : '配置AI角色'}
-                        disabled={testingConnection}
-                      >
-                        {testingConnection ? (
-                          <>
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            <span>测试中...</span>
-                          </>
-                        ) : (
-                          <>
-                            <div className={`w-2 h-2 rounded-full ${
-                              roleConnectionStatus === true
-                                ? 'bg-green-500'
-                                : roleConnectionStatus === false
-                                ? 'bg-red-500'
-                                : 'bg-gray-400'
-                            }`} />
-                            <span>{currentRoleName}</span>
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setShowRoleSelector(true)}
-                        className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-gray-700"
-                        title="配置AI角色"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 消息区域 */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-                {aiMessages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-center">
-                    <div className="text-gray-400">
-                      <Bot className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">开始与AI助手对话吧</p>
-                      <p className="text-xs mt-2 text-gray-400">AI将基于您已选择的技术点、文件和知识库进行回答</p>
-                    </div>
-                  </div>
-                ) : (
-                  aiMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`flex items-start gap-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
-                      >
-                        {/* 头像 */}
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            message.sender === 'user'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-blue-100 text-blue-600'
-                          }`}
-                        >
-                          {message.sender === 'user' ? (
-                            <User className="w-4 h-4" />
-                          ) : (
-                            <Bot className="w-4 h-4" />
-                          )}
-                        </div>
-
-                        {/* 消息内容 */}
-                        <div
-                            className={`px-4 py-3 rounded-2xl shadow-sm ${
-                              message.sender === 'user'
-                                ? 'bg-blue-500 text-white rounded-br-md'
-                                : 'bg-gray-50 border border-gray-200 rounded-tl-md'
-                            }`}
-                          >
-                            {message.sender === 'user' ? (
-                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                            ) : (
-                              <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {message.content}
-                                </ReactMarkdown>
-                              </div>
-                            )}
-                            <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
-                              {message.timestamp.toLocaleTimeString()}
-                            </div>
-                          </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-
-                {/* 加载状态 */}
-                {aiLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-md px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                          <span className="text-sm text-gray-600">AI正在思考中...</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={aiMessagesEndRef} />
-              </div>
-
-              {/* 输入区域 */}
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={aiInputMessage}
-                    onChange={(e) => setAiInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !aiLoading && aiInputMessage.trim()) {
-                        handleAISendMessage();
-                      }
-                    }}
-                    placeholder="请输入您的问题..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={aiLoading}
-                  />
-                  <button
-                    onClick={handleAISendMessage}
-                    disabled={!aiInputMessage.trim() || aiLoading}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center min-w-[48px]"
-                  >
-                    {aiLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 右侧：已关联技术信息 */}
-          <div className="lg:col-span-4 space-y-6 flex flex-col">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">已关联技术信息</h2>
-              
-              {/* 已选择的技术点 */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                    <Check className="w-4 h-4 mr-2" />
-                    已选择技术点 ({configuredResources.techPoints.length})
-                  </h3>
-                  <button
-                    onClick={() => {
-                      // 跳转到技术点库页面进行选择
-                      const returnUrl = `/project/${projectId}/resources`;
-                      const selectedIds = selectedTechPoints.join(',');
-                      navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${selectedIds}`);
-                    }}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="追加技术点"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {configuredResources.techPoints.length === 0 ? (
-                    <div 
-                      onClick={() => {
-                        // 跳转到技术点库页面进行选择
-                        const returnUrl = `/project/${projectId}/resources`;
-                        const selectedIds = selectedTechPoints.join(',');
-                        navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${selectedIds}`);
-                      }}
-                      className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      暂无已选择的技术点（点击选择）
-                    </div>
-                  ) : (
-                    configuredResources.techPoints.map((techPoint) => (
-                      <div
-                        key={techPoint.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {techPoint.name}
-                          </h4>
-                          {techPoint.description && (
-                            <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                              {techPoint.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <button
-                            onClick={() => {
-                              if (confirm(`确定要移除技术点"${techPoint.name}"吗？`)) {
-                                toggleTechPoint(techPoint.id);
-                              }
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* 已上传的文件 */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    已上传文件 ({configuredResources.files.length})
-                  </h3>
-                  <button
-                    onClick={() => setShowFileUploadModal(true)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="追加文件"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {configuredResources.files.length === 0 ? (
-                    <div 
-                      onClick={() => setShowFileUploadModal(true)}
-                      className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      暂无已上传的文件（点击上传）
-                    </div>
-                  ) : (
-                    configuredResources.files.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <h4 className="text-sm font-medium text-gray-900 truncate">
-                              {file.title}
-                            </h4>
-                          </div>
-                          {file.description && (
-                            <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                              {file.description}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(file.created_at)}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <button
-                            onClick={async () => {
-                              if (confirm(`确定要删除文件"${file.title}"吗？`)) {
-                                await handleDeleteSource(file.id);
-                              }
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* 已选择的知识点 */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                    <Check className="w-4 h-4 mr-2" />
-                    已选择知识点 ({ragKnowledgeItems.length + manualKnowledgeItems.length})
-                  </h3>
-                  <button
-                    onClick={handleOpenPublicKnowledgeModal}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="添加知识库"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {ragKnowledgeItems.length === 0 && manualKnowledgeItems.length === 0 ? (
-                    <div
-                      onClick={handleOpenPublicKnowledgeModal}
-                      className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      暂无知识库（点击添加）
-                    </div>
-                  ) : (
-                    <>
-                      {/* RAG知识库知识（自动提取） */}
-                      {ragKnowledgeItems.map((item) => (
-                        <div
-                          key={`rag_${item.document_id}_${item.segment_id}`}
-                          className="flex items-start justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-200"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full">RAG</span>
-                              <h4 className="text-sm font-medium text-gray-900 truncate">
-                                {item.document_name}
-                              </h4>
-                            </div>
-                            {item.content && (
-                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                                {item.content}
-                              </p>
-                            )}
-                            {item.score !== undefined && (
-                              <p className="text-xs text-gray-400 mt-1">
-                                匹配度: {(item.score * 100).toFixed(1)}%
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-1 ml-2">
-                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          </div>
-                        </div>
-                      ))}
-                      {/* 手动选择的知识库 */}
-                      {manualKnowledgeItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full">
-                                {item.type === 'public_kb' ? '公共知识库' : '知识点'}
-                              </span>
-                              <h4 className="text-sm font-medium text-gray-900 truncate">
-                                {item.title}
-                              </h4>
-                            </div>
-                            {item.content && (
-                              <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                                {item.content}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-1 ml-2">
-                            <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                            <button
-                              onClick={async () => {
-                                if (confirm(`确定要移除"${item.title}"吗？`)) {
-                                  if (item.type === 'public_kb') {
-                                    // 移除公共知识库文件：item.id格式是 public_kb_${source.id}
-                                    const sourceId = parseInt(item.id.replace('public_kb_', ''));
-                                    if (!isNaN(sourceId)) {
-                                      // 直接删除source
-                                      const success = await handleDeleteSource(sourceId);
-                                      if (success) {
-                                        // 重新加载来源列表以更新显示
-                                        await loadSources();
-                                      }
-                                    }
-                                  } else {
-                                    // 移除知识点：知识点不存储在sources中，只需要从选中列表中移除
-                                    const kpId = parseInt(item.id.replace('knowledge_point_', ''));
-                                    if (!isNaN(kpId)) {
-                                      toggleKnowledgePoint(kpId);
-                                    }
-                                  }
-                                }
-                              }}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              title="删除"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* 互联网信息点 */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    互联网信息点 ({configuredResources.internetInfo.length})
-                  </h3>
-                  <button
-                    onClick={() => setShowInternetInfoModal(true)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="追加互联网信息"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {configuredResources.internetInfo.length === 0 ? (
-                    <div 
-                      onClick={() => setShowInternetInfoModal(true)}
-                      className="text-center text-gray-400 py-4 text-sm cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      暂无互联网信息点（点击添加）
-                    </div>
-                  ) : (
-                    configuredResources.internetInfo.map((info) => (
-                      <div
-                        key={info.id}
-                        className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <h4 className="text-sm font-medium text-gray-900 truncate">
-                              {info.title}
-                            </h4>
-                          </div>
-                          {info.url && (
-                            <a
-                              href={info.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:text-blue-800 truncate block mt-1"
-                            >
-                              {info.url}
-                            </a>
-                          )}
-                          {info.description && (
-                            <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                              {info.description}
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(info.created_at)}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <button
-                            onClick={async () => {
-                              if (confirm(`确定要删除互联网信息"${info.title}"吗？`)) {
-                                await handleDeleteSource(info.id);
-                              }
-                            }}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* 分割线和技术转译按钮 */}
-              <div className="mb-6 pt-6 border-t border-gray-200">
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleTechnicalTranslation}
-                    disabled={isTranslating}
-                    className="flex-1 px-4 py-3 bg-blue-100 hover:bg-blue-200 disabled:bg-gray-400 text-blue-700 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <FileCode className="w-5 h-5" />
-                    <span>{isTranslating ? '转译中...' : '技术转译'}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setReviewContent(translatedContent);
-                      setShowReviewModal(true);
-                    }}
-                    disabled={!translatedContent || isTranslating}
-                    className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Eye className="w-5 h-5" />
-                    <span>审查</span>
-                  </button>
-                </div>
-                {translatedContent && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">转译结果：</h4>
-                    <div className="max-h-96 overflow-y-auto">
-                      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                        {translatedContent}
-                      </pre>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(translatedContent);
-                        alert('内容已复制到剪贴板');
-                      }}
-                      className="mt-3 px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                    >
-                      复制内容
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 进入AI辅助共创功能框 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">进入AI辅助共创：</h2>
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleNavigateToAIPage('tech-package')}
-                  disabled={isSummarizingConversation || navigatingTarget !== null}
-                  className="w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700 rounded-lg font-medium transition-colors text-left flex items-center justify-between"
-                >
-                  <span>技术包装</span>
-                  {navigatingTarget === 'tech-package' && <Loader2 className="w-4 h-4 animate-spin" />}
-                </button>
-                <button
-                  onClick={() => handleNavigateToAIPage('tech-strategy')}
-                  disabled={isSummarizingConversation || navigatingTarget !== null}
-                  className="w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 text-blue-700 rounded-lg font-medium transition-colors text-left flex items-center justify-between"
-                >
-                  <span>技术策略</span>
-                  {navigatingTarget === 'tech-strategy' && <Loader2 className="w-4 h-4 animate-spin" />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Tab内容区域 */}
+      <div className="flex-1 overflow-hidden">
+        {projectId && (
+          <>
+            {activeTab === 'ai-qa' && <EmbeddedAIQAPage projectId={projectId} />}
+            {activeTab === 'tech-package' && <EmbeddedTechPackagePage projectId={projectId} />}
+            {activeTab === 'tech-strategy' && <EmbeddedTechStrategyPage projectId={projectId} />}
+            {activeTab === 'tech-article' && <EmbeddedTechArticlePage projectId={projectId} />}
+          </>
         )}
       </div>
-
 
       {/* 上传文件弹窗 */}
       {showFileUploadModal && (

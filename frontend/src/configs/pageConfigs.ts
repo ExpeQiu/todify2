@@ -141,17 +141,8 @@ export const aiQaConfig: PageConfig = {
     "ppt-outline": "技术讲稿",
     script: "脚本",
   },
-  // AI问答页面保留所有工具，可根据需要定制
-  enabledToolIds: [
-    'five-view-analysis',
-    'three-fix-analysis',
-    'tech-matrix',
-    'propagation-strategy',
-    'exhibition-video',
-    'translation',
-    'ppt-outline',
-    'script',
-  ],
+  // AI问答页面不需要工具箱，只保留对话功能
+  enabledToolIds: [],
 };
 
 // 根据页面类型获取配置

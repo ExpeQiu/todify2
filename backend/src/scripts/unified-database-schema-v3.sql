@@ -374,10 +374,12 @@ CREATE TABLE IF NOT EXISTS conversations (
     user_id TEXT, -- 用户标识
     session_name TEXT, -- 会话名称
     app_type TEXT NOT NULL, -- AI应用类型 (ai-search, tech-package等)
+    project_id INTEGER, -- 关联的项目ID（用于项目隔离）
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
     metadata TEXT, -- JSON格式存储额外信息
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 );
 
 -- 聊天消息表

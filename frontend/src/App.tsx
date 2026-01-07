@@ -2,15 +2,22 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
+import TechStrategyPage from "./pages/TechStrategyPage";
 import TechArticlePage from "./pages/TechArticlePage";
 import AIQAPage from "./pages/AIQAPage";
 import HomePage from "./pages/HomePage";
 import ProjectResourcesPage from "./pages/ProjectResourcesPage";
+import ProjectManagementPage from "./pages/ProjectManagementPage";
+import ProjectAIQAPage from "./pages/ProjectAIQAPage";
+import ProjectTechStrategyPage from "./pages/ProjectTechStrategyPage";
+import ProjectTechPackagePage from "./pages/ProjectTechPackagePage";
+import ProjectTechArticlePage from "./pages/ProjectTechArticlePage";
 import TechPointLibraryPage from "./pages/TechPointLibraryPage";
 import TechPointLibraryDetailPage from "./pages/TechPointLibraryDetailPage";
 import PublicKnowledgePage from "./pages/PublicKnowledge";
 import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 import BrainstormPage from "./pages/BrainstormPage";
+import SourceManagementPage from "./pages/SourceManagementPage";
 
 function App() {
   return (
@@ -30,40 +37,60 @@ function App() {
           />
 
           <Route
-            path="/ai-qa"
-            element={<AIQAPage />}
-          />
-
-          <Route
             path="/ai-roles"
             element={<AIRoleManagementPage />}
           />
 
-          {/* 标准独立页面路由 */}
+          {/* 向后兼容的路由重定向 - 旧路由重定向到首页 */}
+          <Route
+            path="/ai-qa"
+            element={<Navigate to="/" replace />}
+          />
           <Route
             path="/tech-package"
-            element={<TechPackagePage />}
+            element={<Navigate to="/" replace />}
           />
-
           <Route
             path="/tech-strategy"
-            element={<BrainstormPage />}
+            element={<Navigate to="/" replace />}
           />
-
           <Route
             path="/tech-article"
-            element={<TechArticlePage />}
+            element={<Navigate to="/" replace />}
           />
-
-          {/* 向后兼容的路由重定向 */}
           <Route
             path="/ai-search"
-            element={<Navigate to="/tech-package" replace />}
+            element={<Navigate to="/" replace />}
           />
 
           <Route
             path="/project/:projectId/resources"
             element={<ProjectResourcesPage />}
+          />
+
+          <Route
+            path="/project/:projectId/management"
+            element={<ProjectManagementPage />}
+          />
+
+          <Route
+            path="/project/:projectId/ai-qa"
+            element={<ProjectAIQAPage />}
+          />
+
+          <Route
+            path="/project/:projectId/tech-strategy"
+            element={<ProjectTechStrategyPage />}
+          />
+
+          <Route
+            path="/project/:projectId/tech-package"
+            element={<ProjectTechPackagePage />}
+          />
+
+          <Route
+            path="/project/:projectId/tech-article"
+            element={<ProjectTechArticlePage />}
           />
 
           <Route
@@ -89,6 +116,11 @@ function App() {
           <Route
             path="/brainstorm"
             element={<BrainstormPage />}
+          />
+
+          <Route
+            path="/source-management"
+            element={<SourceManagementPage />}
           />
         </Routes>
       </div>

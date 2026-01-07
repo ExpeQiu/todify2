@@ -26,6 +26,7 @@ interface SourceSidebarProps {
   projectId?: number;  // 关联的项目ID（可选）
   currentConversation?: Conversation | null;
   onSummarizeAndNavigate?: (targetPageType: 'tech-strategy' | 'tech-article') => Promise<string | null>;
+  onClose?: () => void; // 关闭边栏的回调
 }
 
 // 获取来源类别的显示信息
@@ -86,6 +87,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   projectId,
   currentConversation,
   onSummarizeAndNavigate,
+  onClose,
 }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -210,7 +212,18 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
       {/* 标题和操作按钮 */}
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">来源</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-gray-900">来源</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="关闭"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
+        </div>
         <div className="flex gap-2">
           <button
             onClick={handleAddSource}

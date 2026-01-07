@@ -32,6 +32,7 @@ export class SourceInformationService {
           description TEXT,
           page_type TEXT,
           conversation_id TEXT,
+          project_id INTEGER,
           metadata TEXT,
           status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
           created_by TEXT,
@@ -42,6 +43,7 @@ export class SourceInformationService {
         `CREATE INDEX IF NOT EXISTS idx_source_information_type ON source_information(type)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_page_type ON source_information(page_type)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_conversation_id ON source_information(conversation_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_source_information_project_id ON source_information(project_id)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_status ON source_information(status)`,
         `CREATE INDEX IF NOT EXISTS idx_source_information_created_at ON source_information(created_at)`,
         // 创建项目与来源信息关联表
@@ -70,6 +72,25 @@ export class SourceInformationService {
             continue;
           }
           throw error;
+        }
+      }
+      
+      // 检查并添加 project_id 字段（如果表已存在但缺少该字段）
+      try {
+        const tableInfo = await db.query(`PRAGMA table_info(source_information)`);
+        const columns = Array.isArray(tableInfo) ? tableInfo : [tableInfo];
+        const hasProjectId = columns.some((col: any) => col.name === 'project_id');
+        
+        if (!hasProjectId) {
+          console.log('检测到 source_information 表缺少 project_id 字段，正在添加...');
+          await db.query(`ALTER TABLE source_information ADD COLUMN project_id INTEGER`);
+          await db.query(`CREATE INDEX IF NOT EXISTS idx_source_information_project_id ON source_information(project_id)`);
+          console.log('成功添加 project_id 字段');
+        }
+      } catch (migrationError: any) {
+        // 如果字段已存在或其他错误，记录但不中断
+        if (!migrationError?.message?.includes('duplicate column')) {
+          console.warn('迁移 project_id 字段时出现警告:', migrationError?.message);
         }
       }
       
