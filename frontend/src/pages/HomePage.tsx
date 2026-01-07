@@ -8,7 +8,7 @@ import RecentProjectList from '../components/project/RecentProjectList';
 import NewProjectModal from '../components/project/NewProjectModal';
 import NewProjectCard from '../components/project/NewProjectCard';
 import ProjectCard from '../components/project/ProjectCard';
-import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database } from 'lucide-react';
+import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database, FileText } from 'lucide-react';
 
 type TabType = 'all' | 'my' | 'featured';
 
@@ -263,6 +263,16 @@ const HomePage: React.FC = () => {
                       >
                         <Database className="w-4 h-4" />
                         <span>来源管理</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/article-types');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>文章类型</span>
                       </button>
                       <button
                         onClick={() => {

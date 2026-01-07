@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Bot, Send, Paperclip, X, AlertCircle, RotateCcw, Loader2, Plus, Settings, Check, History } from "lucide-react";
+import { Bot, Send, X, AlertCircle, RotateCcw, Loader2, Plus, Settings, Check, History } from "lucide-react";
 import { Message, Conversation } from "../../types/aiSearch";
 import { Source } from "./SourceSidebar";
 import { aiSearchService } from "../../services/aiSearchService";
@@ -63,12 +63,10 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const lastSubmissionRef = useRef<{ content: string; files: File[] } | null>(null);
+  const lastSubmissionRef = useRef<{ content: string } | null>(null);
 
   // AI角色配置相关状态
   const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
@@ -160,11 +158,10 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     }
   };
 
-  const handleSend = async (override?: { content: string; files: File[] }) => {
+  const handleSend = async (override?: { content: string }) => {
     const draftContent = override?.content ?? query.trim();
-    const draftFiles = override?.files ?? selectedFiles;
 
-    if (!draftContent && draftFiles.length === 0) return;
+    if (!draftContent) return;
 
     let activeConversation = conversation;
 
@@ -200,8 +197,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
 
     try {
       const submission = {
-        content: draftContent || "已上传文件",
-        files: draftFiles,
+        content: draftContent,
       };
       lastSubmissionRef.current = submission;
 
@@ -230,7 +226,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       const response = await aiSearchService.sendMessage(activeConversation.id, {
         content: submission.content,
         sources: newSources, // 只传递新增的来源
-        files: submission.files,
         contextWindowSize,
         workflowId: workflowId || undefined,
         fileList: fileList,
@@ -287,10 +282,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       if (!override) {
         setQuery("");
       }
-      setSelectedFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     } catch (error: any) {
       console.error("发送消息失败:", error);
       setErrorMessage(error?.response?.data?.error || "发送消息失败，请稍后重试");
@@ -300,22 +291,6 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setSelectedFiles([...selectedFiles, ...newFiles]);
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
 
   const translateErrorMessage = (msg: string | null): string | null => {
     if (!msg) return null;
@@ -516,56 +491,9 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           </div>
         )}
 
-        {/* 已选择的文件 */}
-        {selectedFiles.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg"
-              >
-                <span className="text-sm text-gray-700 truncate max-w-[200px]">
-                  {file.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {formatFileSize(file.size)}
-                </span>
-                <button
-                  onClick={() => handleRemoveFile(index)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                >
-                  <X className="w-3 h-3 text-gray-500" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* 输入框和按钮 */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
-            />
-            {pageType !== 'tech-package' && pageType !== 'tech-strategy' && pageType !== 'tech-article' && (
-              <button
-                onClick={() => {
-                  fileInputRef.current?.click();
-                  onShowSourceSidebar?.();
-                  onHideSidebar?.();
-                }}
-                className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-                title="添加文件"
-              >
-                <Paperclip className="w-5 h-5" />
-              </button>
-            )}
-            
             <textarea
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -583,7 +511,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
 
             <button
               onClick={() => handleSend()}
-              disabled={isLoading || (!query.trim() && selectedFiles.length === 0)}
+              disabled={isLoading || !query.trim()}
               className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="发送"
             >

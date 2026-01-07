@@ -59,11 +59,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onMenuClick
           )}
         </div>
 
-        {/* 日期和来源数量 */}
+        {/* 日期和技术点数量 */}
         <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
-          <span>{formatDate(project.created_at)}</span>
+          <span>{formatDate(project.updated_at)}</span>
           <span className="flex items-center gap-1">
-            <span>{project.sourceCount || 0}个来源</span>
+            <span>{project.techPointCount || 0}个技术点</span>
           </span>
         </div>
       </div>

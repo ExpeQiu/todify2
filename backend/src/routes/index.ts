@@ -28,6 +28,7 @@ import pageToolConfigRouter from './pageToolConfig';
 import publicPageConfigRouter from './publicPageConfig';
 import workflowExecutionRouter from './workflowExecution';
 import brainstormRouter from './brainstorm';
+import articleTypesRouter from './articleTypes';
 
 const router = Router();
 
@@ -72,6 +73,7 @@ router.use('/page-tool-configs', pageToolConfigRouter);
 router.use('/public-page-configs', publicPageConfigRouter);
 router.use('/workflow-executions', workflowExecutionRouter);
 router.use('/brainstorm', brainstormRouter);
+router.use('/article-types', articleTypesRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

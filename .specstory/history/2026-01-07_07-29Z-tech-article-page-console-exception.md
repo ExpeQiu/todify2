@@ -2431,7 +2431,55 @@ Lint results
 
 <details><summary>Tool use: **search_replace** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/project/ProjectPageLayout.tsx</summary>
 
-Status: **loading**
+**Chunk 1**
+Lines added: 13, lines removed: 26
+
+```diff
+@@ -73,30 +73,17 @@
+      console.log('[ProjectPageLayout] 执行导航到:', targetPath);
+      
+-     // 尝试使用 navigate，如果失败则使用 window.location
+-     try {
+-       // 先尝试使用 React Router 的 navigate
+-       const navigationResult = navigate(targetPath, { replace: false });
+-       console.log('[ProjectPageLayout] navigate 调用完成，结果:', navigationResult);
+-       
+-       // 如果 navigate 返回 false（表示导航被阻止），使用 window.location
+-       if (navigationResult === false) {
+-         console.warn('[ProjectPageLayout] navigate 返回 false，使用 window.location');
+-         window.location.href = targetPath;
+-         return;
+-       }
+-       
+-       // 延迟检查 URL 是否真的变化了
+-       setTimeout(() =&gt; {
+-         if (window.location.pathname !== targetPath) {
+-           console.warn('[ProjectPageLayout] URL 未变化，使用 window.location 强制跳转');
+-           window.location.href = targetPath;
+-         } else {
+-           console.log('[ProjectPageLayout] URL 已成功变化');
+-         }
+-       }, 100);
+-     } catch (error) {
+-       console.error('[ProjectPageLayout] navigate 失败，使用 window.location:', error);
+-       window.location.href = targetPath;
+-     }
++     // 直接使用 navigate，React Router v6 应该能处理
++     navigate(targetPath, { replace: false });
++     console.log('[ProjectPageLayout] navigate 调用完成');
++     
++     // 延迟检查 URL 是否真的变化了，如果没有变化则使用 window.location 作为备选
++     setTimeout(() =&gt; {
++       if (window.location.pathname !== targetPath) {
++         console.warn('[ProjectPageLayout] URL 未变化，使用 window.location 强制跳转');
++         window.location.href = targetPath;
++       } else {
++         console.log('[ProjectPageLayout] URL 已成功变化:', window.location.pathname);
++       }
++     }, 150);
+    };
+  
+```
 
 </details>
 
@@ -2439,7 +2487,42 @@ Status: **loading**
 
 ---
 
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
 
+- `frontend/src/components/project/ProjectPageLayout.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+已更新导航逻辑：
+
+1. **直接调用 `navigate`**：先尝试使用 React Router 的 `navigate`
+2. **备选方案**：150ms 后检查 URL 是否变化，若未变化则使用 `window.location.href` 强制跳转
+3. **增强日志**：便于调试
+
+刷新页面后测试。如果 React Router 的 `navigate` 未生效，会自动使用 `window.location.href` 作为备选。
+
+如果问题仍在，请查看控制台日志，确认：
+- `navigate` 是否被调用
+- 150ms 后 URL 是否变化
+- 是否触发了 `window.location.href` 的备选方案
+
+这应能解决导航问题。
 
 ---
 

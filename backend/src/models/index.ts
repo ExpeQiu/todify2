@@ -8,6 +8,7 @@ import { TechPromotionStrategyModel } from './TechPromotionStrategy';
 import { TechPressReleaseModel } from './TechPressRelease';
 import { PublicKnowledgeModel } from './PublicKnowledge';
 import { BrainstormSessionModel, BrainstormParticipantModel, BrainstormMessageModel } from './Brainstorm';
+import { ArticleTypeModel } from './ArticleType';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例
@@ -22,6 +23,7 @@ export const publicKnowledgeModel = new PublicKnowledgeModel(db);
 export const brainstormSessionModel = new BrainstormSessionModel(db);
 export const brainstormParticipantModel = new BrainstormParticipantModel(db);
 export const brainstormMessageModel = new BrainstormMessageModel(db);
+export const articleTypeModel = new ArticleTypeModel(db);
 
 // 导出模型类
 export { TechCategoryModel } from './TechCategory';
@@ -33,6 +35,7 @@ export { TechPromotionStrategyModel } from './TechPromotionStrategy';
 export { TechPressReleaseModel } from './TechPressRelease';
 export { PublicKnowledgeModel } from './PublicKnowledge';
 export { BrainstormSessionModel, BrainstormParticipantModel, BrainstormMessageModel } from './Brainstorm';
+export { ArticleTypeModel } from './ArticleType';
 
 // 导出数据库管理器
 export { DatabaseManager } from '../config/database';

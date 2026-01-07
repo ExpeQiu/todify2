@@ -1,6 +1,8 @@
 import api from './api';
 import { techPointService } from './techPointService';
 import { knowledgePointService } from './knowledgePointService';
+import { agentWorkflowService } from './agentWorkflowService';
+import { Source } from '../components/ai-search/SourceSidebar';
 import {
   Conversation,
   Message,
@@ -10,7 +12,6 @@ import {
   CreateConversationRequest,
   SendMessageRequest,
   ApiResponse,
-  Source,
   FieldMappingConfig,
 } from '../types/aiSearch';
 
@@ -576,8 +577,12 @@ class AiSearchService {
       const allConversations: Conversation[] = [];
       await Promise.all(
         pageTypes.map(async (pageType) => {
-          const conversations = await this.getConversations(pageType);
-          allConversations.push(...conversations);
+          try {
+            const conversations = await this.getConversations(pageType);
+            allConversations.push(...conversations);
+          } catch (error) {
+            console.warn(`获取页面 ${pageType} 的对话列表失败:`, error);
+          }
         })
       );
       // 按更新时间排序
@@ -602,8 +607,12 @@ class AiSearchService {
       const allOutputs: OutputContent[] = [];
       await Promise.all(
         pageTypes.map(async (pageType) => {
-          const outputs = await this.getOutputs(undefined, pageType);
-          allOutputs.push(...outputs);
+          try {
+            const outputs = await this.getOutputs(undefined, pageType);
+            allOutputs.push(...outputs);
+          } catch (error) {
+            console.warn(`获取页面 ${pageType} 的输出内容失败:`, error);
+          }
         })
       );
       // 按创建时间排序

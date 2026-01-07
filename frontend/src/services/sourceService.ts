@@ -419,7 +419,9 @@ const sourceService = {
   }> {
     try {
       console.log('[SourceService] 加载项目来源信息:', projectId);
-      const response = await api.get(`/source-information/project/${projectId}`);
+      const response = await api.get(`/source-information`, {
+        params: { projectId }
+      });
       const resData = response.data as any;
       console.log('[SourceService] 加载响应:', {
         success: resData.success,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FileText, MessageSquare, Target, Package, Newspaper, FolderKanban } from 'lucide-react';
 import { Project } from '../../types/project';
 import sourceService from '../../services/sourceService';
@@ -45,47 +45,6 @@ const ProjectPageLayout: React.FC<ProjectPageLayoutProps> = ({
     });
   };
 
-  const handleNavigate = (page: 'management' | 'ai-qa' | 'tech-strategy' | 'tech-package' | 'tech-article', e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    const targetPath = `/project/${projectId}/${page === 'ai-qa' ? 'ai-qa' : page}`;
-    const currentPath = location.pathname;
-    
-    console.log('[ProjectPageLayout] 导航信息:', {
-      page,
-      projectId,
-      targetPath,
-      currentPath,
-      currentPage,
-      willNavigate: currentPath !== targetPath
-    });
-    
-    // 如果目标路径与当前路径相同，跳过
-    if (currentPath === targetPath) {
-      console.log('[ProjectPageLayout] 目标路径与当前路径相同，跳过导航');
-      return;
-    }
-    
-    // 强制导航，即使 currentPage 相同（因为可能 URL 已经变化但组件状态未更新）
-    console.log('[ProjectPageLayout] 执行导航到:', targetPath);
-    
-    // 直接使用 navigate，React Router v6 应该能处理
-    navigate(targetPath, { replace: false });
-    console.log('[ProjectPageLayout] navigate 调用完成');
-    
-    // 延迟检查 URL 是否真的变化了，如果没有变化则使用 window.location 作为备选
-    setTimeout(() => {
-      if (window.location.pathname !== targetPath) {
-        console.warn('[ProjectPageLayout] URL 未变化，使用 window.location 强制跳转');
-        window.location.href = targetPath;
-      } else {
-        console.log('[ProjectPageLayout] URL 已成功变化:', window.location.pathname);
-      }
-    }, 150);
-  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -127,76 +86,61 @@ const ProjectPageLayout: React.FC<ProjectPageLayoutProps> = ({
 
             {/* 右侧：页面导航按钮 */}
             <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={(e) => handleNavigate('management', e)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+              <Link
+                to={`/project/${projectId}/management`}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg flex items-center gap-1.5 ${
                   currentPage === 'management'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <FolderKanban className="w-4 h-4" />
-                  <span>项目管理</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleNavigate('ai-qa', e)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                <FolderKanban className="w-4 h-4" />
+                <span>项目管理</span>
+              </Link>
+              <Link
+                to={`/project/${projectId}/ai-qa`}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg flex items-center gap-1.5 ${
                   currentPage === 'ai-qa'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>AI问答</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleNavigate('tech-strategy', e)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                <MessageSquare className="w-4 h-4" />
+                <span>AI问答</span>
+              </Link>
+              <Link
+                to={`/project/${projectId}/tech-strategy`}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg flex items-center gap-1.5 ${
                   currentPage === 'tech-strategy'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <Target className="w-4 h-4" />
-                  <span>技术策略</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleNavigate('tech-package', e)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                <Target className="w-4 h-4" />
+                <span>技术策略</span>
+              </Link>
+              <Link
+                to={`/project/${projectId}/tech-package`}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg flex items-center gap-1.5 ${
                   currentPage === 'tech-package'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <Package className="w-4 h-4" />
-                  <span>技术包装</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleNavigate('tech-article', e)}
-                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                <Package className="w-4 h-4" />
+                <span>技术包装</span>
+              </Link>
+              <Link
+                to={`/project/${projectId}/tech-article`}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg flex items-center gap-1.5 ${
                   currentPage === 'tech-article'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <Newspaper className="w-4 h-4" />
-                  <span>技术通稿</span>
-                </div>
-              </button>
+                <Newspaper className="w-4 h-4" />
+                <span>技术通稿</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -46,14 +46,18 @@ export class ProjectController {
         });
       }
 
-      // 获取来源数量
-      const sourceCount = await projectModel.getSourceCount(id);
+      // 获取来源数量和技术点数量
+      const [sourceCount, techPointCount] = await Promise.all([
+        projectModel.getSourceCount(id),
+        projectModel.getTechPointCount(id)
+      ]);
 
       res.json({
         success: true,
         data: {
           ...project,
-          sourceCount
+          sourceCount,
+          techPointCount
         }
       });
     } catch (error) {
@@ -267,13 +271,17 @@ export class ProjectController {
 
       const result = await projectModel.findAll(options);
       
-      // 为每个项目添加来源数量
-      const projectsWithSourceCount = await Promise.all(
+      // 为每个项目添加来源数量和技术点数量
+      const projectsWithCounts = await Promise.all(
         result.data.map(async (project) => {
-          const sourceCount = await projectModel.getSourceCount(project.id);
+          const [sourceCount, techPointCount] = await Promise.all([
+            projectModel.getSourceCount(project.id),
+            projectModel.getTechPointCount(project.id)
+          ]);
           return {
             ...project,
-            sourceCount
+            sourceCount,
+            techPointCount
           };
         })
       );
@@ -282,7 +290,7 @@ export class ProjectController {
         success: true,
         data: {
           ...result,
-          data: projectsWithSourceCount
+          data: projectsWithCounts
         }
       });
     } catch (error) {
@@ -303,20 +311,24 @@ export class ProjectController {
       const limit = parseInt(req.query.limit as string) || 10;
       const projects = await projectModel.findFeatured(limit);
       
-      // 为每个项目添加来源数量
-      const projectsWithSourceCount = await Promise.all(
+      // 为每个项目添加来源数量和技术点数量
+      const projectsWithCounts = await Promise.all(
         projects.map(async (project) => {
-          const sourceCount = await projectModel.getSourceCount(project.id);
+          const [sourceCount, techPointCount] = await Promise.all([
+            projectModel.getSourceCount(project.id),
+            projectModel.getTechPointCount(project.id)
+          ]);
           return {
             ...project,
-            sourceCount
+            sourceCount,
+            techPointCount
           };
         })
       );
 
       res.json({
         success: true,
-        data: projectsWithSourceCount
+        data: projectsWithCounts
       });
     } catch (error) {
       console.error('Get featured projects error:', error);
@@ -335,20 +347,24 @@ export class ProjectController {
       const limit = parseInt(req.query.limit as string) || 20;
       const projects = await projectModel.findRecent(limit);
       
-      // 为每个项目添加来源数量
-      const projectsWithSourceCount = await Promise.all(
+      // 为每个项目添加来源数量和技术点数量
+      const projectsWithCounts = await Promise.all(
         projects.map(async (project) => {
-          const sourceCount = await projectModel.getSourceCount(project.id);
+          const [sourceCount, techPointCount] = await Promise.all([
+            projectModel.getSourceCount(project.id),
+            projectModel.getTechPointCount(project.id)
+          ]);
           return {
             ...project,
-            sourceCount
+            sourceCount,
+            techPointCount
           };
         })
       );
 
       res.json({
         success: true,
-        data: projectsWithSourceCount
+        data: projectsWithCounts
       });
     } catch (error) {
       console.error('Get recent projects error:', error);

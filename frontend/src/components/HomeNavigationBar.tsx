@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, Settings, ChevronDown, List, Grid, Plus } from 'lucide-react';
+import { Search, User, Settings, ChevronDown, List, Grid, Plus, FileText } from 'lucide-react';
 
 interface HomeNavigationBarProps {
   currentPath?: string;
@@ -133,6 +133,16 @@ const HomeNavigationBar: React.FC<HomeNavigationBarProps> = ({ currentPath }) =>
                   />
                   {/* 下拉菜单内容 */}
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={() => {
+                        navigate('/article-types');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>文章类型</span>
+                    </button>
                     <button
                       onClick={() => {
                         navigate('/ai-roles');

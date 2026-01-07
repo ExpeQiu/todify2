@@ -2126,11 +2126,12 @@ ${truncatedText}`;
         category: 'technical-translation', // 技术转译信息
       };
 
-      // 保存到数据库
+      // 保存到数据库，传递 projectId 确保项目隔离
       const saveResult = await sourceService.saveSourceInformation(
         source,
         targetPageType,
-        aiConversationId || undefined
+        aiConversationId || undefined,
+        projectId ? parseInt(projectId) : undefined
       );
 
       if (saveResult.success && saveResult.data) {

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper, MessageSquare } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
@@ -96,7 +96,6 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [isSelectAll, setIsSelectAll] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleAddSource = () => {
     setShowTextModal(true);
@@ -208,6 +207,46 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     navigate(url);
   };
 
+  // 按分组组织来源
+  const groupedSources = useMemo(() => {
+    // AI共创信息：对话总结相关的 category
+    const aiCreatedSources = sources.filter(s => 
+      s.category === 'ai-qa-summary' || 
+      s.category === 'tech-package-qa' || 
+      s.category === 'tech-strategy-qa' || 
+      s.category === 'tech-article-qa'
+    );
+
+    // 技术资源：技术转译
+    const techResources = sources.filter(s => 
+      s.category === 'technical-translation'
+    );
+
+    // 外部来源：其他所有来源
+    const externalSources = sources.filter(s => 
+      s.category !== 'ai-qa-summary' && 
+      s.category !== 'tech-package-qa' && 
+      s.category !== 'tech-strategy-qa' && 
+      s.category !== 'tech-article-qa' &&
+      s.category !== 'technical-translation'
+    );
+
+    // 调试日志
+    console.log('[SourceSidebar] 分组统计:', {
+      total: sources.length,
+      aiCreated: aiCreatedSources.length,
+      techResources: techResources.length,
+      external: externalSources.length,
+      categories: sources.map(s => ({ id: s.id, title: s.title, category: s.category }))
+    });
+
+    return {
+      aiCreated: aiCreatedSources,
+      techResources: techResources,
+      external: externalSources,
+    };
+  }, [sources]);
+
   return (
     <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
       {/* 标题和操作按钮 */}
@@ -248,149 +287,206 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
         </label>
       </div>
 
-      {/* 来源列表 */}
+      {/* 来源列表 - 分组显示 */}
       <div className="flex-1 overflow-y-auto">
         {sources.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-sm">
             暂无来源，点击"添加信息"添加来源
           </div>
         ) : (
-          <div className="p-2">
-            {sources.map((source) => {
-              const categoryInfo = getCategoryInfo(source.category);
-              const IconComponent = categoryInfo.icon;
-              
-              return (
-                <div
-                  key={source.id}
-                  onClick={() => handleSourceClick(source)}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedSources.includes(source.id)}
-                    onChange={() => handleSourceToggle(source.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
-                  />
-                  <IconComponent className={`w-5 h-5 ${categoryInfo.iconColor} flex-shrink-0 mt-0.5`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 truncate">
-                      {source.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${categoryInfo.color}`}>
-                        {categoryInfo.label}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => handleDeleteSource(source.id, e)}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors"
-                      title="删除"
-                    >
-                      <X className="w-4 h-4 text-gray-500" />
-                    </button>
+          <div className="flex flex-col">
+            {/* AI共创信息分组 */}
+            {groupedSources.aiCreated.length > 0 && (
+              <div className="border-b border-gray-200">
+                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-purple-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      AI共创信息
+                      {groupedSources.aiCreated.length > 0 && (
+                        <span className="text-gray-500 font-normal ml-1">
+                          ({groupedSources.aiCreated.length})
+                        </span>
+                      )}
+                    </h3>
                   </div>
                 </div>
-              );
-            })}
+                <div className="p-2 space-y-1">
+                  {groupedSources.aiCreated.map((source) => {
+                    const categoryInfo = getCategoryInfo(source.category);
+                    const IconComponent = categoryInfo.icon;
+                    
+                    return (
+                      <div
+                        key={source.id}
+                        onClick={() => handleSourceClick(source)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSources.includes(source.id)}
+                          onChange={() => handleSourceToggle(source.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
+                        />
+                        <IconComponent className={`w-5 h-5 ${categoryInfo.iconColor} flex-shrink-0 mt-0.5`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 truncate">
+                            {source.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${categoryInfo.color}`}>
+                              {categoryInfo.label}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => handleDeleteSource(source.id, e)}
+                            className="p-1 hover:bg-gray-200 rounded transition-colors"
+                            title="删除"
+                          >
+                            <X className="w-4 h-4 text-gray-500" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 技术资源分组 - 只要有 projectId 就显示 */}
+            {projectId && (
+              <div className="border-b border-gray-200">
+                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
+                  <div className="flex items-center gap-2">
+                    <FileCode className="w-4 h-4 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      技术资源
+                      {groupedSources.techResources.length > 0 && (
+                        <span className="text-gray-500 font-normal ml-1">
+                          ({groupedSources.techResources.length})
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+                </div>
+                {groupedSources.techResources.length > 0 ? (
+                  <div className="p-2 space-y-1">
+                    {groupedSources.techResources.map((source) => {
+                      const categoryInfo = getCategoryInfo(source.category);
+                      const IconComponent = categoryInfo.icon;
+                      
+                      return (
+                        <div
+                          key={source.id}
+                          onClick={() => handleSourceClick(source)}
+                          className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSources.includes(source.id)}
+                            onChange={() => handleSourceToggle(source.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
+                          />
+                          <IconComponent className={`w-5 h-5 ${categoryInfo.iconColor} flex-shrink-0 mt-0.5`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 truncate">
+                              {source.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${categoryInfo.color}`}>
+                                {categoryInfo.label}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => handleDeleteSource(source.id, e)}
+                              className="p-1 hover:bg-gray-200 rounded transition-colors"
+                              title="删除"
+                            >
+                              <X className="w-4 h-4 text-gray-500" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-4 pb-3">
+                    <div className="text-xs text-gray-500 py-2 text-center">暂无技术资源</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 外部来源分组 */}
+            {groupedSources.external.length > 0 && (
+              <div className="border-b border-gray-200">
+                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-600" />
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      外部来源
+                      {groupedSources.external.length > 0 && (
+                        <span className="text-gray-500 font-normal ml-1">
+                          ({groupedSources.external.length})
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-2 space-y-1">
+                  {groupedSources.external.map((source) => {
+                    const categoryInfo = getCategoryInfo(source.category);
+                    const IconComponent = categoryInfo.icon;
+                    
+                    return (
+                      <div
+                        key={source.id}
+                        onClick={() => handleSourceClick(source)}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSources.includes(source.id)}
+                          onChange={() => handleSourceToggle(source.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mt-1"
+                        />
+                        <IconComponent className={`w-5 h-5 ${categoryInfo.iconColor} flex-shrink-0 mt-0.5`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 truncate">
+                            {source.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${categoryInfo.color}`}>
+                              {categoryInfo.label}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => handleDeleteSource(source.id, e)}
+                            className="p-1 hover:bg-gray-200 rounded transition-colors"
+                            title="删除"
+                          >
+                            <X className="w-4 h-4 text-gray-500" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* 跳转链接区域 - 固定在底部 */}
-      {pageType === 'tech-package' && (
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={async () => {
-                if (isNavigating) return;
-                
-                setIsNavigating(true);
-                try {
-                  let sourceId: string | null = null;
-                  
-                  // 如果有对话内容且提供了总结函数，先总结并保存
-                  if (currentConversation && currentConversation.messages && currentConversation.messages.length > 0 && onSummarizeAndNavigate) {
-                    sourceId = await onSummarizeAndNavigate('tech-strategy');
-                  }
-                  
-                  // 构建跳转 URL
-                  const projectId = searchParams.get('projectId');
-                  const newConversation = searchParams.get('newConversation');
-                  const params = new URLSearchParams();
-                  
-                  if (projectId) {
-                    params.append('projectId', projectId);
-                    params.append('newConversation', newConversation || 'true');
-                  }
-                  
-                  if (sourceId) {
-                    params.append('sourceId', sourceId);
-                  }
-                  
-                  const url = params.toString() ? `/tech-strategy?${params.toString()}` : '/tech-strategy';
-                  navigate(url);
-                } catch (error) {
-                  console.error('[SourceSidebar] 跳转到技术策略页面失败:', error);
-                  // 即使总结失败，也继续跳转
-                  handleNavigate('/tech-strategy');
-                } finally {
-                  setIsNavigating(false);
-                }
-              }}
-              disabled={isNavigating}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isNavigating ? '处理中...' : '技术策略'}
-            </button>
-            <button
-              onClick={async () => {
-                if (isNavigating) return;
-                
-                setIsNavigating(true);
-                try {
-                  let sourceId: string | null = null;
-                  
-                  // 如果有对话内容且提供了总结函数，先总结并保存
-                  if (currentConversation && currentConversation.messages && currentConversation.messages.length > 0 && onSummarizeAndNavigate) {
-                    sourceId = await onSummarizeAndNavigate('tech-article');
-                  }
-                  
-                  // 构建跳转 URL
-                  const projectId = searchParams.get('projectId');
-                  const newConversation = searchParams.get('newConversation');
-                  const params = new URLSearchParams();
-                  
-                  if (projectId) {
-                    params.append('projectId', projectId);
-                    params.append('newConversation', newConversation || 'true');
-                  }
-                  
-                  if (sourceId) {
-                    params.append('sourceId', sourceId);
-                  }
-                  
-                  const url = params.toString() ? `/tech-article?${params.toString()}` : '/tech-article';
-                  navigate(url);
-                } catch (error) {
-                  console.error('[SourceSidebar] 跳转到技术通稿页面失败:', error);
-                  // 即使总结失败，也继续跳转
-                  handleNavigate('/tech-article');
-                } finally {
-                  setIsNavigating(false);
-                }
-              }}
-              disabled={isNavigating}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isNavigating ? '处理中...' : '技术通稿'}
-            </button>
-          </div>
-        </div>
-      )}
       {pageType === 'tech-strategy' && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-col gap-2">

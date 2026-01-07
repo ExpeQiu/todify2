@@ -18,6 +18,7 @@ import PublicKnowledgePage from "./pages/PublicKnowledge";
 import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 import BrainstormPage from "./pages/BrainstormPage";
 import SourceManagementPage from "./pages/SourceManagementPage";
+import ArticleTypeManagementPage from "./pages/ArticleTypeManagementPage";
 
 function App() {
   return (
@@ -121,6 +122,11 @@ function App() {
           <Route
             path="/source-management"
             element={<SourceManagementPage />}
+          />
+
+          <Route
+            path="/article-types"
+            element={<ArticleTypeManagementPage />}
           />
         </Routes>
       </div>

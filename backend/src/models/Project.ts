@@ -217,6 +217,15 @@ export class ProjectModel {
   }
 
   /**
+   * 获取项目的技术点数量
+   */
+  async getTechPointCount(projectId: number): Promise<number> {
+    const sql = 'SELECT COUNT(*) as count FROM project_tech_points WHERE project_id = ?';
+    const result = await this.db.query(sql, [projectId]);
+    return result[0].count || 0;
+  }
+
+  /**
    * 获取项目详情（包含所有关联数据）
    */
   async getProjectDetails(projectId: number): Promise<ProjectDetails | null> {

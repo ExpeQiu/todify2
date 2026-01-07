@@ -11,6 +11,7 @@ import DialogueContent from '../ai-search/DialogueContent';
 import { aiSearchService } from '../../services/aiSearchService';
 import { Conversation } from '../../types/aiSearch';
 import { MultiVersionArticle } from '../../types/techArticle';
+import articleTypeService, { ArticleType } from '../../services/articleTypeService';
 
 const { Option } = Select;
 
@@ -26,12 +27,33 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
     conversationIds: string[];
     outputIds: string[];
   }>({ conversationIds: [], outputIds: [] });
-  const [articleTypes, setArticleTypes] = useState<('media_release' | 'internal_memo' | 'social_media')[]>(['media_release', 'internal_memo', 'social_media']);
+  const [availableArticleTypes, setAvailableArticleTypes] = useState<ArticleType[]>([]);
+  const [articleTypes, setArticleTypes] = useState<string[]>([]);
   const [tone, setTone] = useState<string>('专业严谨');
   const [targetAudience, setTargetAudience] = useState<string>('媒体记者');
   const [generatedArticle, setGeneratedArticle] = useState<MultiVersionArticle | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [optimizeConversation, setOptimizeConversation] = useState<Conversation | null>(null);
+
+  // 加载文章类型配置
+  useEffect(() => {
+    const loadArticleTypes = async () => {
+      try {
+        const response = await articleTypeService.getAll(true); // 只获取启用的类型
+        if (response.success && response.data) {
+          setAvailableArticleTypes(response.data);
+          // 默认选择所有启用的类型
+          const enabledCodes = response.data.map(t => t.code);
+          setArticleTypes(enabledCodes);
+        }
+      } catch (error) {
+        console.error('加载文章类型配置失败:', error);
+        // 如果加载失败，使用默认值
+        setArticleTypes(['media_release', 'internal_memo', 'social_media']);
+      }
+    };
+    loadArticleTypes();
+  }, []);
 
   const handleSelectionChange = (selection: {
     conversationIds: string[];
@@ -138,10 +160,13 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
                       value={articleTypes}
                       onChange={(values) => setArticleTypes(values)}
                       style={{ width: '100%', marginTop: 8 }}
+                      placeholder="请选择文章类型"
                     >
-                      <Option value="media_release">媒体通稿</Option>
-                      <Option value="internal_memo">内部通报</Option>
-                      <Option value="social_media">社交媒体</Option>
+                      {availableArticleTypes.map((type) => (
+                        <Option key={type.id} value={type.code}>
+                          {type.name}
+                        </Option>
+                      ))}
                     </Select>
                   </div>
                   <div>

@@ -24,6 +24,7 @@ export interface Project {
   updated_at: string;
   last_opened_at?: string;
   sourceCount?: number;
+  techPointCount?: number;
 }
 
 // API响应类型
