@@ -1,10 +1,10 @@
-import { aiRoleModel } from '../../models';
+import { aiRoleModel, executionTraceModel, performanceMetricModel } from '../../models';
 import { DirectAgentConfig, ToolConfig } from '../../models/AIRole';
 import { PromptManager } from './PromptManager';
 import { ContextManager } from './ContextManager';
 import { ToolExecutor } from './ToolExecutor';
 import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool } from '../llm/types';
-import { OpenAIProvider } from '../llm/OpenAIProvider';
+import { LLMProviderFactory } from '../llm/ProviderFactory';
 import { ChatMessageService } from '../ChatMessageService';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,6 +31,8 @@ export class AgentOrchestrator {
   private contextManager: ContextManager;
   private toolExecutor: ToolExecutor;
   private maxToolCallIterations: number = 10; // 防止无限循环
+  private currentExecutionId: string = '';
+  private currentAgentId: string = '';
 
   constructor() {
     this.promptManager = new PromptManager();
@@ -52,6 +54,24 @@ export class AgentOrchestrator {
     conversationId: string = '',
     context: Record<string, any> = {}
   ): Promise<AgentExecutionResult> {
+    // 生成执行ID（用于追踪）
+    const executionId = context.executionId || `exec-${Date.now()}-${uuidv4()}`;
+    this.currentExecutionId = executionId;
+    this.currentAgentId = roleId;
+
+    // Mock模式检查
+    if (process.env.AI_MOCK_MODE === 'true') {
+      const mockResult = await this.getMockResponse(roleId, query, context);
+      await this.logStep(executionId, 'mock_response', {
+        type: 'mock',
+        input: { query, context },
+        output: { content: mockResult.content },
+        duration: 0,
+        status: 'success'
+      });
+      return mockResult;
+    }
+
     const startTime = Date.now();
     const MAX_EXECUTION_TIME = 360000; // 6分钟总体超时（留出缓冲给前端7分钟超时）
     
@@ -63,78 +83,148 @@ export class AgentOrchestrator {
       }
     };
     
-    // 1. 获取 Agent 配置
-    checkTimeout();
-    const role = await aiRoleModel.getById(roleId);
-    if (!role) {
-      throw new Error(`AI角色不存在: ${roleId}`);
-    }
-
-    if (!role.agentConfig) {
-      throw new Error(`Agent配置不存在: ${roleId}`);
-    }
-
-    const config = role.agentConfig;
-
-    // 2. 生成或使用 conversationId
-    const finalConversationId = conversationId || this.generateConversationId();
-
-    // 3. 渲染 System Prompt
-    const systemPrompt = this.promptManager.renderPrompt(
-      config.prompt.systemPrompt,
-      config.prompt.variables || [],
-      context
-    );
-
-    // 4. 获取上下文消息
-    checkTimeout();
-    const contextMessages = await this.contextManager.getContextMessages(
-      finalConversationId,
-      config.contextStrategy,
-      query
-    );
-
-    // 5. 构建完整消息列表
-    const messages: ChatMessage[] = [];
-    
-    // 根据策略决定是否包含 system prompt
-    if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {
-      messages.push({
-        role: 'system',
-        content: systemPrompt
+    try {
+      // 1. 获取 Agent 配置
+      checkTimeout();
+      await this.logStep(executionId, 'load_config', {
+        type: 'config',
+        input: { roleId },
+        output: null,
+        duration: 0,
+        status: 'success'
       });
-    }
 
-    messages.push(...contextMessages);
-    messages.push({
-      role: 'user',
-      content: query
-    });
-
-    // 6. 准备工具定义（Function Calling）
-    const tools = this.prepareTools(config.tools || []);
-
-    // 7. 获取 LLM Provider
-    const provider = this.getProvider(config.llm);
-
-    // 8. 调用 LLM（可能包含多轮工具调用）
-    checkTimeout();
-    let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout);
-
-    // 9. 保存消息历史
-    await this.saveMessages(finalConversationId, query, response, roleId);
-
-    // 10. 返回结果
-    return {
-      content: response.content,
-      conversationId: finalConversationId,
-      usage: response.usage,
-      metadata: {
-        model: response.model,
-        finishReason: response.finishReason,
-        toolCalls: response.toolCalls?.length || 0
+      const role = await aiRoleModel.getById(roleId);
+      if (!role) {
+        throw new Error(`AI角色不存在: ${roleId}`);
       }
-    };
+
+      if (!role.agentConfig) {
+        throw new Error(`Agent配置不存在: ${roleId}`);
+      }
+
+      const config = role.agentConfig;
+
+      // 2. 生成或使用 conversationId
+      const finalConversationId = conversationId || this.generateConversationId();
+
+      // 3. 渲染 System Prompt
+      const promptStartTime = Date.now();
+      const systemPrompt = this.promptManager.renderPrompt(
+        config.prompt.systemPrompt,
+        config.prompt.variables || [],
+        context
+      );
+      await this.logStep(executionId, 'render_prompt', {
+        type: 'prompt',
+        input: { systemPrompt: config.prompt.systemPrompt, variables: config.prompt.variables, context },
+        output: { systemPrompt },
+        duration: Date.now() - promptStartTime,
+        status: 'success'
+      });
+
+      // 4. 获取上下文消息
+      checkTimeout();
+      const contextStartTime = Date.now();
+      const contextMessages = await this.contextManager.getContextMessages(
+        finalConversationId,
+        config.contextStrategy,
+        query
+      );
+      await this.logStep(executionId, 'load_context', {
+        type: 'context',
+        input: { conversationId: finalConversationId, strategy: config.contextStrategy, query },
+        output: { messageCount: contextMessages.length },
+        duration: Date.now() - contextStartTime,
+        status: 'success'
+      });
+
+      // 5. 构建完整消息列表
+      const messages: ChatMessage[] = [];
+      
+      // 根据策略决定是否包含 system prompt
+      if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {
+        messages.push({
+          role: 'system',
+          content: systemPrompt
+        });
+      }
+
+      messages.push(...contextMessages);
+      messages.push({
+        role: 'user',
+        content: query
+      });
+
+      // 6. 准备工具定义（Function Calling）
+      const tools = this.prepareTools(config.tools || []);
+
+      // 7. 获取 LLM Provider
+      const provider = this.getProvider(config.llm);
+
+      // 8. 调用 LLM（可能包含多轮工具调用）
+      checkTimeout();
+      const llmStartTime = Date.now();
+      let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout, executionId);
+      const llmDuration = Date.now() - llmStartTime;
+      
+      // 记录性能指标
+      await this.recordPerformanceMetrics(executionId, 'llm_call', llmDuration, response.usage);
+      
+      await this.logStep(executionId, 'llm_call', {
+        type: 'llm',
+        input: { messageCount: messages.length, toolCount: tools.length },
+        output: { content: response.content, toolCalls: response.toolCalls?.length || 0 },
+        duration: llmDuration,
+        status: 'success'
+      });
+
+      // 9. 保存消息历史
+      await this.saveMessages(finalConversationId, query, response, roleId);
+
+      // 10. 返回结果
+      const totalDuration = Date.now() - startTime;
+      
+      // 记录总体执行时间
+      await this.recordPerformanceMetrics(executionId, 'execution_time', totalDuration, { 
+        roleId, 
+        toolCalls: response.toolCalls?.length || 0 
+      });
+      
+      await this.logStep(executionId, 'complete', {
+        type: 'complete',
+        input: { query },
+        output: { content: response.content },
+        duration: totalDuration,
+        status: 'success'
+      });
+
+      return {
+        content: response.content,
+        conversationId: finalConversationId,
+        usage: response.usage,
+        metadata: {
+          model: response.model,
+          finishReason: response.finishReason,
+          toolCalls: response.toolCalls?.length || 0,
+          executionId
+        }
+      };
+    } catch (error) {
+      const totalDuration = Date.now() - startTime;
+      await this.logStep(executionId, 'error', {
+        type: 'error',
+        input: { query, context },
+        output: null,
+        duration: totalDuration,
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    } finally {
+      this.currentExecutionId = '';
+      this.currentAgentId = '';
+    }
   }
 
   /**
@@ -146,7 +236,8 @@ export class AgentOrchestrator {
     llmConfig: LLMConfig,
     tools: Tool[],
     toolConfigs: ToolConfig[],
-    checkTimeout?: () => void
+    checkTimeout?: () => void,
+    executionId?: string
   ): Promise<LLMResponse> {
     let iteration = 0;
     let currentMessages = [...messages];
@@ -182,7 +273,17 @@ export class AgentOrchestrator {
       if (checkTimeout) {
         checkTimeout();
       }
-      const toolResults = await this.executeTools(response.toolCalls, toolConfigs, checkTimeout);
+      const toolStartTime = Date.now();
+      const toolResults = await this.executeTools(response.toolCalls, toolConfigs, checkTimeout, executionId);
+      if (executionId) {
+        await this.logStep(executionId, `tool_execution_${iteration}`, {
+          type: 'tool',
+          input: { toolCalls: response.toolCalls },
+          output: { results: toolResults },
+          duration: Date.now() - toolStartTime,
+          status: 'success'
+        });
+      }
 
       // 工具执行后检查超时
       if (checkTimeout) {
@@ -211,59 +312,151 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 执行多个工具调用
+   * 判断工具是否可以并行执行
+   */
+  private canExecuteInParallel(toolCalls: any[], toolConfigs: ToolConfig[]): boolean {
+    // 如果只有一个工具调用，不需要并行
+    if (toolCalls.length <= 1) {
+      return false;
+    }
+
+    // 获取所有工具类型
+    const types = toolCalls.map(tc => {
+      const config = toolConfigs.find(c => c.name === tc.function.name);
+      return config?.type;
+    });
+
+    // 定义可以并行执行的安全工具类型
+    // 这些工具类型不会相互影响，可以安全地并行执行
+    const parallelSafeTypes = ['search', 'calculation', 'time', 'api'];
+    
+    // 只有当所有工具类型都在安全列表中时，才允许并行执行
+    return types.every(type => parallelSafeTypes.includes(type || ''));
+  }
+
+  /**
+   * 执行单个工具调用
+   */
+  private async executeSingleTool(
+    toolCall: any,
+    toolConfig: ToolConfig,
+    checkTimeout?: () => void,
+    executionId?: string
+  ): Promise<{ toolCallId: string; toolName: string; content: string }> {
+    const TOOL_TIMEOUT = 60000; // 每个工具调用60秒超时
+    const toolCallStartTime = Date.now();
+
+    try {
+      if (checkTimeout) {
+        checkTimeout();
+      }
+
+      const result = await Promise.race([
+        this.toolExecutor.executeTool(toolCall, toolConfig),
+        new Promise<string>((_, reject) => 
+          setTimeout(() => reject(new Error(`工具调用超时: ${toolCall.function.name} (${TOOL_TIMEOUT / 1000}秒)`)), TOOL_TIMEOUT)
+        )
+      ]);
+      const toolDuration = Date.now() - toolCallStartTime;
+      
+      if (executionId) {
+        await this.logStep(executionId, `tool_${toolCall.function.name}`, {
+          type: 'tool_call',
+          input: { toolName: toolCall.function.name, arguments: toolCall.function.arguments },
+          output: { result },
+          duration: toolDuration,
+          status: 'success'
+        });
+      }
+
+      return {
+        toolCallId: toolCall.id,
+        toolName: toolCall.function.name,
+        content: result
+      };
+    } catch (error) {
+      const toolDuration = Date.now() - toolCallStartTime;
+      console.error(`工具执行失败: ${toolCall.function.name}`, error);
+      
+      if (executionId) {
+        await this.logStep(executionId, `tool_${toolCall.function.name}_error`, {
+          type: 'tool_call',
+          input: { toolName: toolCall.function.name, arguments: toolCall.function.arguments },
+          output: null,
+          duration: toolDuration,
+          status: 'failed',
+          error: error instanceof Error ? error.message : '工具执行失败'
+        });
+      }
+
+      return {
+        toolCallId: toolCall.id,
+        toolName: toolCall.function.name,
+        content: JSON.stringify({ 
+          error: error instanceof Error ? error.message : '工具执行失败' 
+        })
+      };
+    }
+  }
+
+  /**
+   * 执行多个工具调用（支持并行执行）
    */
   private async executeTools(
     toolCalls: any[],
     toolConfigs: ToolConfig[],
-    checkTimeout?: () => void
+    checkTimeout?: () => void,
+    executionId?: string
   ): Promise<Array<{ toolCallId: string; toolName: string; content: string }>> {
-    const results = [];
-    const TOOL_TIMEOUT = 60000; // 每个工具调用60秒超时
+    // 判断是否可以并行执行
+    const canParallel = this.canExecuteInParallel(toolCalls, toolConfigs);
 
-    for (const toolCall of toolCalls) {
-      // 在每个工具调用前检查超时
-      if (checkTimeout) {
-        checkTimeout();
-      }
-      
-      const config = toolConfigs.find(t => t.enabled && t.name === toolCall.function.name);
-      
-      if (!config) {
-        results.push({
-          toolCallId: toolCall.id,
-          toolName: toolCall.function.name,
-          content: JSON.stringify({ error: `工具不存在或已禁用: ${toolCall.function.name}` })
-        });
-        continue;
+    if (canParallel) {
+      // 并行执行工具
+      const promises = toolCalls.map(toolCall => {
+        const config = toolConfigs.find(t => t.enabled && t.name === toolCall.function.name);
+        
+        if (!config) {
+          return Promise.resolve({
+            toolCallId: toolCall.id,
+            toolName: toolCall.function.name,
+            content: JSON.stringify({ error: `工具不存在或已禁用: ${toolCall.function.name}` })
+          });
+        }
+
+        return this.executeSingleTool(toolCall, config, checkTimeout, executionId);
+      });
+
+      const results = await Promise.all(promises);
+      return results;
+    } else {
+      // 串行执行工具（保证顺序，适用于workflow、agent等有依赖的工具）
+      const results: Array<{ toolCallId: string; toolName: string; content: string }> = [];
+
+      for (const toolCall of toolCalls) {
+        // 在每个工具调用前检查超时
+        if (checkTimeout) {
+          checkTimeout();
+        }
+        
+        const config = toolConfigs.find(t => t.enabled && t.name === toolCall.function.name);
+        
+        if (!config) {
+          results.push({
+            toolCallId: toolCall.id,
+            toolName: toolCall.function.name,
+            content: JSON.stringify({ error: `工具不存在或已禁用: ${toolCall.function.name}` })
+          });
+          continue;
+        }
+
+        // 使用executeSingleTool方法执行单个工具
+        const result = await this.executeSingleTool(toolCall, config, checkTimeout, executionId);
+        results.push(result);
       }
 
-      try {
-        // 使用 ToolExecutor 执行工具，添加超时控制
-        const result = await Promise.race([
-          this.toolExecutor.executeTool(toolCall, config),
-          new Promise<string>((_, reject) => 
-            setTimeout(() => reject(new Error(`工具调用超时: ${toolCall.function.name} (${TOOL_TIMEOUT / 1000}秒)`)), TOOL_TIMEOUT)
-          )
-        ]);
-        results.push({
-          toolCallId: toolCall.id,
-          toolName: toolCall.function.name,
-          content: result
-        });
-      } catch (error) {
-        console.error(`工具执行失败: ${toolCall.function.name}`, error);
-        results.push({
-          toolCallId: toolCall.id,
-          toolName: toolCall.function.name,
-          content: JSON.stringify({ 
-            error: error instanceof Error ? error.message : '工具执行失败' 
-          })
-        });
-      }
+      return results;
     }
-
-    return results;
   }
 
 
@@ -314,17 +507,10 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 根据配置获取 LLM Provider
+   * 根据配置获取 LLM Provider（使用工厂模式）
    */
   private getProvider(llmConfig: LLMConfig): ILLMProvider {
-    switch (llmConfig.provider) {
-      case 'openai':
-        return new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);
-      
-      // TODO: 其他 Provider（Phase 5）
-      default:
-        throw new Error(`不支持的 LLM Provider: ${llmConfig.provider}`);
-    }
+    return LLMProviderFactory.create(llmConfig);
   }
 
   /**
@@ -381,6 +567,134 @@ export class AgentOrchestrator {
    */
   private generateConversationId(): string {
     return `conv-${Date.now()}-${uuidv4()}`;
+  }
+
+  /**
+   * 记录性能指标
+   */
+  private async recordPerformanceMetrics(
+    executionId: string, 
+    metricType: string, 
+    duration: number, 
+    metadata?: any
+  ): Promise<void> {
+    try {
+      await performanceMetricModel.create({
+        execution_id: executionId,
+        metric_type: metricType,
+        metric_name: `${metricType}_${executionId}`,
+        value: duration,
+        unit: 'ms',
+        metadata
+      });
+
+      // 如果有token使用信息，也记录
+      if (metadata?.totalTokens) {
+        await performanceMetricModel.create({
+          execution_id: executionId,
+          metric_type: 'token_usage',
+          metric_name: `tokens_${executionId}`,
+          value: metadata.totalTokens,
+          unit: 'tokens',
+          metadata
+        });
+      }
+    } catch (error) {
+      // 性能指标记录失败不应该影响主流程
+      console.error('记录性能指标失败:', error);
+    }
+  }
+
+  /**
+   * 记录执行步骤
+   */
+  private async logStep(executionId: string, stepName: string, data: {
+    type: string;
+    input?: any;
+    output?: any;
+    duration: number;
+    status: 'success' | 'failed' | 'skipped';
+    error?: string;
+  }): Promise<void> {
+    try {
+      await executionTraceModel.create({
+        execution_id: executionId,
+        agent_id: this.currentAgentId,
+        step_name: stepName,
+        step_type: data.type,
+        input: data.input,
+        output: data.output,
+        duration: data.duration,
+        status: data.status,
+        error: data.error,
+        metadata: {
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      // 日志记录失败不应该影响主流程
+      console.error('记录执行步骤失败:', error);
+    }
+  }
+
+  /**
+   * 获取Mock响应（用于开发测试，节省成本）
+   */
+  private async getMockResponse(roleId: string, query: string, context: Record<string, any>): Promise<AgentExecutionResult> {
+    try {
+      const role = await aiRoleModel.getById(roleId);
+      const roleName = role?.name || 'AI助手';
+      const roleDescription = role?.description || '';
+
+      // 生成高质量的模拟响应
+      const mockContent = `[MOCK模式] 这是对"${query}"的模拟响应。
+
+基于角色"${roleName}"的配置，我理解您的需求是：${query}
+
+${roleDescription ? `角色描述：${roleDescription}\n\n` : ''}这是一个高质量的模拟回答，包含了合理的结构和内容：
+
+1. **问题理解**：我理解您的问题是关于"${query.substring(0, 50)}${query.length > 50 ? '...' : ''}"
+2. **分析思路**：基于当前上下文，我会采用以下思路来分析...
+3. **解决方案**：建议的解决方案包括...
+4. **注意事项**：需要注意的是...
+
+以上是Mock模式的模拟响应，实际使用时会调用真实的LLM服务。
+
+上下文信息：${Object.keys(context).length > 0 ? JSON.stringify(context, null, 2) : '无'}`;
+
+      return {
+        content: mockContent,
+        conversationId: `mock-${Date.now()}-${uuidv4()}`,
+        usage: {
+          promptTokens: 50,
+          completionTokens: 100,
+          totalTokens: 150
+        },
+        metadata: {
+          model: 'mock',
+          finishReason: 'stop',
+          toolCalls: 0,
+          isMock: true
+        }
+      };
+    } catch (error) {
+      // 如果获取角色失败，返回简单的Mock响应
+      return {
+        content: `[MOCK模式] 这是对"${query}"的模拟响应。\n\n基于您的问题，我理解您的需求是：${query}\n\n这是一个模拟回答，实际使用时会调用真实的LLM服务。`,
+        conversationId: `mock-${Date.now()}-${uuidv4()}`,
+        usage: {
+          promptTokens: 10,
+          completionTokens: 50,
+          totalTokens: 60
+        },
+        metadata: {
+          model: 'mock',
+          finishReason: 'stop',
+          toolCalls: 0,
+          isMock: true
+        }
+      };
+    }
   }
 }
 

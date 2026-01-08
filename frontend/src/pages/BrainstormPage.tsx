@@ -669,7 +669,7 @@ const BrainstormPage: React.FC = () => {
         isOpen={isSetupModalOpen}
         onClose={() => setIsSetupModalOpen(false)}
         onSubmit={handleCreateSession}
-        projectId={projectId ? parseInt(projectId) : undefined}
+        projectId={projectId ? parseInt(projectId, 10) : undefined}
       />
     </div>
   );

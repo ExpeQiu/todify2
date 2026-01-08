@@ -1,8 +1,11 @@
 import { ToolCall } from '../llm/types';
 import { ToolConfig } from '../../models/AIRole';
 import axios from 'axios';
-import { AgentWorkflowService } from '../AgentWorkflowService';
-import { aiRoleModel } from '../../models';
+import { aiRoleModel, agentWorkflowModel } from '../../models';
+import { LangGraphEngine } from '../workflow/langgraph/LangGraphEngine';
+import { evaluate } from 'mathjs';
+import DifyClient from '../DifyClient';
+import { AgentOrchestrator } from './AgentOrchestrator';
 
 /**
  * 工具执行结果
@@ -18,10 +21,8 @@ export interface ToolExecutionResult {
  * 负责执行各种类型的工具调用
  */
 export class ToolExecutor {
-  private agentWorkflowService: AgentWorkflowService;
-
   constructor() {
-    this.agentWorkflowService = new AgentWorkflowService();
+    // AgentWorkflowService 已被移除，使用 LangGraphEngine 替代
   }
 
   /**
@@ -137,12 +138,14 @@ export class ToolExecutor {
   }
 
   /**
-   * 执行搜索工具
+   * 执行搜索工具（集成AI Search功能）
    */
   private async executeSearch(args: any): Promise<ToolExecutionResult> {
     try {
       const query = args.query || '';
       const limit = args.limit || 10;
+      const filters = args.filters || {};
+      const conversationId = args.conversationId || '';
 
       if (!query) {
         return {
@@ -151,26 +154,53 @@ export class ToolExecutor {
         };
       }
 
-      // TODO: 集成现有的 AI Search 功能
-      // 这里暂时返回占位符
+      // 调用DifyClient的AI Search功能
+      const difyClient = DifyClient;
+      const inputs: Record<string, any> = {
+        ...filters
+      };
+
+      // 如果有限制参数，添加到输入中
+      if (limit && limit !== 10) {
+        inputs.limit = limit;
+      }
+
+      const result = await difyClient.aiSearch(query, inputs, conversationId);
+
+      // 格式化搜索结果
+      const searchResults = {
+        query,
+        answer: result.answer || '',
+        results: result.metadata?.retriever_resources || [],
+        count: result.metadata?.retriever_resources?.length || 0,
+        sources: (result.metadata?.retriever_resources || []).map((resource: any) => ({
+          document: resource.document_name || resource.document_id,
+          dataset: resource.dataset_name || resource.dataset_id,
+          content: resource.content,
+          score: resource.score,
+          position: resource.position
+        })),
+        conversationId: result.conversation_id || conversationId,
+        usage: result.metadata?.usage || {}
+      };
+
       return {
         success: true,
-        content: JSON.stringify({
-          query,
-          results: [],
-          message: '搜索功能将在后续版本中实现'
-        })
+        content: JSON.stringify(searchResults)
       };
     } catch (error) {
       return {
         success: false,
-        content: JSON.stringify({ error: error instanceof Error ? error.message : '搜索失败' })
+        content: JSON.stringify({ 
+          error: error instanceof Error ? error.message : '搜索失败',
+          query: args.query || ''
+        })
       };
     }
   }
 
   /**
-   * 执行计算工具
+   * 执行计算工具（使用mathjs库，安全可靠）
    */
   private executeCalculation(args: any): ToolExecutionResult {
     try {
@@ -183,15 +213,18 @@ export class ToolExecutor {
         };
       }
 
-      // 安全的数学表达式计算
-      // 只允许数字、运算符和基本数学函数
-      const sanitized = expression.replace(/[^0-9+\-*/().\s]/g, '');
-
-      // 使用 Function 构造函数进行安全计算（限制作用域）
       try {
-        // 更安全的方式：使用 mathjs 或类似的库
-        // 这里使用简单的 eval（仅用于演示，生产环境应使用更安全的方法）
-        const result = this.safeEvaluate(sanitized);
+        // 使用mathjs进行安全的数学表达式计算
+        // mathjs会解析并验证表达式，只允许数学运算，防止代码注入
+        const result = evaluate(expression);
+
+        // 验证结果是否为有效数字
+        if (typeof result !== 'number' || !isFinite(result)) {
+          return {
+            success: false,
+            content: JSON.stringify({ error: '计算结果不是有效数字', result })
+          };
+        }
 
         return {
           success: true,
@@ -203,7 +236,10 @@ export class ToolExecutor {
       } catch (error) {
         return {
           success: false,
-          content: JSON.stringify({ error: '表达式计算失败: ' + (error instanceof Error ? error.message : '未知错误') })
+          content: JSON.stringify({ 
+            error: '表达式计算失败: ' + (error instanceof Error ? error.message : '未知错误'),
+            expression
+          })
         };
       }
     } catch (error) {
@@ -211,29 +247,6 @@ export class ToolExecutor {
         success: false,
         content: JSON.stringify({ error: error instanceof Error ? error.message : '计算失败' })
       };
-    }
-  }
-
-  /**
-   * 安全的表达式求值（简化版）
-   */
-  private safeEvaluate(expression: string): number {
-    // 移除所有非数学字符
-    const clean = expression.replace(/[^0-9+\-*/().\s]/g, '');
-    
-    // 使用 Function 构造函数（相对安全，但仍需谨慎）
-    try {
-      // eslint-disable-next-line no-new-func
-      const func = new Function('return ' + clean);
-      const result = func();
-      
-      if (typeof result !== 'number' || !isFinite(result)) {
-        throw new Error('计算结果不是有效数字');
-      }
-      
-      return result;
-    } catch (error) {
-      throw new Error('表达式格式错误');
     }
   }
 
@@ -366,10 +379,17 @@ export class ToolExecutor {
       const workflowId = implementation.workflowId;
       const workflowInput = args.inputs || args;
 
-      // 执行工作流
-      const result = await this.agentWorkflowService.executeWorkflow(workflowId, {
-        input: workflowInput
-      });
+      // 使用 LangGraphEngine 替代 AgentWorkflowService
+      const workflow = await agentWorkflowModel.getById(workflowId);
+      if (!workflow) {
+        return {
+          success: false,
+          content: JSON.stringify({ error: `工作流不存在: ${workflowId}` })
+        };
+      }
+
+      const engine = new LangGraphEngine();
+      const result = await engine.execute(workflow, { input: workflowInput });
 
       // 提取输出
       const output = result.data?.outputs || result.message || result;
@@ -387,7 +407,7 @@ export class ToolExecutor {
   }
 
   /**
-   * 执行 Agent 调用工具
+   * 执行 Agent 嵌套调用工具
    */
   private async executeAgent(toolConfig: ToolConfig, args: any): Promise<ToolExecutionResult> {
     try {
@@ -402,6 +422,20 @@ export class ToolExecutor {
       const agentId = implementation.agentId;
       const query = args.query || args.input || JSON.stringify(args);
 
+      // 检查调用深度（防止无限递归）
+      const maxDepth = 3;
+      const currentDepth = args._callDepth || 0;
+      if (currentDepth >= maxDepth) {
+        return {
+          success: false,
+          content: JSON.stringify({ 
+            error: `Agent嵌套调用深度超过限制: ${maxDepth}`,
+            currentDepth,
+            maxDepth
+          })
+        };
+      }
+
       // 获取 Agent 配置
       const agent = await aiRoleModel.getById(agentId);
       if (!agent || !agent.enabled) {
@@ -411,19 +445,60 @@ export class ToolExecutor {
         };
       }
 
-      // TODO: 调用 Agent 的 chat 接口
-      // 这里需要避免循环调用，暂时返回占位符
+      // 只支持 Direct Agent 类型的嵌套调用
+      if (agent.provider !== 'direct-agent') {
+        return {
+          success: false,
+          content: JSON.stringify({ 
+            error: `Agent ${agentId} 不是 Direct Agent 类型，不支持嵌套调用`,
+            provider: agent.provider
+          })
+        };
+      }
+
+      // 调用 AgentOrchestrator 执行嵌套 Agent
+      const orchestrator = new AgentOrchestrator();
+      
+      // 从args中提取context，但不包括_callDepth
+      const context: Record<string, any> = { ...args };
+      delete context._callDepth;
+      delete context.query;
+      delete context.input;
+      
+      // 传递调用深度信息
+      const nestedContext = {
+        ...context,
+        _callDepth: currentDepth + 1
+      };
+
+      const result = await orchestrator.executeAgent(
+        agentId,
+        query,
+        '', // 新对话，避免嵌套调用共享对话历史
+        nestedContext
+      );
+
       return {
         success: true,
         content: JSON.stringify({
-          message: `Agent ${agentId} 调用功能将在后续版本中实现`,
-          query
+          content: result.content,
+          usage: result.usage,
+          depth: currentDepth + 1,
+          conversationId: result.conversationId,
+          metadata: {
+            ...result.metadata,
+            nestedCall: true,
+            callDepth: currentDepth + 1
+          }
         })
       };
     } catch (error) {
       return {
         success: false,
-        content: JSON.stringify({ error: error instanceof Error ? error.message : 'Agent 调用失败' })
+        content: JSON.stringify({ 
+          error: error instanceof Error ? error.message : 'Agent 调用失败',
+          details: error instanceof Error ? error.stack : String(error)
+        })
       };
     }
   }

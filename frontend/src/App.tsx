@@ -19,6 +19,7 @@ import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
 import BrainstormPage from "./pages/BrainstormPage";
 import SourceManagementPage from "./pages/SourceManagementPage";
 import ArticleTypeManagementPage from "./pages/ArticleTypeManagementPage";
+import ExecutionTracePage from "./pages/ExecutionTracePage";
 
 function App() {
   return (
@@ -127,6 +128,11 @@ function App() {
           <Route
             path="/article-types"
             element={<ArticleTypeManagementPage />}
+          />
+
+          <Route
+            path="/execution-traces/:executionId"
+            element={<ExecutionTracePage />}
           />
         </Routes>
       </div>

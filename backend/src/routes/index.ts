@@ -29,6 +29,8 @@ import publicPageConfigRouter from './publicPageConfig';
 import workflowExecutionRouter from './workflowExecution';
 import brainstormRouter from './brainstorm';
 import articleTypesRouter from './articleTypes';
+import executionTraceRouter from './executionTrace';
+import performanceMetricsRouter from './performanceMetrics';
 
 const router = Router();
 
@@ -74,6 +76,8 @@ router.use('/public-page-configs', publicPageConfigRouter);
 router.use('/workflow-executions', workflowExecutionRouter);
 router.use('/brainstorm', brainstormRouter);
 router.use('/article-types', articleTypesRouter);
+router.use('/execution-traces', executionTraceRouter);
+router.use('/performance-metrics', performanceMetricsRouter);
 
 // 健康检查
 router.get('/health', (req, res) => {

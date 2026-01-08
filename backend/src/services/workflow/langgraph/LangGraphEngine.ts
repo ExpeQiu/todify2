@@ -1,8 +1,37 @@
 import { logger } from '@/shared/lib/logger';
 import { aiRoleModel, workflowExecutionModel } from '@/models';
-import { DifyGateway } from '@/shared/infrastructure/integrations/dify';
+import { NodeRegistry } from './nodes/NodeRegistry';
+import { InputNodeExecutor } from './nodes/InputNodeExecutor';
+import { AgentNodeExecutor } from './nodes/AgentNodeExecutor';
+import { OutputNodeExecutor } from './nodes/OutputNodeExecutor';
+import { ConditionNodeExecutor } from './nodes/ConditionNodeExecutor';
+import { AssignNodeExecutor } from './nodes/AssignNodeExecutor';
+import { TransformNodeExecutor } from './nodes/TransformNodeExecutor';
+import { MergeNodeExecutor } from './nodes/MergeNodeExecutor';
+import { MemoryNodeExecutor } from './nodes/MemoryNodeExecutor';
+import { LoopNodeExecutor } from './nodes/LoopNodeExecutor';
 
 export class LangGraphEngine {
+  constructor() {
+    // 注册内置节点执行器
+    this.registerBuiltinNodes();
+  }
+
+  /**
+   * 注册内置节点执行器
+   */
+  private registerBuiltinNodes(): void {
+    NodeRegistry.register('input', new InputNodeExecutor());
+    NodeRegistry.register('agent', new AgentNodeExecutor());
+    NodeRegistry.register('output', new OutputNodeExecutor());
+    NodeRegistry.register('condition', new ConditionNodeExecutor());
+    NodeRegistry.register('assign', new AssignNodeExecutor());
+    NodeRegistry.register('transform', new TransformNodeExecutor());
+    NodeRegistry.register('merge', new MergeNodeExecutor());
+    NodeRegistry.register('memory', new MemoryNodeExecutor());
+    NodeRegistry.register('loop', new LoopNodeExecutor());
+  }
+
   async execute(workflow: any, options: { input?: any }): Promise<{ executionId: string; message: string; data?: any }> {
     const startedAt = Date.now();
     const execution = await workflowExecutionModel.create({
@@ -85,25 +114,16 @@ export class LangGraphEngine {
   }
 
   private async executeNode(node: any, sharedContext: Record<string, any>): Promise<any> {
-    switch (node.type) {
-      case 'input':
-        return this.executeInput(node, sharedContext);
-      case 'agent':
-        return this.executeAgent(node, sharedContext);
-      case 'output':
-        return this.executeOutput(node, sharedContext);
-      case 'condition':
-        return this.executeCondition(node, sharedContext);
-      case 'assign':
-        return this.executeAssign(node, sharedContext);
-      case 'transform':
-        return this.executeTransform(node, sharedContext);
-      case 'merge':
-        return this.executeMerge(node, sharedContext);
-      case 'memory':
-        return this.executeMemory(node, sharedContext);
-      default:
-        return { type: node.type, status: 'skipped' };
+    // 使用NodeRegistry执行节点（支持插件化）
+    try {
+      return await NodeRegistry.execute(node, sharedContext);
+    } catch (error) {
+      // 如果节点未注册，返回跳过状态
+      if (error instanceof Error && error.message.includes('未知节点类型')) {
+        logger.warn(`节点类型未注册: ${node.type}`, { nodeId: node.id });
+        return { type: node.type, status: 'skipped', error: error.message };
+      }
+      throw error;
     }
   }
 
@@ -130,7 +150,40 @@ export class LangGraphEngine {
     if (!role) throw new Error(`AI角色不存在: ${agentId}`);
     if (!role.enabled) throw new Error(`AI角色已禁用: ${agentId}`);
     const provider = role.provider || 'dify';
-    if (provider === 'direct-agent') throw new Error(`AI角色 ${agentId} 是 Direct Agent 类型，不支持在 Workflow 中使用。`);
+    
+    // 支持 Direct Agent 类型
+    if (provider === 'direct-agent') {
+      if (!role.agentConfig) {
+        throw new Error(`AI角色 ${agentId} 的Direct Agent配置不存在`);
+      }
+      
+      // 使用 AgentOrchestrator 执行 Direct Agent
+      const orchestrator = new AgentOrchestrator();
+      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };
+      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;
+      if (!query) {
+        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);
+      }
+      
+      // 从 sharedContext 中提取可用作 context 的数据
+      const context: Record<string, any> = {};
+      Object.keys(nodeInput).forEach(key => {
+        if (key !== 'query' && key !== 'input' && key !== 'workflowInput') {
+          context[key] = nodeInput[key];
+        }
+      });
+      
+      const result = await orchestrator.executeAgent(agentId, query, '', context);
+      
+      return {
+        answer: result.content,
+        result: result.content,
+        conversation_id: result.conversationId,
+        raw: result
+      };
+    }
+    
+    // Dify Agent 类型的原有逻辑
     if (!role.difyConfig) throw new Error(`AI角色 ${agentId} 的Dify配置不存在`);
     const { connectionType, apiKey, apiUrl } = role.difyConfig;
     let actualBaseUrl = apiUrl;

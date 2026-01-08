@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Loader2 } from 'lucide-react';
+import { X, Loader2, MessageSquare, Lightbulb } from 'lucide-react';
 import { ExpertSelector } from './ExpertSelector';
 import { CreateBrainstormSessionDTO, BrainstormSessionConfig } from '@/types/brainstorm';
 import aiRoleService from '@/services/aiRoleService';
 import { AIRoleConfig } from '@/types/aiRole';
 import { aiSearchService } from '@/services/aiSearchService';
 import { Conversation } from '@/types/aiSearch';
-import sourceService from '@/services/sourceService';
-import { Source } from '@/components/ai-search/SourceSidebar';
+import api from '@/services/api';
+import { TechPoint } from '@/types/techPoint';
 
 interface BrainstormSetupModalProps {
   isOpen: boolean;
@@ -47,32 +47,32 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
   );
   const [loading, setLoading] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<AIRoleConfig[]>([]);
-  const [descriptionSource, setDescriptionSource] = useState<'manual' | 'ai-creation' | 'conversation'>('manual');
+  const [descriptionSource, setDescriptionSource] = useState<'manual' | 'tech-point' | 'conversation'>('manual');
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [aiSources, setAiSources] = useState<Source[]>([]);
+  const [techPoints, setTechPoints] = useState<TechPoint[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(false);
-  const [loadingAiSources, setLoadingAiSources] = useState(false);
+  const [loadingTechPoints, setLoadingTechPoints] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string>('');
-  const [selectedSourceId, setSelectedSourceId] = useState<string>('');
+  const [selectedTechPointId, setSelectedTechPointId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       loadRoles();
     }
-  }, [isOpen]);
+  }, [isOpen, projectId]);
 
   useEffect(() => {
     if (!isOpen) return;
     
     if (descriptionSource === 'conversation') {
       loadConversations();
-      setSelectedSourceId('');
-    } else if (descriptionSource === 'ai-creation') {
-      loadAiSources();
+      setSelectedTechPointId(null);
+    } else if (descriptionSource === 'tech-point') {
+      loadTechPoints();
       setSelectedConversationId('');
     } else {
       setSelectedConversationId('');
-      setSelectedSourceId('');
+      setSelectedTechPointId(null);
       setDescription('');
     }
   }, [descriptionSource, isOpen, projectId]);
@@ -112,30 +112,28 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
     }
   };
 
-  const loadAiSources = async () => {
+  const loadTechPoints = async () => {
     try {
-      setLoadingAiSources(true);
-      let result;
+      setLoadingTechPoints(true);
       
-      if (projectId) {
-        result = await sourceService.loadSourceInformationByProjectId(projectId);
-      } else {
-        result = await sourceService.loadSourceInformationByPageType('tech-strategy');
+      if (!projectId) {
+        console.warn('没有项目ID，无法加载技术点');
+        setTechPoints([]);
+        return;
       }
       
-      if (result.success && result.data) {
-        // 只显示AI共创的信息（排除外部添加的）
-        const aiCreatedSources = result.data.filter(source => 
-          source.category && 
-          source.category !== 'external' &&
-          (source.category.includes('qa') || source.category.includes('translation'))
-        );
-        setAiSources(aiCreatedSources);
+      const response = await api.get(`/projects/${projectId}/details`);
+      
+      if (response.data?.success && response.data?.data?.techPoints) {
+        setTechPoints(response.data.data.techPoints);
+      } else {
+        setTechPoints([]);
       }
     } catch (error) {
-      console.error('加载AI共创信息失败:', error);
+      console.error('加载项目技术点失败:', error);
+      setTechPoints([]);
     } finally {
-      setLoadingAiSources(false);
+      setLoadingTechPoints(false);
     }
   };
 
@@ -168,15 +166,21 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
     }
   };
 
-  const handleSourceSelect = (sourceId: string) => {
-    setSelectedSourceId(sourceId);
-    if (sourceId) {
-      const source = aiSources.find(s => s.id === sourceId);
-      if (source) {
-        // 使用来源的标题和描述作为话题描述
-        let desc = source.title;
-        if (source.description) {
-          desc += `\n\n${source.description}`;
+  const handleTechPointSelect = (techPointId: number) => {
+    setSelectedTechPointId(techPointId);
+    if (techPointId) {
+      const techPoint = techPoints.find(tp => tp.id === techPointId);
+      if (techPoint) {
+        // 使用技术点的名称和描述作为话题描述
+        let desc = `技术点：${techPoint.name}`;
+        if (techPoint.description) {
+          desc += `\n\n描述：${techPoint.description}`;
+        }
+        if (techPoint.tech_principle) {
+          desc += `\n\n技术原理：${techPoint.tech_principle}`;
+        }
+        if (techPoint.tech_value) {
+          desc += `\n\n价值：${techPoint.tech_value}`;
         }
         setDescription(desc);
       }
@@ -248,9 +252,9 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
     setDescription('');
     setDescriptionSource('manual');
     setSelectedConversationId('');
-    setSelectedSourceId('');
+    setSelectedTechPointId(null);
     setConversations([]);
-    setAiSources([]);
+    setTechPoints([]);
     setSelectedRoleIds([]);
     setMaxRounds(5);
     setConsensusDetection(false);
@@ -314,11 +318,11 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
               </label>
               <select
                 value={descriptionSource}
-                onChange={(e) => setDescriptionSource(e.target.value as 'manual' | 'ai-creation' | 'conversation')}
+                onChange={(e) => setDescriptionSource(e.target.value as 'manual' | 'tech-point' | 'conversation')}
                 className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
                 <option value="manual">手动输入</option>
-                <option value="ai-creation">AI共创信息</option>
+                <option value="tech-point">技术点</option>
                 <option value="conversation">对话记录</option>
               </select>
             </div>
@@ -332,7 +336,7 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             ) : descriptionSource === 'conversation' ? (
-              <div className="border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
+              <div className="border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col">
                 {loadingConversations ? (
                   <div className="p-4 text-center text-sm text-gray-500">
                     <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
@@ -343,76 +347,153 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
                     暂无对话记录
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
-                    {conversations.map((conv) => (
-                      <div
-                        key={conv.id}
-                        onClick={() => handleConversationSelect(conv.id)}
-                        className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          selectedConversationId === conv.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
+                  <>
+                    <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-purple-600" />
+                        <span className="text-xs font-semibold text-gray-900">
+                          对话记录
+                          <span className="text-gray-500 font-normal ml-1">
+                            ({conversations.length})
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                    {conversations.map((conv) => {
+                      const pageTypeLabels: Record<string, { label: string; color: string }> = {
+                        'tech-package': { label: '技术包装', color: 'bg-orange-100 text-orange-700' },
+                        'tech-strategy': { label: '技术策略', color: 'bg-green-100 text-green-700' },
+                        'tech-article': { label: '技术通稿', color: 'bg-indigo-100 text-indigo-700' },
+                        'press-release': { label: '新闻稿', color: 'bg-pink-100 text-pink-700' },
+                      };
+                      const pageTypeInfo = pageTypeLabels[conv.pageType || ''] || { label: '对话', color: 'bg-gray-100 text-gray-700' };
+                      
+                      // 格式化日期为更简洁的格式
+                      const formatDate = (date: Date) => {
+                        const now = new Date();
+                        const diff = now.getTime() - new Date(date).getTime();
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        
+                        if (days === 0) return '今天';
+                        if (days === 1) return '昨天';
+                        if (days < 7) return `${days}天前`;
+                        return new Date(date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+                      };
+                      
+                      return (
+                        <div
+                          key={conv.id}
+                          onClick={() => handleConversationSelect(conv.id)}
+                          className={`flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+                            selectedConversationId === conv.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'
+                          }`}
+                        >
+                          <MessageSquare className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm text-gray-900 truncate font-medium">
                               {conv.title || '未命名对话'}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {conv.messages?.length || 0} 条消息 · {new Date(conv.updatedAt).toLocaleDateString()}
-                            </p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${pageTypeInfo.color}`}>
+                                {pageTypeInfo.label}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {conv.messages?.length || 0} 条消息
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {formatDate(conv.updatedAt)}
+                              </span>
+                            </div>
                           </div>
                           {selectedConversationId === conv.id && (
-                            <div className="ml-2 flex-shrink-0">
+                            <div className="flex-shrink-0 mt-1">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             </div>
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      );
+                    })}
+                    </div>
+                  </>
                 )}
               </div>
             ) : (
-              <div className="border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
-                {loadingAiSources ? (
+              <div className="border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col">
+                {loadingTechPoints ? (
                   <div className="p-4 text-center text-sm text-gray-500">
                     <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                    加载AI共创信息中...
+                    加载技术点中...
                   </div>
-                ) : aiSources.length === 0 ? (
+                ) : !projectId ? (
                   <div className="p-4 text-center text-sm text-gray-500">
-                    暂无AI共创信息
+                    请在项目中创建头脑风暴会话才能选择技术点
+                  </div>
+                ) : techPoints.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    该项目暂无技术点
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200">
-                    {aiSources.map((source) => (
-                      <div
-                        key={source.id}
-                        onClick={() => handleSourceSelect(source.id)}
-                        className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                          selectedSourceId === source.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
+                  <>
+                    <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-yellow-600" />
+                        <span className="text-xs font-semibold text-gray-900">
+                          项目技术点
+                          <span className="text-gray-500 font-normal ml-1">
+                            ({techPoints.length})
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                    {techPoints.map((techPoint) => {
+                      const techTypeLabels: Record<string, { label: string; color: string }> = {
+                        'feature': { label: '功能', color: 'bg-blue-100 text-blue-700' },
+                        'platform': { label: '平台', color: 'bg-purple-100 text-purple-700' },
+                        'system': { label: '系统', color: 'bg-green-100 text-green-700' },
+                      };
+                      const techTypeInfo = techTypeLabels[techPoint.tech_type] || { label: '技术', color: 'bg-gray-100 text-gray-700' };
+                      
+                      return (
+                        <div
+                          key={techPoint.id}
+                          onClick={() => handleTechPointSelect(techPoint.id)}
+                          className={`flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+                            selectedTechPointId === techPoint.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'
+                          }`}
+                        >
+                          <Lightbulb className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {source.title}
+                            <p className="text-sm text-gray-900 line-clamp-1 font-medium">
+                              {techPoint.name}
                             </p>
-                            {source.description && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${techTypeInfo.color}`}>
+                                {techTypeInfo.label}
+                              </span>
+                              {techPoint.category && (
+                                <span className="text-xs text-gray-500">
+                                  {techPoint.category.name}
+                                </span>
+                              )}
+                            </div>
+                            {techPoint.description && (
                               <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                {source.description}
+                                {techPoint.description}
                               </p>
                             )}
                           </div>
-                          {selectedSourceId === source.id && (
-                            <div className="ml-2 flex-shrink-0">
+                          {selectedTechPointId === techPoint.id && (
+                            <div className="flex-shrink-0 mt-1">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             </div>
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      );
+                    })}
+                    </div>
+                  </>
                 )}
               </div>
             )}

@@ -544,6 +544,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
         isOpen={isSetupModalOpen}
         onClose={() => setIsSetupModalOpen(false)}
         onSubmit={handleCreateSession}
+        projectId={projectId ? parseInt(projectId, 10) : undefined}
       />
     </div>
   );
