@@ -62,7 +62,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [outputs, setOutputs] = useState<OutputContent[]>([]);
   const [showSourceSidebar, setShowSourceSidebar] = useState(true); // 默认显示左侧边栏
-  const [showStudioSidebar, setShowStudioSidebar] = useState(false); // 默认隐藏右侧对话历史
+  const [showStudioSidebar, setShowStudioSidebar] = useState(config.pageType === 'tech-package'); // tech-package 页面默认显示右侧边栏（工具箱和聊天历史）
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
   const [showFieldMappingConfig, setShowFieldMappingConfig] = useState(false);
   const [triggeringFeatureId, setTriggeringFeatureId] = useState<string | null>(null);

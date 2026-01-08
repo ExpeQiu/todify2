@@ -1,6 +1,6 @@
 import express from 'express';
 import { formatApiResponse } from '../utils/validation';
-import { articleTypeModel } from '../models/ArticleType';
+import { articleTypeModel } from '../models';
 import { CreateArticleTypeDTO, UpdateArticleTypeDTO } from '../models/ArticleType';
 
 const router = express.Router();

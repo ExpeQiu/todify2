@@ -258,6 +258,7 @@ export class ArticleTypeModel {
   }
 }
 
-// 导出单例实例
-export const articleTypeModel = new ArticleTypeModel();
+// 注意：请使用 models/index.ts 中导出的 articleTypeModel 实例，
+// 那里已正确传入 DatabaseManager 实例。
+// 这里不再导出未初始化的单例，以避免混淆。
 

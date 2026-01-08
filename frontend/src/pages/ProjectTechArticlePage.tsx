@@ -70,3 +70,6 @@ const ProjectTechArticlePage: React.FC = () => {
 
 export default ProjectTechArticlePage;
 
+
+
+

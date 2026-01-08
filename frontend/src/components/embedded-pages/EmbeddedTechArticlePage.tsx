@@ -2,7 +2,7 @@
  * 嵌入式技术通稿页面组件
  * 用于在项目资源页面中作为Tab内容显示
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, Button, Space, message, Radio, Select, Row, Col } from 'antd';
 import { ThunderboltOutlined, MessageOutlined } from '@ant-design/icons';
 import SourceSelector from '../tech-article/SourceSelector';
@@ -17,6 +17,13 @@ const { Option } = Select;
 
 type ViewMode = 'generate' | 'optimize';
 
+// 默认文章类型（API 失败时的后备）
+const DEFAULT_ARTICLE_TYPES: ArticleType[] = [
+  { id: '1', code: 'media_release', name: '媒体通稿', enabled: 1, sort_order: 1 },
+  { id: '2', code: 'internal_memo', name: '内部通报', enabled: 1, sort_order: 2 },
+  { id: '3', code: 'social_media', name: '社交媒体', enabled: 1, sort_order: 3 },
+];
+
 interface EmbeddedTechArticlePageProps {
   projectId: string;
 }
@@ -27,40 +34,52 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
     conversationIds: string[];
     outputIds: string[];
   }>({ conversationIds: [], outputIds: [] });
-  const [availableArticleTypes, setAvailableArticleTypes] = useState<ArticleType[]>([]);
-  const [articleTypes, setArticleTypes] = useState<string[]>([]);
+  const [availableArticleTypes, setAvailableArticleTypes] = useState<ArticleType[]>(DEFAULT_ARTICLE_TYPES);
+  const [articleTypes, setArticleTypes] = useState<string[]>(['media_release', 'internal_memo', 'social_media']);
   const [tone, setTone] = useState<string>('专业严谨');
   const [targetAudience, setTargetAudience] = useState<string>('媒体记者');
   const [generatedArticle, setGeneratedArticle] = useState<MultiVersionArticle | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [optimizeConversation, setOptimizeConversation] = useState<Conversation | null>(null);
+  
+  // 防止重复加载的标志
+  const articleTypesLoadedRef = useRef(false);
+  const loadingRef = useRef(false);
 
-  // 加载文章类型配置
+  // 加载文章类型配置（带防重复机制）
   useEffect(() => {
+    // 如果已加载或正在加载，跳过
+    if (articleTypesLoadedRef.current || loadingRef.current) {
+      return;
+    }
+    
     const loadArticleTypes = async () => {
+      loadingRef.current = true;
       try {
-        const response = await articleTypeService.getAll(true); // 只获取启用的类型
-        if (response.success && response.data) {
+        const response = await articleTypeService.getAll(true);
+        if (response.success && response.data && response.data.length > 0) {
           setAvailableArticleTypes(response.data);
-          // 默认选择所有启用的类型
           const enabledCodes = response.data.map(t => t.code);
           setArticleTypes(enabledCodes);
+          articleTypesLoadedRef.current = true;
         }
+        // 如果返回空或失败，保持默认值
       } catch (error) {
         console.error('加载文章类型配置失败:', error);
-        // 如果加载失败，使用默认值
-        setArticleTypes(['media_release', 'internal_memo', 'social_media']);
+        // 保持默认值，不需要额外处理
+      } finally {
+        loadingRef.current = false;
       }
     };
     loadArticleTypes();
   }, []);
 
-  const handleSelectionChange = (selection: {
+  const handleSelectionChange = useCallback((selection: {
     conversationIds: string[];
     outputIds: string[];
   }) => {
     setSelectedSources(selection);
-  };
+  }, []);
 
   const handleGenerate = async () => {
     if (selectedSources.conversationIds.length === 0 && selectedSources.outputIds.length === 0) {
@@ -147,7 +166,7 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
             <>
               <Row gutter={16}>
                 <Col span={24}>
-                  <SourceSelector onSelectionChange={handleSelectionChange} />
+                  <SourceSelector projectId={projectId} onSelectionChange={handleSelectionChange} />
                 </Col>
               </Row>
 
