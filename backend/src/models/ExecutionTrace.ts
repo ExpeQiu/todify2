@@ -176,7 +176,7 @@ export class ExecutionTraceModel {
     const result = await this.db.query(sql, [executionId]);
     const rows = Array.isArray(result) ? result : result.rows || [result];
 
-    return rows.map((row) => ({
+    return rows.map((row: any) => ({
       id: row.id,
       execution_id: row.execution_id,
       agent_id: row.agent_id,
@@ -207,7 +207,7 @@ export class ExecutionTraceModel {
     const result = await this.db.query(sql, [agentId, limit]);
     const rows = Array.isArray(result) ? result : result.rows || [result];
 
-    return rows.map((row) => ({
+    return rows.map((row: any) => ({
       id: row.id,
       execution_id: row.execution_id,
       agent_id: row.agent_id,

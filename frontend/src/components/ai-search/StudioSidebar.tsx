@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, Settings, MessageSquare, Trash2, X } from "lucide-react";
+import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, MessageSquare, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
 import { OutputContent, Conversation, Message } from "../../types/aiSearch";
@@ -12,7 +12,6 @@ interface StudioSidebarProps {
   onTriggerFeature: (featureType: string) => void;
   executingFeatureId?: string | null;
   statusMessage?: string;
-  onShowFieldMappingConfig?: () => void;
   studioTitle?: string;
   featureLabelMap?: Record<string, string>;
   enabledToolIds?: string[]; // 启用的工具ID列表
@@ -30,7 +29,6 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onTriggerFeature,
   executingFeatureId,
   statusMessage,
-  onShowFieldMappingConfig,
   studioTitle = "更多工具箱",
   featureLabelMap = {},
   enabledToolIds,
@@ -204,19 +202,6 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <div className="text-xs text-transparent mt-1">占位</div>
             )}
           </div>
-          {onShowFieldMappingConfig && (
-            <button
-              onClick={() => {
-                // 传递当前 pageType 到字段映射管理页面，用于过滤显示
-                navigate(`/field-mapping-management${pageType ? `?pageType=${pageType}` : ''}`);
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm"
-              title="字段映射管理"
-            >
-              <Settings className="w-4 h-4" />
-              字段映射
-            </button>
-          )}
         </div>
       )}
 

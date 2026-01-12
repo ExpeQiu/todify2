@@ -166,5 +166,56 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+/**
+ * 获取文章类型关联的AI角色ID列表
+ * GET /api/v1/article-types/:id/ai-roles
+ */
+router.get('/:id/ai-roles', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const roleIds = await articleTypeModel.getAssociatedAIRoleIds(id);
+    res.json(formatApiResponse(true, roleIds, '获取关联AI角色成功'));
+  } catch (error) {
+    console.error('获取关联AI角色失败:', error);
+    res.status(500).json(formatApiResponse(
+      false,
+      null,
+      '获取关联AI角色失败',
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
+/**
+ * 设置文章类型关联的AI角色
+ * PUT /api/v1/article-types/:id/ai-roles
+ */
+router.put('/:id/ai-roles', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { aiRoleIds } = req.body;
+    
+    if (!Array.isArray(aiRoleIds)) {
+      return res.status(400).json(formatApiResponse(
+        false,
+        null,
+        'aiRoleIds必须是数组'
+      ));
+    }
+    
+    await articleTypeModel.setAssociatedAIRoles(id, aiRoleIds);
+    const updatedRoleIds = await articleTypeModel.getAssociatedAIRoleIds(id);
+    res.json(formatApiResponse(true, updatedRoleIds, '设置关联AI角色成功'));
+  } catch (error) {
+    console.error('设置关联AI角色失败:', error);
+    res.status(500).json(formatApiResponse(
+      false,
+      null,
+      '设置关联AI角色失败',
+      error instanceof Error ? error.message : '未知错误'
+    ));
+  }
+});
+
 export default router;
 

@@ -9,6 +9,7 @@ import { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';
 import { OpenAIProvider } from '../services/llm/OpenAIProvider';
 import { ChatMessage } from '../services/llm/types';
 import { AgentOrchestrator } from '../services/agent/AgentOrchestrator';
+import { AgentErrorHandler } from '../services/agent/types';
 import { FileService } from '../services/FileService';
 
 const router = express.Router();
@@ -576,11 +577,23 @@ router.post('/:id/chat', upload.array('files', 10), async (req, res) => {
     }
   } catch (error) {
     console.error('AI角色对话失败:', error);
-    res.status(500).json(formatApiResponse(
+    
+    // 统一错误处理
+    const agentError = AgentErrorHandler.normalizeError(error, {
+      roleId: req.params.id,
+      step: 'api_chat'
+    });
+    
+    const statusCode = agentError.recoverable ? 500 : 
+                      agentError.code === 'CONFIG_ERROR' ? 400 :
+                      agentError.code === 'AUTHENTICATION_ERROR' ? 401 :
+                      agentError.code === 'RATE_LIMIT_ERROR' ? 429 : 500;
+    
+    res.status(statusCode).json(formatApiResponse(
       false,
       null,
-      'AI角色对话失败',
-      error instanceof Error ? error.message : '未知错误'
+      agentError.message,
+      AgentErrorHandler.formatForFrontend(agentError)
     ));
   }
 });

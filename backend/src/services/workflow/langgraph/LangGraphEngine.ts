@@ -1,15 +1,17 @@
 import { logger } from '@/shared/lib/logger';
 import { aiRoleModel, workflowExecutionModel } from '@/models';
-import { NodeRegistry } from './nodes/NodeRegistry';
-import { InputNodeExecutor } from './nodes/InputNodeExecutor';
-import { AgentNodeExecutor } from './nodes/AgentNodeExecutor';
-import { OutputNodeExecutor } from './nodes/OutputNodeExecutor';
-import { ConditionNodeExecutor } from './nodes/ConditionNodeExecutor';
-import { AssignNodeExecutor } from './nodes/AssignNodeExecutor';
-import { TransformNodeExecutor } from './nodes/TransformNodeExecutor';
-import { MergeNodeExecutor } from './nodes/MergeNodeExecutor';
-import { MemoryNodeExecutor } from './nodes/MemoryNodeExecutor';
-import { LoopNodeExecutor } from './nodes/LoopNodeExecutor';
+import { NodeRegistry } from '../nodes/NodeRegistry';
+import { InputNodeExecutor } from '../nodes/InputNodeExecutor';
+import { AgentNodeExecutor } from '../nodes/AgentNodeExecutor';
+import { OutputNodeExecutor } from '../nodes/OutputNodeExecutor';
+import { ConditionNodeExecutor } from '../nodes/ConditionNodeExecutor';
+import { AssignNodeExecutor } from '../nodes/AssignNodeExecutor';
+import { TransformNodeExecutor } from '../nodes/TransformNodeExecutor';
+import { MergeNodeExecutor } from '../nodes/MergeNodeExecutor';
+import { MemoryNodeExecutor } from '../nodes/MemoryNodeExecutor';
+import { LoopNodeExecutor } from '../nodes/LoopNodeExecutor';
+import { AgentOrchestrator } from '../../agent/AgentOrchestrator';
+import { DifyGateway } from '@/shared/infrastructure/integrations/dify';
 
 export class LangGraphEngine {
   constructor() {

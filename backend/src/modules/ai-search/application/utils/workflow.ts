@@ -9,8 +9,8 @@ export const resolveWorkflowId = async (): Promise<string | null> => {
     return workflowId;
   }
 
-  const workflows = await agentWorkflowService.getAllWorkflows();
-  const defaultWorkflow = workflows.find((w) => w.name === '智能工作流');
+  const workflows = await agentWorkflowService.getAllWorkflows() as any[];
+  const defaultWorkflow = workflows.find((w: any) => w.name === '智能工作流');
   return defaultWorkflow?.id || workflows[0]?.id || null;
 };
 

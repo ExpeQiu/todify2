@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, FileText, Bot } from 'lucide-react';
 import articleTypeService, { ArticleType, CreateArticleTypeDTO, UpdateArticleTypeDTO } from '../services/articleTypeService';
+import aiRoleService, { AIRoleConfig } from '../services/aiRoleService';
 
 const ArticleTypeManagementPage: React.FC = () => {
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>([]);
@@ -8,6 +9,11 @@ const ArticleTypeManagementPage: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [aiRoles, setAiRoles] = useState<AIRoleConfig[]>([]);
+  const [articleTypeRoleMap, setArticleTypeRoleMap] = useState<Map<string, string[]>>(new Map());
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [editingArticleType, setEditingArticleType] = useState<ArticleType | null>(null);
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
   // 表单状态
   const [formData, setFormData] = useState<CreateArticleTypeDTO>({
@@ -38,7 +44,39 @@ const ArticleTypeManagementPage: React.FC = () => {
 
   useEffect(() => {
     loadArticleTypes();
+    loadAiRoles();
   }, []);
+
+  // 加载AI角色列表
+  const loadAiRoles = async () => {
+    try {
+      const roles = await aiRoleService.getAIRoles();
+      setAiRoles(roles.filter(role => role.enabled));
+    } catch (error) {
+      console.error('加载AI角色失败:', error);
+    }
+  };
+
+  // 加载文章类型关联的AI角色
+  const loadArticleTypeRoles = async (articleTypeId: string) => {
+    try {
+      const response = await articleTypeService.getAssociatedAIRoleIds(articleTypeId);
+      if (response.success && response.data) {
+        setArticleTypeRoleMap(prev => new Map(prev).set(articleTypeId, response.data || []));
+      }
+    } catch (error) {
+      console.error('加载关联AI角色失败:', error);
+    }
+  };
+
+  // 当文章类型列表加载完成后，加载每个类型的关联角色
+  useEffect(() => {
+    if (articleTypes.length > 0) {
+      articleTypes.forEach(type => {
+        loadArticleTypeRoles(type.id);
+      });
+    }
+  }, [articleTypes]);
 
   // 显示消息
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -161,6 +199,53 @@ const ArticleTypeManagementPage: React.FC = () => {
     }
   };
 
+  // 开始编辑关联角色
+  const startEditRoles = (type: ArticleType) => {
+    const currentRoleIds = articleTypeRoleMap.get(type.id) || [];
+    setEditingArticleType(type);
+    setSelectedRoleIds([...currentRoleIds]);
+    setShowRoleModal(true);
+  };
+
+  // 保存关联角色
+  const saveRoles = async () => {
+    if (!editingArticleType) return;
+
+    try {
+      const response = await articleTypeService.setAssociatedAIRoles(editingArticleType.id, selectedRoleIds);
+      if (response.success) {
+        showMessage('success', '关联角色更新成功');
+        loadArticleTypeRoles(editingArticleType.id);
+        setShowRoleModal(false);
+        setEditingArticleType(null);
+        setSelectedRoleIds([]);
+      } else {
+        showMessage('error', response.error || '更新失败');
+      }
+    } catch (error) {
+      console.error('更新关联角色失败:', error);
+      showMessage('error', '更新失败');
+    }
+  };
+
+  // 取消编辑关联角色
+  const cancelEditRoles = () => {
+    setShowRoleModal(false);
+    setEditingArticleType(null);
+    setSelectedRoleIds([]);
+  };
+
+  // 切换角色选择
+  const toggleRole = (roleId: string) => {
+    setSelectedRoleIds(prev => {
+      if (prev.includes(roleId)) {
+        return prev.filter(id => id !== roleId);
+      } else {
+        return [...prev, roleId];
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 头部 */}
@@ -222,6 +307,9 @@ const ArticleTypeManagementPage: React.FC = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     状态
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    关联AI角色
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     操作
@@ -302,6 +390,35 @@ const ArticleTypeManagementPage: React.FC = () => {
                           {type.enabled === 1 ? '启用' : '禁用'}
                         </button>
                       )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex flex-wrap gap-1 flex-1">
+                          {(articleTypeRoleMap.get(type.id) || []).length > 0 ? (
+                            (articleTypeRoleMap.get(type.id) || []).map(roleId => {
+                              const role = aiRoles.find(r => r.id === roleId);
+                              return role ? (
+                                <span
+                                  key={roleId}
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                                >
+                                  <Bot className="w-3 h-3" />
+                                  {role.name}
+                                </span>
+                              ) : null;
+                            })
+                          ) : (
+                            <span className="text-gray-400 text-xs">未关联</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => startEditRoles(type)}
+                          className="text-blue-600 hover:text-blue-800 text-xs whitespace-nowrap"
+                          disabled={editingId === type.id}
+                        >
+                          编辑
+                        </button>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {editingId === type.id ? (
@@ -467,6 +584,86 @@ const ArticleTypeManagementPage: React.FC = () => {
                   确认添加
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 关联AI角色配置弹窗 */}
+      {showRoleModal && editingArticleType && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
+          <div className="bg-white rounded-lg border border-gray-200 w-full max-w-2xl">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">配置关联AI角色</h3>
+              <button 
+                onClick={cancelEditRoles}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <div className="text-sm text-gray-600 mb-2">文章类型</div>
+                <div className="text-sm text-gray-900 font-medium">{editingArticleType.name}</div>
+                <div className="text-xs text-gray-500 mt-1">{editingArticleType.code}</div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  选择AI角色（可多选）
+                </label>
+                {aiRoles.length === 0 ? (
+                  <div className="text-sm text-gray-500 py-4 border border-gray-200 rounded-lg text-center">
+                    暂无可用的AI角色，请先到{' '}
+                    <a href="/ai-roles" className="text-blue-600 hover:underline">
+                      AI角色管理
+                    </a>{' '}
+                    创建角色
+                  </div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2">
+                    {aiRoles.map(role => (
+                      <label
+                        key={role.id}
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRoleIds.includes(role.id)}
+                          onChange={() => toggleRole(role.id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <Bot className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900">{role.name}</div>
+                          {role.description && (
+                            <div className="text-xs text-gray-500 mt-0.5">{role.description}</div>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {selectedRoleIds.length > 0 && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    已选择 <span className="font-medium text-blue-600">{selectedRoleIds.length}</span> 个角色
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
+              <button 
+                onClick={cancelEditRoles}
+                className="px-4 py-2 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors"
+              >
+                取消
+              </button>
+              <button 
+                onClick={saveRoles}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+              >
+                保存
+              </button>
             </div>
           </div>
         </div>

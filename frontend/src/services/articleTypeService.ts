@@ -136,6 +136,40 @@ class ArticleTypeService {
       };
     }
   }
+
+  /**
+   * 获取文章类型关联的AI角色ID列表
+   */
+  async getAssociatedAIRoleIds(articleTypeId: string): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await api.get<ApiResponse<string[]>>(`/article-types/${articleTypeId}/ai-roles`);
+      return response.data;
+    } catch (error: any) {
+      console.error('获取关联AI角色失败:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '获取关联AI角色失败'
+      };
+    }
+  }
+
+  /**
+   * 设置文章类型关联的AI角色
+   */
+  async setAssociatedAIRoles(articleTypeId: string, aiRoleIds: string[]): Promise<ApiResponse<string[]>> {
+    try {
+      const response = await api.put<ApiResponse<string[]>>(`/article-types/${articleTypeId}/ai-roles`, {
+        aiRoleIds
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('设置关联AI角色失败:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || '设置关联AI角色失败'
+      };
+    }
+  }
 }
 
 const articleTypeService = new ArticleTypeService();

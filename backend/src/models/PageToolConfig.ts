@@ -460,7 +460,7 @@ export class PageToolConfigModel {
         const existing = await this.getByPageType(config.pageType);
         if (!existing) {
           // 如果不存在，创建默认配置
-          await this.create(config);
+          await this.create(config as CreatePageToolConfigDTO);
         }
       } catch (error: any) {
         // 忽略错误，继续处理下一个配置

@@ -48,9 +48,20 @@ export class ArticleTypeModel {
   }
 
   /**
+   * 确保数据库连接
+   */
+  private async ensureConnection(): Promise<void> {
+    if (!this.db) {
+      throw new Error('数据库管理器未初始化');
+    }
+    await this.db.connect();
+  }
+
+  /**
    * 初始化表结构
    */
   async initializeTable(): Promise<void> {
+    await this.ensureConnection();
     // 使用统一的SQL语句（SQLite和PostgreSQL都支持）
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS article_types (
@@ -93,6 +104,9 @@ export class ArticleTypeModel {
 
     // 初始化默认数据
     await this.initializeDefaultData();
+    
+    // 初始化关联表
+    await this.initializeAssociationTable();
   }
 
   /**
@@ -131,7 +145,7 @@ export class ArticleTypeModel {
       id,
       code: data.code,
       name: data.name,
-      description: data.description || null,
+      description: data.description || undefined,
       enabled: data.enabled !== undefined ? data.enabled : 1,
       sort_order: data.sort_order !== undefined ? data.sort_order : 0,
       created_at: now,
@@ -247,6 +261,9 @@ export class ArticleTypeModel {
    */
   async delete(id: string): Promise<boolean> {
     try {
+      // 先删除关联关系
+      await this.db.query('DELETE FROM article_type_ai_roles WHERE article_type_id = ?', [id]);
+      // 再删除文章类型
       await this.db.query('DELETE FROM article_types WHERE id = ?', [id]);
       // 检查是否真的删除了（通过查询确认）
       const deleted = await this.findById(id);
@@ -254,6 +271,88 @@ export class ArticleTypeModel {
     } catch (error) {
       console.error('删除文章类型失败:', error);
       return false;
+    }
+  }
+
+  /**
+   * 初始化关联表
+   */
+  async initializeAssociationTable(): Promise<void> {
+    await this.ensureConnection();
+    const createTableSQL = `
+      CREATE TABLE IF NOT EXISTS article_type_ai_roles (
+        id TEXT PRIMARY KEY,
+        article_type_id TEXT NOT NULL,
+        ai_role_id TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (article_type_id) REFERENCES article_types(id) ON DELETE CASCADE,
+        FOREIGN KEY (ai_role_id) REFERENCES ai_roles(id) ON DELETE CASCADE,
+        UNIQUE(article_type_id, ai_role_id)
+      );
+    `;
+    
+    try {
+      await this.db.query(createTableSQL);
+      
+      // 创建索引
+      const indexes = [
+        'CREATE INDEX IF NOT EXISTS idx_article_type_ai_roles_article_type_id ON article_type_ai_roles(article_type_id);',
+        'CREATE INDEX IF NOT EXISTS idx_article_type_ai_roles_ai_role_id ON article_type_ai_roles(ai_role_id);',
+      ];
+      
+      for (const indexSQL of indexes) {
+        try {
+          await this.db.query(indexSQL);
+        } catch (error: any) {
+          if (!error.message?.includes('already exists') && !error.message?.includes('duplicate')) {
+            console.warn('创建索引时出现警告:', error.message);
+          }
+        }
+      }
+    } catch (error: any) {
+      if (!error.message?.includes('already exists') && !error.message?.includes('duplicate')) {
+        console.warn('创建article_type_ai_roles表时出现警告:', error.message);
+      }
+    }
+  }
+
+  /**
+   * 生成关联ID
+   */
+  private generateAssociationId(): string {
+    return `atr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * 获取文章类型关联的AI角色ID列表
+   */
+  async getAssociatedAIRoleIds(articleTypeId: string): Promise<string[]> {
+    await this.ensureConnection();
+    const rows = await this.db.query(
+      'SELECT ai_role_id FROM article_type_ai_roles WHERE article_type_id = ?',
+      [articleTypeId]
+    );
+    return rows.map((row: any) => row.ai_role_id);
+  }
+
+  /**
+   * 设置文章类型关联的AI角色
+   */
+  async setAssociatedAIRoles(articleTypeId: string, aiRoleIds: string[]): Promise<void> {
+    await this.ensureConnection();
+    // 先删除现有关联
+    await this.db.query('DELETE FROM article_type_ai_roles WHERE article_type_id = ?', [articleTypeId]);
+    
+    // 插入新关联
+    if (aiRoleIds.length > 0) {
+      const now = new Date().toISOString();
+      for (const roleId of aiRoleIds) {
+        const id = this.generateAssociationId();
+        await this.db.query(
+          'INSERT INTO article_type_ai_roles (id, article_type_id, ai_role_id, created_at) VALUES (?, ?, ?, ?)',
+          [id, articleTypeId, roleId, now]
+        );
+      }
     }
   }
 }

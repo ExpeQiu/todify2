@@ -30,8 +30,11 @@ export class ContextManager {
       return [];
     }
 
-    // 获取历史消息
-    const history = await ChatMessageService.getConversationMessages(conversationId, 100, 0);
+    // 根据策略动态计算需要的消息数量（优化：数据库层面限制查询数量）
+    const limit = this.calculateMessageLimit(strategy);
+    
+    // 获取历史消息（数据库层面限制查询数量，提升性能）
+    const history = await ChatMessageService.getConversationMessages(conversationId, limit, 0);
 
     if (history.length === 0) {
       return [];
@@ -226,6 +229,37 @@ ${truncatedText}
     } catch (error) {
       console.error('生成摘要失败:', error);
       return '';
+    }
+  }
+
+  /**
+   * 根据策略计算需要的消息数量限制
+   * 优化：在数据库查询时就限制数量，而不是查询全部后再截取
+   * @param strategy 上下文策略
+   * @returns 消息数量限制
+   */
+  private calculateMessageLimit(strategy: DirectAgentConfig['contextStrategy']): number {
+    switch (strategy.type) {
+      case 'window':
+        // 窗口策略：只需要最近N条消息
+        return strategy.maxMessages || 10;
+      
+      case 'summary':
+        // 摘要策略：需要更多消息用于生成摘要（阈值 * 1.5，确保有足够数据）
+        const maxMessages = strategy.maxMessages || 10;
+        const threshold = strategy.summaryThreshold || maxMessages * 2;
+        return Math.ceil(threshold * 1.5);
+      
+      case 'hybrid':
+        // 混合策略：根据Token和消息数量限制，取较大值
+        const hybridMaxMessages = strategy.maxMessages || 20;
+        // 估算：假设每条消息平均200 tokens，maxTokens / 200 得到消息数上限
+        const maxTokens = strategy.maxTokens || 4000;
+        const tokenBasedLimit = Math.ceil(maxTokens / 200);
+        return Math.max(hybridMaxMessages, tokenBasedLimit);
+      
+      default:
+        return 10;
     }
   }
 

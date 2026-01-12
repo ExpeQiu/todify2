@@ -110,8 +110,9 @@ export class SendMessageUseCase {
         
         // 尝试从工作流执行结果的数据中提取 conversation_id
         // 首先检查 outputs 中是否包含 conversation_id
-        if (workflowResult?.data?.outputs) {
-          const outputs = workflowResult.data.outputs;
+        const workflowData = (workflowResult as any)?.data;
+        if (workflowData?.outputs) {
+          const outputs = workflowData.outputs as any;
           if (outputs.conversation_id && typeof outputs.conversation_id === 'string') {
             newDifyConversationId = outputs.conversation_id;
           } else if (outputs.output && typeof outputs.output === 'object' && outputs.output.conversation_id) {
@@ -181,12 +182,13 @@ export class SendMessageUseCase {
           extractedContentLength: aiContent?.length || 0,
           extractedContentType: typeof extractedOutput.content,
           workflowResultKeys: Object.keys(workflowResult || {}),
-          dataOutputsKeys: Object.keys(workflowResult?.data?.outputs || {}),
+          dataOutputsKeys: Object.keys(((workflowResult as any)?.data?.outputs) || {}),
         });
         
         // 如果提取的内容为空，尝试从工作流结果中提取
         if (!aiContent || aiContent.trim() === '') {
-          const outputs = workflowResult?.data?.outputs || {};
+          const workflowData = (workflowResult as any)?.data;
+          const outputs = (workflowData?.outputs || {}) as any;
           
           // 按优先级尝试多个字段
           aiContent = 

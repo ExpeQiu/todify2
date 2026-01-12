@@ -104,9 +104,9 @@ router.post('/', async (req, res) => {
       workflowStructure,
       metadata,
       isPublic,
-    });
+    }) as any;
     
-    console.log('模板创建成功:', template.id);
+    console.log('模板创建成功:', template?.id || template?.data?.id);
     
     res.json(formatApiResponse(true, template, '创建模板成功'));
   } catch (error) {

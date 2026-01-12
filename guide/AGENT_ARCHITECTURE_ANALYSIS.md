@@ -57,6 +57,10 @@ async executeAgent(
 - **超时控制**: 6分钟总体超时，每个工具60秒超时
 - **工具调用循环**: 最多10轮迭代，防止无限循环
 - **上下文策略**: 支持窗口、摘要、混合三种策略
+- **Mock模式**: 支持`AI_MOCK_MODE=true`环境变量，开发测试时节省成本
+- **执行追踪**: 完整的执行步骤记录和性能指标追踪
+- **工具并行执行**: 支持安全工具类型的并行执行（search、calculation、time、api）
+- **多Provider支持**: 支持OpenAI、Anthropic、Google、Local等多种LLM Provider
 
 ### 2.2 PromptManager（Prompt管理器）
 
@@ -108,14 +112,14 @@ async executeAgent(
 
 **支持的工具类型**:
 
-| 类型 | 功能 | 实现状态 |
-|------|------|---------|
-| `search` | 搜索工具 | 占位符（待实现） |
-| `calculation` | 数学计算 | ✅ 已实现 |
-| `time` | 时间获取 | ✅ 已实现 |
-| `api` | HTTP API调用 | ✅ 已实现 |
-| `workflow` | 工作流调用 | ✅ 已实现 |
-| `agent` | Agent嵌套调用 | 占位符（待实现） |
+| 类型 | 功能 | 实现状态 | 说明 |
+|------|------|---------|------|
+| `search` | 搜索工具 | ✅ 已实现 | 基于DifyClient的AI Search功能 |
+| `calculation` | 数学计算 | ✅ 已实现 | 使用mathjs库，安全可靠 |
+| `time` | 时间获取 | ✅ 已实现 | 支持多种时间格式和时区 |
+| `api` | HTTP API调用 | ✅ 已实现 | 支持GET/POST/PUT/DELETE方法 |
+| `workflow` | 工作流调用 | ✅ 已实现 | 使用LangGraphEngine执行工作流 |
+| `agent` | Agent嵌套调用 | ✅ 已实现 | 支持最多3层嵌套，防止无限递归 |
 
 **工具调用流程**:
 1. 解析工具调用参数（JSON格式）
@@ -167,6 +171,7 @@ async executeAgent(
 - 按层级并行执行（同一层节点可并行）
 - 支持条件边（gating）：根据条件决定是否执行节点
 - 共享上下文传递：节点间通过`sharedContext`共享数据
+- **支持Direct Agent**: Agent节点可以调用Direct Agent类型的AI角色
 
 **局限性**:
 - 不支持循环（Cycles）
@@ -247,7 +252,9 @@ LangGraphEngine.execute()
   ↓
 ├─ executeNode() [根据节点类型执行]
 │   ├─ input: 提取输入参数
-│   ├─ agent: 调用AI角色（通过DifyGateway）
+│   ├─ agent: 调用AI角色
+│   │   ├─ Direct Agent: 通过AgentOrchestrator执行
+│   │   └─ Dify Agent: 通过DifyGateway执行
 │   ├─ condition: 条件判断
 │   ├─ assign: 变量赋值
 │   ├─ transform: 数据转换
@@ -277,14 +284,14 @@ AgentOrchestrator.executeTools()
 ToolExecutor.executeTool()
   ↓
 根据工具类型执行
-  ├─ search: 执行搜索（待实现）
-  ├─ calculation: 执行计算
+  ├─ search: 执行搜索（基于DifyClient AI Search）
+  ├─ calculation: 执行计算（使用mathjs库）
   ├─ time: 获取时间
   ├─ api: HTTP请求
   ├─ workflow: 调用工作流
-  │   └─ AgentWorkflowService.executeWorkflow()
-  └─ agent: 嵌套Agent调用（待实现）
-      └─ AgentOrchestrator.executeAgent() [递归]
+  │   └─ LangGraphEngine.execute() [使用LangGraphEngine替代]
+  └─ agent: 嵌套Agent调用（支持最多3层深度）
+      └─ AgentOrchestrator.executeAgent() [递归，带深度控制]
   ↓
 返回工具执行结果（JSON格式）
   ↓
@@ -419,8 +426,12 @@ ContextManager.getContextMessages()
 - **工具格式适配**: 将ToolConfig转换为OpenAI Function格式
 
 ### 5.4 工厂模式
-- **LLM Provider工厂**: 根据配置创建不同的Provider实例
+- **LLM Provider工厂**: 根据配置创建不同的Provider实例（支持OpenAI、Anthropic、Google、Local）
 - **DifyGateway工厂**: 根据应用类型创建Gateway实例
+
+### 5.5 观察者模式
+- **执行追踪**: 记录每个执行步骤的详细信息
+- **性能监控**: 记录执行时间和Token使用量
 
 ---
 
@@ -441,7 +452,9 @@ ContextManager.getContextMessages()
 
 ### 6.4 并发控制
 - **工作流节点**: 同一层节点可并行执行
-- **工具调用**: 串行执行（保证顺序）
+- **工具调用**: 智能并行执行
+  - 安全工具类型（search、calculation、time、api）可并行执行
+  - 有依赖关系的工具（workflow、agent）串行执行
 
 ---
 
@@ -450,19 +463,49 @@ ContextManager.getContextMessages()
 ### 7.1 当前限制
 1. **LangGraphEngine不支持循环**: 无法实现迭代优化流程
 2. **节点扩展性差**: 硬编码switch-case，难以动态扩展
-3. **工具类型不完整**: search和agent工具为占位符
-4. **AgentWorkflowService已移除**: 工作流功能受限
+3. **状态管理简单**: 仅依靠sharedContext，缺少持久化机制
 
-### 7.2 改进建议
-1. **升级LangGraphEngine**: 从DAG执行器升级为真正的图状态机
-2. **插件化节点系统**: 支持动态注册节点类型
-3. **完善工具生态**: 实现search和agent工具
+### 7.2 已实现功能
+1. ✅ **多LLM Provider支持**: OpenAI、Anthropic、Google、Local
+2. ✅ **工具并行执行**: 安全工具类型支持并行执行
+3. ✅ **Mock模式**: 开发测试时节省成本
+4. ✅ **执行追踪**: 完整的执行步骤和性能指标记录
+5. ✅ **工具生态完善**: search、agent、workflow等工具均已实现
+6. ✅ **Direct Agent工作流支持**: 工作流中可以调用Direct Agent
+7. ✅ **计算工具安全性**: 使用mathjs替代eval，防止代码注入
+
+### 7.3 改进建议
+1. **升级LangGraphEngine**: 从DAG执行器升级为真正的图状态机，支持循环
+2. **插件化节点系统**: 支持动态注册节点类型，提高扩展性
+3. **状态持久化**: 支持工作流状态的持久化和恢复
 4. **增强错误处理**: 更细粒度的错误分类和恢复机制
-5. **性能优化**: 支持工具调用的并行执行（安全场景下）
+5. **性能优化**: 进一步优化工具并行执行策略
 
 ---
 
-## 八、总结
+## 八、技术特性总结
 
-项目采用混合式架构，同时支持内部Direct Agent和外部Dify Agent，通过工作流引擎实现复杂业务流程编排。信息处理链路清晰，从用户输入到AI响应的每个环节都有明确的职责分工。当前架构在功能完整性上还有提升空间，特别是在工具生态和工作流循环支持方面。
+### 8.1 核心能力
+- ✅ **多引擎架构**: Direct Agent、Dify Agent、工作流引擎协同工作
+- ✅ **多Provider支持**: 支持OpenAI、Anthropic、Google、Local等多种LLM
+- ✅ **完整工具生态**: 6种工具类型全部实现，支持并行执行
+- ✅ **智能上下文管理**: 窗口、摘要、混合三种策略灵活切换
+- ✅ **执行可观测性**: 完整的执行追踪和性能监控
+
+### 8.2 架构优势
+- **灵活性**: 支持多种Agent执行模式，适应不同业务场景
+- **可扩展性**: 工具系统设计合理，易于扩展新工具类型
+- **可观测性**: 详细的执行日志和性能指标，便于调试和优化
+- **安全性**: 计算工具使用mathjs，防止代码注入；Agent嵌套调用有深度限制
+
+### 8.3 待优化方向
+- **工作流循环支持**: 当前不支持循环，无法实现迭代优化流程
+- **节点插件化**: 节点类型硬编码，需要重构为插件化系统
+- **状态持久化**: 工作流状态管理可以进一步增强
+
+---
+
+**文档版本**: v2.0  
+**最后更新**: 2025-01-08  
+**维护者**: AI Assistant
 

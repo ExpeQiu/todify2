@@ -49,3 +49,5 @@ test-results
 ._*
 .AppleDouble
 .LSOverride
+**/._*
+**/.DS_Store

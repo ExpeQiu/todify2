@@ -44,7 +44,7 @@ export interface ToolCall {
  * LLM配置
  */
 export interface LLMConfig {
-  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';
+  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';
   apiKey: string;
   apiBaseUrl?: string;
   model: string;

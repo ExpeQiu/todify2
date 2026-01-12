@@ -1796,7 +1796,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
             onTriggerFeature={handleTriggerFeature}
             executingFeatureId={triggeringFeatureId}
             statusMessage={triggeringStatus || undefined}
-            onShowFieldMappingConfig={() => setShowFieldMappingConfig(true)}
             studioTitle={config.studioTitle}
             featureLabelMap={{ ...config.featureLabelMap, ...dynamicLabelMap }}
             enabledToolIds={enabledToolIds}

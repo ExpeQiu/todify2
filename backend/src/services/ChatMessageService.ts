@@ -319,5 +319,21 @@ export class ChatMessageService {
     // 已移除聊天功能，此方法仅用于兼容性
     return Promise.resolve();
   }
+
+  /**
+   * 根据消息ID获取消息（占位符方法）
+   */
+  static async getChatMessageById(messageId: string): Promise<any> {
+    // 已移除聊天功能，此方法仅用于兼容性
+    return null;
+  }
+
+  /**
+   * 根据执行ID获取工作流执行（占位符方法）
+   */
+  static async getWorkflowExecutionById(executionId: string): Promise<any> {
+    // 已移除聊天功能，此方法仅用于兼容性
+    return null;
+  }
 }
 

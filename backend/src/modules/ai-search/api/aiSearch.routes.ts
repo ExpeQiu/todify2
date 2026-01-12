@@ -41,8 +41,8 @@ const resolveWorkflowId = async (): Promise<string | null> => {
     return workflowId;
   }
 
-  const workflows = await agentWorkflowService.getAllWorkflows();
-  const defaultWorkflow = workflows.find((w) => w.name === '智能工作流');
+  const workflows = await agentWorkflowService.getAllWorkflows() as any[];
+  const defaultWorkflow = workflows.find((w: any) => w.name === '智能工作流');
   return defaultWorkflow?.id || workflows[0]?.id || null;
 };
 
@@ -141,7 +141,7 @@ const ensureTablesInitialized = async (req: Request, res: Response, next: any) =
 router.get('/workflow', async (req: Request, res: Response) => {
   try {
     const pageType = req.query.pageType as string | undefined; // 'tech-package' | 'press-release'
-    const workflows = await agentWorkflowService.getAllWorkflows();
+    const workflows = await agentWorkflowService.getAllWorkflows() as any[];
     
     // 根据页面类型选择不同的环境变量或默认工作流
     let workflowIdFromEnv: string | null = null;
@@ -152,9 +152,10 @@ router.get('/workflow', async (req: Request, res: Response) => {
     }
 
     let resolvedWorkflowId: string | null = null;
+    const workflowsArray = workflows as any[];
 
     if (workflowIdFromEnv) {
-      const matched = workflows.find((workflow) => workflow.id === workflowIdFromEnv);
+      const matched = workflowsArray.find((workflow: any) => workflow.id === workflowIdFromEnv);
       if (matched) {
         resolvedWorkflowId = matched.id;
       } else {
@@ -168,8 +169,8 @@ router.get('/workflow', async (req: Request, res: Response) => {
     if (!resolvedWorkflowId) {
       // 根据页面类型选择默认工作流名称
       const defaultWorkflowName = pageType === 'press-release' ? '发布会稿工作流' : '智能工作流';
-      const defaultWorkflow = workflows.find((workflow) => workflow.name === defaultWorkflowName);
-      resolvedWorkflowId = defaultWorkflow?.id || workflows[0]?.id || null;
+      const defaultWorkflow = workflowsArray.find((workflow: any) => workflow.name === defaultWorkflowName);
+      resolvedWorkflowId = defaultWorkflow?.id || workflowsArray[0]?.id || null;
     }
 
     res.json(
@@ -951,8 +952,18 @@ router.delete('/field-mappings/:workflowId', ensureTablesInitialized, async (req
  */
 router.post('/tech-article/aggregate', ensureTablesInitialized, async (req: Request, res: Response) => {
   try {
-    const dto = validateDTO(AggregateTechArticleSchema, req.body);
-    const result = await aggregateTechArticleUseCase.execute(dto);
+    const body = req.body;
+    // 确保 outputIds 是数组
+    if (!body.outputIds) {
+      body.outputIds = [];
+    }
+    const dto = validateDTO(AggregateTechArticleSchema, body);
+    // 确保 dto.outputIds 是数组（zod default 可能不会在类型中生效）
+    const finalDto = {
+      ...dto,
+      outputIds: dto.outputIds || []
+    };
+    const result = await aggregateTechArticleUseCase.execute(finalDto);
 
     if (!result.success) {
       return res.status(500).json(

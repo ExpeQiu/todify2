@@ -164,7 +164,7 @@ export class PerformanceMetricModel {
     const result = await this.db.query(sql, [executionId]);
     const rows = Array.isArray(result) ? result : result.rows || [result];
 
-    return rows.map((row) => ({
+    return rows.map((row: any) => ({
       id: row.id,
       execution_id: row.execution_id,
       metric_type: row.metric_type,

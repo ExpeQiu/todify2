@@ -62,6 +62,7 @@ export interface BrainstormSessionDTO {
  * 创建头脑风暴会话DTO
  */
 export interface CreateBrainstormSessionDTO {
+  id?: string; // 可选ID，如果不提供则自动生成
   title: string;
   topic: string;
   description?: string;
@@ -79,6 +80,7 @@ export interface UpdateBrainstormSessionDTO {
   description?: string;
   config?: Partial<BrainstormSessionConfig>;
   status?: 'draft' | 'active' | 'completed' | 'stopped';
+  summary?: string;
 }
 
 /**
@@ -404,7 +406,7 @@ export class BrainstormSessionModel {
     }
 
     const rows = await this.db.query(sql, params);
-    return rows.map(row => this.toDTO(row));
+    return rows.map((row: any) => this.toDTO(row));
   }
 
   /**
@@ -591,7 +593,7 @@ export class BrainstormParticipantModel {
       ORDER BY p.sort_order ASC, p.created_at ASC
     `;
     const rows = await this.db.query(sql, [sessionId]);
-    return rows.map(row => this.toDTOWithRole(row));
+    return rows.map((row: any) => this.toDTOWithRole(row));
   }
 
   /**
@@ -767,7 +769,7 @@ export class BrainstormMessageModel {
     }
 
     const rows = await this.db.query(sql, params);
-    return rows.map(row => this.toDTO(row));
+    return rows.map((row: any) => this.toDTO(row));
   }
 
   /**

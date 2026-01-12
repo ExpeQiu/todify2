@@ -6,6 +6,7 @@ import { ToolExecutor } from './ToolExecutor';
 import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool } from '../llm/types';
 import { LLMProviderFactory } from '../llm/ProviderFactory';
 import { ChatMessageService } from '../ChatMessageService';
+import { AgentError, AgentErrorHandler, AgentErrorCode } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -212,15 +213,27 @@ export class AgentOrchestrator {
       };
     } catch (error) {
       const totalDuration = Date.now() - startTime;
+      
+      // 标准化错误处理
+      const agentError = AgentErrorHandler.normalizeError(error, {
+        roleId,
+        executionId,
+        step: 'executeAgent'
+      });
+      
       await this.logStep(executionId, 'error', {
         type: 'error',
         input: { query, context },
         output: null,
         duration: totalDuration,
         status: 'failed',
-        error: error instanceof Error ? error.message : String(error)
+        error: agentError.message,
+        errorCode: agentError.code,
+        errorDetails: agentError.details
       });
-      throw error;
+      
+      // 抛出标准化的错误
+      throw agentError;
     } finally {
       this.currentExecutionId = '';
       this.currentAgentId = '';
@@ -376,7 +389,14 @@ export class AgentOrchestrator {
       };
     } catch (error) {
       const toolDuration = Date.now() - toolCallStartTime;
-      console.error(`工具执行失败: ${toolCall.function.name}`, error);
+      
+      // 标准化错误处理
+      const agentError = AgentErrorHandler.normalizeError(error, {
+        executionId,
+        step: `tool_${toolCall.function.name}`
+      });
+      
+      console.error(`工具执行失败: ${toolCall.function.name}`, agentError);
       
       if (executionId) {
         await this.logStep(executionId, `tool_${toolCall.function.name}_error`, {
@@ -385,15 +405,22 @@ export class AgentOrchestrator {
           output: null,
           duration: toolDuration,
           status: 'failed',
-          error: error instanceof Error ? error.message : '工具执行失败'
+          error: agentError.message,
+          errorCode: agentError.code,
+          errorDetails: agentError.details
         });
       }
 
+      // 返回标准化的错误信息（不抛出异常，让LLM决定如何处理）
       return {
         toolCallId: toolCall.id,
         toolName: toolCall.function.name,
         content: JSON.stringify({ 
-          error: error instanceof Error ? error.message : '工具执行失败' 
+          error: agentError.message,
+          errorCode: agentError.code,
+          recoverable: agentError.recoverable,
+          toolName: toolCall.function.name,
+          details: agentError.details
         })
       };
     }
@@ -615,6 +642,8 @@ export class AgentOrchestrator {
     duration: number;
     status: 'success' | 'failed' | 'skipped';
     error?: string;
+    errorCode?: string;
+    errorDetails?: any;
   }): Promise<void> {
     try {
       await executionTraceModel.create({

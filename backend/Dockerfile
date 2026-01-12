@@ -47,14 +47,14 @@ RUN mkdir -p /app/data /app/init-data && \
 
 # 设置环境变量
 ENV NODE_ENV=production
-ENV PORT=3003
+ENV PORT=8113
 
 # 暴露端口
-EXPOSE 3003
+EXPOSE 8113
 
 # 健康检查（使用 wget 或 curl）
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3003/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8113/api/health || exit 1
 
 # 使用入口脚本启动应用
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

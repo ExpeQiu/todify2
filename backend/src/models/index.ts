@@ -12,6 +12,8 @@ import { ArticleTypeModel } from './ArticleType';
 import { AgentWorkflowModel, WorkflowExecutionModel } from './AgentWorkflow';
 import { ExecutionTraceModel } from './ExecutionTrace';
 import { PerformanceMetricModel } from './PerformanceMetrics';
+import { PublicPageConfigModel } from './PublicPageConfig';
+import { PageToolConfigModel } from './PageToolConfig';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例
@@ -31,6 +33,8 @@ export const agentWorkflowModel = new AgentWorkflowModel(db);
 export const workflowExecutionModel = new WorkflowExecutionModel(db);
 export const executionTraceModel = new ExecutionTraceModel(db);
 export const performanceMetricModel = new PerformanceMetricModel(db);
+export const publicPageConfigModel = new PublicPageConfigModel(db);
+export const pageToolConfigModel = new PageToolConfigModel(db);
 
 // 导出模型类
 export { TechCategoryModel } from './TechCategory';
@@ -46,6 +50,8 @@ export { ArticleTypeModel } from './ArticleType';
 export { AgentWorkflowModel, WorkflowExecutionModel } from './AgentWorkflow';
 export { ExecutionTraceModel } from './ExecutionTrace';
 export { PerformanceMetricModel } from './PerformanceMetrics';
+export { PublicPageConfigModel } from './PublicPageConfig';
+export { PageToolConfigModel } from './PageToolConfig';
 
 // 导出数据库管理器
 export { DatabaseManager } from '../config/database';

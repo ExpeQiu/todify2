@@ -8,7 +8,7 @@ import RecentProjectList from '../components/project/RecentProjectList';
 import NewProjectModal from '../components/project/NewProjectModal';
 import NewProjectCard from '../components/project/NewProjectCard';
 import ProjectCard from '../components/project/ProjectCard';
-import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database, FileText } from 'lucide-react';
+import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database, FileText, Map } from 'lucide-react';
 
 type TabType = 'all' | 'my' | 'featured';
 
@@ -283,6 +283,16 @@ const HomePage: React.FC = () => {
                       >
                         <Settings className="w-4 h-4" />
                         <span>Agent设置</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/field-mapping-management');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <Map className="w-4 h-4" />
+                        <span>工具箱</span>
                       </button>
                     </div>
                   </>

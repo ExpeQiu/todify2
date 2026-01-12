@@ -56,3 +56,5 @@ scripts/test-*.ts
 ._*
 .AppleDouble
 .LSOverride
+**/._*
+**/.DS_Store

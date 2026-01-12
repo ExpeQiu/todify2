@@ -353,7 +353,7 @@ router.post('/import-independent-pages', async (req, res) => {
         // 检查是否已存在配置（通过名称匹配）
         const existingConfigs = await publicPageConfigModel.getAll();
         const existing = existingConfigs.find(
-          c => c.name === (nodeMapping[role.id]?.name || role.name)
+          (c: any) => c.name === (nodeMapping[role.id]?.name || role.name)
         );
 
         if (existing) {
