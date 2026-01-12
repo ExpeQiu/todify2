@@ -12,6 +12,10 @@ import {
 } from '../../models/Brainstorm';
 import { AgentExecutionResult } from '../agent/AgentOrchestrator';
 import { v4 as uuidv4 } from 'uuid';
+import { StructuredContextManager } from './StructuredContextManager';
+import { ReflectionLoopManager } from './ReflectionLoopManager';
+import { ConsensusDetector } from './ConsensusDetector';
+import { DebateModeManager } from './DebateModeManager';
 
 /**
  * 头脑风暴编排器
@@ -20,9 +24,19 @@ import { v4 as uuidv4 } from 'uuid';
 export class BrainstormOrchestrator {
   private agentOrchestrator: AgentOrchestrator;
   private activeSessions: Map<string, boolean> = new Map();
+  private contextManager: StructuredContextManager;
+  private reflectionManager: ReflectionLoopManager;
+  private consensusDetector: ConsensusDetector;
+  private debateManager: DebateModeManager;
+  // 存储每个会话的结构化上下文
+  private sessionContexts: Map<string, { context: any; lastSummaryRound: number }> = new Map();
 
   constructor() {
     this.agentOrchestrator = new AgentOrchestrator();
+    this.contextManager = new StructuredContextManager();
+    this.reflectionManager = new ReflectionLoopManager();
+    this.consensusDetector = new ConsensusDetector();
+    this.debateManager = new DebateModeManager();
   }
 
   /**
@@ -98,6 +112,30 @@ export class BrainstormOrchestrator {
         break;
       }
 
+      // 检查共识检测（如果启用）
+      if (roundNumber > 1 && roundNumber % 2 === 0) { // 每2轮检查一次
+        const consensusResult = await this.checkConsensus(sessionId, roundNumber);
+        if (consensusResult?.hasConsensus) {
+          console.log(`会话 ${sessionId} 达成共识，停止讨论`);
+          await brainstormMessageModel.create({
+            sessionId,
+            participantId: null,
+            roundNumber,
+            content: `[共识检测] 讨论已达成共识（置信度：${(consensusResult.confidence * 100).toFixed(1)}%）\n共识主题：${consensusResult.consensusTopics.join('、')}`,
+            messageType: 'agent',
+            metadata: {
+              consensusResult,
+              isSystemMessage: true,
+            },
+          });
+          await brainstormSessionModel.update(sessionId, {
+            status: 'completed',
+            summary: `讨论达成共识。共识主题：${consensusResult.consensusTopics.join('、')}`,
+          });
+          break;
+        }
+      }
+
       // 执行一轮讨论（带超时保护）
       try {
         await Promise.race([
@@ -107,6 +145,14 @@ export class BrainstormOrchestrator {
           )
         ]);
         consecutiveErrors = 0; // 重置错误计数
+
+        // 检查是否需要执行反思循环
+        const session = await brainstormSessionModel.getById(sessionId);
+        if (session.config.reflectionLoop?.enabled && 
+            roundNumber > 0 && 
+            roundNumber % (session.config.reflectionLoop.reflectionFrequency || 3) === 0) {
+          await this.executeReflectionIfNeeded(sessionId, roundNumber);
+        }
       } catch (error) {
         consecutiveErrors++;
         console.error(`轮次 ${roundNumber} 执行失败:`, error);
@@ -185,7 +231,14 @@ export class BrainstormOrchestrator {
 
     // 根据讨论模式选择执行方式
     let participantMessages: BrainstormMessageDTO[];
-    if (session.config.discussionMode === 'round-robin') {
+    if (session.config.discussionMode === 'debate' && session.config.debateConfig?.enabled) {
+      // 辩论模式
+      participantMessages = await this.debateManager.executeDebateRound(
+        session,
+        roundNumber,
+        session.config.debateConfig
+      );
+    } else if (session.config.discussionMode === 'round-robin') {
       participantMessages = await this.executeRoundRobin(session, participants, roundNumber);
     } else {
       participantMessages = await this.executeParallel(session, participants, roundNumber);
@@ -316,7 +369,7 @@ export class BrainstormOrchestrator {
     const historyMessages = await brainstormMessageModel.getBySessionId(session.id);
 
     // 构建每个参与者的查询（包含话题和历史讨论）
-    const queries = this.buildQueriesForParticipants(session, participants, historyMessages, roundNumber);
+    const queries = await this.buildQueriesForParticipants(session, participants, historyMessages, roundNumber);
 
     // 并行调用所有 Agent（带超时保护）
     const AGENT_TIMEOUT = 300000; // 单个 Agent 5分钟超时
@@ -408,7 +461,7 @@ export class BrainstormOrchestrator {
       const participant = sortedParticipants[i];
       
       // 构建查询，包含之前参与者的发言
-      const queries = this.buildQueriesForParticipants(
+      const queries = await this.buildQueriesForParticipants(
         session,
         sortedParticipants,
         [...historyMessages, ...messages], // 包含本轮已发言的消息
@@ -478,15 +531,61 @@ export class BrainstormOrchestrator {
   /**
    * 为参与者构建查询
    */
-  private buildQueriesForParticipants(
+  private async buildQueriesForParticipants(
     session: BrainstormSessionDTO,
     participants: BrainstormParticipantDTO[],
     historyMessages: BrainstormMessageDTO[],
     roundNumber: number,
     currentTurnIndex?: number // 轮流模式下的当前发言者索引
-  ): string[] {
-    // 构建历史讨论记录文本
-    const historyText = this.formatHistoryMessages(historyMessages, participants);
+  ): Promise<string[]> {
+    // 使用结构化上下文（如果启用）
+    let contextText = '';
+    const contextConfig = session.config.structuredContext;
+    
+    if (contextConfig?.enabled) {
+      try {
+        const sessionContext = this.sessionContexts.get(session.id);
+        const lastSummaryRound = sessionContext?.lastSummaryRound || 0;
+        
+        // 检查是否需要更新结构化上下文
+        const shouldUpdate = roundNumber - lastSummaryRound >= (contextConfig.summaryFrequency || 3);
+        
+        if (shouldUpdate || !sessionContext) {
+          const structuredContext = await this.contextManager.buildStructuredContext(
+            historyMessages,
+            participants,
+            session.topic,
+            session.description,
+            contextConfig,
+            lastSummaryRound,
+            contextConfig.summarizerRoleId
+          );
+          
+          this.sessionContexts.set(session.id, {
+            context: structuredContext,
+            lastSummaryRound: structuredContext.lastSummaryRound,
+          });
+          
+          contextText = this.contextManager.formatContextForAgent(
+            structuredContext,
+            contextConfig.maxContextTokens
+          );
+        } else {
+          // 使用缓存的上下文
+          contextText = this.contextManager.formatContextForAgent(
+            sessionContext.context,
+            contextConfig.maxContextTokens
+          );
+        }
+      } catch (error) {
+        console.error('构建结构化上下文失败，降级为文本格式:', error);
+        // 降级为文本格式
+        contextText = this.formatHistoryMessages(historyMessages, participants);
+      }
+    } else {
+      // 未启用结构化上下文，使用传统文本格式
+      contextText = this.formatHistoryMessages(historyMessages, participants);
+    }
 
     // 为每个参与者生成查询
     return participants.map((participant, index) => {
@@ -505,8 +604,8 @@ export class BrainstormOrchestrator {
       }
       query += `\n`;
 
-      if (historyText) {
-        query += `\n历史讨论记录：\n${historyText}\n`;
+      if (contextText) {
+        query += `\n${contextText}\n`;
       }
 
       // 轮流模式下的特殊提示
@@ -616,12 +715,50 @@ export class BrainstormOrchestrator {
       }
     }
 
-    // 共识检测（V2功能，暂时不实现）
-    if (session.config.stopConditions.consensusDetection) {
-      // TODO: 实现共识检测逻辑
-    }
+    // 共识检测已移到主循环中执行
 
     return { stop: false };
+  }
+
+  /**
+   * 检查共识（如果启用）
+   */
+  private async checkConsensus(
+    sessionId: string,
+    roundNumber: number
+  ): Promise<import('./ConsensusDetector').ConsensusResult | null> {
+    try {
+      const session = await brainstormSessionModel.getById(sessionId);
+      const config = session.config.stopConditions.consensusConfig;
+
+      if (!config?.enabled && !session.config.stopConditions.consensusDetection) {
+        return null;
+      }
+
+      // 使用详细配置或默认配置
+      const consensusConfig = config || {
+        enabled: true,
+        method: 'hybrid' as const,
+        threshold: 0.7,
+        minAgreementRatio: 0.7,
+        recentRounds: 3,
+      };
+
+      const participants = await brainstormParticipantModel.getBySessionId(sessionId);
+      const messages = await brainstormMessageModel.getBySessionId(sessionId);
+
+      const result = await this.consensusDetector.detectConsensus(
+        session,
+        messages,
+        participants,
+        consensusConfig
+      );
+
+      return result;
+    } catch (error) {
+      console.error('共识检测失败:', error);
+      return null;
+    }
   }
 
   /**
@@ -693,6 +830,80 @@ ${historyText}
    */
   isSessionActive(sessionId: string): boolean {
     return this.activeSessions.get(sessionId) === true;
+  }
+
+  /**
+   * 执行反思循环（如果需要）
+   */
+  private async executeReflectionIfNeeded(sessionId: string, roundNumber: number): Promise<void> {
+    try {
+      const session = await brainstormSessionModel.getById(sessionId);
+      const config = session.config.reflectionLoop;
+      
+      if (!config?.enabled) {
+        return;
+      }
+
+      const participants = await brainstormParticipantModel.getBySessionId(sessionId);
+      const messages = await brainstormMessageModel.getBySessionId(sessionId);
+
+      // 执行评审-反思循环
+      const result = await this.reflectionManager.executeReflectionLoop(
+        session,
+        messages,
+        participants,
+        config
+      );
+
+      // 保存评审结果
+      if (result.evaluation) {
+        await brainstormMessageModel.create({
+          sessionId,
+          participantId: null,
+          roundNumber,
+          content: `[评审] 评分：${result.evaluation.score.toFixed(2)}/1.0\n反馈：${result.evaluation.feedback}`,
+          messageType: 'evaluation',
+          metadata: {
+            evaluationScore: result.evaluation.score,
+            strengths: result.evaluation.strengths,
+            weaknesses: result.evaluation.weaknesses,
+            suggestions: result.evaluation.suggestions,
+          },
+        });
+      }
+
+      // 保存反思结果
+      if (result.reflection) {
+        await brainstormMessageModel.create({
+          sessionId,
+          participantId: null,
+          roundNumber,
+          content: `[反思] ${result.reflection.analysis}\n下一轮重点：${result.reflection.nextRoundFocus}`,
+          messageType: 'reflection',
+          metadata: {
+            reflectionIteration: result.iteration,
+            improvementSuggestions: result.reflection.improvementSuggestions,
+          },
+        });
+
+        // 如果质量不达标且未超过最大迭代次数，可以考虑调整下一轮的提示
+        if (result.evaluation.score < config.qualityThreshold && result.shouldContinue) {
+          console.log(`讨论质量未达标（${result.evaluation.score.toFixed(2)}），已生成改进建议`);
+        }
+      }
+
+      // 如果不应继续，停止讨论
+      if (!result.shouldContinue) {
+        await brainstormSessionModel.update(sessionId, {
+          status: 'stopped',
+          summary: `讨论因质量未达标且已达到最大反思迭代次数（${result.iteration}次）而停止`,
+        });
+        this.activeSessions.set(sessionId, false);
+      }
+    } catch (error) {
+      console.error('执行反思循环失败:', error);
+      // 反思失败不影响讨论继续
+    }
   }
 }
 

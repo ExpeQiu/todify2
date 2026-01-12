@@ -3,6 +3,54 @@ import { DatabaseManager } from '../config/database';
 // ==================== 类型定义 ====================
 
 /**
+ * 反思循环配置
+ */
+export interface ReflectionLoopConfig {
+  enabled: boolean;
+  maxIterations: number;           // 最大迭代次数（默认3）
+  qualityThreshold: number;        // 质量阈值 0-1（默认0.7）
+  evaluatorRoleId?: string;         // 评审Agent ID（可选，默认使用第一个参与者）
+  reflectorRoleId?: string;         // 反思Agent ID（可选，默认使用第一个参与者）
+  reflectionFrequency: number;     // 每N轮进行一次反思（默认每3轮）
+}
+
+/**
+ * 结构化上下文配置
+ */
+export interface StructuredContextConfig {
+  enabled: boolean;
+  summaryFrequency: number;        // 每N轮生成一次摘要（默认每3轮）
+  summarizerRoleId?: string;        // 摘要Agent ID（可选）
+  extractKeyPoints: boolean;        // 是否提取关键观点
+  detectDisagreements: boolean;      // 是否检测分歧点
+  maxContextTokens: number;         // 最大上下文Token数（默认8000）
+}
+
+/**
+ * 共识检测配置
+ */
+export interface ConsensusDetectionConfig {
+  enabled: boolean;
+  method: 'semantic' | 'voting' | 'hybrid'; // 检测方法
+  threshold: number;                  // 共识阈值 0-1（默认0.7）
+  minAgreementRatio: number;          // 最小同意比例（默认0.7）
+  recentRounds: number;               // 分析最近N轮（默认3轮）
+  analyzerRoleId?: string;             // 分析Agent ID（可选）
+}
+
+/**
+ * 辩论模式配置
+ */
+export interface DebateConfig {
+  enabled: boolean;
+  proRoleIds: string[];              // 正方Agent ID列表
+  conRoleIds: string[];               // 反方Agent ID列表
+  judgeRoleId?: string;                // 裁判Agent ID（可选）
+  rounds: number;                      // 辩论轮次（默认3轮）
+  judgeAfterRounds?: number;          // 每N轮进行一次评判（默认每轮结束后）
+}
+
+/**
  * 头脑风暴会话配置
  */
 export interface BrainstormSessionConfig {
@@ -10,8 +58,11 @@ export interface BrainstormSessionConfig {
     manualStop: boolean;
     maxRounds: number | null;
     consensusDetection: boolean;
+    consensusConfig?: ConsensusDetectionConfig; // 共识检测详细配置
   };
-  discussionMode: 'parallel' | 'round-robin';
+  discussionMode: 'parallel' | 'round-robin' | 'debate';
+  // 辩论模式配置
+  debateConfig?: DebateConfig;
   moderatorConfig?: {
     enabled: boolean;
     moderatorRoleId?: string; // 主持人角色ID
@@ -20,6 +71,10 @@ export interface BrainstormSessionConfig {
     enabled: boolean;
     provider: 'same-as-agents' | 'custom';
   };
+  // 新增：反思循环配置
+  reflectionLoop?: ReflectionLoopConfig;
+  // 新增：结构化上下文配置
+  structuredContext?: StructuredContextConfig;
 }
 
 /**
@@ -141,6 +196,52 @@ export interface BrainstormMessage {
 }
 
 /**
+ * 结构化上下文（用于高效传递历史信息）
+ */
+export interface StructuredContext {
+  summary: string;                  // 压缩摘要
+  keyPoints: Array<{                // 关键观点列表
+    participantId: string;
+    participantName: string;
+    point: string;
+    confidence?: number;
+    supportingEvidence?: string[];
+    roundNumber: number;
+  }>;
+  disagreements?: Array<{           // 当前分歧点
+    topic: string;
+    positions: Record<string, string>; // participantId -> position
+  }>;
+  consensus?: string[];              // 已达成共识
+  lastSummaryRound: number;          // 上次摘要的轮次
+  tokenEstimate: number;             // Token估算
+}
+
+/**
+ * 评审结果
+ */
+export interface EvaluationResult {
+  score: number;                     // 质量评分 0-1
+  feedback: string;                  // 评审反馈
+  strengths: string[];               // 优点
+  weaknesses: string[];              // 不足
+  suggestions: string[];             // 改进建议
+}
+
+/**
+ * 反思结果
+ */
+export interface ReflectionResult {
+  analysis: string;                  // 反思分析
+  improvementSuggestions: Array<{    // 改进建议
+    targetParticipantId?: string;    // 针对的参与者（可选）
+    suggestion: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+  nextRoundFocus: string;            // 下一轮讨论重点
+}
+
+/**
  * 讨论消息DTO
  */
 export interface BrainstormMessageDTO {
@@ -150,7 +251,7 @@ export interface BrainstormMessageDTO {
   roundNumber: number;
   content: string;
   replyToId?: string;
-  messageType?: 'agent' | 'user';
+  messageType?: 'agent' | 'user' | 'evaluation' | 'reflection' | 'summary';
   metadata?: {
     promptTokens?: number;
     completionTokens?: number;
@@ -158,6 +259,8 @@ export interface BrainstormMessageDTO {
     model?: string;
     finishReason?: string;
     userId?: string; // 用户ID（如果是用户消息）
+    evaluationScore?: number; // 评审分数
+    reflectionIteration?: number; // 反思迭代次数
   };
   createdAt: Date;
   participant?: BrainstormParticipantDTO;
@@ -314,11 +417,37 @@ export class BrainstormSessionModel {
         manualStop: true,
         maxRounds: 5,
         consensusDetection: false,
+        consensusConfig: {
+          enabled: false,
+          method: 'hybrid',
+          threshold: 0.7,
+          minAgreementRatio: 0.7,
+          recentRounds: 3,
+        },
       },
       discussionMode: 'parallel',
       summaryConfig: {
         enabled: true,
         provider: 'same-as-agents',
+      },
+      reflectionLoop: {
+        enabled: false,
+        maxIterations: 3,
+        qualityThreshold: 0.7,
+        reflectionFrequency: 3,
+      },
+      structuredContext: {
+        enabled: true,
+        summaryFrequency: 3,
+        extractKeyPoints: true,
+        detectDisagreements: true,
+        maxContextTokens: 8000,
+      },
+      debateConfig: {
+        enabled: false,
+        proRoleIds: [],
+        conRoleIds: [],
+        rounds: 3,
       },
     };
 
@@ -496,11 +625,37 @@ export class BrainstormSessionModel {
           manualStop: true,
           maxRounds: 5,
           consensusDetection: false,
+          consensusConfig: {
+            enabled: false,
+            method: 'hybrid',
+            threshold: 0.7,
+            minAgreementRatio: 0.7,
+            recentRounds: 3,
+          },
         },
         discussionMode: 'parallel',
         summaryConfig: {
           enabled: true,
           provider: 'same-as-agents',
+        },
+        reflectionLoop: {
+          enabled: false,
+          maxIterations: 3,
+          qualityThreshold: 0.7,
+          reflectionFrequency: 3,
+        },
+        structuredContext: {
+          enabled: true,
+          summaryFrequency: 3,
+          extractKeyPoints: true,
+          detectDisagreements: true,
+          maxContextTokens: 8000,
+        },
+        debateConfig: {
+          enabled: false,
+          proRoleIds: [],
+          conRoleIds: [],
+          rounds: 3,
         },
       };
     }
