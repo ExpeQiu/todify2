@@ -768,7 +768,6 @@ _**Agent (model default, mode Agent)**_
 
 ---
 
-
 查看 `BrainstormPage` 的代码结构：
 
 
@@ -792,8 +791,6 @@ Directory: **/Volumes/Lexar/git/03T/todify4** (1 file)
 
 
 ---
-
-
 
 
 
@@ -836,7 +833,6 @@ Directory: **/Volumes/Lexar/git/03T/todify4** (1 file)
 
 ---
 
-
 查看类型定义和相关组件，了解参与者数据结构：
 
 
@@ -861,7 +857,6 @@ Directory: **/Volumes/Lexar/git/03T/todify4** (1 file)
 
 
 ---
-
 
 在右侧添加专家列表侧边栏。修改 `BrainstormPage.tsx`：
 
@@ -1007,7 +1002,6 @@ Lines added: 89, lines removed: 25
 
 ---
 
-
 检查是否有 lint 错误：
 
 
@@ -1033,7 +1027,6 @@ Lint results
 
 
 ---
-
 
 已在右侧添加专家列表侧边栏。修改内容：
 

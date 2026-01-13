@@ -19108,7 +19108,6 @@ curl --location 'http://10.246.32.62:32810/v1/chat/completions' \
 
 _**Agent (model composer-1, mode Agent)**_
 
-
 检查代码实现，确认是否完全支持该 API 格式：
 
 
@@ -19144,11 +19143,11231 @@ Parameters:
   "explanation": ""
 }
 ```
-Status: **loading**
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 165
+          },
+          "endPosition": {
+            "line": 285
+          }
+        },
+        "contents": "async (req, res) =&gt; {\n {\n      if (!agentConfig) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'agentConfig',\n          message: 'Direct Agent配置不能为空'\n        }]));\n      }\n      if (!agentConfig.llm || !agentConfig.llm.apiKey || !agentConfig.llm.model) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'agentConfig',\n          message: 'Direct Agent配置必须包含llm.apiKey和llm.model'\n        }]));\n      }\n      if (!agentConfig.prompt || !agentConfig.prompt.systemPrompt) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'agentConfig',\n          message: 'Direct Agent配置必须包含prompt.systemPrompt'\n        }]));\n      }\n      if (!agentConfig.contextStrategy) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'agentConfig',\n          message: 'Direct Agent配置必须包含contextStrategy'\n        }]));\n      }\n    }\n    \n    const createData: CreateAIRoleDTO = {\n      name,\n      description,\n      avatar,\n      systemPrompt,\n      provider: actualProvider,\n      difyConfig,\n      agentConfig,\n      enabled,\n      source,\n    };\n    \n    const newRole = await aiRoleModel.create(createData);\n    \n    res.json(formatApiResponse(true, newRole, '创建AI角色成功'));\n  } catch (error) {\n    console.error('创建AI角色失败:', error);\n    res.status(500).json(formatApiResponse(\n      false,\n      null,\n      '创建AI角色失败',\n      error instanceof Error ? error.message : '未知错误'\n    ));\n  }\n});\n\n/**\n * 更新AI角色\n * PUT /api/v1/ai-roles/:id\n */\nrouter.put",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 166,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 166,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 166,
+                "column": 18
+              },
+              "endPosition": {
+                "line": 167,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 166
+          },
+          {
+            "text": " {",
+            "lineNumber": 194
+          },
+          {
+            "text": "      if (!agentConfig) {",
+            "lineNumber": 195
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 196
+          },
+          {
+            "text": "          field: 'agentConfig',",
+            "lineNumber": 197
+          },
+          {
+            "text": "          message: 'Direct Agent配置不能为空'",
+            "lineNumber": 198
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 199
+          },
+          {
+            "text": "      }",
+            "lineNumber": 200
+          },
+          {
+            "text": "      if (!agentConfig.llm || !agentConfig.llm.apiKey || !agentConfig.llm.model) {",
+            "lineNumber": 201
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 202
+          },
+          {
+            "text": "          field: 'agentConfig',",
+            "lineNumber": 203
+          },
+          {
+            "text": "          message: 'Direct Agent配置必须包含llm.apiKey和llm.model'",
+            "lineNumber": 204
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 205
+          },
+          {
+            "text": "      }",
+            "lineNumber": 206
+          },
+          {
+            "text": "      if (!agentConfig.prompt || !agentConfig.prompt.systemPrompt) {",
+            "lineNumber": 207
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 208
+          },
+          {
+            "text": "          field: 'agentConfig',",
+            "lineNumber": 209
+          },
+          {
+            "text": "          message: 'Direct Agent配置必须包含prompt.systemPrompt'",
+            "lineNumber": 210
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 211
+          },
+          {
+            "text": "      }",
+            "lineNumber": 212
+          },
+          {
+            "text": "      if (!agentConfig.contextStrategy) {",
+            "lineNumber": 213
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 214
+          },
+          {
+            "text": "          field: 'agentConfig',",
+            "lineNumber": 215
+          },
+          {
+            "text": "          message: 'Direct Agent配置必须包含contextStrategy'",
+            "lineNumber": 216
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 217
+          },
+          {
+            "text": "      }",
+            "lineNumber": 218
+          },
+          {
+            "text": "    }",
+            "lineNumber": 219
+          },
+          {
+            "text": "    ",
+            "lineNumber": 220
+          },
+          {
+            "text": "    const createData: CreateAIRoleDTO = {",
+            "lineNumber": 221
+          },
+          {
+            "text": "      name,",
+            "lineNumber": 222
+          },
+          {
+            "text": "      description,",
+            "lineNumber": 223
+          },
+          {
+            "text": "      avatar,",
+            "lineNumber": 224
+          },
+          {
+            "text": "      systemPrompt,",
+            "lineNumber": 225
+          },
+          {
+            "text": "      provider: actualProvider,",
+            "lineNumber": 226
+          },
+          {
+            "text": "      difyConfig,",
+            "lineNumber": 227
+          },
+          {
+            "text": "      agentConfig,",
+            "lineNumber": 228
+          },
+          {
+            "text": "      enabled,",
+            "lineNumber": 229
+          },
+          {
+            "text": "      source,",
+            "lineNumber": 230
+          },
+          {
+            "text": "    };",
+            "lineNumber": 231
+          },
+          {
+            "text": "    ",
+            "lineNumber": 232
+          },
+          {
+            "text": "    const newRole = await aiRoleModel.create(createData);",
+            "lineNumber": 233
+          },
+          {
+            "text": "    ",
+            "lineNumber": 234
+          },
+          {
+            "text": "    res.json(formatApiResponse(true, newRole, '创建AI角色成功'));",
+            "lineNumber": 235
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 236
+          },
+          {
+            "text": "    console.error('创建AI角色失败:', error);",
+            "lineNumber": 237
+          },
+          {
+            "text": "    res.status(500).json(formatApiResponse(",
+            "lineNumber": 238
+          },
+          {
+            "text": "      false,",
+            "lineNumber": 239
+          },
+          {
+            "text": "      null,",
+            "lineNumber": 240
+          },
+          {
+            "text": "      '创建AI角色失败',",
+            "lineNumber": 241
+          },
+          {
+            "text": "      error instanceof Error ? error.message : '未知错误'",
+            "lineNumber": 242
+          },
+          {
+            "text": "    ));",
+            "lineNumber": 243
+          },
+          {
+            "text": "  }",
+            "lineNumber": 244
+          },
+          {
+            "text": "});",
+            "lineNumber": 245
+          },
+          {
+            "lineNumber": 246
+          },
+          {
+            "text": "/**",
+            "lineNumber": 247
+          },
+          {
+            "text": " * 更新AI角色",
+            "lineNumber": 248
+          },
+          {
+            "text": " * PUT /api/v1/ai-roles/:id",
+            "lineNumber": 249
+          },
+          {
+            "text": " */",
+            "lineNumber": 250
+          },
+          {
+            "text": "router.put",
+            "lineNumber": 251
+          }
+        ]
+      },
+      "score": 0.5258488655090332
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 98
+          },
+          "endPosition": {
+            "line": 155,
+            "column": 1
+          }
+        },
+        "contents": ";\n}\n\n/**\n * Direct Agent配置\n */\nexport interface DirectAgentConfig {\n  llm: {\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\n    apiKey: string;\n    apiBaseUrl?: string;\n    model: string;\n    temperature: number;\n    maxTokens: number;\n    topP?: number;\n    stream?: boolean;  // 是否使用流式响应\n  };\n  prompt: {\n    systemPrompt: string;\n    variables?: PromptVariable[];\n    templates?: PromptTemplate[];\n  };\n  contextStrategy: {\n    type: 'window' | 'summary' | 'hybrid';\n    maxMessages: number;\n    maxTokens: number;\n    summaryThreshold?: number;\n    includeSystemPrompt: boolean;\n  };\n  tools?: ToolConfig[];\n  agentCalls?: AgentCallConfig[];\n}\n\n/**\n * AI角色配置（前端格式）\n */\nexport interface AIRoleConfig {\n  id: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": ";",
+            "lineNumber": 107,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 108,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 109
+          },
+          {
+            "text": "/**",
+            "lineNumber": 110
+          },
+          {
+            "text": " * Direct Agent配置",
+            "lineNumber": 111
+          },
+          {
+            "text": " */",
+            "lineNumber": 112
+          },
+          {
+            "text": "export interface DirectAgentConfig {",
+            "lineNumber": 113,
+            "isSignature": true
+          },
+          {
+            "text": "  llm: {",
+            "lineNumber": 114
+          },
+          {
+            "text": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';",
+            "lineNumber": 115
+          },
+          {
+            "text": "    apiKey: string;",
+            "lineNumber": 116
+          },
+          {
+            "text": "    apiBaseUrl?: string;",
+            "lineNumber": 117
+          },
+          {
+            "text": "    model: string;",
+            "lineNumber": 118
+          },
+          {
+            "text": "    temperature: number;",
+            "lineNumber": 119
+          },
+          {
+            "text": "    maxTokens: number;",
+            "lineNumber": 120
+          },
+          {
+            "text": "    topP?: number;",
+            "lineNumber": 121
+          },
+          {
+            "text": "    stream?: boolean;  // 是否使用流式响应",
+            "lineNumber": 122
+          },
+          {
+            "text": "  };",
+            "lineNumber": 123
+          },
+          {
+            "text": "  prompt: {",
+            "lineNumber": 124
+          },
+          {
+            "text": "    systemPrompt: string;",
+            "lineNumber": 125
+          },
+          {
+            "text": "    variables?: PromptVariable[];",
+            "lineNumber": 126
+          },
+          {
+            "text": "    templates?: PromptTemplate[];",
+            "lineNumber": 127
+          },
+          {
+            "text": "  };",
+            "lineNumber": 128
+          },
+          {
+            "text": "  contextStrategy: {",
+            "lineNumber": 129
+          },
+          {
+            "text": "    type: 'window' | 'summary' | 'hybrid';",
+            "lineNumber": 130
+          },
+          {
+            "text": "    maxMessages: number;",
+            "lineNumber": 131
+          },
+          {
+            "text": "    maxTokens: number;",
+            "lineNumber": 132
+          },
+          {
+            "text": "    summaryThreshold?: number;",
+            "lineNumber": 133
+          },
+          {
+            "text": "    includeSystemPrompt: boolean;",
+            "lineNumber": 134
+          },
+          {
+            "text": "  };",
+            "lineNumber": 135
+          },
+          {
+            "text": "  tools?: ToolConfig[];",
+            "lineNumber": 136
+          },
+          {
+            "text": "  agentCalls?: AgentCallConfig[];",
+            "lineNumber": 137,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 138,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 139
+          },
+          {
+            "text": "/**",
+            "lineNumber": 140
+          },
+          {
+            "text": " * AI角色配置（前端格式）",
+            "lineNumber": 141
+          },
+          {
+            "text": " */",
+            "lineNumber": 142
+          },
+          {
+            "text": "export interface AIRoleConfig {",
+            "lineNumber": 143,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string",
+            "lineNumber": 144
+          },
+          {
+            "text": ";",
+            "lineNumber": 155,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 156,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4896965026855469
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/types/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 80,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 139,
+            "column": 1
+          }
+        },
+        "contents": "// Direct Agent配置\nexport interface DirectAgentConfig {\n  // LLM基础配置\n  llm: {\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\n    apiKey: string;\n    apiBaseUrl?: string;  // 自定义端点\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\n    temperature: number;  // 0-2\n    maxTokens: number;    // 最大生成token数\n    topP?: number;        // 0-1\n    stream?: boolean;     // 是否使用流式响应\n  };\n  \n  // Prompt配置\n  prompt: {\n    systemPrompt: string;           // 系统提示词\n    variables?: PromptVariable[];   // 动态变量\n    templates?: PromptTemplate[];   // 预设模板\n  };\n  \n  // 上下文管理策略\n  contextStrategy: {\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\n    maxMessages: number;                     // 最大历史消息数\n    maxTokens: number;                       // 最大上下文token数\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\n  };\n  \n  // 工具调用配置\n  tools?: ToolConfig[];\n  \n  // Agent协作配置\n  agentCalls?: AgentCallConfig[];\n}\n\nexport interface AIRoleConfig {\n  id: string;                    // 唯一标识\n  name: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Direct Agent配置",
+            "lineNumber": 83
+          },
+          {
+            "text": "export interface DirectAgentConfig {",
+            "lineNumber": 84,
+            "isSignature": true
+          },
+          {
+            "text": "  // LLM基础配置",
+            "lineNumber": 85
+          },
+          {
+            "text": "  llm: {",
+            "lineNumber": 86
+          },
+          {
+            "text": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';",
+            "lineNumber": 87
+          },
+          {
+            "text": "    apiKey: string;",
+            "lineNumber": 88
+          },
+          {
+            "text": "    apiBaseUrl?: string;  // 自定义端点",
+            "lineNumber": 89
+          },
+          {
+            "text": "    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等",
+            "lineNumber": 90
+          },
+          {
+            "text": "    temperature: number;  // 0-2",
+            "lineNumber": 91
+          },
+          {
+            "text": "    maxTokens: number;    // 最大生成token数",
+            "lineNumber": 92
+          },
+          {
+            "text": "    topP?: number;        // 0-1",
+            "lineNumber": 93
+          },
+          {
+            "text": "    stream?: boolean;     // 是否使用流式响应",
+            "lineNumber": 94
+          },
+          {
+            "text": "  };",
+            "lineNumber": 95
+          },
+          {
+            "text": "  ",
+            "lineNumber": 96
+          },
+          {
+            "text": "  // Prompt配置",
+            "lineNumber": 97
+          },
+          {
+            "text": "  prompt: {",
+            "lineNumber": 98
+          },
+          {
+            "text": "    systemPrompt: string;           // 系统提示词",
+            "lineNumber": 99
+          },
+          {
+            "text": "    variables?: PromptVariable[];   // 动态变量",
+            "lineNumber": 100
+          },
+          {
+            "text": "    templates?: PromptTemplate[];   // 预设模板",
+            "lineNumber": 101
+          },
+          {
+            "text": "  };",
+            "lineNumber": 102
+          },
+          {
+            "text": "  ",
+            "lineNumber": 103
+          },
+          {
+            "text": "  // 上下文管理策略",
+            "lineNumber": 104
+          },
+          {
+            "text": "  contextStrategy: {",
+            "lineNumber": 105
+          },
+          {
+            "text": "    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合",
+            "lineNumber": 106
+          },
+          {
+            "text": "    maxMessages: number;                     // 最大历史消息数",
+            "lineNumber": 107
+          },
+          {
+            "text": "    maxTokens: number;                       // 最大上下文token数",
+            "lineNumber": 108
+          },
+          {
+            "text": "    summaryThreshold?: number;               // 触发摘要的消息数阈值",
+            "lineNumber": 109
+          },
+          {
+            "text": "    includeSystemPrompt: boolean;            // 是否每次都包含system prompt",
+            "lineNumber": 110
+          },
+          {
+            "text": "  };",
+            "lineNumber": 111
+          },
+          {
+            "text": "  ",
+            "lineNumber": 112
+          },
+          {
+            "text": "  // 工具调用配置",
+            "lineNumber": 113
+          },
+          {
+            "text": "  tools?: ToolConfig[];",
+            "lineNumber": 114
+          },
+          {
+            "text": "  ",
+            "lineNumber": 115
+          },
+          {
+            "text": "  // Agent协作配置",
+            "lineNumber": 116
+          },
+          {
+            "text": "  agentCalls?: AgentCallConfig[];",
+            "lineNumber": 117,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 118,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "export interface AIRoleConfig {",
+            "lineNumber": 120,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;                    // 唯一标识",
+            "lineNumber": 121
+          },
+          {
+            "text": "  name: string",
+            "lineNumber": 122
+          },
+          {
+            "text": ";",
+            "lineNumber": 139,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 140,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.46230125427246094
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/AIRoleEditModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 940
+          },
+          "endPosition": {
+            "line": 1716,
+            "column": 1
+          }
+        },
+        "contents": "const DirectAgentConfigSection: React.FC&lt;{\n  formData: Partial&lt;AIRoleConfig&gt;;\n  updateFormField: (field: string, value: any) =&gt; void;\n  activeTab: DirectAgentTab;\n  setActiveTab: (tab: DirectAgentTab) =&gt; void;\n  showApiKey: boolean;\n  setShowApiKey: (show: boolean) =&gt; void;\n  errors: Record&lt;string, string&gt;;\n  hideTabs?: boolean;\n}&gt; = \n}\n      {activeTab === 'llm' &amp;&amp; (\n        &lt;div className=\"space-y-4\"&gt;\n          &lt;div&gt;\n            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;\n              LLM Provider &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;select\n              value={formData.agentConfig?.llm?.provider || 'openai'}\n              onChange={(e) =&gt; {\n                updateFormField('agentConfig.llm.provider', e.target.value);\n              }}\n              className=\"w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500\"\n            &gt;\n              &lt;option value=\"openai\"&gt;OpenAI&lt;/option&gt;\n              &lt;option value=\"azure-openai\"&gt;Azure OpenAI&lt;/option&gt;\n              &lt;option value=\"qwen\"&gt;通义千问&lt;/option&gt;\n              &lt;option value=\"ernie\"&gt;文心一言&lt;/option&gt;\n              &lt;option value=\"custom\"&gt;自定义端点&lt;/option&gt;\n            &lt;/select&gt;\n          &lt;/div&gt;\n\n          &lt;div&gt;\n            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;\n              模型名称 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;input\n              type=\"text\"\n              value={formData.agentConfig?.llm?.model || ''}\n              onChange={(e) =&gt; updateFormField('agentConfig.llm.model', e.target.value)}\n              placeholder=\"例如：gpt-4, gpt-3.5-turbo\"\n              className={&#96;w-full px-4 py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 ${\n                errors['agentConfig.llm.model'] ? 'border-red-300' : 'border-gray-300'\n              }&#96;}\n            /&gt;\n            {errors['agentConfig.llm.model'] &amp;&amp; (\n              &lt;p className=\"mt-1 text-sm text-red-600\"&gt;{errors['agentConfig.llm.model']}&lt;/p&gt;\n            )}\n          &lt;/div&gt;\n\n          &lt;div&gt;\n            &lt;label className=\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 941,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 941,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 941,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 950,
+                "column": 6
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const DirectAgentConfigSection: React.FC&lt;{",
+            "lineNumber": 941
+          },
+          {
+            "text": "  formData: Partial&lt;AIRoleConfig&gt;;",
+            "lineNumber": 942
+          },
+          {
+            "text": "  updateFormField: (field: string, value: any) =&gt; void;",
+            "lineNumber": 943
+          },
+          {
+            "text": "  activeTab: DirectAgentTab;",
+            "lineNumber": 944
+          },
+          {
+            "text": "  setActiveTab: (tab: DirectAgentTab) =&gt; void;",
+            "lineNumber": 945
+          },
+          {
+            "text": "  showApiKey: boolean;",
+            "lineNumber": 946
+          },
+          {
+            "text": "  setShowApiKey: (show: boolean) =&gt; void;",
+            "lineNumber": 947
+          },
+          {
+            "text": "  errors: Record&lt;string, string&gt;;",
+            "lineNumber": 948
+          },
+          {
+            "text": "  hideTabs?: boolean;",
+            "lineNumber": 949
+          },
+          {
+            "text": "}&gt; = ",
+            "lineNumber": 950
+          },
+          {
+            "text": "}",
+            "lineNumber": 993
+          },
+          {
+            "text": "      {activeTab === 'llm' &amp;&amp; (",
+            "lineNumber": 994
+          },
+          {
+            "text": "        &lt;div className=\"space-y-4\"&gt;",
+            "lineNumber": 995
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 996
+          },
+          {
+            "text": "            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 997
+          },
+          {
+            "text": "              LLM Provider &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 998
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 999
+          },
+          {
+            "text": "            &lt;select",
+            "lineNumber": 1000
+          },
+          {
+            "text": "              value={formData.agentConfig?.llm?.provider || 'openai'}",
+            "lineNumber": 1001
+          },
+          {
+            "text": "              onChange={(e) =&gt; {",
+            "lineNumber": 1002
+          },
+          {
+            "text": "                updateFormField('agentConfig.llm.provider', e.target.value);",
+            "lineNumber": 1003
+          },
+          {
+            "text": "              }}",
+            "lineNumber": 1004
+          },
+          {
+            "text": "              className=\"w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 1005
+          },
+          {
+            "text": "            &gt;",
+            "lineNumber": 1006
+          },
+          {
+            "text": "              &lt;option value=\"openai\"&gt;OpenAI&lt;/option&gt;",
+            "lineNumber": 1007
+          },
+          {
+            "text": "              &lt;option value=\"azure-openai\"&gt;Azure OpenAI&lt;/option&gt;",
+            "lineNumber": 1008
+          },
+          {
+            "text": "              &lt;option value=\"qwen\"&gt;通义千问&lt;/option&gt;",
+            "lineNumber": 1009
+          },
+          {
+            "text": "              &lt;option value=\"ernie\"&gt;文心一言&lt;/option&gt;",
+            "lineNumber": 1010
+          },
+          {
+            "text": "              &lt;option value=\"custom\"&gt;自定义端点&lt;/option&gt;",
+            "lineNumber": 1011
+          },
+          {
+            "text": "            &lt;/select&gt;",
+            "lineNumber": 1012
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 1013
+          },
+          {
+            "lineNumber": 1014
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 1015
+          },
+          {
+            "text": "            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 1016
+          },
+          {
+            "text": "              模型名称 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 1017
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 1018
+          },
+          {
+            "text": "            &lt;input",
+            "lineNumber": 1019
+          },
+          {
+            "text": "              type=\"text\"",
+            "lineNumber": 1020
+          },
+          {
+            "text": "              value={formData.agentConfig?.llm?.model || ''}",
+            "lineNumber": 1021
+          },
+          {
+            "text": "              onChange={(e) =&gt; updateFormField('agentConfig.llm.model', e.target.value)}",
+            "lineNumber": 1022
+          },
+          {
+            "text": "              placeholder=\"例如：gpt-4, gpt-3.5-turbo\"",
+            "lineNumber": 1023
+          },
+          {
+            "text": "              className={&#96;w-full px-4 py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 ${",
+            "lineNumber": 1024
+          },
+          {
+            "text": "                errors['agentConfig.llm.model'] ? 'border-red-300' : 'border-gray-300'",
+            "lineNumber": 1025
+          },
+          {
+            "text": "              }&#96;}",
+            "lineNumber": 1026
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 1027
+          },
+          {
+            "text": "            {errors['agentConfig.llm.model'] &amp;&amp; (",
+            "lineNumber": 1028
+          },
+          {
+            "text": "              &lt;p className=\"mt-1 text-sm text-red-600\"&gt;{errors['agentConfig.llm.model']}&lt;/p&gt;",
+            "lineNumber": 1029
+          },
+          {
+            "text": "            )}",
+            "lineNumber": 1030
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 1031
+          },
+          {
+            "lineNumber": 1032
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 1033
+          },
+          {
+            "text": "            &lt;label className=",
+            "lineNumber": 1034
+          },
+          {
+            "text": ";",
+            "lineNumber": 1717
+          }
+        ]
+      },
+      "score": 0.45534220337867737
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 193
+          },
+          "endPosition": {
+            "line": 633,
+            "column": 1
+          }
+        },
+        "contents": "export class AIRoleModel {\n\n\n  /**\n   * 创建AI角色\n   */\n  async create(data: CreateAIRoleDTO): Promise&lt;AIRoleConfig&gt; {\n    await this.ensureConnection();\n    await this.initializeTable();\n\n    const id = data.id || &#96;ai-role-${Date.now()}-${Math.random().toString(36).substring(7)}&#96;;\n    const enabled = data.enabled !== undefined ? (data.enabled ? 1 : 0) : 1;\n\n    const sql = &#96;\n      INSERT INTO ai_roles (\n        id, name, description, avatar, system_prompt, dify_config, enabled, source,\n        created_at, updated_at\n      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\n    &#96;;\n\n    // 根据 provider 决定存储的配置\n    let configToStore: any;\n    if (data.provider === 'direct-agent' &amp;&amp; data.agentConfig) {\n      configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };\n    } else {\n      configToStore = { provider: data.provider || 'dify', ...data.difyConfig };\n    }\n\n    const params = [\n      id,\n      data.name,\n      data.description,\n      data.avatar || null,\n      data.systemPrompt || null,\n      JSON.stringify(configToStore),\n      enabled,\n      data.source || null,\n    ];\n\n    await this.db.query(sql, params);\n\n    return await this.getById(id) as AIRoleConfig;\n  }\n\n  /**\n   * 根据ID获取AI角色\n   */\n  async getById(id: string): Promise&lt;AIRoleConfig | null&gt; {\n    await this.ensureConnection();\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 194,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 195,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AIRoleModel {",
+            "lineNumber": 194,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 331
+          },
+          {
+            "lineNumber": 332
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 333
+          },
+          {
+            "text": "   * 创建AI角色",
+            "lineNumber": 334
+          },
+          {
+            "text": "   */",
+            "lineNumber": 335
+          },
+          {
+            "text": "  async create(data: CreateAIRoleDTO): Promise&lt;AIRoleConfig&gt; {",
+            "lineNumber": 336
+          },
+          {
+            "text": "    await this.ensureConnection();",
+            "lineNumber": 337
+          },
+          {
+            "text": "    await this.initializeTable();",
+            "lineNumber": 338
+          },
+          {
+            "lineNumber": 339
+          },
+          {
+            "text": "    const id = data.id || &#96;ai-role-${Date.now()}-${Math.random().toString(36).substring(7)}&#96;;",
+            "lineNumber": 340
+          },
+          {
+            "text": "    const enabled = data.enabled !== undefined ? (data.enabled ? 1 : 0) : 1;",
+            "lineNumber": 341
+          },
+          {
+            "lineNumber": 342
+          },
+          {
+            "text": "    const sql = &#96;",
+            "lineNumber": 343
+          },
+          {
+            "text": "      INSERT INTO ai_roles (",
+            "lineNumber": 344
+          },
+          {
+            "text": "        id, name, description, avatar, system_prompt, dify_config, enabled, source,",
+            "lineNumber": 345
+          },
+          {
+            "text": "        created_at, updated_at",
+            "lineNumber": 346
+          },
+          {
+            "text": "      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+            "lineNumber": 347
+          },
+          {
+            "text": "    &#96;;",
+            "lineNumber": 348
+          },
+          {
+            "lineNumber": 349
+          },
+          {
+            "text": "    // 根据 provider 决定存储的配置",
+            "lineNumber": 350
+          },
+          {
+            "text": "    let configToStore: any;",
+            "lineNumber": 351
+          },
+          {
+            "text": "    if (data.provider === 'direct-agent' &amp;&amp; data.agentConfig) {",
+            "lineNumber": 352
+          },
+          {
+            "text": "      configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };",
+            "lineNumber": 353
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 354
+          },
+          {
+            "text": "      configToStore = { provider: data.provider || 'dify', ...data.difyConfig };",
+            "lineNumber": 355
+          },
+          {
+            "text": "    }",
+            "lineNumber": 356
+          },
+          {
+            "lineNumber": 357
+          },
+          {
+            "text": "    const params = [",
+            "lineNumber": 358
+          },
+          {
+            "text": "      id,",
+            "lineNumber": 359
+          },
+          {
+            "text": "      data.name,",
+            "lineNumber": 360
+          },
+          {
+            "text": "      data.description,",
+            "lineNumber": 361
+          },
+          {
+            "text": "      data.avatar || null,",
+            "lineNumber": 362
+          },
+          {
+            "text": "      data.systemPrompt || null,",
+            "lineNumber": 363
+          },
+          {
+            "text": "      JSON.stringify(configToStore),",
+            "lineNumber": 364
+          },
+          {
+            "text": "      enabled,",
+            "lineNumber": 365
+          },
+          {
+            "text": "      data.source || null,",
+            "lineNumber": 366
+          },
+          {
+            "text": "    ];",
+            "lineNumber": 367
+          },
+          {
+            "lineNumber": 368
+          },
+          {
+            "text": "    await this.db.query(sql, params);",
+            "lineNumber": 369
+          },
+          {
+            "lineNumber": 370
+          },
+          {
+            "text": "    return await this.getById(id) as AIRoleConfig;",
+            "lineNumber": 371
+          },
+          {
+            "text": "  }",
+            "lineNumber": 372
+          },
+          {
+            "lineNumber": 373
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 374
+          },
+          {
+            "text": "   * 根据ID获取AI角色",
+            "lineNumber": 375
+          },
+          {
+            "text": "   */",
+            "lineNumber": 376
+          },
+          {
+            "text": "  async getById(id: string): Promise&lt;AIRoleConfig | null&gt; {",
+            "lineNumber": 377
+          },
+          {
+            "text": "    await this.ensureConnection();",
+            "lineNumber": 378
+          },
+          {
+            "text": "  }",
+            "lineNumber": 395
+          },
+          {
+            "text": "}",
+            "lineNumber": 634,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.45525479316711426
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/pages/AIRoleManagementPage.tsx",
+        "range": {
+          "startPosition": {
+            "line": 54
+          },
+          "endPosition": {
+            "line": 3598,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleManagementPage: React.FC = \n\n                      &lt;label className=\"flex items-center gap-3 cursor-pointer group\"&gt;\n                        &lt;input\n                          type=\"radio\"\n                          name=\"provider\"\n                          value=\"direct-agent\"\n                          checked={formData.provider === 'direct-agent'}\n                          onChange={(e) =&gt; {\n                            updateFormField('provider', e.target.value);\n                            setActiveTab('llm');\n                            // 初始化 Direct Agent 配置\n                            if (!formData.agentConfig) {\n                              setFormData(prev =&gt; ({\n                                ...prev,\n                                agentConfig: {\n                                  llm: {\n                                    provider: 'openai',\n                                    apiKey: '',\n                                    apiBaseUrl: 'https://api.openai.com/v1',\n                                    model: 'gpt-3.5-turbo',\n                                    temperature: 0.7,\n                                    maxTokens: 2000\n                                  },\n                                  prompt: {\n                                    systemPrompt: '',\n                                    variables: [],\n                                    templates: []\n                                  },\n                                  contextStrategy: {\n                                    type: 'window',\n                                    maxMessages: 10,\n                                    maxTokens: 4000,\n                                    includeSystemPrompt: true\n                                  },\n                                  tools: [],\n                                  agentCalls: []\n                                }\n                              }));\n                            }\n                          }}\n                          className=\"w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500\"\n                        /&gt;\n                        &lt;span\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 40
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleManagementPage: React.FC = ",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 2050
+          },
+          {
+            "text": "                      &lt;label className=\"flex items-center gap-3 cursor-pointer group\"&gt;",
+            "lineNumber": 2051
+          },
+          {
+            "text": "                        &lt;input",
+            "lineNumber": 2052
+          },
+          {
+            "text": "                          type=\"radio\"",
+            "lineNumber": 2053
+          },
+          {
+            "text": "                          name=\"provider\"",
+            "lineNumber": 2054
+          },
+          {
+            "text": "                          value=\"direct-agent\"",
+            "lineNumber": 2055
+          },
+          {
+            "text": "                          checked={formData.provider === 'direct-agent'}",
+            "lineNumber": 2056
+          },
+          {
+            "text": "                          onChange={(e) =&gt; {",
+            "lineNumber": 2057
+          },
+          {
+            "text": "                            updateFormField('provider', e.target.value);",
+            "lineNumber": 2058
+          },
+          {
+            "text": "                            setActiveTab('llm');",
+            "lineNumber": 2059
+          },
+          {
+            "text": "                            // 初始化 Direct Agent 配置",
+            "lineNumber": 2060
+          },
+          {
+            "text": "                            if (!formData.agentConfig) {",
+            "lineNumber": 2061
+          },
+          {
+            "text": "                              setFormData(prev =&gt; ({",
+            "lineNumber": 2062
+          },
+          {
+            "text": "                                ...prev,",
+            "lineNumber": 2063
+          },
+          {
+            "text": "                                agentConfig: {",
+            "lineNumber": 2064
+          },
+          {
+            "text": "                                  llm: {",
+            "lineNumber": 2065
+          },
+          {
+            "text": "                                    provider: 'openai',",
+            "lineNumber": 2066
+          },
+          {
+            "text": "                                    apiKey: '',",
+            "lineNumber": 2067
+          },
+          {
+            "text": "                                    apiBaseUrl: 'https://api.openai.com/v1',",
+            "lineNumber": 2068
+          },
+          {
+            "text": "                                    model: 'gpt-3.5-turbo',",
+            "lineNumber": 2069
+          },
+          {
+            "text": "                                    temperature: 0.7,",
+            "lineNumber": 2070
+          },
+          {
+            "text": "                                    maxTokens: 2000",
+            "lineNumber": 2071
+          },
+          {
+            "text": "                                  },",
+            "lineNumber": 2072
+          },
+          {
+            "text": "                                  prompt: {",
+            "lineNumber": 2073
+          },
+          {
+            "text": "                                    systemPrompt: '',",
+            "lineNumber": 2074
+          },
+          {
+            "text": "                                    variables: [],",
+            "lineNumber": 2075
+          },
+          {
+            "text": "                                    templates: []",
+            "lineNumber": 2076
+          },
+          {
+            "text": "                                  },",
+            "lineNumber": 2077
+          },
+          {
+            "text": "                                  contextStrategy: {",
+            "lineNumber": 2078
+          },
+          {
+            "text": "                                    type: 'window',",
+            "lineNumber": 2079
+          },
+          {
+            "text": "                                    maxMessages: 10,",
+            "lineNumber": 2080
+          },
+          {
+            "text": "                                    maxTokens: 4000,",
+            "lineNumber": 2081
+          },
+          {
+            "text": "                                    includeSystemPrompt: true",
+            "lineNumber": 2082
+          },
+          {
+            "text": "                                  },",
+            "lineNumber": 2083
+          },
+          {
+            "text": "                                  tools: [],",
+            "lineNumber": 2084
+          },
+          {
+            "text": "                                  agentCalls: []",
+            "lineNumber": 2085
+          },
+          {
+            "text": "                                }",
+            "lineNumber": 2086
+          },
+          {
+            "text": "                              }));",
+            "lineNumber": 2087
+          },
+          {
+            "text": "                            }",
+            "lineNumber": 2088
+          },
+          {
+            "text": "                          }}",
+            "lineNumber": 2089
+          },
+          {
+            "text": "                          className=\"w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 2090
+          },
+          {
+            "text": "                        /&gt;",
+            "lineNumber": 2091
+          },
+          {
+            "text": "                        &lt;span",
+            "lineNumber": 2092
+          },
+          {
+            "text": ";",
+            "lineNumber": 3599
+          }
+        ]
+      },
+      "score": 0.45146989822387695
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/pages/AIRoleManagementPage.tsx",
+        "range": {
+          "startPosition": {
+            "line": 54
+          },
+          "endPosition": {
+            "line": 3598,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleManagementPage: React.FC = \nconst updateInputField = \nprev =&gt; (\n\n      }\n    }));\n  };\n\n  // 保存角色\n  const saveRole = async () =&gt; {\n    // 验证必填字段\n    if (!formData.name || !formData.description) {\n      setMessage({ type: 'error', text: '请填写角色名称和描述' });\n      return;\n    }\n\n    const provider = formData.provider || 'dify';\n\n    // 根据 provider 验证配置\n    if (provider === 'dify') {\n      if (!formData.difyConfig?.apiUrl || !formData.difyConfig?.apiKey) {\n        setMessage({ type: 'error', text: '请填写Dify API地址和密钥' });\n        return;\n      }\n    } else if (provider === 'direct-agent') {\n      if (!formData.agentConfig?.llm?.apiKey || !formData.agentConfig?.llm?.apiBaseUrl || !formData.agentConfig?.llm?.model) {\n        setMessage({ type: 'error', text: '请填写LLM API密钥、API地址和模型名称' });\n        return;\n      }\n      if (!formData.agentConfig?.prompt?.systemPrompt) {\n        setMessage({ type: 'error', text: '请填写系统提示词' });\n        return;\n      }\n      if (!formData.agentConfig?.contextStrategy) {\n        setMessage({ type: 'error', text: '请配置上下文策略' });\n        return;\n      }\n    }\n\n    setSaving(true);\n    try {\n      let result;\n      const isUpdate = selectedRole &amp;&amp; selectedRole.id;\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 40
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleManagementPage: React.FC = ",
+            "lineNumber": 55
+          },
+          {
+            "text": "const updateInputField = ",
+            "lineNumber": 829
+          },
+          {
+            "text": "prev =&gt; (",
+            "lineNumber": 830
+          },
+          {
+            "lineNumber": 836
+          },
+          {
+            "text": "      }",
+            "lineNumber": 837
+          },
+          {
+            "text": "    }));",
+            "lineNumber": 838
+          },
+          {
+            "text": "  };",
+            "lineNumber": 839
+          },
+          {
+            "lineNumber": 840
+          },
+          {
+            "text": "  // 保存角色",
+            "lineNumber": 841
+          },
+          {
+            "text": "  const saveRole = async () =&gt; {",
+            "lineNumber": 842
+          },
+          {
+            "text": "    // 验证必填字段",
+            "lineNumber": 843
+          },
+          {
+            "text": "    if (!formData.name || !formData.description) {",
+            "lineNumber": 844
+          },
+          {
+            "text": "      setMessage({ type: 'error', text: '请填写角色名称和描述' });",
+            "lineNumber": 845
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 846
+          },
+          {
+            "text": "    }",
+            "lineNumber": 847
+          },
+          {
+            "lineNumber": 848
+          },
+          {
+            "text": "    const provider = formData.provider || 'dify';",
+            "lineNumber": 849
+          },
+          {
+            "lineNumber": 850
+          },
+          {
+            "text": "    // 根据 provider 验证配置",
+            "lineNumber": 851
+          },
+          {
+            "text": "    if (provider === 'dify') {",
+            "lineNumber": 852
+          },
+          {
+            "text": "      if (!formData.difyConfig?.apiUrl || !formData.difyConfig?.apiKey) {",
+            "lineNumber": 853
+          },
+          {
+            "text": "        setMessage({ type: 'error', text: '请填写Dify API地址和密钥' });",
+            "lineNumber": 854
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 855
+          },
+          {
+            "text": "      }",
+            "lineNumber": 856
+          },
+          {
+            "text": "    } else if (provider === 'direct-agent') {",
+            "lineNumber": 857
+          },
+          {
+            "text": "      if (!formData.agentConfig?.llm?.apiKey || !formData.agentConfig?.llm?.apiBaseUrl || !formData.agentConfig?.llm?.model) {",
+            "lineNumber": 858
+          },
+          {
+            "text": "        setMessage({ type: 'error', text: '请填写LLM API密钥、API地址和模型名称' });",
+            "lineNumber": 859
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 860
+          },
+          {
+            "text": "      }",
+            "lineNumber": 861
+          },
+          {
+            "text": "      if (!formData.agentConfig?.prompt?.systemPrompt) {",
+            "lineNumber": 862
+          },
+          {
+            "text": "        setMessage({ type: 'error', text: '请填写系统提示词' });",
+            "lineNumber": 863
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 864
+          },
+          {
+            "text": "      }",
+            "lineNumber": 865
+          },
+          {
+            "text": "      if (!formData.agentConfig?.contextStrategy) {",
+            "lineNumber": 866
+          },
+          {
+            "text": "        setMessage({ type: 'error', text: '请配置上下文策略' });",
+            "lineNumber": 867
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 868
+          },
+          {
+            "text": "      }",
+            "lineNumber": 869
+          },
+          {
+            "text": "    }",
+            "lineNumber": 870
+          },
+          {
+            "lineNumber": 871
+          },
+          {
+            "text": "    setSaving(true);",
+            "lineNumber": 872
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 873
+          },
+          {
+            "text": "      let result;",
+            "lineNumber": 874
+          },
+          {
+            "text": "      const isUpdate = selectedRole &amp;&amp; selectedRole.id;",
+            "lineNumber": 875
+          },
+          {
+            "text": ";",
+            "lineNumber": 919
+          },
+          {
+            "text": ";",
+            "lineNumber": 3599
+          }
+        ]
+      },
+      "score": 0.44617870450019836
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 159,
+            "column": 3
+          },
+          "endPosition": {
+            "line": 244,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * 创建AI角色\n * POST /api/v1/ai-roles\n */\nrouter.post('/', async (req, res) =&gt; {\n  try {\n    const { name, description, avatar, systemPrompt, provider, difyConfig, agentConfig, enabled, source } = req.body;\n    \n    // 验证必填字段\n    if (!name || !description) {\n      return res.status(400).json(formatValidationErrorResponse([{\n        field: 'name/description',\n        message: '角色名称和描述不能为空'\n      }]));\n    }\n\n    const actualProvider = provider || 'dify';\n    \n    // 根据 provider 验证配置\n    if (actualProvider === 'dify') {\n      if (!difyConfig) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'difyConfig',\n          message: 'Dify配置不能为空'\n        }]));\n      }\n      if (!difyConfig.apiUrl || !difyConfig.apiKey || !difyConfig.connectionType) {\n        return res.status(400).json(formatValidationErrorResponse([{\n          field: 'difyConfig',\n          message: 'Dify配置必须包含apiUrl、apiKey和connectionType'\n        }]));\n      }\n    } else if (actualProvider === 'direct-agent') {\n      if (!agentConfig) {\n        return\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 162
+          },
+          {
+            "text": " * 创建AI角色",
+            "lineNumber": 163
+          },
+          {
+            "text": " * POST /api/v1/ai-roles",
+            "lineNumber": 164
+          },
+          {
+            "text": " */",
+            "lineNumber": 165
+          },
+          {
+            "text": "router.post('/', async (req, res) =&gt; {",
+            "lineNumber": 166
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 167
+          },
+          {
+            "text": "    const { name, description, avatar, systemPrompt, provider, difyConfig, agentConfig, enabled, source } = req.body;",
+            "lineNumber": 168
+          },
+          {
+            "text": "    ",
+            "lineNumber": 169
+          },
+          {
+            "text": "    // 验证必填字段",
+            "lineNumber": 170
+          },
+          {
+            "text": "    if (!name || !description) {",
+            "lineNumber": 171
+          },
+          {
+            "text": "      return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 172
+          },
+          {
+            "text": "        field: 'name/description',",
+            "lineNumber": 173
+          },
+          {
+            "text": "        message: '角色名称和描述不能为空'",
+            "lineNumber": 174
+          },
+          {
+            "text": "      }]));",
+            "lineNumber": 175
+          },
+          {
+            "text": "    }",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "    const actualProvider = provider || 'dify';",
+            "lineNumber": 178
+          },
+          {
+            "text": "    ",
+            "lineNumber": 179
+          },
+          {
+            "text": "    // 根据 provider 验证配置",
+            "lineNumber": 180
+          },
+          {
+            "text": "    if (actualProvider === 'dify') {",
+            "lineNumber": 181
+          },
+          {
+            "text": "      if (!difyConfig) {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 183
+          },
+          {
+            "text": "          field: 'difyConfig',",
+            "lineNumber": 184
+          },
+          {
+            "text": "          message: 'Dify配置不能为空'",
+            "lineNumber": 185
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 186
+          },
+          {
+            "text": "      }",
+            "lineNumber": 187
+          },
+          {
+            "text": "      if (!difyConfig.apiUrl || !difyConfig.apiKey || !difyConfig.connectionType) {",
+            "lineNumber": 188
+          },
+          {
+            "text": "        return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 189
+          },
+          {
+            "text": "          field: 'difyConfig',",
+            "lineNumber": 190
+          },
+          {
+            "text": "          message: 'Dify配置必须包含apiUrl、apiKey和connectionType'",
+            "lineNumber": 191
+          },
+          {
+            "text": "        }]));",
+            "lineNumber": 192
+          },
+          {
+            "text": "      }",
+            "lineNumber": 193
+          },
+          {
+            "text": "    } else if (actualProvider === 'direct-agent') {",
+            "lineNumber": 194
+          },
+          {
+            "text": "      if (!agentConfig) {",
+            "lineNumber": 195
+          },
+          {
+            "text": "        return",
+            "lineNumber": 196
+          },
+          {
+            "text": "}",
+            "lineNumber": 245
+          }
+        ]
+      },
+      "score": 0.42054951190948486
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/publicPageConfig.ts",
+        "range": {
+          "startPosition": {
+            "line": 151,
+            "column": 3
+          },
+          "endPosition": {
+            "line": 223,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * 创建公开页面配置\n * POST /api/v1/public-page-configs\n */\nrouter.post('/', async (req, res) =&gt; {\n  try {\n    const { name, description, address, displayMode, workflowId, roleIds, templateType, customHtml } = req.body;\n    \n    // 验证必填字段\n    if (!name) {\n      return res.status(400).json(formatValidationErrorResponse([{\n        field: 'name',\n        message: '配置名称不能为空'\n      }]));\n    }\n\n    // 如果没有提供displayMode，使用默认值'role'\n    const finalDisplayMode = displayMode || 'role';\n\n    // 验证显示模式\n    if (finalDisplayMode &amp;&amp; !['all', 'workflow', 'custom', 'role'].includes(finalDisplayMode)) {\n      return res.status(400).json(formatValidationErrorResponse([{\n        field: 'displayMode',\n        message: '显示模式必须是all、workflow、custom或role之一'\n      }]));\n    }\n\n    // 验证workflow模式\n    if (finalDisplayMode === 'workflow' &amp;&amp; !workflowId) {\n      return res.status(400).json(formatValidationErrorResponse([{\n        field: 'workflowId',\n        message: '工作流模式下必须提供workflowId'\n      }]));\n    }\n\n    // 验证custom模式\n    if (finalDisplayMode === 'custom' &amp;&amp; (!roleIds || !Array.isArray(roleIds) || roleIds.length === 0)) {\n      return res.status(400).json(formatValidationErrorResponse([{\n        field: 'roleIds',\n        message: '自定义模式下必须提供角色ID列表'\n      }]));\n    }\n\n    // 验证role模式（如果没有提供roleIds，使用空数组）\n    // 注意：role模式允许空数组，表示显示所有角色\n    \n    const createData: CreatePublicPageConfigDTO = {\n      name,\n      description,\n      address,\n      displayMode: finalDisplayMode,\n      workflowId,\n      roleIds: roleIds || (finalDisplayMode === 'role' ? [] : undefined),\n      templateType,\n      customHtml,\n      isActive: req.body.isActive, // 支持创建时设置isActive\n    };\n    \n    const newConfig = await publicPageConfigModel.create(createData);\n    \n    res.json(formatApiResponse(true, newConfig, '创建配置成功'));\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 154
+          },
+          {
+            "text": " * 创建公开页面配置",
+            "lineNumber": 155
+          },
+          {
+            "text": " * POST /api/v1/public-page-configs",
+            "lineNumber": 156
+          },
+          {
+            "text": " */",
+            "lineNumber": 157
+          },
+          {
+            "text": "router.post('/', async (req, res) =&gt; {",
+            "lineNumber": 158
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 159
+          },
+          {
+            "text": "    const { name, description, address, displayMode, workflowId, roleIds, templateType, customHtml } = req.body;",
+            "lineNumber": 160
+          },
+          {
+            "text": "    ",
+            "lineNumber": 161
+          },
+          {
+            "text": "    // 验证必填字段",
+            "lineNumber": 162
+          },
+          {
+            "text": "    if (!name) {",
+            "lineNumber": 163
+          },
+          {
+            "text": "      return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 164
+          },
+          {
+            "text": "        field: 'name',",
+            "lineNumber": 165
+          },
+          {
+            "text": "        message: '配置名称不能为空'",
+            "lineNumber": 166
+          },
+          {
+            "text": "      }]));",
+            "lineNumber": 167
+          },
+          {
+            "text": "    }",
+            "lineNumber": 168
+          },
+          {
+            "lineNumber": 169
+          },
+          {
+            "text": "    // 如果没有提供displayMode，使用默认值'role'",
+            "lineNumber": 170
+          },
+          {
+            "text": "    const finalDisplayMode = displayMode || 'role';",
+            "lineNumber": 171
+          },
+          {
+            "lineNumber": 172
+          },
+          {
+            "text": "    // 验证显示模式",
+            "lineNumber": 173
+          },
+          {
+            "text": "    if (finalDisplayMode &amp;&amp; !['all', 'workflow', 'custom', 'role'].includes(finalDisplayMode)) {",
+            "lineNumber": 174
+          },
+          {
+            "text": "      return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 175
+          },
+          {
+            "text": "        field: 'displayMode',",
+            "lineNumber": 176
+          },
+          {
+            "text": "        message: '显示模式必须是all、workflow、custom或role之一'",
+            "lineNumber": 177
+          },
+          {
+            "text": "      }]));",
+            "lineNumber": 178
+          },
+          {
+            "text": "    }",
+            "lineNumber": 179
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "text": "    // 验证workflow模式",
+            "lineNumber": 181
+          },
+          {
+            "text": "    if (finalDisplayMode === 'workflow' &amp;&amp; !workflowId) {",
+            "lineNumber": 182
+          },
+          {
+            "text": "      return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 183
+          },
+          {
+            "text": "        field: 'workflowId',",
+            "lineNumber": 184
+          },
+          {
+            "text": "        message: '工作流模式下必须提供workflowId'",
+            "lineNumber": 185
+          },
+          {
+            "text": "      }]));",
+            "lineNumber": 186
+          },
+          {
+            "text": "    }",
+            "lineNumber": 187
+          },
+          {
+            "lineNumber": 188
+          },
+          {
+            "text": "    // 验证custom模式",
+            "lineNumber": 189
+          },
+          {
+            "text": "    if (finalDisplayMode === 'custom' &amp;&amp; (!roleIds || !Array.isArray(roleIds) || roleIds.length === 0)) {",
+            "lineNumber": 190
+          },
+          {
+            "text": "      return res.status(400).json(formatValidationErrorResponse([{",
+            "lineNumber": 191
+          },
+          {
+            "text": "        field: 'roleIds',",
+            "lineNumber": 192
+          },
+          {
+            "text": "        message: '自定义模式下必须提供角色ID列表'",
+            "lineNumber": 193
+          },
+          {
+            "text": "      }]));",
+            "lineNumber": 194
+          },
+          {
+            "text": "    }",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "    // 验证role模式（如果没有提供roleIds，使用空数组）",
+            "lineNumber": 197
+          },
+          {
+            "text": "    // 注意：role模式允许空数组，表示显示所有角色",
+            "lineNumber": 198
+          },
+          {
+            "text": "    ",
+            "lineNumber": 199
+          },
+          {
+            "text": "    const createData: CreatePublicPageConfigDTO = {",
+            "lineNumber": 200
+          },
+          {
+            "text": "      name,",
+            "lineNumber": 201
+          },
+          {
+            "text": "      description,",
+            "lineNumber": 202
+          },
+          {
+            "text": "      address,",
+            "lineNumber": 203
+          },
+          {
+            "text": "      displayMode: finalDisplayMode,",
+            "lineNumber": 204
+          },
+          {
+            "text": "      workflowId,",
+            "lineNumber": 205
+          },
+          {
+            "text": "      roleIds: roleIds || (finalDisplayMode === 'role' ? [] : undefined),",
+            "lineNumber": 206
+          },
+          {
+            "text": "      templateType,",
+            "lineNumber": 207
+          },
+          {
+            "text": "      customHtml,",
+            "lineNumber": 208
+          },
+          {
+            "text": "      isActive: req.body.isActive, // 支持创建时设置isActive",
+            "lineNumber": 209
+          },
+          {
+            "text": "    };",
+            "lineNumber": 210
+          },
+          {
+            "text": "    ",
+            "lineNumber": 211
+          },
+          {
+            "text": "    const newConfig = await publicPageConfigModel.create(createData);",
+            "lineNumber": 212
+          },
+          {
+            "text": "    ",
+            "lineNumber": 213
+          },
+          {
+            "text": "    res.json(formatApiResponse(true, newConfig, '创建配置成功'));",
+            "lineNumber": 214
+          },
+          {
+            "text": "}",
+            "lineNumber": 224
+          }
+        ]
+      },
+      "score": 0.41186729073524475
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/AIRoleConfigInfoBox.tsx",
+        "range": {
+          "startPosition": {
+            "line": 43
+          },
+          "endPosition": {
+            "line": 736,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleConfigInfoBox: React.FC&lt;AIRoleConfigInfoBoxProps&gt; = \nconst handleCreateAndAssignRole = async \n\n        \n        if (existingRole) {\n          result = { success: true, role: existingRole };\n        } else {\n          // 创建新角色（使用通用配置）\n          const response = await aiRoleService.createAIRole({\n            name: roleName,\n            description: roleDescription,\n            provider: 'direct-agent',\n            agentConfig: {\n              llm: {\n                provider: 'openai',\n                model: 'gpt-4o',\n                temperature: 0.7,\n                maxTokens: 2000,\n                apiKey: 'sk-placeholder-please-update',\n              },\n              prompt: {\n                systemPrompt: &#96;你是一位专业的${roleName}助手。你的任务是根据用户输入，提供专业、准确、有用的${roleName}相关服务。请仔细分析用户需求，提供结构化的输出。&#96;,\n              },\n              contextStrategy: {\n                type: 'window',\n                maxMessages: 20,\n                maxTokens: 4000,\n                includeSystemPrompt: true\n              }\n            },\n            enabled: true,\n            avatar: '🤖'\n          } as any);\n          \n          if (response.success &amp;&amp; response.data) {\n            const newRole = {\n              ...response.data,\n              createdAt: new Date(response.data.createdAt),\n              updatedAt: new Date(response.data.updatedAt)\n            };\n            result = { success: true, role: newRole };\n          } else {\n            result = { success: false, error: response.message || response.error || '创建失败' };\n          }\n        }\n      }\n      \n      if (!result.success || !result.role) {\n        alert(&#96;创建角色失败: ${result.error}&#96;);\n        return;\n      }\n\n      // 2. 尝试自动分配给第一个字段映射配置\n      try\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 44,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 44,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 44,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 44,
+                "column": 65
+              }
+            },
+            {
+              "startPosition": {
+                "line": 233,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 233,
+                "column": 9
+              }
+            },
+            {
+              "startPosition": {
+                "line": 233,
+                "column": 9
+              },
+              "endPosition": {
+                "line": 233,
+                "column": 43
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleConfigInfoBox: React.FC&lt;AIRoleConfigInfoBoxProps&gt; = ",
+            "lineNumber": 44
+          },
+          {
+            "text": "const handleCreateAndAssignRole = async ",
+            "lineNumber": 233
+          },
+          {
+            "lineNumber": 265
+          },
+          {
+            "text": "        ",
+            "lineNumber": 266
+          },
+          {
+            "text": "        if (existingRole) {",
+            "lineNumber": 267
+          },
+          {
+            "text": "          result = { success: true, role: existingRole };",
+            "lineNumber": 268
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 269
+          },
+          {
+            "text": "          // 创建新角色（使用通用配置）",
+            "lineNumber": 270
+          },
+          {
+            "text": "          const response = await aiRoleService.createAIRole({",
+            "lineNumber": 271
+          },
+          {
+            "text": "            name: roleName,",
+            "lineNumber": 272
+          },
+          {
+            "text": "            description: roleDescription,",
+            "lineNumber": 273
+          },
+          {
+            "text": "            provider: 'direct-agent',",
+            "lineNumber": 274
+          },
+          {
+            "text": "            agentConfig: {",
+            "lineNumber": 275
+          },
+          {
+            "text": "              llm: {",
+            "lineNumber": 276
+          },
+          {
+            "text": "                provider: 'openai',",
+            "lineNumber": 277
+          },
+          {
+            "text": "                model: 'gpt-4o',",
+            "lineNumber": 278
+          },
+          {
+            "text": "                temperature: 0.7,",
+            "lineNumber": 279
+          },
+          {
+            "text": "                maxTokens: 2000,",
+            "lineNumber": 280
+          },
+          {
+            "text": "                apiKey: 'sk-placeholder-please-update',",
+            "lineNumber": 281
+          },
+          {
+            "text": "              },",
+            "lineNumber": 282
+          },
+          {
+            "text": "              prompt: {",
+            "lineNumber": 283
+          },
+          {
+            "text": "                systemPrompt: &#96;你是一位专业的${roleName}助手。你的任务是根据用户输入，提供专业、准确、有用的${roleName}相关服务。请仔细分析用户需求，提供结构化的输出。&#96;,",
+            "lineNumber": 284
+          },
+          {
+            "text": "              },",
+            "lineNumber": 285
+          },
+          {
+            "text": "              contextStrategy: {",
+            "lineNumber": 286
+          },
+          {
+            "text": "                type: 'window',",
+            "lineNumber": 287
+          },
+          {
+            "text": "                maxMessages: 20,",
+            "lineNumber": 288
+          },
+          {
+            "text": "                maxTokens: 4000,",
+            "lineNumber": 289
+          },
+          {
+            "text": "                includeSystemPrompt: true",
+            "lineNumber": 290
+          },
+          {
+            "text": "              }",
+            "lineNumber": 291
+          },
+          {
+            "text": "            },",
+            "lineNumber": 292
+          },
+          {
+            "text": "            enabled: true,",
+            "lineNumber": 293
+          },
+          {
+            "text": "            avatar: '🤖'",
+            "lineNumber": 294
+          },
+          {
+            "text": "          } as any);",
+            "lineNumber": 295
+          },
+          {
+            "text": "          ",
+            "lineNumber": 296
+          },
+          {
+            "text": "          if (response.success &amp;&amp; response.data) {",
+            "lineNumber": 297
+          },
+          {
+            "text": "            const newRole = {",
+            "lineNumber": 298
+          },
+          {
+            "text": "              ...response.data,",
+            "lineNumber": 299
+          },
+          {
+            "text": "              createdAt: new Date(response.data.createdAt),",
+            "lineNumber": 300
+          },
+          {
+            "text": "              updatedAt: new Date(response.data.updatedAt)",
+            "lineNumber": 301
+          },
+          {
+            "text": "            };",
+            "lineNumber": 302
+          },
+          {
+            "text": "            result = { success: true, role: newRole };",
+            "lineNumber": 303
+          },
+          {
+            "text": "          } else {",
+            "lineNumber": 304
+          },
+          {
+            "text": "            result = { success: false, error: response.message || response.error || '创建失败' };",
+            "lineNumber": 305
+          },
+          {
+            "text": "          }",
+            "lineNumber": 306
+          },
+          {
+            "text": "        }",
+            "lineNumber": 307
+          },
+          {
+            "text": "      }",
+            "lineNumber": 308
+          },
+          {
+            "text": "      ",
+            "lineNumber": 309
+          },
+          {
+            "text": "      if (!result.success || !result.role) {",
+            "lineNumber": 310
+          },
+          {
+            "text": "        alert(&#96;创建角色失败: ${result.error}&#96;);",
+            "lineNumber": 311
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 312
+          },
+          {
+            "text": "      }",
+            "lineNumber": 313
+          },
+          {
+            "lineNumber": 314
+          },
+          {
+            "text": "      // 2. 尝试自动分配给第一个字段映射配置",
+            "lineNumber": 315
+          },
+          {
+            "text": "      try",
+            "lineNumber": 316
+          },
+          {
+            "text": ";",
+            "lineNumber": 362
+          },
+          {
+            "text": ";",
+            "lineNumber": 737
+          }
+        ]
+      },
+      "score": 0.40867936611175537
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 193
+          },
+          "endPosition": {
+            "line": 633,
+            "column": 1
+          }
+        },
+        "contents": "export class AIRoleModel {\nprivate toAIRoleConfig(row: AIRole): AIRoleConfig {\n\n    \n    if (provider === 'direct-agent') {\n      // Direct Agent 配置\n      // 支持两种格式：{ provider: 'direct-agent', agentConfig: {...} } 或直接是 agentConfig\n      if (configData.agentConfig &amp;&amp; typeof configData.agentConfig === 'object') {\n        agentConfig = configData.agentConfig as DirectAgentConfig;\n      } else if (configData.llm &amp;&amp; typeof configData.llm === 'object') {\n        // 旧格式：直接包含 llm, prompt, contextStrategy 等\n        agentConfig = configData as DirectAgentConfig;\n      }\n    } else {\n      // Dify 配置（向后兼容）\n      // 检查是否包含 Dify 必需的字段，或者如果 configData 不为空，假设是 Dify 配置\n      if (configData &amp;&amp; (configData.apiUrl || configData.apiKey || configData.connectionType || Object.keys(configData).length &gt; 0)) {\n        // 确保包含必需的字段，如果没有则使用默认值\n        difyConfig = {\n          apiUrl: configData.apiUrl || '/api/dify/chat-messages',\n          apiKey: configData.apiKey || '',\n          connectionType: configData.connectionType || 'chatflow',\n          inputFields: configData.inputFields || []\n        } as DifyConfig;\n      } else {\n        // 如果完全没有配置，使用默认的 Dify 配置\n        difyConfig = {\n          apiUrl: '/api/dify/chat-messages',\n          apiKey: '',\n          connectionType: 'chatflow',\n          inputFields: []\n        };\n      }\n    }\n    \n    return {\n      id: row.id,\n      name: row.name || '',\n      description: row.description || '',\n      avatar: row.avatar || undefined,\n      systemPrompt: row.system_prompt || undefined,\n      provider,\n      difyConfig,\n      agentConfig,\n      enabled: row.enabled === 1,\n      source: (row.source as any) || undefined,\n      createdAt: new Date(row.created_at || Date.now()),\n      updatedAt: new Date(row.updated_at || Date.now()),\n    };\n  }\n\n  /**\n   * 初始化数据库表\n   */\n  async initializeTable(): Promise&lt;void&gt; {\n    await this.ensureConnection();\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 194,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 195,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 214,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 215,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AIRoleModel {",
+            "lineNumber": 194,
+            "isSignature": true
+          },
+          {
+            "text": "private toAIRoleConfig(row: AIRole): AIRoleConfig {",
+            "lineNumber": 214
+          },
+          {
+            "lineNumber": 233
+          },
+          {
+            "text": "    ",
+            "lineNumber": 234
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 235
+          },
+          {
+            "text": "      // Direct Agent 配置",
+            "lineNumber": 236
+          },
+          {
+            "text": "      // 支持两种格式：{ provider: 'direct-agent', agentConfig: {...} } 或直接是 agentConfig",
+            "lineNumber": 237
+          },
+          {
+            "text": "      if (configData.agentConfig &amp;&amp; typeof configData.agentConfig === 'object') {",
+            "lineNumber": 238
+          },
+          {
+            "text": "        agentConfig = configData.agentConfig as DirectAgentConfig;",
+            "lineNumber": 239
+          },
+          {
+            "text": "      } else if (configData.llm &amp;&amp; typeof configData.llm === 'object') {",
+            "lineNumber": 240
+          },
+          {
+            "text": "        // 旧格式：直接包含 llm, prompt, contextStrategy 等",
+            "lineNumber": 241
+          },
+          {
+            "text": "        agentConfig = configData as DirectAgentConfig;",
+            "lineNumber": 242
+          },
+          {
+            "text": "      }",
+            "lineNumber": 243
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 244
+          },
+          {
+            "text": "      // Dify 配置（向后兼容）",
+            "lineNumber": 245
+          },
+          {
+            "text": "      // 检查是否包含 Dify 必需的字段，或者如果 configData 不为空，假设是 Dify 配置",
+            "lineNumber": 246
+          },
+          {
+            "text": "      if (configData &amp;&amp; (configData.apiUrl || configData.apiKey || configData.connectionType || Object.keys(configData).length &gt; 0)) {",
+            "lineNumber": 247
+          },
+          {
+            "text": "        // 确保包含必需的字段，如果没有则使用默认值",
+            "lineNumber": 248
+          },
+          {
+            "text": "        difyConfig = {",
+            "lineNumber": 249
+          },
+          {
+            "text": "          apiUrl: configData.apiUrl || '/api/dify/chat-messages',",
+            "lineNumber": 250
+          },
+          {
+            "text": "          apiKey: configData.apiKey || '',",
+            "lineNumber": 251
+          },
+          {
+            "text": "          connectionType: configData.connectionType || 'chatflow',",
+            "lineNumber": 252
+          },
+          {
+            "text": "          inputFields: configData.inputFields || []",
+            "lineNumber": 253
+          },
+          {
+            "text": "        } as DifyConfig;",
+            "lineNumber": 254
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 255
+          },
+          {
+            "text": "        // 如果完全没有配置，使用默认的 Dify 配置",
+            "lineNumber": 256
+          },
+          {
+            "text": "        difyConfig = {",
+            "lineNumber": 257
+          },
+          {
+            "text": "          apiUrl: '/api/dify/chat-messages',",
+            "lineNumber": 258
+          },
+          {
+            "text": "          apiKey: '',",
+            "lineNumber": 259
+          },
+          {
+            "text": "          connectionType: 'chatflow',",
+            "lineNumber": 260
+          },
+          {
+            "text": "          inputFields: []",
+            "lineNumber": 261
+          },
+          {
+            "text": "        };",
+            "lineNumber": 262
+          },
+          {
+            "text": "      }",
+            "lineNumber": 263
+          },
+          {
+            "text": "    }",
+            "lineNumber": 264
+          },
+          {
+            "text": "    ",
+            "lineNumber": 265
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 266
+          },
+          {
+            "text": "      id: row.id,",
+            "lineNumber": 267
+          },
+          {
+            "text": "      name: row.name || '',",
+            "lineNumber": 268
+          },
+          {
+            "text": "      description: row.description || '',",
+            "lineNumber": 269
+          },
+          {
+            "text": "      avatar: row.avatar || undefined,",
+            "lineNumber": 270
+          },
+          {
+            "text": "      systemPrompt: row.system_prompt || undefined,",
+            "lineNumber": 271
+          },
+          {
+            "text": "      provider,",
+            "lineNumber": 272
+          },
+          {
+            "text": "      difyConfig,",
+            "lineNumber": 273
+          },
+          {
+            "text": "      agentConfig,",
+            "lineNumber": 274
+          },
+          {
+            "text": "      enabled: row.enabled === 1,",
+            "lineNumber": 275
+          },
+          {
+            "text": "      source: (row.source as any) || undefined,",
+            "lineNumber": 276
+          },
+          {
+            "text": "      createdAt: new Date(row.created_at || Date.now()),",
+            "lineNumber": 277
+          },
+          {
+            "text": "      updatedAt: new Date(row.updated_at || Date.now()),",
+            "lineNumber": 278
+          },
+          {
+            "text": "    };",
+            "lineNumber": 279
+          },
+          {
+            "text": "  }",
+            "lineNumber": 280
+          },
+          {
+            "lineNumber": 281
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 282
+          },
+          {
+            "text": "   * 初始化数据库表",
+            "lineNumber": 283
+          },
+          {
+            "text": "   */",
+            "lineNumber": 284
+          },
+          {
+            "text": "  async initializeTable(): Promise&lt;void&gt; {",
+            "lineNumber": 285
+          },
+          {
+            "text": "    await this.ensureConnection();",
+            "lineNumber": 286
+          },
+          {
+            "text": "  }",
+            "lineNumber": 331
+          },
+          {
+            "text": "}",
+            "lineNumber": 634,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.40268194675445557
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 155,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 186,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * 创建AI角色DTO\n */\nexport interface CreateAIRoleDTO {\n  id?: string;\n  name: string;\n  description: string;\n  avatar?: string;\n  systemPrompt?: string;\n  provider?: 'dify' | 'direct-agent';\n  difyConfig?: DifyConfig;\n  agentConfig?: DirectAgentConfig;\n  enabled?: boolean;\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\n}\n\n/**\n * 更新AI角色DTO\n */\nexport interface UpdateAIRoleDTO {\n  name?: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 158
+          },
+          {
+            "text": " * 创建AI角色DTO",
+            "lineNumber": 159
+          },
+          {
+            "text": " */",
+            "lineNumber": 160
+          },
+          {
+            "text": "export interface CreateAIRoleDTO {",
+            "lineNumber": 161,
+            "isSignature": true
+          },
+          {
+            "text": "  id?: string;",
+            "lineNumber": 162
+          },
+          {
+            "text": "  name: string;",
+            "lineNumber": 163
+          },
+          {
+            "text": "  description: string;",
+            "lineNumber": 164
+          },
+          {
+            "text": "  avatar?: string;",
+            "lineNumber": 165
+          },
+          {
+            "text": "  systemPrompt?: string;",
+            "lineNumber": 166
+          },
+          {
+            "text": "  provider?: 'dify' | 'direct-agent';",
+            "lineNumber": 167
+          },
+          {
+            "text": "  difyConfig?: DifyConfig;",
+            "lineNumber": 168
+          },
+          {
+            "text": "  agentConfig?: DirectAgentConfig;",
+            "lineNumber": 169
+          },
+          {
+            "text": "  enabled?: boolean;",
+            "lineNumber": 170
+          },
+          {
+            "text": "  source?: 'smart-workflow' | 'independent-page' | 'custom';",
+            "lineNumber": 171,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 172,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "/**",
+            "lineNumber": 174
+          },
+          {
+            "text": " * 更新AI角色DTO",
+            "lineNumber": 175
+          },
+          {
+            "text": " */",
+            "lineNumber": 176
+          },
+          {
+            "text": "export interface UpdateAIRoleDTO {",
+            "lineNumber": 177,
+            "isSignature": true
+          },
+          {
+            "text": "  name?: string",
+            "lineNumber": 178
+          },
+          {
+            "text": ";",
+            "lineNumber": 186,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 187,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3988020420074463
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/AIRoleEditModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 40
+          },
+          "endPosition": {
+            "line": 765,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleEditModal: React.FC&lt;AIRoleEditModalProps&gt; = \nconst renderContent = \n\n                &lt;label className={&#96;flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${\n                  formData.provider === 'direct-agent' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'\n                }&#96;}&gt;\n                  &lt;input\n                    type=\"radio\"\n                    name=\"provider\"\n                    value=\"direct-agent\"\n                    checked={formData.provider === 'direct-agent'}\n                    onChange={(e) =&gt; {\n                      updateFormField('provider', e.target.value);\n                      if (!formData.agentConfig) {\n                        setFormData(prev =&gt; ({\n                          ...prev,\n                          agentConfig: {\n                            llm: {\n                              provider: 'openai',\n                              apiKey: '',\n                              apiBaseUrl: 'https://api.openai.com/v1',\n                              model: 'gpt-3.5-turbo',\n                              temperature: 0.7,\n                              maxTokens: 2000\n                            },\n                            prompt: { systemPrompt: '', variables: [], templates: [] },\n                            contextStrategy: { type: 'window', maxMessages: 10, maxTokens: 4000, includeSystemPrompt: true },\n                            tools: [],\n                            agentCalls: []\n                          }\n                        }));\n                      }\n                      // Auto switch to next section\n                      setTimeout(() =&gt; setActiveSection('llm'), 100);\n                    }}\n                    className=\"mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500\"\n                  /&gt;\n                  &lt;div className=\"flex-1\"&gt;\n                    &lt;div className=\"font-bold text-gray-800 mb-1\"&gt;LLM驱动\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 41,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 41,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 41,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 41,
+                "column": 57
+              }
+            },
+            {
+              "startPosition": {
+                "line": 398,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 398,
+                "column": 9
+              }
+            },
+            {
+              "startPosition": {
+                "line": 398,
+                "column": 9
+              },
+              "endPosition": {
+                "line": 398,
+                "column": 25
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleEditModal: React.FC&lt;AIRoleEditModalProps&gt; = ",
+            "lineNumber": 41
+          },
+          {
+            "text": "const renderContent = ",
+            "lineNumber": 398
+          },
+          {
+            "lineNumber": 480
+          },
+          {
+            "text": "                &lt;label className={&#96;flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${",
+            "lineNumber": 481
+          },
+          {
+            "text": "                  formData.provider === 'direct-agent' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'",
+            "lineNumber": 482
+          },
+          {
+            "text": "                }&#96;}&gt;",
+            "lineNumber": 483
+          },
+          {
+            "text": "                  &lt;input",
+            "lineNumber": 484
+          },
+          {
+            "text": "                    type=\"radio\"",
+            "lineNumber": 485
+          },
+          {
+            "text": "                    name=\"provider\"",
+            "lineNumber": 486
+          },
+          {
+            "text": "                    value=\"direct-agent\"",
+            "lineNumber": 487
+          },
+          {
+            "text": "                    checked={formData.provider === 'direct-agent'}",
+            "lineNumber": 488
+          },
+          {
+            "text": "                    onChange={(e) =&gt; {",
+            "lineNumber": 489
+          },
+          {
+            "text": "                      updateFormField('provider', e.target.value);",
+            "lineNumber": 490
+          },
+          {
+            "text": "                      if (!formData.agentConfig) {",
+            "lineNumber": 491
+          },
+          {
+            "text": "                        setFormData(prev =&gt; ({",
+            "lineNumber": 492
+          },
+          {
+            "text": "                          ...prev,",
+            "lineNumber": 493
+          },
+          {
+            "text": "                          agentConfig: {",
+            "lineNumber": 494
+          },
+          {
+            "text": "                            llm: {",
+            "lineNumber": 495
+          },
+          {
+            "text": "                              provider: 'openai',",
+            "lineNumber": 496
+          },
+          {
+            "text": "                              apiKey: '',",
+            "lineNumber": 497
+          },
+          {
+            "text": "                              apiBaseUrl: 'https://api.openai.com/v1',",
+            "lineNumber": 498
+          },
+          {
+            "text": "                              model: 'gpt-3.5-turbo',",
+            "lineNumber": 499
+          },
+          {
+            "text": "                              temperature: 0.7,",
+            "lineNumber": 500
+          },
+          {
+            "text": "                              maxTokens: 2000",
+            "lineNumber": 501
+          },
+          {
+            "text": "                            },",
+            "lineNumber": 502
+          },
+          {
+            "text": "                            prompt: { systemPrompt: '', variables: [], templates: [] },",
+            "lineNumber": 503
+          },
+          {
+            "text": "                            contextStrategy: { type: 'window', maxMessages: 10, maxTokens: 4000, includeSystemPrompt: true },",
+            "lineNumber": 504
+          },
+          {
+            "text": "                            tools: [],",
+            "lineNumber": 505
+          },
+          {
+            "text": "                            agentCalls: []",
+            "lineNumber": 506
+          },
+          {
+            "text": "                          }",
+            "lineNumber": 507
+          },
+          {
+            "text": "                        }));",
+            "lineNumber": 508
+          },
+          {
+            "text": "                      }",
+            "lineNumber": 509
+          },
+          {
+            "text": "                      // Auto switch to next section",
+            "lineNumber": 510
+          },
+          {
+            "text": "                      setTimeout(() =&gt; setActiveSection('llm'), 100);",
+            "lineNumber": 511
+          },
+          {
+            "text": "                    }}",
+            "lineNumber": 512
+          },
+          {
+            "text": "                    className=\"mt-1 w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 513
+          },
+          {
+            "text": "                  /&gt;",
+            "lineNumber": 514
+          },
+          {
+            "text": "                  &lt;div className=\"flex-1\"&gt;",
+            "lineNumber": 515
+          },
+          {
+            "text": "                    &lt;div className=\"font-bold text-gray-800 mb-1\"&gt;LLM驱动",
+            "lineNumber": 516
+          },
+          {
+            "text": ";",
+            "lineNumber": 578
+          },
+          {
+            "text": ";",
+            "lineNumber": 766
+          }
+        ]
+      },
+      "score": 0.3955059051513672
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/pages/AIRoleManagementPage.tsx",
+        "range": {
+          "startPosition": {
+            "line": 54
+          },
+          "endPosition": {
+            "line": 3598,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleManagementPage: React.FC = \n\n                    &lt;div className=\"space-y-6\"&gt;\n                      {/* LLM 配置 Tab */}\n                      {activeTab === 'llm' &amp;&amp; (\n                        &lt;div className=\"space-y-4\"&gt;\n                          &lt;div&gt;\n                            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;\n                              LLM Provider *\n                            &lt;/label&gt;\n                            &lt;select\n                              value={formData.agentConfig?.llm?.provider || 'openai'}\n                              onChange={(e) =&gt; {\n                                setFormData(prev =&gt; ({\n                                  ...prev,\n                                  agentConfig: {\n                                    ...prev.agentConfig!,\n                                    llm: {\n                                      ...prev.agentConfig!.llm,\n                                      provider: e.target.value as any\n                                    }\n                                  }\n                                }));\n                              }}\n                              className=\"w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"\n                            &gt;\n                              &lt;option value=\"openai\"&gt;OpenAI&lt;/option&gt;\n                              &lt;option value=\"azure-openai\"&gt;Azure OpenAI&lt;/option&gt;\n                              &lt;option value=\"qwen\"&gt;通义千问&lt;/option&gt;\n                              &lt;option value=\"ernie\"&gt;文心一言&lt;/option&gt;\n                              &lt;option value=\"custom\"&gt;自定义端点&lt;/option&gt;\n                            &lt;/select&gt;\n                          &lt;/div&gt;\n\n                          &lt;div&gt;\n                            &lt;label\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 40
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleManagementPage: React.FC = ",
+            "lineNumber": 55
+          },
+          {
+            "lineNumber": 2346
+          },
+          {
+            "text": "                    &lt;div className=\"space-y-6\"&gt;",
+            "lineNumber": 2347
+          },
+          {
+            "text": "                      {/* LLM 配置 Tab */}",
+            "lineNumber": 2348
+          },
+          {
+            "text": "                      {activeTab === 'llm' &amp;&amp; (",
+            "lineNumber": 2349
+          },
+          {
+            "text": "                        &lt;div className=\"space-y-4\"&gt;",
+            "lineNumber": 2350
+          },
+          {
+            "text": "                          &lt;div&gt;",
+            "lineNumber": 2351
+          },
+          {
+            "text": "                            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 2352
+          },
+          {
+            "text": "                              LLM Provider *",
+            "lineNumber": 2353
+          },
+          {
+            "text": "                            &lt;/label&gt;",
+            "lineNumber": 2354
+          },
+          {
+            "text": "                            &lt;select",
+            "lineNumber": 2355
+          },
+          {
+            "text": "                              value={formData.agentConfig?.llm?.provider || 'openai'}",
+            "lineNumber": 2356
+          },
+          {
+            "text": "                              onChange={(e) =&gt; {",
+            "lineNumber": 2357
+          },
+          {
+            "text": "                                setFormData(prev =&gt; ({",
+            "lineNumber": 2358
+          },
+          {
+            "text": "                                  ...prev,",
+            "lineNumber": 2359
+          },
+          {
+            "text": "                                  agentConfig: {",
+            "lineNumber": 2360
+          },
+          {
+            "text": "                                    ...prev.agentConfig!,",
+            "lineNumber": 2361
+          },
+          {
+            "text": "                                    llm: {",
+            "lineNumber": 2362
+          },
+          {
+            "text": "                                      ...prev.agentConfig!.llm,",
+            "lineNumber": 2363
+          },
+          {
+            "text": "                                      provider: e.target.value as any",
+            "lineNumber": 2364
+          },
+          {
+            "text": "                                    }",
+            "lineNumber": 2365
+          },
+          {
+            "text": "                                  }",
+            "lineNumber": 2366
+          },
+          {
+            "text": "                                }));",
+            "lineNumber": 2367
+          },
+          {
+            "text": "                              }}",
+            "lineNumber": 2368
+          },
+          {
+            "text": "                              className=\"w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent\"",
+            "lineNumber": 2369
+          },
+          {
+            "text": "                            &gt;",
+            "lineNumber": 2370
+          },
+          {
+            "text": "                              &lt;option value=\"openai\"&gt;OpenAI&lt;/option&gt;",
+            "lineNumber": 2371
+          },
+          {
+            "text": "                              &lt;option value=\"azure-openai\"&gt;Azure OpenAI&lt;/option&gt;",
+            "lineNumber": 2372
+          },
+          {
+            "text": "                              &lt;option value=\"qwen\"&gt;通义千问&lt;/option&gt;",
+            "lineNumber": 2373
+          },
+          {
+            "text": "                              &lt;option value=\"ernie\"&gt;文心一言&lt;/option&gt;",
+            "lineNumber": 2374
+          },
+          {
+            "text": "                              &lt;option value=\"custom\"&gt;自定义端点&lt;/option&gt;",
+            "lineNumber": 2375
+          },
+          {
+            "text": "                            &lt;/select&gt;",
+            "lineNumber": 2376
+          },
+          {
+            "text": "                          &lt;/div&gt;",
+            "lineNumber": 2377
+          },
+          {
+            "lineNumber": 2378
+          },
+          {
+            "text": "                          &lt;div&gt;",
+            "lineNumber": 2379
+          },
+          {
+            "text": "                            &lt;label",
+            "lineNumber": 2380
+          },
+          {
+            "text": ";",
+            "lineNumber": 3599
+          }
+        ]
+      },
+      "score": 0.38719961047172546
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 193
+          },
+          "endPosition": {
+            "line": 633,
+            "column": 1
+          }
+        },
+        "contents": "export class AIRoleModel {\n\n\n  /**\n   * 更新AI角色\n   */\n  async update(id: string, data: UpdateAIRoleDTO): Promise&lt;AIRoleConfig&gt; {\n    await this.ensureConnection();\n\n    // 获取现有角色\n    const existing = await this.getById(id);\n    if (!existing) {\n      throw new Error(&#96;AI角色不存在: ${id}&#96;);\n    }\n\n    const sql = &#96;\n      UPDATE ai_roles SET\n        name = ?,\n        description = ?,\n        avatar = ?,\n        system_prompt = ?,\n        dify_config = ?,\n        enabled = ?,\n        source = ?,\n        updated_at = CURRENT_TIMESTAMP\n      WHERE id = ?\n    &#96;;\n\n    // 决定更新的配置\n    let configToStore: any;\n    const provider = data.provider ?? existing.provider ?? 'dify';\n    \n    if (provider === 'direct-agent') {\n      if (data.agentConfig) {\n        configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };\n      } else if (existing.agentConfig) {\n        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };\n      } else {\n        // 从 difyConfig 迁移到 agentConfig（如果需要）\n        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };\n      }\n    } else {\n      if (data.difyConfig) {\n        configToStore = { provider: 'dify', ...data.difyConfig };\n      } else if (existing.difyConfig) {\n        configToStore = { provider: 'dify', ...existing.difyConfig };\n      } else {\n        // 保持现有配置\n        const existingConfig = JSON.parse((existing as any).dify_config || '{}');\n        configToStore = existingConfig;\n      }\n    }\n\n    const params = [\n      data.name ?? existing.name,\n,\n    ];\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 194,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 195,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AIRoleModel {",
+            "lineNumber": 194,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 446
+          },
+          {
+            "lineNumber": 447
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 448
+          },
+          {
+            "text": "   * 更新AI角色",
+            "lineNumber": 449
+          },
+          {
+            "text": "   */",
+            "lineNumber": 450
+          },
+          {
+            "text": "  async update(id: string, data: UpdateAIRoleDTO): Promise&lt;AIRoleConfig&gt; {",
+            "lineNumber": 451
+          },
+          {
+            "text": "    await this.ensureConnection();",
+            "lineNumber": 452
+          },
+          {
+            "lineNumber": 453
+          },
+          {
+            "text": "    // 获取现有角色",
+            "lineNumber": 454
+          },
+          {
+            "text": "    const existing = await this.getById(id);",
+            "lineNumber": 455
+          },
+          {
+            "text": "    if (!existing) {",
+            "lineNumber": 456
+          },
+          {
+            "text": "      throw new Error(&#96;AI角色不存在: ${id}&#96;);",
+            "lineNumber": 457
+          },
+          {
+            "text": "    }",
+            "lineNumber": 458
+          },
+          {
+            "lineNumber": 459
+          },
+          {
+            "text": "    const sql = &#96;",
+            "lineNumber": 460
+          },
+          {
+            "text": "      UPDATE ai_roles SET",
+            "lineNumber": 461
+          },
+          {
+            "text": "        name = ?,",
+            "lineNumber": 462
+          },
+          {
+            "text": "        description = ?,",
+            "lineNumber": 463
+          },
+          {
+            "text": "        avatar = ?,",
+            "lineNumber": 464
+          },
+          {
+            "text": "        system_prompt = ?,",
+            "lineNumber": 465
+          },
+          {
+            "text": "        dify_config = ?,",
+            "lineNumber": 466
+          },
+          {
+            "text": "        enabled = ?,",
+            "lineNumber": 467
+          },
+          {
+            "text": "        source = ?,",
+            "lineNumber": 468
+          },
+          {
+            "text": "        updated_at = CURRENT_TIMESTAMP",
+            "lineNumber": 469
+          },
+          {
+            "text": "      WHERE id = ?",
+            "lineNumber": 470
+          },
+          {
+            "text": "    &#96;;",
+            "lineNumber": 471
+          },
+          {
+            "lineNumber": 472
+          },
+          {
+            "text": "    // 决定更新的配置",
+            "lineNumber": 473
+          },
+          {
+            "text": "    let configToStore: any;",
+            "lineNumber": 474
+          },
+          {
+            "text": "    const provider = data.provider ?? existing.provider ?? 'dify';",
+            "lineNumber": 475
+          },
+          {
+            "text": "    ",
+            "lineNumber": 476
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 477
+          },
+          {
+            "text": "      if (data.agentConfig) {",
+            "lineNumber": 478
+          },
+          {
+            "text": "        configToStore = { provider: 'direct-agent', agentConfig: data.agentConfig };",
+            "lineNumber": 479
+          },
+          {
+            "text": "      } else if (existing.agentConfig) {",
+            "lineNumber": 480
+          },
+          {
+            "text": "        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };",
+            "lineNumber": 481
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 482
+          },
+          {
+            "text": "        // 从 difyConfig 迁移到 agentConfig（如果需要）",
+            "lineNumber": 483
+          },
+          {
+            "text": "        configToStore = { provider: 'direct-agent', agentConfig: existing.agentConfig };",
+            "lineNumber": 484
+          },
+          {
+            "text": "      }",
+            "lineNumber": 485
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 486
+          },
+          {
+            "text": "      if (data.difyConfig) {",
+            "lineNumber": 487
+          },
+          {
+            "text": "        configToStore = { provider: 'dify', ...data.difyConfig };",
+            "lineNumber": 488
+          },
+          {
+            "text": "      } else if (existing.difyConfig) {",
+            "lineNumber": 489
+          },
+          {
+            "text": "        configToStore = { provider: 'dify', ...existing.difyConfig };",
+            "lineNumber": 490
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 491
+          },
+          {
+            "text": "        // 保持现有配置",
+            "lineNumber": 492
+          },
+          {
+            "text": "        const existingConfig = JSON.parse((existing as any).dify_config || '{}');",
+            "lineNumber": 493
+          },
+          {
+            "text": "        configToStore = existingConfig;",
+            "lineNumber": 494
+          },
+          {
+            "text": "      }",
+            "lineNumber": 495
+          },
+          {
+            "text": "    }",
+            "lineNumber": 496
+          },
+          {
+            "lineNumber": 497
+          },
+          {
+            "text": "    const params = [",
+            "lineNumber": 498
+          },
+          {
+            "text": "      data.name ?? existing.name,",
+            "lineNumber": 499
+          },
+          {
+            "text": ",",
+            "lineNumber": 506
+          },
+          {
+            "text": "    ];",
+            "lineNumber": 507
+          },
+          {
+            "text": "  }",
+            "lineNumber": 512
+          },
+          {
+            "text": "}",
+            "lineNumber": 634,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.37622639536857605
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/ProviderFactory.ts",
+        "range": {
+          "startPosition": {
+            "column": 50
+          },
+          "endPosition": {
+            "line": 39,
+            "column": 1
+          }
+        },
+        "contents": "import { OpenAIProvider } from './OpenAIProvider';\nimport { AnthropicProvider } from './AnthropicProvider';\nimport { GoogleProvider } from './GoogleProvider';\nimport { LocalProvider } from './LocalProvider';\n\n/**\n * LLM Provider 工厂\n * 根据配置创建不同的 Provider 实例\n */\nexport class LLMProviderFactory {\n  /**\n   * 根据配置创建 Provider 实例\n   */\n  static create(llmConfig: LLMConfig): ILLMProvider {\n    switch (llmConfig.provider) {\n      case 'openai':\n        return new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'anthropic':\n        return new AnthropicProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'google':\n        return new GoogleProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'local':\n        return new LocalProvider(llmConfig.apiBaseUrl || 'http://localhost:11434/v1');\n      \n      default:\n        throw new Error(&#96;不支持的 LLM Provider: ${llmConfig.provider}&#96;);\n    }\n  }\n\n  /**\n   * 获取支持的 Provider 列表\n   */\n  static getSupportedProviders(): string[] {\n    return ['openai', 'anthropic', 'google', 'local'];\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { OpenAIProvider } from './OpenAIProvider';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { AnthropicProvider } from './AnthropicProvider';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { GoogleProvider } from './GoogleProvider';",
+            "lineNumber": 4
+          },
+          {
+            "text": "import { LocalProvider } from './LocalProvider';",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "/**",
+            "lineNumber": 7
+          },
+          {
+            "text": " * LLM Provider 工厂",
+            "lineNumber": 8
+          },
+          {
+            "text": " * 根据配置创建不同的 Provider 实例",
+            "lineNumber": 9
+          },
+          {
+            "text": " */",
+            "lineNumber": 10
+          },
+          {
+            "text": "export class LLMProviderFactory {",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 12
+          },
+          {
+            "text": "   * 根据配置创建 Provider 实例",
+            "lineNumber": 13
+          },
+          {
+            "text": "   */",
+            "lineNumber": 14
+          },
+          {
+            "text": "  static create(llmConfig: LLMConfig): ILLMProvider {",
+            "lineNumber": 15
+          },
+          {
+            "text": "    switch (llmConfig.provider) {",
+            "lineNumber": 16
+          },
+          {
+            "text": "      case 'openai':",
+            "lineNumber": 17
+          },
+          {
+            "text": "        return new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 18
+          },
+          {
+            "text": "      ",
+            "lineNumber": 19
+          },
+          {
+            "text": "      case 'anthropic':",
+            "lineNumber": 20
+          },
+          {
+            "text": "        return new AnthropicProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 21
+          },
+          {
+            "text": "      ",
+            "lineNumber": 22
+          },
+          {
+            "text": "      case 'google':",
+            "lineNumber": 23
+          },
+          {
+            "text": "        return new GoogleProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 24
+          },
+          {
+            "text": "      ",
+            "lineNumber": 25
+          },
+          {
+            "text": "      case 'local':",
+            "lineNumber": 26
+          },
+          {
+            "text": "        return new LocalProvider(llmConfig.apiBaseUrl || 'http://localhost:11434/v1');",
+            "lineNumber": 27
+          },
+          {
+            "text": "      ",
+            "lineNumber": 28
+          },
+          {
+            "text": "      default:",
+            "lineNumber": 29
+          },
+          {
+            "text": "        throw new Error(&#96;不支持的 LLM Provider: ${llmConfig.provider}&#96;);",
+            "lineNumber": 30
+          },
+          {
+            "text": "    }",
+            "lineNumber": 31
+          },
+          {
+            "text": "  }",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 34
+          },
+          {
+            "text": "   * 获取支持的 Provider 列表",
+            "lineNumber": 35
+          },
+          {
+            "text": "   */",
+            "lineNumber": 36
+          },
+          {
+            "text": "  static getSupportedProviders(): string[] {",
+            "lineNumber": 37
+          },
+          {
+            "text": "    return ['openai', 'anthropic', 'google', 'local'];",
+            "lineNumber": 38
+          },
+          {
+            "text": "  }",
+            "lineNumber": 39
+          },
+          {
+            "text": "}",
+            "lineNumber": 40,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.36873140931129456
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/langgraph/LangGraphEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 449,
+            "column": 1
+          }
+        },
+        "contents": "export class LangGraphEngine {\n\n\n  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const context: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          context[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', context);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);\n    const { connectionType, apiKey, apiUrl } = role.difyConfig;\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LangGraphEngine {",
+            "lineNumber": 16,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 148
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 149
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 150
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 151
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 152
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 153
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 154
+          },
+          {
+            "text": "    ",
+            "lineNumber": 155
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 156
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 157
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 158
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 159
+          },
+          {
+            "text": "      }",
+            "lineNumber": 160
+          },
+          {
+            "text": "      ",
+            "lineNumber": 161
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 162
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 163
+          },
+          {
+            "text": "      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };",
+            "lineNumber": 164
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 165
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 166
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 167
+          },
+          {
+            "text": "      }",
+            "lineNumber": 168
+          },
+          {
+            "text": "      ",
+            "lineNumber": 169
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 170
+          },
+          {
+            "text": "      const context: Record&lt;string, any&gt; = {};",
+            "lineNumber": 171
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 172
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 173
+          },
+          {
+            "text": "          context[key] = nodeInput[key];",
+            "lineNumber": 174
+          },
+          {
+            "text": "        }",
+            "lineNumber": 175
+          },
+          {
+            "text": "      });",
+            "lineNumber": 176
+          },
+          {
+            "text": "      ",
+            "lineNumber": 177
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', context);",
+            "lineNumber": 178
+          },
+          {
+            "text": "      ",
+            "lineNumber": 179
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 180
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 181
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 182
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 184
+          },
+          {
+            "text": "      };",
+            "lineNumber": 185
+          },
+          {
+            "text": "    }",
+            "lineNumber": 186
+          },
+          {
+            "text": "    ",
+            "lineNumber": 187
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 188
+          },
+          {
+            "text": "    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);",
+            "lineNumber": 189
+          },
+          {
+            "text": "    const { connectionType, apiKey, apiUrl } = role.difyConfig;",
+            "lineNumber": 190
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 191
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;",
+            "lineNumber": 193
+          },
+          {
+            "text": "  }",
+            "lineNumber": 215
+          },
+          {
+            "text": "}",
+            "lineNumber": 450,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3643389046192169
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 598,
+            "column": 3
+          },
+          "endPosition": {
+            "line": 724,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * 测试AI角色连接\n * POST /api/v1/ai-roles/:id/test\n */\nrouter.post('/:id/test', async (req, res) =&gt; {\n  try {\n    const { id } = req.params;\n    const role = await aiRoleModel.getById(id);\n    \n    if (!role) {\n      return res.status(404).json(formatApiResponse(false, null, 'AI角色不存在'));\n    }\n    \n    const provider = role.provider || 'dify';\n    \n    if (provider === 'direct-agent') {\n      // Direct Agent 连接测试\n      if (!role.agentConfig) {\n        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));\n      }\n      \n      const llmConfig = role.agentConfig.llm;\n      \n      // 创建 LLM Provider\n      let llmProvider;\n      switch (llmConfig.provider) {\n        case 'openai':\n          llmProvider = new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n          break;\n        default:\n          return res.status(400).json(formatApiResponse(false, null, &#96;不支持的LLM Provider: ${llmConfig.provider}&#96;));\n      }\n      \n      // 测试连接\n      const isConnected = await llmProvider.testConnection();\n      \n      if (isConnected) {\n        res.json(formatApiResponse(true, { connected: true }, '连接测试成功'));\n      } else {\n        res.status(400).json(formatApiResponse(false, { connected: false }, '连接测试失败'));\n      }\n      return;\n    }\n    \n    // Dify 连接测试（保持现有逻辑）\n    if (!role.difyConfig) {\n      return res.status(400).json(formatApiResponse(false, null, 'Dify配置不存在'));\n    }\n    \n    const { apiUrl, apiKey, connectionType } = role.difyConfig;\n    \n    if (!apiUrl || !apiKey) {\n      return res.status(400).json(formatApiResponse(false, null, 'API配置不完整'));\n    }\n    \n    // 处理相对路径：如果是相对路径，使用后端代理；否则使用完整URL\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) {\n      // 相对路径，通过后端代理处理，使用实际的 Dify 服务器地址\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 601
+          },
+          {
+            "text": " * 测试AI角色连接",
+            "lineNumber": 602
+          },
+          {
+            "text": " * POST /api/v1/ai-roles/:id/test",
+            "lineNumber": 603
+          },
+          {
+            "text": " */",
+            "lineNumber": 604
+          },
+          {
+            "text": "router.post('/:id/test', async (req, res) =&gt; {",
+            "lineNumber": 605
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 606
+          },
+          {
+            "text": "    const { id } = req.params;",
+            "lineNumber": 607
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(id);",
+            "lineNumber": 608
+          },
+          {
+            "text": "    ",
+            "lineNumber": 609
+          },
+          {
+            "text": "    if (!role) {",
+            "lineNumber": 610
+          },
+          {
+            "text": "      return res.status(404).json(formatApiResponse(false, null, 'AI角色不存在'));",
+            "lineNumber": 611
+          },
+          {
+            "text": "    }",
+            "lineNumber": 612
+          },
+          {
+            "text": "    ",
+            "lineNumber": 613
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 614
+          },
+          {
+            "text": "    ",
+            "lineNumber": 615
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 616
+          },
+          {
+            "text": "      // Direct Agent 连接测试",
+            "lineNumber": 617
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 618
+          },
+          {
+            "text": "        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));",
+            "lineNumber": 619
+          },
+          {
+            "text": "      }",
+            "lineNumber": 620
+          },
+          {
+            "text": "      ",
+            "lineNumber": 621
+          },
+          {
+            "text": "      const llmConfig = role.agentConfig.llm;",
+            "lineNumber": 622
+          },
+          {
+            "text": "      ",
+            "lineNumber": 623
+          },
+          {
+            "text": "      // 创建 LLM Provider",
+            "lineNumber": 624
+          },
+          {
+            "text": "      let llmProvider;",
+            "lineNumber": 625
+          },
+          {
+            "text": "      switch (llmConfig.provider) {",
+            "lineNumber": 626
+          },
+          {
+            "text": "        case 'openai':",
+            "lineNumber": 627
+          },
+          {
+            "text": "          llmProvider = new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 628
+          },
+          {
+            "text": "          break;",
+            "lineNumber": 629
+          },
+          {
+            "text": "        default:",
+            "lineNumber": 630
+          },
+          {
+            "text": "          return res.status(400).json(formatApiResponse(false, null, &#96;不支持的LLM Provider: ${llmConfig.provider}&#96;));",
+            "lineNumber": 631
+          },
+          {
+            "text": "      }",
+            "lineNumber": 632
+          },
+          {
+            "text": "      ",
+            "lineNumber": 633
+          },
+          {
+            "text": "      // 测试连接",
+            "lineNumber": 634
+          },
+          {
+            "text": "      const isConnected = await llmProvider.testConnection();",
+            "lineNumber": 635
+          },
+          {
+            "text": "      ",
+            "lineNumber": 636
+          },
+          {
+            "text": "      if (isConnected) {",
+            "lineNumber": 637
+          },
+          {
+            "text": "        res.json(formatApiResponse(true, { connected: true }, '连接测试成功'));",
+            "lineNumber": 638
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 639
+          },
+          {
+            "text": "        res.status(400).json(formatApiResponse(false, { connected: false }, '连接测试失败'));",
+            "lineNumber": 640
+          },
+          {
+            "text": "      }",
+            "lineNumber": 641
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 642
+          },
+          {
+            "text": "    }",
+            "lineNumber": 643
+          },
+          {
+            "text": "    ",
+            "lineNumber": 644
+          },
+          {
+            "text": "    // Dify 连接测试（保持现有逻辑）",
+            "lineNumber": 645
+          },
+          {
+            "text": "    if (!role.difyConfig) {",
+            "lineNumber": 646
+          },
+          {
+            "text": "      return res.status(400).json(formatApiResponse(false, null, 'Dify配置不存在'));",
+            "lineNumber": 647
+          },
+          {
+            "text": "    }",
+            "lineNumber": 648
+          },
+          {
+            "text": "    ",
+            "lineNumber": 649
+          },
+          {
+            "text": "    const { apiUrl, apiKey, connectionType } = role.difyConfig;",
+            "lineNumber": 650
+          },
+          {
+            "text": "    ",
+            "lineNumber": 651
+          },
+          {
+            "text": "    if (!apiUrl || !apiKey) {",
+            "lineNumber": 652
+          },
+          {
+            "text": "      return res.status(400).json(formatApiResponse(false, null, 'API配置不完整'));",
+            "lineNumber": 653
+          },
+          {
+            "text": "    }",
+            "lineNumber": 654
+          },
+          {
+            "text": "    ",
+            "lineNumber": 655
+          },
+          {
+            "text": "    // 处理相对路径：如果是相对路径，使用后端代理；否则使用完整URL",
+            "lineNumber": 656
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 657
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) {",
+            "lineNumber": 658
+          },
+          {
+            "text": "      // 相对路径，通过后端代理处理，使用实际的 Dify 服务器地址",
+            "lineNumber": 659
+          },
+          {
+            "text": "}",
+            "lineNumber": 725
+          }
+        ]
+      },
+      "score": 0.36397698521614075
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 598,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\n\n    \n    console.log('AI角色对话请求:', {\n      roleId: id,\n      roleName: role.name,\n      query: query.substring(0, 100),\n      conversationId,\n      provider: role.provider || 'dify'\n    });\n    \n    // 根据 provider 类型选择不同的处理逻辑\n    const provider = role.provider || 'dify';\n    \n    if (provider === 'direct-agent') {\n      // Direct Agent 模式\n      if (!role.agentConfig) {\n        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));\n      }\n      \n      // 使用 AgentOrchestrator 执行\n      const orchestrator = new AgentOrchestrator();\n      const context = inputs || {}; // 将 inputs 作为 context 传递\n      \n      const result = await orchestrator.executeAgent(\n        id,\n        query,\n        conversationId,\n        context\n      );\n      \n      // 返回统一格式\n      res.json(formatApiResponse(true, {\n        answer: result.content,\n        conversation_id: result.conversationId,\n        metadata: {\n          ...result.metadata,\n          usage: result.usage\n        }\n      }, '对话成功'));\n    } else {\n      // Dify 模式（保持现有逻辑）\n      if (!role.difyConfig)\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 421
+          },
+          {
+            "text": "    ",
+            "lineNumber": 422
+          },
+          {
+            "text": "    console.log('AI角色对话请求:', {",
+            "lineNumber": 423
+          },
+          {
+            "text": "      roleId: id,",
+            "lineNumber": 424
+          },
+          {
+            "text": "      roleName: role.name,",
+            "lineNumber": 425
+          },
+          {
+            "text": "      query: query.substring(0, 100),",
+            "lineNumber": 426
+          },
+          {
+            "text": "      conversationId,",
+            "lineNumber": 427
+          },
+          {
+            "text": "      provider: role.provider || 'dify'",
+            "lineNumber": 428
+          },
+          {
+            "text": "    });",
+            "lineNumber": 429
+          },
+          {
+            "text": "    ",
+            "lineNumber": 430
+          },
+          {
+            "text": "    // 根据 provider 类型选择不同的处理逻辑",
+            "lineNumber": 431
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 432
+          },
+          {
+            "text": "    ",
+            "lineNumber": 433
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 434
+          },
+          {
+            "text": "      // Direct Agent 模式",
+            "lineNumber": 435
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 436
+          },
+          {
+            "text": "        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));",
+            "lineNumber": 437
+          },
+          {
+            "text": "      }",
+            "lineNumber": 438
+          },
+          {
+            "text": "      ",
+            "lineNumber": 439
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行",
+            "lineNumber": 440
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 441
+          },
+          {
+            "text": "      const context = inputs || {}; // 将 inputs 作为 context 传递",
+            "lineNumber": 442
+          },
+          {
+            "text": "      ",
+            "lineNumber": 443
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(",
+            "lineNumber": 444
+          },
+          {
+            "text": "        id,",
+            "lineNumber": 445
+          },
+          {
+            "text": "        query,",
+            "lineNumber": 446
+          },
+          {
+            "text": "        conversationId,",
+            "lineNumber": 447
+          },
+          {
+            "text": "        context",
+            "lineNumber": 448
+          },
+          {
+            "text": "      );",
+            "lineNumber": 449
+          },
+          {
+            "text": "      ",
+            "lineNumber": 450
+          },
+          {
+            "text": "      // 返回统一格式",
+            "lineNumber": 451
+          },
+          {
+            "text": "      res.json(formatApiResponse(true, {",
+            "lineNumber": 452
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 453
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 454
+          },
+          {
+            "text": "        metadata: {",
+            "lineNumber": 455
+          },
+          {
+            "text": "          ...result.metadata,",
+            "lineNumber": 456
+          },
+          {
+            "text": "          usage: result.usage",
+            "lineNumber": 457
+          },
+          {
+            "text": "        }",
+            "lineNumber": 458
+          },
+          {
+            "text": "      }, '对话成功'));",
+            "lineNumber": 459
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 460
+          },
+          {
+            "text": "      // Dify 模式（保持现有逻辑）",
+            "lineNumber": 461
+          },
+          {
+            "text": "      if (!role.difyConfig)",
+            "lineNumber": 462
+          },
+          {
+            "text": "}",
+            "lineNumber": 599
+          }
+        ]
+      },
+      "score": 0.3563574552536011
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/models/AIRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 137,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 171,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * AI角色配置（前端格式）\n */\nexport interface AIRoleConfig {\n  id: string;\n  name: string;\n  description: string;\n  avatar?: string;\n  systemPrompt?: string;\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\n  difyConfig?: DifyConfig;\n  agentConfig?: DirectAgentConfig;\n  enabled: boolean;\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\n  createdAt: Date;\n  updatedAt: Date;\n}\n\n/**\n * 创建AI角色DTO\n */\nexport interface CreateAIRoleDTO {\n  id?: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 140
+          },
+          {
+            "text": " * AI角色配置（前端格式）",
+            "lineNumber": 141
+          },
+          {
+            "text": " */",
+            "lineNumber": 142
+          },
+          {
+            "text": "export interface AIRoleConfig {",
+            "lineNumber": 143,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 144
+          },
+          {
+            "text": "  name: string;",
+            "lineNumber": 145
+          },
+          {
+            "text": "  description: string;",
+            "lineNumber": 146
+          },
+          {
+            "text": "  avatar?: string;",
+            "lineNumber": 147
+          },
+          {
+            "text": "  systemPrompt?: string;",
+            "lineNumber": 148
+          },
+          {
+            "text": "  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容",
+            "lineNumber": 149
+          },
+          {
+            "text": "  difyConfig?: DifyConfig;",
+            "lineNumber": 150
+          },
+          {
+            "text": "  agentConfig?: DirectAgentConfig;",
+            "lineNumber": 151
+          },
+          {
+            "text": "  enabled: boolean;",
+            "lineNumber": 152
+          },
+          {
+            "text": "  source?: 'smart-workflow' | 'independent-page' | 'custom';",
+            "lineNumber": 153
+          },
+          {
+            "text": "  createdAt: Date;",
+            "lineNumber": 154
+          },
+          {
+            "text": "  updatedAt: Date;",
+            "lineNumber": 155,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 156,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "/**",
+            "lineNumber": 158
+          },
+          {
+            "text": " * 创建AI角色DTO",
+            "lineNumber": 159
+          },
+          {
+            "text": " */",
+            "lineNumber": 160
+          },
+          {
+            "text": "export interface CreateAIRoleDTO {",
+            "lineNumber": 161,
+            "isSignature": true
+          },
+          {
+            "text": "  id?: string",
+            "lineNumber": 162
+          },
+          {
+            "text": ";",
+            "lineNumber": 171,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 172,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3560563325881958
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/types/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 117,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 148,
+            "column": 1
+          }
+        },
+        "contents": "export interface AIRoleConfig {\n  id: string;                    // 唯一标识\n  name: string;                  // 角色名称\n  description: string;           // 角色描述\n  avatar?: string;               // 角色头像URL\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\n  \n  // Provider配置（Dify 或 Direct Agent）\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\n  \n  // Dify配置（保持现有，可选）\n  difyConfig?: DifyConfig;\n  \n  // Direct Agent配置（新增，可选）\n  agentConfig?: DirectAgentConfig;\n  \n  enabled: boolean;              // 是否启用\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\n  createdAt: Date;\n  updatedAt: Date;\n}\n\nexport interface ConversationState {\n  id: string;                    // 对话ID\n  roleId: string\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export interface AIRoleConfig {",
+            "lineNumber": 120,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;                    // 唯一标识",
+            "lineNumber": 121
+          },
+          {
+            "text": "  name: string;                  // 角色名称",
+            "lineNumber": 122
+          },
+          {
+            "text": "  description: string;           // 角色描述",
+            "lineNumber": 123
+          },
+          {
+            "text": "  avatar?: string;               // 角色头像URL",
+            "lineNumber": 124
+          },
+          {
+            "text": "  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）",
+            "lineNumber": 125
+          },
+          {
+            "text": "  ",
+            "lineNumber": 126
+          },
+          {
+            "text": "  // Provider配置（Dify 或 Direct Agent）",
+            "lineNumber": 127
+          },
+          {
+            "text": "  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容",
+            "lineNumber": 128
+          },
+          {
+            "text": "  ",
+            "lineNumber": 129
+          },
+          {
+            "text": "  // Dify配置（保持现有，可选）",
+            "lineNumber": 130
+          },
+          {
+            "text": "  difyConfig?: DifyConfig;",
+            "lineNumber": 131
+          },
+          {
+            "text": "  ",
+            "lineNumber": 132
+          },
+          {
+            "text": "  // Direct Agent配置（新增，可选）",
+            "lineNumber": 133
+          },
+          {
+            "text": "  agentConfig?: DirectAgentConfig;",
+            "lineNumber": 134
+          },
+          {
+            "text": "  ",
+            "lineNumber": 135
+          },
+          {
+            "text": "  enabled: boolean;              // 是否启用",
+            "lineNumber": 136
+          },
+          {
+            "text": "  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';",
+            "lineNumber": 137
+          },
+          {
+            "text": "  createdAt: Date;",
+            "lineNumber": 138
+          },
+          {
+            "text": "  updatedAt: Date;",
+            "lineNumber": 139,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 140,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 141
+          },
+          {
+            "text": "export interface ConversationState {",
+            "lineNumber": 142,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;                    // 对话ID",
+            "lineNumber": 143
+          },
+          {
+            "text": "  roleId: string",
+            "lineNumber": 144
+          },
+          {
+            "text": ";",
+            "lineNumber": 148,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 149,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3497461974620819
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/scripts/update-llm-roles.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 433,
+            "column": 14
+          }
+        },
+        "contents": "const PROMPTS = {\n&#96;\n};\n\nasync function updateRoles() {\n  let db;\n  try {\n    db = await open({\n      filename: DB_PATH,\n      driver: sqlite3.Database\n    });\n\n    console.log('Connected to database at:', DB_PATH);\n\n    // Update each role\n    for (const [roleName, systemPrompt] of Object.entries(PROMPTS)) {\n      console.log(&#96;Updating role: ${roleName}...&#96;);\n      \n      const configJson = JSON.stringify({\n        provider: 'direct-agent',\n        agentConfig: {\n          llm: {\n            provider: LLM_CONFIG.provider,\n            apiKey: LLM_CONFIG.apiKey,\n            apiBaseUrl: LLM_CONFIG.apiBaseUrl\n          }\n        }\n      });\n\n      const result = await db.run(\n        &#96;UPDATE ai_roles \n         SET system_prompt = ?, \n             dify_config = ?\n         WHERE name = ?&#96;,\n        [systemPrompt.trim(), configJson, roleName]\n      );\n\n      if (result.changes &amp;&amp; result.changes &gt; 0) {\n        console.log(&#96;✅ Successfully updated ${roleName}&#96;);\n      } else {\n        console.log(&#96;⚠️ Role not found or not updated: ${roleName}&#96;);\n        // Optional: Insert if not exists (but user said \"Update\", so maybe stick to update for safety, \n        // or check if it's one of the known missing ones like \"技术转译（五看）助手\" which might need insert if strictly missing)\n        // However, based on previous \"sqlite3\" output, \"技术转译（五看）助手\" IS in the list.\n        // So it should update fine.\n      }\n    }\n\n    // Verify updates\n    console.log('\\nVerifying updates...');\n    const roles = await db.all('SELECT name, length(system_prompt) as prompt_len, substr(dify_config, 1, 50) as config_preview FROM ai_roles');\n    console.table(roles);\n\n  } catch (error) {\n    console.error('Error updating roles:', error);\n  } finally {\n    if (db) {\n      await db.close();\n    }\n  }\n}\n\nupdateRoles();",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "const PROMPTS = {",
+            "lineNumber": 16
+          },
+          {
+            "text": "&#96;",
+            "lineNumber": 373
+          },
+          {
+            "text": "};",
+            "lineNumber": 374
+          },
+          {
+            "lineNumber": 375
+          },
+          {
+            "text": "async function updateRoles() {",
+            "lineNumber": 376,
+            "isSignature": true
+          },
+          {
+            "text": "  let db;",
+            "lineNumber": 377
+          },
+          {
+            "text": "  try {",
+            "lineNumber": 378
+          },
+          {
+            "text": "    db = await open({",
+            "lineNumber": 379
+          },
+          {
+            "text": "      filename: DB_PATH,",
+            "lineNumber": 380
+          },
+          {
+            "text": "      driver: sqlite3.Database",
+            "lineNumber": 381
+          },
+          {
+            "text": "    });",
+            "lineNumber": 382
+          },
+          {
+            "lineNumber": 383
+          },
+          {
+            "text": "    console.log('Connected to database at:', DB_PATH);",
+            "lineNumber": 384
+          },
+          {
+            "lineNumber": 385
+          },
+          {
+            "text": "    // Update each role",
+            "lineNumber": 386
+          },
+          {
+            "text": "    for (const [roleName, systemPrompt] of Object.entries(PROMPTS)) {",
+            "lineNumber": 387
+          },
+          {
+            "text": "      console.log(&#96;Updating role: ${roleName}...&#96;);",
+            "lineNumber": 388
+          },
+          {
+            "text": "      ",
+            "lineNumber": 389
+          },
+          {
+            "text": "      const configJson = JSON.stringify({",
+            "lineNumber": 390
+          },
+          {
+            "text": "        provider: 'direct-agent',",
+            "lineNumber": 391
+          },
+          {
+            "text": "        agentConfig: {",
+            "lineNumber": 392
+          },
+          {
+            "text": "          llm: {",
+            "lineNumber": 393
+          },
+          {
+            "text": "            provider: LLM_CONFIG.provider,",
+            "lineNumber": 394
+          },
+          {
+            "text": "            apiKey: LLM_CONFIG.apiKey,",
+            "lineNumber": 395
+          },
+          {
+            "text": "            apiBaseUrl: LLM_CONFIG.apiBaseUrl",
+            "lineNumber": 396
+          },
+          {
+            "text": "          }",
+            "lineNumber": 397
+          },
+          {
+            "text": "        }",
+            "lineNumber": 398
+          },
+          {
+            "text": "      });",
+            "lineNumber": 399
+          },
+          {
+            "lineNumber": 400
+          },
+          {
+            "text": "      const result = await db.run(",
+            "lineNumber": 401
+          },
+          {
+            "text": "        &#96;UPDATE ai_roles ",
+            "lineNumber": 402
+          },
+          {
+            "text": "         SET system_prompt = ?, ",
+            "lineNumber": 403
+          },
+          {
+            "text": "             dify_config = ?",
+            "lineNumber": 404
+          },
+          {
+            "text": "         WHERE name = ?&#96;,",
+            "lineNumber": 405
+          },
+          {
+            "text": "        [systemPrompt.trim(), configJson, roleName]",
+            "lineNumber": 406
+          },
+          {
+            "text": "      );",
+            "lineNumber": 407
+          },
+          {
+            "lineNumber": 408
+          },
+          {
+            "text": "      if (result.changes &amp;&amp; result.changes &gt; 0) {",
+            "lineNumber": 409
+          },
+          {
+            "text": "        console.log(&#96;✅ Successfully updated ${roleName}&#96;);",
+            "lineNumber": 410
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 411
+          },
+          {
+            "text": "        console.log(&#96;⚠️ Role not found or not updated: ${roleName}&#96;);",
+            "lineNumber": 412
+          },
+          {
+            "text": "        // Optional: Insert if not exists (but user said \"Update\", so maybe stick to update for safety, ",
+            "lineNumber": 413
+          },
+          {
+            "text": "        // or check if it's one of the known missing ones like \"技术转译（五看）助手\" which might need insert if strictly missing)",
+            "lineNumber": 414
+          },
+          {
+            "text": "        // However, based on previous \"sqlite3\" output, \"技术转译（五看）助手\" IS in the list.",
+            "lineNumber": 415
+          },
+          {
+            "text": "        // So it should update fine.",
+            "lineNumber": 416
+          },
+          {
+            "text": "      }",
+            "lineNumber": 417
+          },
+          {
+            "text": "    }",
+            "lineNumber": 418
+          },
+          {
+            "lineNumber": 419
+          },
+          {
+            "text": "    // Verify updates",
+            "lineNumber": 420
+          },
+          {
+            "text": "    console.log('\\nVerifying updates...');",
+            "lineNumber": 421
+          },
+          {
+            "text": "    const roles = await db.all('SELECT name, length(system_prompt) as prompt_len, substr(dify_config, 1, 50) as config_preview FROM ai_roles');",
+            "lineNumber": 422
+          },
+          {
+            "text": "    console.table(roles);",
+            "lineNumber": 423
+          },
+          {
+            "lineNumber": 424
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 425
+          },
+          {
+            "text": "    console.error('Error updating roles:', error);",
+            "lineNumber": 426
+          },
+          {
+            "text": "  } finally {",
+            "lineNumber": 427
+          },
+          {
+            "text": "    if (db) {",
+            "lineNumber": 428
+          },
+          {
+            "text": "      await db.close();",
+            "lineNumber": 429
+          },
+          {
+            "text": "    }",
+            "lineNumber": 430
+          },
+          {
+            "text": "  }",
+            "lineNumber": 431
+          },
+          {
+            "text": "}",
+            "lineNumber": 432,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 433
+          },
+          {
+            "text": "updateRoles();",
+            "lineNumber": 434
+          }
+        ]
+      },
+      "score": 0.3479577302932739
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {
+            "line": 40,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 69,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * LLM配置\n */\nexport interface LLMConfig {\n  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\n  apiKey: string;\n  apiBaseUrl?: string;\n  model: string;\n  temperature: number;\n  maxTokens: number;\n  topP?: number;\n  stream?: boolean;  // 是否使用流式响应\n}\n\n/**\n * LLM响应\n */\nexport interface LLMResponse {\n  content: string;\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 43
+          },
+          {
+            "text": " * LLM配置",
+            "lineNumber": 44
+          },
+          {
+            "text": " */",
+            "lineNumber": 45
+          },
+          {
+            "text": "export interface LLMConfig {",
+            "lineNumber": 46,
+            "isSignature": true
+          },
+          {
+            "text": "  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';",
+            "lineNumber": 47
+          },
+          {
+            "text": "  apiKey: string;",
+            "lineNumber": 48
+          },
+          {
+            "text": "  apiBaseUrl?: string;",
+            "lineNumber": 49
+          },
+          {
+            "text": "  model: string;",
+            "lineNumber": 50
+          },
+          {
+            "text": "  temperature: number;",
+            "lineNumber": 51
+          },
+          {
+            "text": "  maxTokens: number;",
+            "lineNumber": 52
+          },
+          {
+            "text": "  topP?: number;",
+            "lineNumber": 53
+          },
+          {
+            "text": "  stream?: boolean;  // 是否使用流式响应",
+            "lineNumber": 54
+          },
+          {
+            "text": "}",
+            "lineNumber": 55,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "/**",
+            "lineNumber": 57
+          },
+          {
+            "text": " * LLM响应",
+            "lineNumber": 58
+          },
+          {
+            "text": " */",
+            "lineNumber": 59
+          },
+          {
+            "text": "export interface LLMResponse {",
+            "lineNumber": 60,
+            "isSignature": true
+          },
+          {
+            "text": "  content: string;",
+            "lineNumber": 61
+          },
+          {
+            "text": ";",
+            "lineNumber": 69,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 70,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.34633195400238037
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/AIRoleEditModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 940
+          },
+          "endPosition": {
+            "line": 1716,
+            "column": 1
+          }
+        },
+        "contents": "const DirectAgentConfigSection: React.FC&lt;{\n  formData: Partial&lt;AIRoleConfig&gt;;\n  updateFormField: (field: string, value: any) =&gt; void;\n  activeTab: DirectAgentTab;\n  setActiveTab: (tab: DirectAgentTab) =&gt; void;\n  showApiKey: boolean;\n  setShowApiKey: (show: boolean) =&gt; void;\n  errors: Record&lt;string, string&gt;;\n  hideTabs?: boolean;\n}&gt; = \n\n\n          &lt;div&gt;\n            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;\n              API 地址 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;input\n              type=\"url\"\n              value={formData.agentConfig?.llm?.apiBaseUrl || ''}\n              onChange={(e) =&gt; updateFormField('agentConfig.llm.apiBaseUrl', e.target.value)}\n              placeholder=\"https://api.openai.com/v1\"\n              className={&#96;w-full px-4 py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 ${\n                errors['agentConfig.llm.apiBaseUrl'] ? 'border-red-300' : 'border-gray-300'\n              }&#96;}\n            /&gt;\n            {errors['agentConfig.llm.apiBaseUrl'] &amp;&amp; (\n              &lt;p className=\"mt-1 text-sm text-red-600\"&gt;{errors['agentConfig.llm.apiBaseUrl']}&lt;/p&gt;\n            )}\n          &lt;/div&gt;\n\n          &lt;div&gt;\n            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;\n              Temperature: {formData.agentConfig?.llm?.temperature || 0.7}\n            &lt;/label&gt;\n            &lt;input\n              type=\"range\"\n              min=\"0\"\n              max=\"2\"\n              step=\"0.1\"\n              value={formData.agentConfig?.llm?.temperature || 0.7}\n              onChange={(e) =&gt; updateFormField('agentConfig.llm.temperature', parseFloat(e.target.value))}\n              className=\"w-full\"\n            /&gt;\n          &lt;/div&gt;\n\n          &lt;div&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 941,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 941,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 941,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 950,
+                "column": 6
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const DirectAgentConfigSection: React.FC&lt;{",
+            "lineNumber": 941
+          },
+          {
+            "text": "  formData: Partial&lt;AIRoleConfig&gt;;",
+            "lineNumber": 942
+          },
+          {
+            "text": "  updateFormField: (field: string, value: any) =&gt; void;",
+            "lineNumber": 943
+          },
+          {
+            "text": "  activeTab: DirectAgentTab;",
+            "lineNumber": 944
+          },
+          {
+            "text": "  setActiveTab: (tab: DirectAgentTab) =&gt; void;",
+            "lineNumber": 945
+          },
+          {
+            "text": "  showApiKey: boolean;",
+            "lineNumber": 946
+          },
+          {
+            "text": "  setShowApiKey: (show: boolean) =&gt; void;",
+            "lineNumber": 947
+          },
+          {
+            "text": "  errors: Record&lt;string, string&gt;;",
+            "lineNumber": 948
+          },
+          {
+            "text": "  hideTabs?: boolean;",
+            "lineNumber": 949
+          },
+          {
+            "text": "}&gt; = ",
+            "lineNumber": 950
+          },
+          {
+            "lineNumber": 1057
+          },
+          {
+            "lineNumber": 1058
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 1059
+          },
+          {
+            "text": "            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 1060
+          },
+          {
+            "text": "              API 地址 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 1061
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 1062
+          },
+          {
+            "text": "            &lt;input",
+            "lineNumber": 1063
+          },
+          {
+            "text": "              type=\"url\"",
+            "lineNumber": 1064
+          },
+          {
+            "text": "              value={formData.agentConfig?.llm?.apiBaseUrl || ''}",
+            "lineNumber": 1065
+          },
+          {
+            "text": "              onChange={(e) =&gt; updateFormField('agentConfig.llm.apiBaseUrl', e.target.value)}",
+            "lineNumber": 1066
+          },
+          {
+            "text": "              placeholder=\"https://api.openai.com/v1\"",
+            "lineNumber": 1067
+          },
+          {
+            "text": "              className={&#96;w-full px-4 py-2 text-base border rounded-lg focus:ring-2 focus:ring-blue-500 ${",
+            "lineNumber": 1068
+          },
+          {
+            "text": "                errors['agentConfig.llm.apiBaseUrl'] ? 'border-red-300' : 'border-gray-300'",
+            "lineNumber": 1069
+          },
+          {
+            "text": "              }&#96;}",
+            "lineNumber": 1070
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 1071
+          },
+          {
+            "text": "            {errors['agentConfig.llm.apiBaseUrl'] &amp;&amp; (",
+            "lineNumber": 1072
+          },
+          {
+            "text": "              &lt;p className=\"mt-1 text-sm text-red-600\"&gt;{errors['agentConfig.llm.apiBaseUrl']}&lt;/p&gt;",
+            "lineNumber": 1073
+          },
+          {
+            "text": "            )}",
+            "lineNumber": 1074
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 1075
+          },
+          {
+            "lineNumber": 1076
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 1077
+          },
+          {
+            "text": "            &lt;label className=\"block text-base font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 1078
+          },
+          {
+            "text": "              Temperature: {formData.agentConfig?.llm?.temperature || 0.7}",
+            "lineNumber": 1079
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 1080
+          },
+          {
+            "text": "            &lt;input",
+            "lineNumber": 1081
+          },
+          {
+            "text": "              type=\"range\"",
+            "lineNumber": 1082
+          },
+          {
+            "text": "              min=\"0\"",
+            "lineNumber": 1083
+          },
+          {
+            "text": "              max=\"2\"",
+            "lineNumber": 1084
+          },
+          {
+            "text": "              step=\"0.1\"",
+            "lineNumber": 1085
+          },
+          {
+            "text": "              value={formData.agentConfig?.llm?.temperature || 0.7}",
+            "lineNumber": 1086
+          },
+          {
+            "text": "              onChange={(e) =&gt; updateFormField('agentConfig.llm.temperature', parseFloat(e.target.value))}",
+            "lineNumber": 1087
+          },
+          {
+            "text": "              className=\"w-full\"",
+            "lineNumber": 1088
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 1089
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 1090
+          },
+          {
+            "lineNumber": 1091
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 1092
+          },
+          {
+            "text": ";",
+            "lineNumber": 1717
+          }
+        ]
+      },
+      "score": 0.34589093923568726
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/nodes/AgentNodeExecutor.ts",
+        "range": {
+          "startPosition": {
+            "column": 46
+          },
+          "endPosition": {
+            "line": 79,
+            "column": 1
+          }
+        },
+        "contents": "import { aiRoleModel } from '../../../models';\nimport { DifyGateway } from '@/shared/infrastructure/integrations/dify';\nimport { AgentOrchestrator } from '../../agent/AgentOrchestrator';\n\n/**\n * Agent节点执行器\n */\nexport class AgentNodeExecutor implements NodeExecutor {\n  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    \n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    \n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...context, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const agentContext: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          agentContext[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig)\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { aiRoleModel } from '../../../models';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { DifyGateway } from '@/shared/infrastructure/integrations/dify';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { AgentOrchestrator } from '../../agent/AgentOrchestrator';",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "/**",
+            "lineNumber": 6
+          },
+          {
+            "text": " * Agent节点执行器",
+            "lineNumber": 7
+          },
+          {
+            "text": " */",
+            "lineNumber": 8
+          },
+          {
+            "text": "export class AgentNodeExecutor implements NodeExecutor {",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 10
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 12
+          },
+          {
+            "text": "    ",
+            "lineNumber": 13
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 14
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 15
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 16
+          },
+          {
+            "text": "    ",
+            "lineNumber": 17
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 18
+          },
+          {
+            "text": "    ",
+            "lineNumber": 19
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 20
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 21
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 22
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 23
+          },
+          {
+            "text": "      }",
+            "lineNumber": 24
+          },
+          {
+            "text": "      ",
+            "lineNumber": 25
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 26
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 27
+          },
+          {
+            "text": "      const nodeInput = { ...context, ...(node.data?.inputs || {}) };",
+            "lineNumber": 28
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 29
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 30
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 31
+          },
+          {
+            "text": "      }",
+            "lineNumber": 32
+          },
+          {
+            "text": "      ",
+            "lineNumber": 33
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 34
+          },
+          {
+            "text": "      const agentContext: Record&lt;string, any&gt; = {};",
+            "lineNumber": 35
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 37
+          },
+          {
+            "text": "          agentContext[key] = nodeInput[key];",
+            "lineNumber": 38
+          },
+          {
+            "text": "        }",
+            "lineNumber": 39
+          },
+          {
+            "text": "      });",
+            "lineNumber": 40
+          },
+          {
+            "text": "      ",
+            "lineNumber": 41
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);",
+            "lineNumber": 42
+          },
+          {
+            "text": "      ",
+            "lineNumber": 43
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 44
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 45
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 46
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 47
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 48
+          },
+          {
+            "text": "      };",
+            "lineNumber": 49
+          },
+          {
+            "text": "    }",
+            "lineNumber": 50
+          },
+          {
+            "text": "    ",
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 52
+          },
+          {
+            "text": "    if (!role.difyConfig)",
+            "lineNumber": 53
+          },
+          {
+            "text": "  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "}",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.34262439608573914
+    }
+  ]
+}
+```
+Status: **completed**
 
 
 </details>
 </tool-use>
+
+---
+
+检查前端是否有 stream 配置选项，以及后端如何处理流式响应：
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "stream.*boolean|stream.*true|stream.*false",
+  "path": "frontend/src/components/AIRoleEditModal.tsx",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "stream.*boolean|stream.*true|stream.*false",
+    "path": "frontend/src/components/AIRoleEditModal.tsx",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Volumes/Lexar/git/03T/todify4": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "stream response parse SSE Server-Sent Events text/event-stream",
+  "includePattern": "backend/src/services/llm",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/AnthropicProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 252,
+            "column": 1
+          }
+        },
+        "contents": "export class AnthropicProvider implements ILLMProvider {\n\n\n  /**\n   * 解析响应\n   */\n  private parseResponse(data: any, model: string): LLMResponse {\n    const response: LLMResponse = {\n      content: '',\n      usage: {\n        promptTokens: data.usage?.input_tokens || 0,\n        completionTokens: data.usage?.output_tokens || 0,\n        totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),\n      },\n      model: model,\n      finishReason: this.mapFinishReason(data.stop_reason),\n    };\n\n    // 解析内容\n    if (data.content &amp;&amp; Array.isArray(data.content)) {\n      const textContent = data.content\n        .filter((item: any) =&gt; item.type === 'text')\n        .map((item: any) =&gt; item.text)\n        .join('');\n      response.content = textContent;\n\n      // 解析工具调用\n      const toolUseItems = data.content.filter((item: any) =&gt; item.type === 'tool_use');\n      if (toolUseItems.length &gt; 0) {\n        response.toolCalls = toolUseItems.map((item: any) =&gt; ({\n          id: item.id,\n          type: 'function' as const,\n          function: {\n            name: item.name,\n            arguments: JSON.stringify(item.input)\n          }\n        }));\n      }\n    }\n\n    return response;\n  }\n\n  /**\n   * 映射完成原因\n   */\n  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AnthropicProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 144
+          },
+          {
+            "text": "   * 解析响应",
+            "lineNumber": 145
+          },
+          {
+            "text": "   */",
+            "lineNumber": 146
+          },
+          {
+            "text": "  private parseResponse(data: any, model: string): LLMResponse {",
+            "lineNumber": 147
+          },
+          {
+            "text": "    const response: LLMResponse = {",
+            "lineNumber": 148
+          },
+          {
+            "text": "      content: '',",
+            "lineNumber": 149
+          },
+          {
+            "text": "      usage: {",
+            "lineNumber": 150
+          },
+          {
+            "text": "        promptTokens: data.usage?.input_tokens || 0,",
+            "lineNumber": 151
+          },
+          {
+            "text": "        completionTokens: data.usage?.output_tokens || 0,",
+            "lineNumber": 152
+          },
+          {
+            "text": "        totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),",
+            "lineNumber": 153
+          },
+          {
+            "text": "      },",
+            "lineNumber": 154
+          },
+          {
+            "text": "      model: model,",
+            "lineNumber": 155
+          },
+          {
+            "text": "      finishReason: this.mapFinishReason(data.stop_reason),",
+            "lineNumber": 156
+          },
+          {
+            "text": "    };",
+            "lineNumber": 157
+          },
+          {
+            "lineNumber": 158
+          },
+          {
+            "text": "    // 解析内容",
+            "lineNumber": 159
+          },
+          {
+            "text": "    if (data.content &amp;&amp; Array.isArray(data.content)) {",
+            "lineNumber": 160
+          },
+          {
+            "text": "      const textContent = data.content",
+            "lineNumber": 161
+          },
+          {
+            "text": "        .filter((item: any) =&gt; item.type === 'text')",
+            "lineNumber": 162
+          },
+          {
+            "text": "        .map((item: any) =&gt; item.text)",
+            "lineNumber": 163
+          },
+          {
+            "text": "        .join('');",
+            "lineNumber": 164
+          },
+          {
+            "text": "      response.content = textContent;",
+            "lineNumber": 165
+          },
+          {
+            "lineNumber": 166
+          },
+          {
+            "text": "      // 解析工具调用",
+            "lineNumber": 167
+          },
+          {
+            "text": "      const toolUseItems = data.content.filter((item: any) =&gt; item.type === 'tool_use');",
+            "lineNumber": 168
+          },
+          {
+            "text": "      if (toolUseItems.length &gt; 0) {",
+            "lineNumber": 169
+          },
+          {
+            "text": "        response.toolCalls = toolUseItems.map((item: any) =&gt; ({",
+            "lineNumber": 170
+          },
+          {
+            "text": "          id: item.id,",
+            "lineNumber": 171
+          },
+          {
+            "text": "          type: 'function' as const,",
+            "lineNumber": 172
+          },
+          {
+            "text": "          function: {",
+            "lineNumber": 173
+          },
+          {
+            "text": "            name: item.name,",
+            "lineNumber": 174
+          },
+          {
+            "text": "            arguments: JSON.stringify(item.input)",
+            "lineNumber": 175
+          },
+          {
+            "text": "          }",
+            "lineNumber": 176
+          },
+          {
+            "text": "        }));",
+            "lineNumber": 177
+          },
+          {
+            "text": "      }",
+            "lineNumber": 178
+          },
+          {
+            "text": "    }",
+            "lineNumber": 179
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "text": "    return response;",
+            "lineNumber": 181
+          },
+          {
+            "text": "  }",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 184
+          },
+          {
+            "text": "   * 映射完成原因",
+            "lineNumber": 185
+          },
+          {
+            "text": "   */",
+            "lineNumber": 186
+          },
+          {
+            "text": "  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {",
+            "lineNumber": 187
+          },
+          {
+            "text": "    ",
+            "lineNumber": 188
+          },
+          {
+            "text": "  }",
+            "lineNumber": 199
+          },
+          {
+            "text": "}",
+            "lineNumber": 253,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.26991939544677734
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "export class OpenAIProvider implements ILLMProvider {\n\n\n  /**\n   * 解析响应\n   */\n  private parseResponse(data: any): LLMResponse {\n    const choice = data.choices[0];\n    const message = choice.message;\n\n    const response: LLMResponse = {\n      content: message.content || '',\n      usage: {\n        promptTokens: data.usage?.prompt_tokens || 0,\n        completionTokens: data.usage?.completion_tokens || 0,\n        totalTokens: data.usage?.total_tokens || 0,\n      },\n      model: data.model,\n      finishReason: this.mapFinishReason(choice.finish_reason),\n    };\n\n    // 解析工具调用\n    if (message.tool_calls &amp;&amp; message.tool_calls.length &gt; 0) {\n      response.toolCalls = message.tool_calls.map((tc: any) =&gt; ({\n        id: tc.id,\n        type: tc.type,\n        function: {\n          name: tc.function.name,\n          arguments: tc.function.arguments,\n        },\n      }));\n    }\n\n    return response;\n  }\n\n  /**\n   * 映射完成原因\n   */\n  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "lineNumber": 144
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 145
+          },
+          {
+            "text": "   * 解析响应",
+            "lineNumber": 146
+          },
+          {
+            "text": "   */",
+            "lineNumber": 147
+          },
+          {
+            "text": "  private parseResponse(data: any): LLMResponse {",
+            "lineNumber": 148
+          },
+          {
+            "text": "    const choice = data.choices[0];",
+            "lineNumber": 149
+          },
+          {
+            "text": "    const message = choice.message;",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "    const response: LLMResponse = {",
+            "lineNumber": 152
+          },
+          {
+            "text": "      content: message.content || '',",
+            "lineNumber": 153
+          },
+          {
+            "text": "      usage: {",
+            "lineNumber": 154
+          },
+          {
+            "text": "        promptTokens: data.usage?.prompt_tokens || 0,",
+            "lineNumber": 155
+          },
+          {
+            "text": "        completionTokens: data.usage?.completion_tokens || 0,",
+            "lineNumber": 156
+          },
+          {
+            "text": "        totalTokens: data.usage?.total_tokens || 0,",
+            "lineNumber": 157
+          },
+          {
+            "text": "      },",
+            "lineNumber": 158
+          },
+          {
+            "text": "      model: data.model,",
+            "lineNumber": 159
+          },
+          {
+            "text": "      finishReason: this.mapFinishReason(choice.finish_reason),",
+            "lineNumber": 160
+          },
+          {
+            "text": "    };",
+            "lineNumber": 161
+          },
+          {
+            "lineNumber": 162
+          },
+          {
+            "text": "    // 解析工具调用",
+            "lineNumber": 163
+          },
+          {
+            "text": "    if (message.tool_calls &amp;&amp; message.tool_calls.length &gt; 0) {",
+            "lineNumber": 164
+          },
+          {
+            "text": "      response.toolCalls = message.tool_calls.map((tc: any) =&gt; ({",
+            "lineNumber": 165
+          },
+          {
+            "text": "        id: tc.id,",
+            "lineNumber": 166
+          },
+          {
+            "text": "        type: tc.type,",
+            "lineNumber": 167
+          },
+          {
+            "text": "        function: {",
+            "lineNumber": 168
+          },
+          {
+            "text": "          name: tc.function.name,",
+            "lineNumber": 169
+          },
+          {
+            "text": "          arguments: tc.function.arguments,",
+            "lineNumber": 170
+          },
+          {
+            "text": "        },",
+            "lineNumber": 171
+          },
+          {
+            "text": "      }));",
+            "lineNumber": 172
+          },
+          {
+            "text": "    }",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 174
+          },
+          {
+            "text": "    return response;",
+            "lineNumber": 175
+          },
+          {
+            "text": "  }",
+            "lineNumber": 176
+          },
+          {
+            "lineNumber": 177
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 178
+          },
+          {
+            "text": "   * 映射完成原因",
+            "lineNumber": 179
+          },
+          {
+            "text": "   */",
+            "lineNumber": 180
+          },
+          {
+            "text": "  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {",
+            "lineNumber": 181
+          },
+          {
+            "text": "    ",
+            "lineNumber": 182
+          },
+          {
+            "text": "  }",
+            "lineNumber": 194
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.22572480142116547
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "export class OpenAIProvider implements ILLMProvider {\n\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    const url = &#96;${this.apiBaseUrl}/chat/completions&#96;;\n    \n    // Check if model requires max_completion_tokens (e.g., o1 series, gpt-5.1)\n    const isReasoningModel = config.model.startsWith('o1') || config.model.startsWith('o3') || config.model === 'gpt-5.1';\n\n    const requestBody: any = {\n      model: config.model,\n      messages: this.formatMessages(messages),\n      temperature: config.temperature,\n    };\n\n    if (isReasoningModel) {\n      requestBody.max_completion_tokens = config.maxTokens;\n    } else {\n      requestBody.max_tokens = config.maxTokens;\n    }\n\n    if (config.topP !== undefined) {\n      requestBody.top_p = config.topP;\n    }\n\n    // 支持 stream 参数\n    if (config.stream !== undefined) {\n      requestBody.stream = config.stream;\n    }\n\n    // 添加工具定义（如果提供）\n    if (tools &amp;&amp; tools.length &gt; 0) {\n      requestBody.tools = tools;\n      requestBody.tool_choice = 'auto';\n    }\n\n    let lastError: Error | null = null;\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try\n    }\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 18
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 19
+          },
+          {
+            "text": "   */",
+            "lineNumber": 20
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    const url = &#96;${this.apiBaseUrl}/chat/completions&#96;;",
+            "lineNumber": 22
+          },
+          {
+            "text": "    ",
+            "lineNumber": 23
+          },
+          {
+            "text": "    // Check if model requires max_completion_tokens (e.g., o1 series, gpt-5.1)",
+            "lineNumber": 24
+          },
+          {
+            "text": "    const isReasoningModel = config.model.startsWith('o1') || config.model.startsWith('o3') || config.model === 'gpt-5.1';",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "    const requestBody: any = {",
+            "lineNumber": 27
+          },
+          {
+            "text": "      model: config.model,",
+            "lineNumber": 28
+          },
+          {
+            "text": "      messages: this.formatMessages(messages),",
+            "lineNumber": 29
+          },
+          {
+            "text": "      temperature: config.temperature,",
+            "lineNumber": 30
+          },
+          {
+            "text": "    };",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "    if (isReasoningModel) {",
+            "lineNumber": 33
+          },
+          {
+            "text": "      requestBody.max_completion_tokens = config.maxTokens;",
+            "lineNumber": 34
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 35
+          },
+          {
+            "text": "      requestBody.max_tokens = config.maxTokens;",
+            "lineNumber": 36
+          },
+          {
+            "text": "    }",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "    if (config.topP !== undefined) {",
+            "lineNumber": 39
+          },
+          {
+            "text": "      requestBody.top_p = config.topP;",
+            "lineNumber": 40
+          },
+          {
+            "text": "    }",
+            "lineNumber": 41
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "    // 支持 stream 参数",
+            "lineNumber": 43
+          },
+          {
+            "text": "    if (config.stream !== undefined) {",
+            "lineNumber": 44
+          },
+          {
+            "text": "      requestBody.stream = config.stream;",
+            "lineNumber": 45
+          },
+          {
+            "text": "    }",
+            "lineNumber": 46
+          },
+          {
+            "lineNumber": 47
+          },
+          {
+            "text": "    // 添加工具定义（如果提供）",
+            "lineNumber": 48
+          },
+          {
+            "text": "    if (tools &amp;&amp; tools.length &gt; 0) {",
+            "lineNumber": 49
+          },
+          {
+            "text": "      requestBody.tools = tools;",
+            "lineNumber": 50
+          },
+          {
+            "text": "      requestBody.tool_choice = 'auto';",
+            "lineNumber": 51
+          },
+          {
+            "text": "    }",
+            "lineNumber": 52
+          },
+          {
+            "lineNumber": 53
+          },
+          {
+            "text": "    let lastError: Error | null = null;",
+            "lineNumber": 54
+          },
+          {
+            "text": "    ",
+            "lineNumber": 55
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 56
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 57
+          },
+          {
+            "text": "      try",
+            "lineNumber": 58
+          },
+          {
+            "text": "    }",
+            "lineNumber": 88
+          },
+          {
+            "text": "  }",
+            "lineNumber": 91
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.21451056003570557
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/LocalProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 232,
+            "column": 1
+          }
+        },
+        "contents": "export class LocalProvider implements ILLMProvider {\n\n\n  /**\n   * 解析响应\n   */\n  private parseResponse(data: any): LLMResponse {\n    const choice = data.choices[0];\n    const message = choice.message;\n\n    const response: LLMResponse = {\n      content: message.content || '',\n      usage: {\n        promptTokens: data.usage?.prompt_tokens || 0,\n        completionTokens: data.usage?.completion_tokens || 0,\n        totalTokens: data.usage?.total_tokens || 0,\n      },\n      model: data.model,\n      finishReason: this.mapFinishReason(choice.finish_reason),\n    };\n\n    // 解析工具调用\n    if (message.tool_calls &amp;&amp; message.tool_calls.length &gt; 0) {\n      response.toolCalls = message.tool_calls.map((tc: any) =&gt; ({\n        id: tc.id,\n        type: tc.type,\n        function: {\n          name: tc.function.name,\n          arguments: tc.function.arguments,\n        },\n      }));\n    }\n\n    return response;\n  }\n\n  /**\n   * 映射完成原因\n   */\n  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LocalProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 125
+          },
+          {
+            "text": "   * 解析响应",
+            "lineNumber": 126
+          },
+          {
+            "text": "   */",
+            "lineNumber": 127
+          },
+          {
+            "text": "  private parseResponse(data: any): LLMResponse {",
+            "lineNumber": 128
+          },
+          {
+            "text": "    const choice = data.choices[0];",
+            "lineNumber": 129
+          },
+          {
+            "text": "    const message = choice.message;",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "    const response: LLMResponse = {",
+            "lineNumber": 132
+          },
+          {
+            "text": "      content: message.content || '',",
+            "lineNumber": 133
+          },
+          {
+            "text": "      usage: {",
+            "lineNumber": 134
+          },
+          {
+            "text": "        promptTokens: data.usage?.prompt_tokens || 0,",
+            "lineNumber": 135
+          },
+          {
+            "text": "        completionTokens: data.usage?.completion_tokens || 0,",
+            "lineNumber": 136
+          },
+          {
+            "text": "        totalTokens: data.usage?.total_tokens || 0,",
+            "lineNumber": 137
+          },
+          {
+            "text": "      },",
+            "lineNumber": 138
+          },
+          {
+            "text": "      model: data.model,",
+            "lineNumber": 139
+          },
+          {
+            "text": "      finishReason: this.mapFinishReason(choice.finish_reason),",
+            "lineNumber": 140
+          },
+          {
+            "text": "    };",
+            "lineNumber": 141
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "    // 解析工具调用",
+            "lineNumber": 143
+          },
+          {
+            "text": "    if (message.tool_calls &amp;&amp; message.tool_calls.length &gt; 0) {",
+            "lineNumber": 144
+          },
+          {
+            "text": "      response.toolCalls = message.tool_calls.map((tc: any) =&gt; ({",
+            "lineNumber": 145
+          },
+          {
+            "text": "        id: tc.id,",
+            "lineNumber": 146
+          },
+          {
+            "text": "        type: tc.type,",
+            "lineNumber": 147
+          },
+          {
+            "text": "        function: {",
+            "lineNumber": 148
+          },
+          {
+            "text": "          name: tc.function.name,",
+            "lineNumber": 149
+          },
+          {
+            "text": "          arguments: tc.function.arguments,",
+            "lineNumber": 150
+          },
+          {
+            "text": "        },",
+            "lineNumber": 151
+          },
+          {
+            "text": "      }));",
+            "lineNumber": 152
+          },
+          {
+            "text": "    }",
+            "lineNumber": 153
+          },
+          {
+            "lineNumber": 154
+          },
+          {
+            "text": "    return response;",
+            "lineNumber": 155
+          },
+          {
+            "text": "  }",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 158
+          },
+          {
+            "text": "   * 映射完成原因",
+            "lineNumber": 159
+          },
+          {
+            "text": "   */",
+            "lineNumber": 160
+          },
+          {
+            "text": "  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {",
+            "lineNumber": 161
+          },
+          {
+            "text": "    ",
+            "lineNumber": 162
+          },
+          {
+            "text": "  }",
+            "lineNumber": 174
+          },
+          {
+            "text": "}",
+            "lineNumber": 233,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.21165043115615845
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/GoogleProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 263,
+            "column": 1
+          }
+        },
+        "contents": "export class GoogleProvider implements ILLMProvider {\n\n\n  /**\n   * 解析响应\n   */\n  private parseResponse(data: any, model: string): LLMResponse {\n    const candidate = data.candidates?.[0];\n    const content = candidate?.content;\n    const textPart = content?.parts?.find((part: any) =&gt; part.text);\n\n    const response: LLMResponse = {\n      content: textPart?.text || '',\n      usage: {\n        promptTokens: data.usageMetadata?.promptTokenCount || 0,\n        completionTokens: data.usageMetadata?.candidatesTokenCount || 0,\n        totalTokens: data.usageMetadata?.totalTokenCount || 0,\n      },\n      model: model,\n      finishReason: this.mapFinishReason(candidate?.finishReason),\n    };\n\n    // 解析工具调用\n    const functionCallPart = content?.parts?.find((part: any) =&gt; part.functionCall);\n    if (functionCallPart?.functionCall) {\n      const funcCall = functionCallPart.functionCall;\n      response.toolCalls = [{\n        id: funcCall.name,\n        type: 'function' as const,\n        function: {\n          name: funcCall.name,\n          arguments: JSON.stringify(funcCall.args || {})\n        }\n      }];\n    }\n\n    return response;\n  }\n\n  /**\n   * 映射完成原因\n   */\n  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GoogleProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 158
+          },
+          {
+            "text": "   * 解析响应",
+            "lineNumber": 159
+          },
+          {
+            "text": "   */",
+            "lineNumber": 160
+          },
+          {
+            "text": "  private parseResponse(data: any, model: string): LLMResponse {",
+            "lineNumber": 161
+          },
+          {
+            "text": "    const candidate = data.candidates?.[0];",
+            "lineNumber": 162
+          },
+          {
+            "text": "    const content = candidate?.content;",
+            "lineNumber": 163
+          },
+          {
+            "text": "    const textPart = content?.parts?.find((part: any) =&gt; part.text);",
+            "lineNumber": 164
+          },
+          {
+            "lineNumber": 165
+          },
+          {
+            "text": "    const response: LLMResponse = {",
+            "lineNumber": 166
+          },
+          {
+            "text": "      content: textPart?.text || '',",
+            "lineNumber": 167
+          },
+          {
+            "text": "      usage: {",
+            "lineNumber": 168
+          },
+          {
+            "text": "        promptTokens: data.usageMetadata?.promptTokenCount || 0,",
+            "lineNumber": 169
+          },
+          {
+            "text": "        completionTokens: data.usageMetadata?.candidatesTokenCount || 0,",
+            "lineNumber": 170
+          },
+          {
+            "text": "        totalTokens: data.usageMetadata?.totalTokenCount || 0,",
+            "lineNumber": 171
+          },
+          {
+            "text": "      },",
+            "lineNumber": 172
+          },
+          {
+            "text": "      model: model,",
+            "lineNumber": 173
+          },
+          {
+            "text": "      finishReason: this.mapFinishReason(candidate?.finishReason),",
+            "lineNumber": 174
+          },
+          {
+            "text": "    };",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "    // 解析工具调用",
+            "lineNumber": 177
+          },
+          {
+            "text": "    const functionCallPart = content?.parts?.find((part: any) =&gt; part.functionCall);",
+            "lineNumber": 178
+          },
+          {
+            "text": "    if (functionCallPart?.functionCall) {",
+            "lineNumber": 179
+          },
+          {
+            "text": "      const funcCall = functionCallPart.functionCall;",
+            "lineNumber": 180
+          },
+          {
+            "text": "      response.toolCalls = [{",
+            "lineNumber": 181
+          },
+          {
+            "text": "        id: funcCall.name,",
+            "lineNumber": 182
+          },
+          {
+            "text": "        type: 'function' as const,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        function: {",
+            "lineNumber": 184
+          },
+          {
+            "text": "          name: funcCall.name,",
+            "lineNumber": 185
+          },
+          {
+            "text": "          arguments: JSON.stringify(funcCall.args || {})",
+            "lineNumber": 186
+          },
+          {
+            "text": "        }",
+            "lineNumber": 187
+          },
+          {
+            "text": "      }];",
+            "lineNumber": 188
+          },
+          {
+            "text": "    }",
+            "lineNumber": 189
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "text": "    return response;",
+            "lineNumber": 191
+          },
+          {
+            "text": "  }",
+            "lineNumber": 192
+          },
+          {
+            "lineNumber": 193
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 194
+          },
+          {
+            "text": "   * 映射完成原因",
+            "lineNumber": 195
+          },
+          {
+            "text": "   */",
+            "lineNumber": 196
+          },
+          {
+            "text": "  private mapFinishReason(reason: string): 'stop' | 'length' | 'tool_calls' | 'content_filter' {",
+            "lineNumber": 197
+          },
+          {
+            "text": "    ",
+            "lineNumber": 198
+          },
+          {
+            "text": "  }",
+            "lineNumber": 210
+          },
+          {
+            "text": "}",
+            "lineNumber": 264,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.2114817053079605
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/LocalProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 232,
+            "column": 1
+          }
+        },
+        "contents": "export class LocalProvider implements ILLMProvider {\nconstructor(apiBaseUrl: string) {\n\n  }\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    // 尝试使用 OpenAI 兼容的 API\n    const url = &#96;${this.apiBaseUrl}/chat/completions&#96;;\n\n    const requestBody: any = {\n      model: config.model,\n      messages: this.formatMessages(messages),\n      temperature: config.temperature,\n      max_tokens: config.maxTokens,\n    };\n\n    if (config.topP !== undefined) {\n      requestBody.top_p = config.topP;\n    }\n\n    // 添加工具定义（如果提供）\n    if (tools &amp;&amp; tools.length &gt; 0) {\n      requestBody.tools = tools;\n      requestBody.tool_choice = 'auto';\n    }\n\n    let lastError: Error | null = null;\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try {\n        const response = await axios.post(url, requestBody, {\n          headers: {\n            'Content-Type': 'application/json',\n          },\n          timeout: this.timeout,\n        });\n\n        return this.parseResponse(response.data);\n      } catch (error) {\n        lastError = error as Error;\n        \n        // 如果是网络错误或超时，重试\n        if (this.isRetryableError(error)) {\n          if (attempt &lt; this.maxRetries - 1) {\n            // 指数退避\n            await this.sleep(Math.pow(2, attempt) * 1000);\n            continue;\n          }\n        }\n        \n        // 如果是客户端错误（4xx），不重试\n        if (axios.isAxiosError(error)) {\n          const axiosError = error as AxiosError;\n          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {\n            throw this.handleError(error);\n          }\n        }\n      }\n    }\n\n    throw this.handleError(lastError || new Error('未知错误'));\n  }\n\n  /**\n   * 测试连接\n   */\n  async testConnection(): Promise&lt;boolean&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LocalProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "constructor(apiBaseUrl: string) {",
+            "lineNumber": 12
+          },
+          {
+            "lineNumber": 13
+          },
+          {
+            "text": "  }",
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 16
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 17
+          },
+          {
+            "text": "   */",
+            "lineNumber": 18
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 19
+          },
+          {
+            "text": "    // 尝试使用 OpenAI 兼容的 API",
+            "lineNumber": 20
+          },
+          {
+            "text": "    const url = &#96;${this.apiBaseUrl}/chat/completions&#96;;",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "    const requestBody: any = {",
+            "lineNumber": 23
+          },
+          {
+            "text": "      model: config.model,",
+            "lineNumber": 24
+          },
+          {
+            "text": "      messages: this.formatMessages(messages),",
+            "lineNumber": 25
+          },
+          {
+            "text": "      temperature: config.temperature,",
+            "lineNumber": 26
+          },
+          {
+            "text": "      max_tokens: config.maxTokens,",
+            "lineNumber": 27
+          },
+          {
+            "text": "    };",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "    if (config.topP !== undefined) {",
+            "lineNumber": 30
+          },
+          {
+            "text": "      requestBody.top_p = config.topP;",
+            "lineNumber": 31
+          },
+          {
+            "text": "    }",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "    // 添加工具定义（如果提供）",
+            "lineNumber": 34
+          },
+          {
+            "text": "    if (tools &amp;&amp; tools.length &gt; 0) {",
+            "lineNumber": 35
+          },
+          {
+            "text": "      requestBody.tools = tools;",
+            "lineNumber": 36
+          },
+          {
+            "text": "      requestBody.tool_choice = 'auto';",
+            "lineNumber": 37
+          },
+          {
+            "text": "    }",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 39
+          },
+          {
+            "text": "    let lastError: Error | null = null;",
+            "lineNumber": 40
+          },
+          {
+            "text": "    ",
+            "lineNumber": 41
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 42
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 43
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 44
+          },
+          {
+            "text": "        const response = await axios.post(url, requestBody, {",
+            "lineNumber": 45
+          },
+          {
+            "text": "          headers: {",
+            "lineNumber": 46
+          },
+          {
+            "text": "            'Content-Type': 'application/json',",
+            "lineNumber": 47
+          },
+          {
+            "text": "          },",
+            "lineNumber": 48
+          },
+          {
+            "text": "          timeout: this.timeout,",
+            "lineNumber": 49
+          },
+          {
+            "text": "        });",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "        return this.parseResponse(response.data);",
+            "lineNumber": 52
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 53
+          },
+          {
+            "text": "        lastError = error as Error;",
+            "lineNumber": 54
+          },
+          {
+            "text": "        ",
+            "lineNumber": 55
+          },
+          {
+            "text": "        // 如果是网络错误或超时，重试",
+            "lineNumber": 56
+          },
+          {
+            "text": "        if (this.isRetryableError(error)) {",
+            "lineNumber": 57
+          },
+          {
+            "text": "          if (attempt &lt; this.maxRetries - 1) {",
+            "lineNumber": 58
+          },
+          {
+            "text": "            // 指数退避",
+            "lineNumber": 59
+          },
+          {
+            "text": "            await this.sleep(Math.pow(2, attempt) * 1000);",
+            "lineNumber": 60
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 61
+          },
+          {
+            "text": "          }",
+            "lineNumber": 62
+          },
+          {
+            "text": "        }",
+            "lineNumber": 63
+          },
+          {
+            "text": "        ",
+            "lineNumber": 64
+          },
+          {
+            "text": "        // 如果是客户端错误（4xx），不重试",
+            "lineNumber": 65
+          },
+          {
+            "text": "        if (axios.isAxiosError(error)) {",
+            "lineNumber": 66
+          },
+          {
+            "text": "          const axiosError = error as AxiosError;",
+            "lineNumber": 67
+          },
+          {
+            "text": "          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {",
+            "lineNumber": 68
+          },
+          {
+            "text": "            throw this.handleError(error);",
+            "lineNumber": 69
+          },
+          {
+            "text": "          }",
+            "lineNumber": 70
+          },
+          {
+            "text": "        }",
+            "lineNumber": 71
+          },
+          {
+            "text": "      }",
+            "lineNumber": 72
+          },
+          {
+            "text": "    }",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "    throw this.handleError(lastError || new Error('未知错误'));",
+            "lineNumber": 75
+          },
+          {
+            "text": "  }",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 78
+          },
+          {
+            "text": "   * 测试连接",
+            "lineNumber": 79
+          },
+          {
+            "text": "   */",
+            "lineNumber": 80
+          },
+          {
+            "text": "  async testConnection(): Promise&lt;boolean&gt; {",
+            "lineNumber": 81
+          },
+          {
+            "text": "    try",
+            "lineNumber": 82
+          },
+          {
+            "text": "  }",
+            "lineNumber": 103
+          },
+          {
+            "text": "}",
+            "lineNumber": 233,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.20684659481048584
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "export class OpenAIProvider implements ILLMProvider {\nasync chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try {\n        const response = await axios.post(url, requestBody, {\n          headers: {\n            'Authorization': &#96;Bearer ${this.apiKey}&#96;,\n            'Content-Type': 'application/json',\n          },\n          timeout: this.timeout,\n        });\n\n        return this.parseResponse(response.data);\n      } catch (error) {\n        lastError = error as Error;\n        \n        // 如果是网络错误或超时，重试\n        if (this.isRetryableError(error)) {\n          if (attempt &lt; this.maxRetries - 1) {\n            // 指数退避\n            await this.sleep(Math.pow(2, attempt) * 1000);\n            continue;\n          }\n        }\n        \n        // 如果是客户端错误（4xx），不重试\n        if (axios.isAxiosError(error)) {\n          const axiosError = error as AxiosError;\n          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {\n            throw this.handleError(error);\n          }\n        }\n      }\n    }\n\n    throw this.handleError(lastError || new Error('未知错误'));\n  }\n\n  /**\n   * 测试连接\n   */\n  async testConnection(): Promise&lt;boolean&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 21,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 22,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "    ",
+            "lineNumber": 55
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 56
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 57
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 58
+          },
+          {
+            "text": "        const response = await axios.post(url, requestBody, {",
+            "lineNumber": 59
+          },
+          {
+            "text": "          headers: {",
+            "lineNumber": 60
+          },
+          {
+            "text": "            'Authorization': &#96;Bearer ${this.apiKey}&#96;,",
+            "lineNumber": 61
+          },
+          {
+            "text": "            'Content-Type': 'application/json',",
+            "lineNumber": 62
+          },
+          {
+            "text": "          },",
+            "lineNumber": 63
+          },
+          {
+            "text": "          timeout: this.timeout,",
+            "lineNumber": 64
+          },
+          {
+            "text": "        });",
+            "lineNumber": 65
+          },
+          {
+            "lineNumber": 66
+          },
+          {
+            "text": "        return this.parseResponse(response.data);",
+            "lineNumber": 67
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 68
+          },
+          {
+            "text": "        lastError = error as Error;",
+            "lineNumber": 69
+          },
+          {
+            "text": "        ",
+            "lineNumber": 70
+          },
+          {
+            "text": "        // 如果是网络错误或超时，重试",
+            "lineNumber": 71
+          },
+          {
+            "text": "        if (this.isRetryableError(error)) {",
+            "lineNumber": 72
+          },
+          {
+            "text": "          if (attempt &lt; this.maxRetries - 1) {",
+            "lineNumber": 73
+          },
+          {
+            "text": "            // 指数退避",
+            "lineNumber": 74
+          },
+          {
+            "text": "            await this.sleep(Math.pow(2, attempt) * 1000);",
+            "lineNumber": 75
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 76
+          },
+          {
+            "text": "          }",
+            "lineNumber": 77
+          },
+          {
+            "text": "        }",
+            "lineNumber": 78
+          },
+          {
+            "text": "        ",
+            "lineNumber": 79
+          },
+          {
+            "text": "        // 如果是客户端错误（4xx），不重试",
+            "lineNumber": 80
+          },
+          {
+            "text": "        if (axios.isAxiosError(error)) {",
+            "lineNumber": 81
+          },
+          {
+            "text": "          const axiosError = error as AxiosError;",
+            "lineNumber": 82
+          },
+          {
+            "text": "          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {",
+            "lineNumber": 83
+          },
+          {
+            "text": "            throw this.handleError(error);",
+            "lineNumber": 84
+          },
+          {
+            "text": "          }",
+            "lineNumber": 85
+          },
+          {
+            "text": "        }",
+            "lineNumber": 86
+          },
+          {
+            "text": "      }",
+            "lineNumber": 87
+          },
+          {
+            "text": "    }",
+            "lineNumber": 88
+          },
+          {
+            "lineNumber": 89
+          },
+          {
+            "text": "    throw this.handleError(lastError || new Error('未知错误'));",
+            "lineNumber": 90
+          },
+          {
+            "text": "  }",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 93
+          },
+          {
+            "text": "   * 测试连接",
+            "lineNumber": 94
+          },
+          {
+            "text": "   */",
+            "lineNumber": 95
+          },
+          {
+            "text": "  async testConnection(): Promise&lt;boolean&gt; {",
+            "lineNumber": 96
+          },
+          {
+            "text": "    try",
+            "lineNumber": 97
+          },
+          {
+            "text": "  }",
+            "lineNumber": 118
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.17932480573654175
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/GoogleProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 263,
+            "column": 1
+          }
+        },
+        "contents": "export class GoogleProvider implements ILLMProvider {\n\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    const url = &#96;${this.apiBaseUrl}/models/${config.model}:generateContent?key=${this.apiKey}&#96;;\n\n    // 转换消息格式为 Gemini 格式\n    const contents = messages\n      .filter(msg =&gt; msg.role !== 'system') // Gemini 不支持 system 消息\n      .map(msg =&gt; {\n        if (msg.role === 'tool') {\n          // Gemini 使用 function_response 处理工具响应\n          return {\n            role: 'model',\n            parts: [{\n              functionResponse: {\n                name: msg.name,\n                response: JSON.parse(msg.content || '{}')\n              }\n            }]\n          };\n        }\n        return {\n          role: msg.role === 'assistant' ? 'model' : 'user',\n          parts: [{ text: msg.content }]\n        };\n      });\n\n    // 添加 system instruction（作为第一条消息的指令）\n    const systemMessages = messages.filter(m =&gt; m.role === 'system');\n    let systemInstruction: string | undefined;\n    if (systemMessages.length &gt; 0) {\n      systemInstruction = systemMessages.map(m =&gt; m.content).join('\\n');\n    }\n\n    // 转换工具为 Gemini 格式\n    let toolsConfig: any = undefined;\n    if (tools &amp;&amp; tools.length &gt; 0) {\n      toolsConfig = {\n        function_declarations: tools.map(tool =&gt; ({\n          name: tool.function.name,\n          description: tool.function.description,\n          parameters: tool.function.parameters\n        }))\n      };\n    }\n\n    const requestBody: any = {\n      contents\n    };\n\n    if (systemInstruction) {\n      requestBody.systemInstruction = {\n        parts: [{ text: systemInstruction }]\n      };\n    }\n\n    const generationConfig: any = {\n      maxOutputTokens: config.maxTokens,\n    };\n\n    if (config.temperature !== undefined) {\n      generationConfig.temperature = config.temperature;\n    }\n\n    if (config.topP !== undefined) {\n      generationConfig.topP = config.topP;\n    }\n\n    requestBody.generationConfig = generationConfig;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GoogleProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 18
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 19
+          },
+          {
+            "text": "   */",
+            "lineNumber": 20
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    const url = &#96;${this.apiBaseUrl}/models/${config.model}:generateContent?key=${this.apiKey}&#96;;",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "    // 转换消息格式为 Gemini 格式",
+            "lineNumber": 24
+          },
+          {
+            "text": "    const contents = messages",
+            "lineNumber": 25
+          },
+          {
+            "text": "      .filter(msg =&gt; msg.role !== 'system') // Gemini 不支持 system 消息",
+            "lineNumber": 26
+          },
+          {
+            "text": "      .map(msg =&gt; {",
+            "lineNumber": 27
+          },
+          {
+            "text": "        if (msg.role === 'tool') {",
+            "lineNumber": 28
+          },
+          {
+            "text": "          // Gemini 使用 function_response 处理工具响应",
+            "lineNumber": 29
+          },
+          {
+            "text": "          return {",
+            "lineNumber": 30
+          },
+          {
+            "text": "            role: 'model',",
+            "lineNumber": 31
+          },
+          {
+            "text": "            parts: [{",
+            "lineNumber": 32
+          },
+          {
+            "text": "              functionResponse: {",
+            "lineNumber": 33
+          },
+          {
+            "text": "                name: msg.name,",
+            "lineNumber": 34
+          },
+          {
+            "text": "                response: JSON.parse(msg.content || '{}')",
+            "lineNumber": 35
+          },
+          {
+            "text": "              }",
+            "lineNumber": 36
+          },
+          {
+            "text": "            }]",
+            "lineNumber": 37
+          },
+          {
+            "text": "          };",
+            "lineNumber": 38
+          },
+          {
+            "text": "        }",
+            "lineNumber": 39
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 40
+          },
+          {
+            "text": "          role: msg.role === 'assistant' ? 'model' : 'user',",
+            "lineNumber": 41
+          },
+          {
+            "text": "          parts: [{ text: msg.content }]",
+            "lineNumber": 42
+          },
+          {
+            "text": "        };",
+            "lineNumber": 43
+          },
+          {
+            "text": "      });",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    // 添加 system instruction（作为第一条消息的指令）",
+            "lineNumber": 46
+          },
+          {
+            "text": "    const systemMessages = messages.filter(m =&gt; m.role === 'system');",
+            "lineNumber": 47
+          },
+          {
+            "text": "    let systemInstruction: string | undefined;",
+            "lineNumber": 48
+          },
+          {
+            "text": "    if (systemMessages.length &gt; 0) {",
+            "lineNumber": 49
+          },
+          {
+            "text": "      systemInstruction = systemMessages.map(m =&gt; m.content).join('\\n');",
+            "lineNumber": 50
+          },
+          {
+            "text": "    }",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "    // 转换工具为 Gemini 格式",
+            "lineNumber": 53
+          },
+          {
+            "text": "    let toolsConfig: any = undefined;",
+            "lineNumber": 54
+          },
+          {
+            "text": "    if (tools &amp;&amp; tools.length &gt; 0) {",
+            "lineNumber": 55
+          },
+          {
+            "text": "      toolsConfig = {",
+            "lineNumber": 56
+          },
+          {
+            "text": "        function_declarations: tools.map(tool =&gt; ({",
+            "lineNumber": 57
+          },
+          {
+            "text": "          name: tool.function.name,",
+            "lineNumber": 58
+          },
+          {
+            "text": "          description: tool.function.description,",
+            "lineNumber": 59
+          },
+          {
+            "text": "          parameters: tool.function.parameters",
+            "lineNumber": 60
+          },
+          {
+            "text": "        }))",
+            "lineNumber": 61
+          },
+          {
+            "text": "      };",
+            "lineNumber": 62
+          },
+          {
+            "text": "    }",
+            "lineNumber": 63
+          },
+          {
+            "lineNumber": 64
+          },
+          {
+            "text": "    const requestBody: any = {",
+            "lineNumber": 65
+          },
+          {
+            "text": "      contents",
+            "lineNumber": 66
+          },
+          {
+            "text": "    };",
+            "lineNumber": 67
+          },
+          {
+            "lineNumber": 68
+          },
+          {
+            "text": "    if (systemInstruction) {",
+            "lineNumber": 69
+          },
+          {
+            "text": "      requestBody.systemInstruction = {",
+            "lineNumber": 70
+          },
+          {
+            "text": "        parts: [{ text: systemInstruction }]",
+            "lineNumber": 71
+          },
+          {
+            "text": "      };",
+            "lineNumber": 72
+          },
+          {
+            "text": "    }",
+            "lineNumber": 73
+          },
+          {
+            "lineNumber": 74
+          },
+          {
+            "text": "    const generationConfig: any = {",
+            "lineNumber": 75
+          },
+          {
+            "text": "      maxOutputTokens: config.maxTokens,",
+            "lineNumber": 76
+          },
+          {
+            "text": "    };",
+            "lineNumber": 77
+          },
+          {
+            "lineNumber": 78
+          },
+          {
+            "text": "    if (config.temperature !== undefined) {",
+            "lineNumber": 79
+          },
+          {
+            "text": "      generationConfig.temperature = config.temperature;",
+            "lineNumber": 80
+          },
+          {
+            "text": "    }",
+            "lineNumber": 81
+          },
+          {
+            "lineNumber": 82
+          },
+          {
+            "text": "    if (config.topP !== undefined) {",
+            "lineNumber": 83
+          },
+          {
+            "text": "      generationConfig.topP = config.topP;",
+            "lineNumber": 84
+          },
+          {
+            "text": "    }",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "    requestBody.generationConfig = generationConfig;",
+            "lineNumber": 87
+          },
+          {
+            "text": "  }",
+            "lineNumber": 129
+          },
+          {
+            "text": "}",
+            "lineNumber": 264,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.17707395553588867
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/AnthropicProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 252,
+            "column": 1
+          }
+        },
+        "contents": "export class AnthropicProvider implements ILLMProvider {\n\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    const url = &#96;${this.apiBaseUrl}/messages&#96;;\n\n    // Anthropic API 要求 system 消息单独传递\n    const systemMessages = messages.filter(m =&gt; m.role === 'system');\n    const conversationMessages = messages.filter(m =&gt; m.role !== 'system');\n    const system = systemMessages.length &gt; 0 \n      ? systemMessages.map(m =&gt; m.content).join('\\n')\n      : undefined;\n\n    // 转换消息格式为 Anthropic 格式\n    const anthropicMessages = conversationMessages.map(msg =&gt; {\n      if (msg.role === 'tool') {\n        // Anthropic 使用 assistant 消息类型处理 tool 响应\n        return {\n          role: 'assistant' as const,\n          content: &#96;Tool ${msg.name} (${msg.tool_call_id}) returned: ${msg.content}&#96;\n        };\n      }\n      return {\n        role: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,\n        content: msg.content\n      };\n    });\n\n    // 转换工具为 Anthropic 格式\n    let toolsConfig: any = undefined;\n    if (tools &amp;&amp; tools.length &gt; 0) {\n      toolsConfig = {\n        tools: tools.map(tool =&gt; ({\n          name: tool.function.name,\n          description: tool.function.description,\n          input_schema: tool.function.parameters\n        }))\n      };\n    }\n\n    const requestBody: any = {\n      model: config.model,\n      max_tokens: config.maxTokens,\n      messages: anthropicMessages\n    };\n\n    if (system) {\n      requestBody.system = system;\n    }\n\n    if (config.temperature !== undefined) {\n      requestBody.temperature = config.temperature;\n    }\n\n    if (toolsConfig) {\n      requestBody.tools = toolsConfig.tools;\n      requestBody.tool_choice = { type: 'auto' };\n    }\n\n    let lastError: Error | null = null;\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try\n    }\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AnthropicProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 18
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 19
+          },
+          {
+            "text": "   */",
+            "lineNumber": 20
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    const url = &#96;${this.apiBaseUrl}/messages&#96;;",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "    // Anthropic API 要求 system 消息单独传递",
+            "lineNumber": 24
+          },
+          {
+            "text": "    const systemMessages = messages.filter(m =&gt; m.role === 'system');",
+            "lineNumber": 25
+          },
+          {
+            "text": "    const conversationMessages = messages.filter(m =&gt; m.role !== 'system');",
+            "lineNumber": 26
+          },
+          {
+            "text": "    const system = systemMessages.length &gt; 0 ",
+            "lineNumber": 27
+          },
+          {
+            "text": "      ? systemMessages.map(m =&gt; m.content).join('\\n')",
+            "lineNumber": 28
+          },
+          {
+            "text": "      : undefined;",
+            "lineNumber": 29
+          },
+          {
+            "lineNumber": 30
+          },
+          {
+            "text": "    // 转换消息格式为 Anthropic 格式",
+            "lineNumber": 31
+          },
+          {
+            "text": "    const anthropicMessages = conversationMessages.map(msg =&gt; {",
+            "lineNumber": 32
+          },
+          {
+            "text": "      if (msg.role === 'tool') {",
+            "lineNumber": 33
+          },
+          {
+            "text": "        // Anthropic 使用 assistant 消息类型处理 tool 响应",
+            "lineNumber": 34
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 35
+          },
+          {
+            "text": "          role: 'assistant' as const,",
+            "lineNumber": 36
+          },
+          {
+            "text": "          content: &#96;Tool ${msg.name} (${msg.tool_call_id}) returned: ${msg.content}&#96;",
+            "lineNumber": 37
+          },
+          {
+            "text": "        };",
+            "lineNumber": 38
+          },
+          {
+            "text": "      }",
+            "lineNumber": 39
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 40
+          },
+          {
+            "text": "        role: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,",
+            "lineNumber": 41
+          },
+          {
+            "text": "        content: msg.content",
+            "lineNumber": 42
+          },
+          {
+            "text": "      };",
+            "lineNumber": 43
+          },
+          {
+            "text": "    });",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "    // 转换工具为 Anthropic 格式",
+            "lineNumber": 46
+          },
+          {
+            "text": "    let toolsConfig: any = undefined;",
+            "lineNumber": 47
+          },
+          {
+            "text": "    if (tools &amp;&amp; tools.length &gt; 0) {",
+            "lineNumber": 48
+          },
+          {
+            "text": "      toolsConfig = {",
+            "lineNumber": 49
+          },
+          {
+            "text": "        tools: tools.map(tool =&gt; ({",
+            "lineNumber": 50
+          },
+          {
+            "text": "          name: tool.function.name,",
+            "lineNumber": 51
+          },
+          {
+            "text": "          description: tool.function.description,",
+            "lineNumber": 52
+          },
+          {
+            "text": "          input_schema: tool.function.parameters",
+            "lineNumber": 53
+          },
+          {
+            "text": "        }))",
+            "lineNumber": 54
+          },
+          {
+            "text": "      };",
+            "lineNumber": 55
+          },
+          {
+            "text": "    }",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "    const requestBody: any = {",
+            "lineNumber": 58
+          },
+          {
+            "text": "      model: config.model,",
+            "lineNumber": 59
+          },
+          {
+            "text": "      max_tokens: config.maxTokens,",
+            "lineNumber": 60
+          },
+          {
+            "text": "      messages: anthropicMessages",
+            "lineNumber": 61
+          },
+          {
+            "text": "    };",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "    if (system) {",
+            "lineNumber": 64
+          },
+          {
+            "text": "      requestBody.system = system;",
+            "lineNumber": 65
+          },
+          {
+            "text": "    }",
+            "lineNumber": 66
+          },
+          {
+            "lineNumber": 67
+          },
+          {
+            "text": "    if (config.temperature !== undefined) {",
+            "lineNumber": 68
+          },
+          {
+            "text": "      requestBody.temperature = config.temperature;",
+            "lineNumber": 69
+          },
+          {
+            "text": "    }",
+            "lineNumber": 70
+          },
+          {
+            "lineNumber": 71
+          },
+          {
+            "text": "    if (toolsConfig) {",
+            "lineNumber": 72
+          },
+          {
+            "text": "      requestBody.tools = toolsConfig.tools;",
+            "lineNumber": 73
+          },
+          {
+            "text": "      requestBody.tool_choice = { type: 'auto' };",
+            "lineNumber": 74
+          },
+          {
+            "text": "    }",
+            "lineNumber": 75
+          },
+          {
+            "lineNumber": 76
+          },
+          {
+            "text": "    let lastError: Error | null = null;",
+            "lineNumber": 77
+          },
+          {
+            "text": "    ",
+            "lineNumber": 78
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 79
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 80
+          },
+          {
+            "text": "      try",
+            "lineNumber": 81
+          },
+          {
+            "text": "    }",
+            "lineNumber": 112
+          },
+          {
+            "text": "  }",
+            "lineNumber": 115
+          },
+          {
+            "text": "}",
+            "lineNumber": 253,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.17623013257980347
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/AnthropicProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 252,
+            "column": 1
+          }
+        },
+        "contents": "export class AnthropicProvider implements ILLMProvider {\nasync chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try {\n        const response = await axios.post(url, requestBody, {\n          headers: {\n            'x-api-key': this.apiKey,\n            'anthropic-version': '2023-06-01',\n            'Content-Type': 'application/json',\n          },\n          timeout: this.timeout,\n        });\n\n        return this.parseResponse(response.data, config.model);\n      } catch (error) {\n        lastError = error as Error;\n        \n        // 如果是网络错误或超时，重试\n        if (this.isRetryableError(error)) {\n          if (attempt &lt; this.maxRetries - 1) {\n            // 指数退避\n            await this.sleep(Math.pow(2, attempt) * 1000);\n            continue;\n          }\n        }\n        \n        // 如果是客户端错误（4xx），不重试\n        if (axios.isAxiosError(error)) {\n          const axiosError = error as AxiosError;\n          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {\n            throw this.handleError(error);\n          }\n        }\n      }\n    }\n\n    throw this.handleError(lastError || new Error('未知错误'));\n  }\n\n  /**\n   * 测试连接\n   */\n  async testConnection(): Promise&lt;boolean&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 21,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 22,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AnthropicProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "    ",
+            "lineNumber": 78
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 79
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 80
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 81
+          },
+          {
+            "text": "        const response = await axios.post(url, requestBody, {",
+            "lineNumber": 82
+          },
+          {
+            "text": "          headers: {",
+            "lineNumber": 83
+          },
+          {
+            "text": "            'x-api-key': this.apiKey,",
+            "lineNumber": 84
+          },
+          {
+            "text": "            'anthropic-version': '2023-06-01',",
+            "lineNumber": 85
+          },
+          {
+            "text": "            'Content-Type': 'application/json',",
+            "lineNumber": 86
+          },
+          {
+            "text": "          },",
+            "lineNumber": 87
+          },
+          {
+            "text": "          timeout: this.timeout,",
+            "lineNumber": 88
+          },
+          {
+            "text": "        });",
+            "lineNumber": 89
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "        return this.parseResponse(response.data, config.model);",
+            "lineNumber": 91
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 92
+          },
+          {
+            "text": "        lastError = error as Error;",
+            "lineNumber": 93
+          },
+          {
+            "text": "        ",
+            "lineNumber": 94
+          },
+          {
+            "text": "        // 如果是网络错误或超时，重试",
+            "lineNumber": 95
+          },
+          {
+            "text": "        if (this.isRetryableError(error)) {",
+            "lineNumber": 96
+          },
+          {
+            "text": "          if (attempt &lt; this.maxRetries - 1) {",
+            "lineNumber": 97
+          },
+          {
+            "text": "            // 指数退避",
+            "lineNumber": 98
+          },
+          {
+            "text": "            await this.sleep(Math.pow(2, attempt) * 1000);",
+            "lineNumber": 99
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 100
+          },
+          {
+            "text": "          }",
+            "lineNumber": 101
+          },
+          {
+            "text": "        }",
+            "lineNumber": 102
+          },
+          {
+            "text": "        ",
+            "lineNumber": 103
+          },
+          {
+            "text": "        // 如果是客户端错误（4xx），不重试",
+            "lineNumber": 104
+          },
+          {
+            "text": "        if (axios.isAxiosError(error)) {",
+            "lineNumber": 105
+          },
+          {
+            "text": "          const axiosError = error as AxiosError;",
+            "lineNumber": 106
+          },
+          {
+            "text": "          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {",
+            "lineNumber": 107
+          },
+          {
+            "text": "            throw this.handleError(error);",
+            "lineNumber": 108
+          },
+          {
+            "text": "          }",
+            "lineNumber": 109
+          },
+          {
+            "text": "        }",
+            "lineNumber": 110
+          },
+          {
+            "text": "      }",
+            "lineNumber": 111
+          },
+          {
+            "text": "    }",
+            "lineNumber": 112
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "text": "    throw this.handleError(lastError || new Error('未知错误'));",
+            "lineNumber": 114
+          },
+          {
+            "text": "  }",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 117
+          },
+          {
+            "text": "   * 测试连接",
+            "lineNumber": 118
+          },
+          {
+            "text": "   */",
+            "lineNumber": 119
+          },
+          {
+            "text": "  async testConnection(): Promise&lt;boolean&gt; {",
+            "lineNumber": 120
+          },
+          {
+            "text": "    try",
+            "lineNumber": 121
+          },
+          {
+            "text": "  }",
+            "lineNumber": 142
+          },
+          {
+            "text": "}",
+            "lineNumber": 253,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.17164529860019684
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/GoogleProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 263,
+            "column": 1
+          }
+        },
+        "contents": "export class GoogleProvider implements ILLMProvider {\nasync chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n\n    }\n\n    requestBody.generationConfig = generationConfig;\n\n    if (toolsConfig) {\n      requestBody.tools = [toolsConfig];\n    }\n\n    let lastError: Error | null = null;\n    \n    // 重试逻辑\n    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {\n      try {\n        const response = await axios.post(url, requestBody, {\n          headers: {\n            'Content-Type': 'application/json',\n          },\n          timeout: this.timeout,\n        });\n\n        return this.parseResponse(response.data, config.model);\n      } catch (error) {\n        lastError = error as Error;\n        \n        // 如果是网络错误或超时，重试\n        if (this.isRetryableError(error)) {\n          if (attempt &lt; this.maxRetries - 1) {\n            // 指数退避\n            await this.sleep(Math.pow(2, attempt) * 1000);\n            continue;\n          }\n        }\n        \n        // 如果是客户端错误（4xx），不重试\n        if (axios.isAxiosError(error)) {\n          const axiosError = error as AxiosError;\n          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {\n            throw this.handleError(error);\n          }\n        }\n      }\n    }\n\n    throw this.handleError(lastError || new Error('未知错误'));\n  }\n\n  /**\n   * 测试连接\n   */\n  async testConnection(): Promise&lt;boolean&gt; {\n    try\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 21,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 22,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GoogleProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "    }",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "    requestBody.generationConfig = generationConfig;",
+            "lineNumber": 87
+          },
+          {
+            "lineNumber": 88
+          },
+          {
+            "text": "    if (toolsConfig) {",
+            "lineNumber": 89
+          },
+          {
+            "text": "      requestBody.tools = [toolsConfig];",
+            "lineNumber": 90
+          },
+          {
+            "text": "    }",
+            "lineNumber": 91
+          },
+          {
+            "lineNumber": 92
+          },
+          {
+            "text": "    let lastError: Error | null = null;",
+            "lineNumber": 93
+          },
+          {
+            "text": "    ",
+            "lineNumber": 94
+          },
+          {
+            "text": "    // 重试逻辑",
+            "lineNumber": 95
+          },
+          {
+            "text": "    for (let attempt = 0; attempt &lt; this.maxRetries; attempt++) {",
+            "lineNumber": 96
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 97
+          },
+          {
+            "text": "        const response = await axios.post(url, requestBody, {",
+            "lineNumber": 98
+          },
+          {
+            "text": "          headers: {",
+            "lineNumber": 99
+          },
+          {
+            "text": "            'Content-Type': 'application/json',",
+            "lineNumber": 100
+          },
+          {
+            "text": "          },",
+            "lineNumber": 101
+          },
+          {
+            "text": "          timeout: this.timeout,",
+            "lineNumber": 102
+          },
+          {
+            "text": "        });",
+            "lineNumber": 103
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "text": "        return this.parseResponse(response.data, config.model);",
+            "lineNumber": 105
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 106
+          },
+          {
+            "text": "        lastError = error as Error;",
+            "lineNumber": 107
+          },
+          {
+            "text": "        ",
+            "lineNumber": 108
+          },
+          {
+            "text": "        // 如果是网络错误或超时，重试",
+            "lineNumber": 109
+          },
+          {
+            "text": "        if (this.isRetryableError(error)) {",
+            "lineNumber": 110
+          },
+          {
+            "text": "          if (attempt &lt; this.maxRetries - 1) {",
+            "lineNumber": 111
+          },
+          {
+            "text": "            // 指数退避",
+            "lineNumber": 112
+          },
+          {
+            "text": "            await this.sleep(Math.pow(2, attempt) * 1000);",
+            "lineNumber": 113
+          },
+          {
+            "text": "            continue;",
+            "lineNumber": 114
+          },
+          {
+            "text": "          }",
+            "lineNumber": 115
+          },
+          {
+            "text": "        }",
+            "lineNumber": 116
+          },
+          {
+            "text": "        ",
+            "lineNumber": 117
+          },
+          {
+            "text": "        // 如果是客户端错误（4xx），不重试",
+            "lineNumber": 118
+          },
+          {
+            "text": "        if (axios.isAxiosError(error)) {",
+            "lineNumber": 119
+          },
+          {
+            "text": "          const axiosError = error as AxiosError;",
+            "lineNumber": 120
+          },
+          {
+            "text": "          if (axiosError.response &amp;&amp; axiosError.response.status &gt;= 400 &amp;&amp; axiosError.response.status &lt; 500) {",
+            "lineNumber": 121
+          },
+          {
+            "text": "            throw this.handleError(error);",
+            "lineNumber": 122
+          },
+          {
+            "text": "          }",
+            "lineNumber": 123
+          },
+          {
+            "text": "        }",
+            "lineNumber": 124
+          },
+          {
+            "text": "      }",
+            "lineNumber": 125
+          },
+          {
+            "text": "    }",
+            "lineNumber": 126
+          },
+          {
+            "lineNumber": 127
+          },
+          {
+            "text": "    throw this.handleError(lastError || new Error('未知错误'));",
+            "lineNumber": 128
+          },
+          {
+            "text": "  }",
+            "lineNumber": 129
+          },
+          {
+            "lineNumber": 130
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 131
+          },
+          {
+            "text": "   * 测试连接",
+            "lineNumber": 132
+          },
+          {
+            "text": "   */",
+            "lineNumber": 133
+          },
+          {
+            "text": "  async testConnection(): Promise&lt;boolean&gt; {",
+            "lineNumber": 134
+          },
+          {
+            "text": "    try",
+            "lineNumber": 135
+          },
+          {
+            "text": "  }",
+            "lineNumber": 156
+          },
+          {
+            "text": "}",
+            "lineNumber": 264,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.15875880420207977
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {
+            "line": 54,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 89,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * LLM响应\n */\nexport interface LLMResponse {\n  content: string;\n  toolCalls?: ToolCall[];\n  usage: {\n    promptTokens: number;\n    completionTokens: number;\n    totalTokens: number;\n  };\n  model: string;\n  finishReason: 'stop' | 'length' | 'tool_calls' | 'content_filter';\n}\n\n/**\n * LLM Provider 接口\n */\nexport interface ILLMProvider {\n  /**\n   * 发送聊天请求\n   * @param messages 消息列表\n   * @param config LLM配置\n   * @param tools 可选的工具定义列表（用于 Function Calling）\n   * @returns LLM响应\n   */\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 57
+          },
+          {
+            "text": " * LLM响应",
+            "lineNumber": 58
+          },
+          {
+            "text": " */",
+            "lineNumber": 59
+          },
+          {
+            "text": "export interface LLMResponse {",
+            "lineNumber": 60,
+            "isSignature": true
+          },
+          {
+            "text": "  content: string;",
+            "lineNumber": 61
+          },
+          {
+            "text": "  toolCalls?: ToolCall[];",
+            "lineNumber": 62
+          },
+          {
+            "text": "  usage: {",
+            "lineNumber": 63
+          },
+          {
+            "text": "    promptTokens: number;",
+            "lineNumber": 64
+          },
+          {
+            "text": "    completionTokens: number;",
+            "lineNumber": 65
+          },
+          {
+            "text": "    totalTokens: number;",
+            "lineNumber": 66
+          },
+          {
+            "text": "  };",
+            "lineNumber": 67
+          },
+          {
+            "text": "  model: string;",
+            "lineNumber": 68
+          },
+          {
+            "text": "  finishReason: 'stop' | 'length' | 'tool_calls' | 'content_filter';",
+            "lineNumber": 69,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 70,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 71
+          },
+          {
+            "text": "/**",
+            "lineNumber": 72
+          },
+          {
+            "text": " * LLM Provider 接口",
+            "lineNumber": 73
+          },
+          {
+            "text": " */",
+            "lineNumber": 74
+          },
+          {
+            "text": "export interface ILLMProvider {",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 76
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 77
+          },
+          {
+            "text": "   * @param messages 消息列表",
+            "lineNumber": 78
+          },
+          {
+            "text": "   * @param config LLM配置",
+            "lineNumber": 79
+          },
+          {
+            "text": "   * @param tools 可选的工具定义列表（用于 Function Calling）",
+            "lineNumber": 80
+          },
+          {
+            "text": "   * @returns LLM响应",
+            "lineNumber": 81
+          },
+          {
+            "text": "   */",
+            "lineNumber": 82
+          },
+          {
+            "text": ";",
+            "lineNumber": 89,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 90,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.1468466967344284
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {
+            "line": 40,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 69,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * LLM配置\n */\nexport interface LLMConfig {\n  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\n  apiKey: string;\n  apiBaseUrl?: string;\n  model: string;\n  temperature: number;\n  maxTokens: number;\n  topP?: number;\n  stream?: boolean;  // 是否使用流式响应\n}\n\n/**\n * LLM响应\n */\nexport interface LLMResponse {\n  content: string;\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 43
+          },
+          {
+            "text": " * LLM配置",
+            "lineNumber": 44
+          },
+          {
+            "text": " */",
+            "lineNumber": 45
+          },
+          {
+            "text": "export interface LLMConfig {",
+            "lineNumber": 46,
+            "isSignature": true
+          },
+          {
+            "text": "  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';",
+            "lineNumber": 47
+          },
+          {
+            "text": "  apiKey: string;",
+            "lineNumber": 48
+          },
+          {
+            "text": "  apiBaseUrl?: string;",
+            "lineNumber": 49
+          },
+          {
+            "text": "  model: string;",
+            "lineNumber": 50
+          },
+          {
+            "text": "  temperature: number;",
+            "lineNumber": 51
+          },
+          {
+            "text": "  maxTokens: number;",
+            "lineNumber": 52
+          },
+          {
+            "text": "  topP?: number;",
+            "lineNumber": 53
+          },
+          {
+            "text": "  stream?: boolean;  // 是否使用流式响应",
+            "lineNumber": 54
+          },
+          {
+            "text": "}",
+            "lineNumber": 55,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 56
+          },
+          {
+            "text": "/**",
+            "lineNumber": 57
+          },
+          {
+            "text": " * LLM响应",
+            "lineNumber": 58
+          },
+          {
+            "text": " */",
+            "lineNumber": 59
+          },
+          {
+            "text": "export interface LLMResponse {",
+            "lineNumber": 60,
+            "isSignature": true
+          },
+          {
+            "text": "  content: string;",
+            "lineNumber": 61
+          },
+          {
+            "text": ";",
+            "lineNumber": 69,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 70,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.12933549284934998
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/LocalProvider.ts",
+        "range": {
+          "startPosition": {
+            "column": 42
+          },
+          "endPosition": {
+            "line": 232,
+            "column": 1
+          }
+        },
+        "contents": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool } from './types';\n\n/**\n * 本地模型 Provider 实现（支持 Ollama、LocalAI 等）\n */\nexport class LocalProvider implements ILLMProvider {\n  private apiBaseUrl: string;\n  private timeout: number = 180000; // 180秒超时\n  private maxRetries: number = 3;\n\n  constructor(apiBaseUrl: string) {\n    this.apiBaseUrl = apiBaseUrl || 'http://localhost:11434/v1';\n  }\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    \n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool } from './types';",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "/**",
+            "lineNumber": 4
+          },
+          {
+            "text": " * 本地模型 Provider 实现（支持 Ollama、LocalAI 等）",
+            "lineNumber": 5
+          },
+          {
+            "text": " */",
+            "lineNumber": 6
+          },
+          {
+            "text": "export class LocalProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "  private apiBaseUrl: string;",
+            "lineNumber": 8
+          },
+          {
+            "text": "  private timeout: number = 180000; // 180秒超时",
+            "lineNumber": 9
+          },
+          {
+            "text": "  private maxRetries: number = 3;",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "  constructor(apiBaseUrl: string) {",
+            "lineNumber": 12
+          },
+          {
+            "text": "    this.apiBaseUrl = apiBaseUrl || 'http://localhost:11434/v1';",
+            "lineNumber": 13
+          },
+          {
+            "text": "  }",
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 16
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 17
+          },
+          {
+            "text": "   */",
+            "lineNumber": 18
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 19
+          },
+          {
+            "text": "    ",
+            "lineNumber": 20
+          },
+          {
+            "text": "  }",
+            "lineNumber": 76
+          },
+          {
+            "text": "}",
+            "lineNumber": 233,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.11042183637619019
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/ProviderFactory.ts",
+        "range": {
+          "startPosition": {
+            "column": 50
+          },
+          "endPosition": {
+            "line": 39,
+            "column": 1
+          }
+        },
+        "contents": "import { OpenAIProvider } from './OpenAIProvider';\nimport { AnthropicProvider } from './AnthropicProvider';\nimport { GoogleProvider } from './GoogleProvider';\nimport { LocalProvider } from './LocalProvider';\n\n/**\n * LLM Provider 工厂\n * 根据配置创建不同的 Provider 实例\n */\nexport class LLMProviderFactory {\n  /**\n   * 根据配置创建 Provider 实例\n   */\n  static create(llmConfig: LLMConfig): ILLMProvider {\n    switch (llmConfig.provider) {\n      case 'openai':\n        return new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'anthropic':\n        return new AnthropicProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'google':\n        return new GoogleProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);\n      \n      case 'local':\n        return new LocalProvider(llmConfig.apiBaseUrl || 'http://localhost:11434/v1');\n      \n      default:\n        throw new Error(&#96;不支持的 LLM Provider: ${llmConfig.provider}&#96;);\n    }\n  }\n\n  /**\n   * 获取支持的 Provider 列表\n   */\n  static getSupportedProviders(): string[] {\n    return ['openai', 'anthropic', 'google', 'local'];\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { OpenAIProvider } from './OpenAIProvider';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { AnthropicProvider } from './AnthropicProvider';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { GoogleProvider } from './GoogleProvider';",
+            "lineNumber": 4
+          },
+          {
+            "text": "import { LocalProvider } from './LocalProvider';",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "/**",
+            "lineNumber": 7
+          },
+          {
+            "text": " * LLM Provider 工厂",
+            "lineNumber": 8
+          },
+          {
+            "text": " * 根据配置创建不同的 Provider 实例",
+            "lineNumber": 9
+          },
+          {
+            "text": " */",
+            "lineNumber": 10
+          },
+          {
+            "text": "export class LLMProviderFactory {",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 12
+          },
+          {
+            "text": "   * 根据配置创建 Provider 实例",
+            "lineNumber": 13
+          },
+          {
+            "text": "   */",
+            "lineNumber": 14
+          },
+          {
+            "text": "  static create(llmConfig: LLMConfig): ILLMProvider {",
+            "lineNumber": 15
+          },
+          {
+            "text": "    switch (llmConfig.provider) {",
+            "lineNumber": 16
+          },
+          {
+            "text": "      case 'openai':",
+            "lineNumber": 17
+          },
+          {
+            "text": "        return new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 18
+          },
+          {
+            "text": "      ",
+            "lineNumber": 19
+          },
+          {
+            "text": "      case 'anthropic':",
+            "lineNumber": 20
+          },
+          {
+            "text": "        return new AnthropicProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 21
+          },
+          {
+            "text": "      ",
+            "lineNumber": 22
+          },
+          {
+            "text": "      case 'google':",
+            "lineNumber": 23
+          },
+          {
+            "text": "        return new GoogleProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);",
+            "lineNumber": 24
+          },
+          {
+            "text": "      ",
+            "lineNumber": 25
+          },
+          {
+            "text": "      case 'local':",
+            "lineNumber": 26
+          },
+          {
+            "text": "        return new LocalProvider(llmConfig.apiBaseUrl || 'http://localhost:11434/v1');",
+            "lineNumber": 27
+          },
+          {
+            "text": "      ",
+            "lineNumber": 28
+          },
+          {
+            "text": "      default:",
+            "lineNumber": 29
+          },
+          {
+            "text": "        throw new Error(&#96;不支持的 LLM Provider: ${llmConfig.provider}&#96;);",
+            "lineNumber": 30
+          },
+          {
+            "text": "    }",
+            "lineNumber": 31
+          },
+          {
+            "text": "  }",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 34
+          },
+          {
+            "text": "   * 获取支持的 Provider 列表",
+            "lineNumber": 35
+          },
+          {
+            "text": "   */",
+            "lineNumber": 36
+          },
+          {
+            "text": "  static getSupportedProviders(): string[] {",
+            "lineNumber": 37
+          },
+          {
+            "text": "    return ['openai', 'anthropic', 'google', 'local'];",
+            "lineNumber": 38
+          },
+          {
+            "text": "  }",
+            "lineNumber": 39
+          },
+          {
+            "text": "}",
+            "lineNumber": 40,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.10209404677152634
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/AnthropicProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 252,
+            "column": 1
+          }
+        },
+        "contents": "export class AnthropicProvider implements ILLMProvider {\n\n\n  /**\n   * 处理错误\n   */\n  private handleError(error: any): Error {\n    if (axios.isAxiosError(error)) {\n      const axiosError = error as AxiosError;\n      if (axiosError.response) {\n        const status = axiosError.response.status;\n        const data = axiosError.response.data as any;\n        \n        switch (status) {\n          case 401:\n            return new Error('API密钥无效');\n          case 429:\n            return new Error('请求频率过高，请稍后重试');\n          case 500:\n          case 502:\n          case 503:\n            return new Error('Anthropic服务暂时不可用，请稍后重试');\n          default:\n            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);\n        }\n      }\n      if (axiosError.code === 'ECONNABORTED') {\n        return new Error('请求超时，请稍后重试');\n      }\n      return new Error('网络错误，请检查网络连接');\n    }\n    return error instanceof Error ? error : new Error('未知错误');\n  }\n\n  /**\n   * 睡眠函数（用于重试延迟）\n   */\n  private sleep(ms: number): Promise&lt;void&gt; {\n    return new Promise(resolve =&gt; setTimeout(resolve, ms));\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AnthropicProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 214
+          },
+          {
+            "lineNumber": 215
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 216
+          },
+          {
+            "text": "   * 处理错误",
+            "lineNumber": 217
+          },
+          {
+            "text": "   */",
+            "lineNumber": 218
+          },
+          {
+            "text": "  private handleError(error: any): Error {",
+            "lineNumber": 219
+          },
+          {
+            "text": "    if (axios.isAxiosError(error)) {",
+            "lineNumber": 220
+          },
+          {
+            "text": "      const axiosError = error as AxiosError;",
+            "lineNumber": 221
+          },
+          {
+            "text": "      if (axiosError.response) {",
+            "lineNumber": 222
+          },
+          {
+            "text": "        const status = axiosError.response.status;",
+            "lineNumber": 223
+          },
+          {
+            "text": "        const data = axiosError.response.data as any;",
+            "lineNumber": 224
+          },
+          {
+            "text": "        ",
+            "lineNumber": 225
+          },
+          {
+            "text": "        switch (status) {",
+            "lineNumber": 226
+          },
+          {
+            "text": "          case 401:",
+            "lineNumber": 227
+          },
+          {
+            "text": "            return new Error('API密钥无效');",
+            "lineNumber": 228
+          },
+          {
+            "text": "          case 429:",
+            "lineNumber": 229
+          },
+          {
+            "text": "            return new Error('请求频率过高，请稍后重试');",
+            "lineNumber": 230
+          },
+          {
+            "text": "          case 500:",
+            "lineNumber": 231
+          },
+          {
+            "text": "          case 502:",
+            "lineNumber": 232
+          },
+          {
+            "text": "          case 503:",
+            "lineNumber": 233
+          },
+          {
+            "text": "            return new Error('Anthropic服务暂时不可用，请稍后重试');",
+            "lineNumber": 234
+          },
+          {
+            "text": "          default:",
+            "lineNumber": 235
+          },
+          {
+            "text": "            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);",
+            "lineNumber": 236
+          },
+          {
+            "text": "        }",
+            "lineNumber": 237
+          },
+          {
+            "text": "      }",
+            "lineNumber": 238
+          },
+          {
+            "text": "      if (axiosError.code === 'ECONNABORTED') {",
+            "lineNumber": 239
+          },
+          {
+            "text": "        return new Error('请求超时，请稍后重试');",
+            "lineNumber": 240
+          },
+          {
+            "text": "      }",
+            "lineNumber": 241
+          },
+          {
+            "text": "      return new Error('网络错误，请检查网络连接');",
+            "lineNumber": 242
+          },
+          {
+            "text": "    }",
+            "lineNumber": 243
+          },
+          {
+            "text": "    return error instanceof Error ? error : new Error('未知错误');",
+            "lineNumber": 244
+          },
+          {
+            "text": "  }",
+            "lineNumber": 245
+          },
+          {
+            "lineNumber": 246
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 247
+          },
+          {
+            "text": "   * 睡眠函数（用于重试延迟）",
+            "lineNumber": 248
+          },
+          {
+            "text": "   */",
+            "lineNumber": 249
+          },
+          {
+            "text": "  private sleep(ms: number): Promise&lt;void&gt; {",
+            "lineNumber": 250
+          },
+          {
+            "text": "    return new Promise(resolve =&gt; setTimeout(resolve, ms));",
+            "lineNumber": 251
+          },
+          {
+            "text": "  }",
+            "lineNumber": 252
+          },
+          {
+            "text": "}",
+            "lineNumber": 253,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.09792876243591309
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "export class OpenAIProvider implements ILLMProvider {\n\n\n  /**\n   * 处理错误\n   */\n  private handleError(error: any): Error {\n    if (axios.isAxiosError(error)) {\n      const axiosError = error as AxiosError;\n      if (axiosError.response) {\n        const status = axiosError.response.status;\n        const data = axiosError.response.data as any;\n        \n        switch (status) {\n          case 401:\n            return new Error('API密钥无效');\n          case 429:\n            return new Error('请求频率过高，请稍后重试');\n          case 500:\n          case 502:\n          case 503:\n            return new Error('OpenAI服务暂时不可用，请稍后重试');\n          default:\n            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);\n        }\n      }\n      if (axiosError.code === 'ECONNABORTED') {\n        return new Error('请求超时，请稍后重试');\n      }\n      return new Error('网络错误，请检查网络连接');\n    }\n    return error instanceof Error ? error : new Error('未知错误');\n  }\n\n  /**\n   * 睡眠函数（用于重试延迟）\n   */\n  private sleep(ms: number): Promise&lt;void&gt; {\n    return new Promise(resolve =&gt; setTimeout(resolve, ms));\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 209
+          },
+          {
+            "lineNumber": 210
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 211
+          },
+          {
+            "text": "   * 处理错误",
+            "lineNumber": 212
+          },
+          {
+            "text": "   */",
+            "lineNumber": 213
+          },
+          {
+            "text": "  private handleError(error: any): Error {",
+            "lineNumber": 214
+          },
+          {
+            "text": "    if (axios.isAxiosError(error)) {",
+            "lineNumber": 215
+          },
+          {
+            "text": "      const axiosError = error as AxiosError;",
+            "lineNumber": 216
+          },
+          {
+            "text": "      if (axiosError.response) {",
+            "lineNumber": 217
+          },
+          {
+            "text": "        const status = axiosError.response.status;",
+            "lineNumber": 218
+          },
+          {
+            "text": "        const data = axiosError.response.data as any;",
+            "lineNumber": 219
+          },
+          {
+            "text": "        ",
+            "lineNumber": 220
+          },
+          {
+            "text": "        switch (status) {",
+            "lineNumber": 221
+          },
+          {
+            "text": "          case 401:",
+            "lineNumber": 222
+          },
+          {
+            "text": "            return new Error('API密钥无效');",
+            "lineNumber": 223
+          },
+          {
+            "text": "          case 429:",
+            "lineNumber": 224
+          },
+          {
+            "text": "            return new Error('请求频率过高，请稍后重试');",
+            "lineNumber": 225
+          },
+          {
+            "text": "          case 500:",
+            "lineNumber": 226
+          },
+          {
+            "text": "          case 502:",
+            "lineNumber": 227
+          },
+          {
+            "text": "          case 503:",
+            "lineNumber": 228
+          },
+          {
+            "text": "            return new Error('OpenAI服务暂时不可用，请稍后重试');",
+            "lineNumber": 229
+          },
+          {
+            "text": "          default:",
+            "lineNumber": 230
+          },
+          {
+            "text": "            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);",
+            "lineNumber": 231
+          },
+          {
+            "text": "        }",
+            "lineNumber": 232
+          },
+          {
+            "text": "      }",
+            "lineNumber": 233
+          },
+          {
+            "text": "      if (axiosError.code === 'ECONNABORTED') {",
+            "lineNumber": 234
+          },
+          {
+            "text": "        return new Error('请求超时，请稍后重试');",
+            "lineNumber": 235
+          },
+          {
+            "text": "      }",
+            "lineNumber": 236
+          },
+          {
+            "text": "      return new Error('网络错误，请检查网络连接');",
+            "lineNumber": 237
+          },
+          {
+            "text": "    }",
+            "lineNumber": 238
+          },
+          {
+            "text": "    return error instanceof Error ? error : new Error('未知错误');",
+            "lineNumber": 239
+          },
+          {
+            "text": "  }",
+            "lineNumber": 240
+          },
+          {
+            "lineNumber": 241
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 242
+          },
+          {
+            "text": "   * 睡眠函数（用于重试延迟）",
+            "lineNumber": 243
+          },
+          {
+            "text": "   */",
+            "lineNumber": 244
+          },
+          {
+            "text": "  private sleep(ms: number): Promise&lt;void&gt; {",
+            "lineNumber": 245
+          },
+          {
+            "text": "    return new Promise(resolve =&gt; setTimeout(resolve, ms));",
+            "lineNumber": 246
+          },
+          {
+            "text": "  }",
+            "lineNumber": 247
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.09595049917697906
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/LocalProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 232,
+            "column": 1
+          }
+        },
+        "contents": "export class LocalProvider implements ILLMProvider {\n\n\n  /**\n   * 处理错误\n   */\n  private handleError(error: any): Error {\n    if (axios.isAxiosError(error)) {\n      const axiosError = error as AxiosError;\n      if (axiosError.response) {\n        const status = axiosError.response.status;\n        const data = axiosError.response.data as any;\n        \n        switch (status) {\n          case 401:\n            return new Error('API密钥无效');\n          case 404:\n            return new Error('本地模型服务未运行，请检查服务地址');\n          case 429:\n            return new Error('请求频率过高，请稍后重试');\n          case 500:\n          case 502:\n          case 503:\n            return new Error('本地模型服务暂时不可用，请稍后重试');\n          default:\n            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);\n        }\n      }\n      if (axiosError.code === 'ECONNABORTED') {\n        return new Error('请求超时，请稍后重试');\n      }\n      if (axiosError.code === 'ECONNREFUSED') {\n        return new Error('无法连接到本地模型服务，请检查服务是否运行');\n      }\n      return new Error('网络错误，请检查网络连接');\n    }\n    return error instanceof Error ? error : new Error('未知错误');\n  }\n\n  /**\n   * 睡眠函数（用于重试延迟）\n   */\n  private sleep(ms: number): Promise&lt;void&gt; {\n    return new Promise(resolve =&gt; setTimeout(resolve, ms));\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LocalProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 191
+          },
+          {
+            "text": "   * 处理错误",
+            "lineNumber": 192
+          },
+          {
+            "text": "   */",
+            "lineNumber": 193
+          },
+          {
+            "text": "  private handleError(error: any): Error {",
+            "lineNumber": 194
+          },
+          {
+            "text": "    if (axios.isAxiosError(error)) {",
+            "lineNumber": 195
+          },
+          {
+            "text": "      const axiosError = error as AxiosError;",
+            "lineNumber": 196
+          },
+          {
+            "text": "      if (axiosError.response) {",
+            "lineNumber": 197
+          },
+          {
+            "text": "        const status = axiosError.response.status;",
+            "lineNumber": 198
+          },
+          {
+            "text": "        const data = axiosError.response.data as any;",
+            "lineNumber": 199
+          },
+          {
+            "text": "        ",
+            "lineNumber": 200
+          },
+          {
+            "text": "        switch (status) {",
+            "lineNumber": 201
+          },
+          {
+            "text": "          case 401:",
+            "lineNumber": 202
+          },
+          {
+            "text": "            return new Error('API密钥无效');",
+            "lineNumber": 203
+          },
+          {
+            "text": "          case 404:",
+            "lineNumber": 204
+          },
+          {
+            "text": "            return new Error('本地模型服务未运行，请检查服务地址');",
+            "lineNumber": 205
+          },
+          {
+            "text": "          case 429:",
+            "lineNumber": 206
+          },
+          {
+            "text": "            return new Error('请求频率过高，请稍后重试');",
+            "lineNumber": 207
+          },
+          {
+            "text": "          case 500:",
+            "lineNumber": 208
+          },
+          {
+            "text": "          case 502:",
+            "lineNumber": 209
+          },
+          {
+            "text": "          case 503:",
+            "lineNumber": 210
+          },
+          {
+            "text": "            return new Error('本地模型服务暂时不可用，请稍后重试');",
+            "lineNumber": 211
+          },
+          {
+            "text": "          default:",
+            "lineNumber": 212
+          },
+          {
+            "text": "            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);",
+            "lineNumber": 213
+          },
+          {
+            "text": "        }",
+            "lineNumber": 214
+          },
+          {
+            "text": "      }",
+            "lineNumber": 215
+          },
+          {
+            "text": "      if (axiosError.code === 'ECONNABORTED') {",
+            "lineNumber": 216
+          },
+          {
+            "text": "        return new Error('请求超时，请稍后重试');",
+            "lineNumber": 217
+          },
+          {
+            "text": "      }",
+            "lineNumber": 218
+          },
+          {
+            "text": "      if (axiosError.code === 'ECONNREFUSED') {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        return new Error('无法连接到本地模型服务，请检查服务是否运行');",
+            "lineNumber": 220
+          },
+          {
+            "text": "      }",
+            "lineNumber": 221
+          },
+          {
+            "text": "      return new Error('网络错误，请检查网络连接');",
+            "lineNumber": 222
+          },
+          {
+            "text": "    }",
+            "lineNumber": 223
+          },
+          {
+            "text": "    return error instanceof Error ? error : new Error('未知错误');",
+            "lineNumber": 224
+          },
+          {
+            "text": "  }",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 227
+          },
+          {
+            "text": "   * 睡眠函数（用于重试延迟）",
+            "lineNumber": 228
+          },
+          {
+            "text": "   */",
+            "lineNumber": 229
+          },
+          {
+            "text": "  private sleep(ms: number): Promise&lt;void&gt; {",
+            "lineNumber": 230
+          },
+          {
+            "text": "    return new Promise(resolve =&gt; setTimeout(resolve, ms));",
+            "lineNumber": 231
+          },
+          {
+            "text": "  }",
+            "lineNumber": 232
+          },
+          {
+            "text": "}",
+            "lineNumber": 233,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.09142380207777023
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "column": 42
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool, ToolCall } from './types';\n\n/**\n * OpenAI Provider 实现\n */\nexport class OpenAIProvider implements ILLMProvider {\n  private apiKey: string;\n  private apiBaseUrl: string;\n  private timeout: number = 180000; // 180秒超时（对于复杂任务和工具调用场景，支持多轮工具调用）\n  private maxRetries: number = 3;\n\n  constructor(apiKey: string, apiBaseUrl?: string) {\n    this.apiKey = apiKey;\n    this.apiBaseUrl = apiBaseUrl || 'https://api.openai.com/v1';\n  }\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    \n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool, ToolCall } from './types';",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "/**",
+            "lineNumber": 4
+          },
+          {
+            "text": " * OpenAI Provider 实现",
+            "lineNumber": 5
+          },
+          {
+            "text": " */",
+            "lineNumber": 6
+          },
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "  private apiKey: string;",
+            "lineNumber": 8
+          },
+          {
+            "text": "  private apiBaseUrl: string;",
+            "lineNumber": 9
+          },
+          {
+            "text": "  private timeout: number = 180000; // 180秒超时（对于复杂任务和工具调用场景，支持多轮工具调用）",
+            "lineNumber": 10
+          },
+          {
+            "text": "  private maxRetries: number = 3;",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "  constructor(apiKey: string, apiBaseUrl?: string) {",
+            "lineNumber": 13
+          },
+          {
+            "text": "    this.apiKey = apiKey;",
+            "lineNumber": 14
+          },
+          {
+            "text": "    this.apiBaseUrl = apiBaseUrl || 'https://api.openai.com/v1';",
+            "lineNumber": 15
+          },
+          {
+            "text": "  }",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 18
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 19
+          },
+          {
+            "text": "   */",
+            "lineNumber": 20
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    ",
+            "lineNumber": 22
+          },
+          {
+            "text": "  }",
+            "lineNumber": 91
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07879889756441116
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/GoogleProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 263,
+            "column": 1
+          }
+        },
+        "contents": "export class GoogleProvider implements ILLMProvider {\n\n\n  /**\n   * 处理错误\n   */\n  private handleError(error: any): Error {\n    if (axios.isAxiosError(error)) {\n      const axiosError = error as AxiosError;\n      if (axiosError.response) {\n        const status = axiosError.response.status;\n        const data = axiosError.response.data as any;\n        \n        switch (status) {\n          case 401:\n            return new Error('API密钥无效');\n          case 429:\n            return new Error('请求频率过高，请稍后重试');\n          case 500:\n          case 502:\n          case 503:\n            return new Error('Google服务暂时不可用，请稍后重试');\n          default:\n            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);\n        }\n      }\n      if (axiosError.code === 'ECONNABORTED') {\n        return new Error('请求超时，请稍后重试');\n      }\n      return new Error('网络错误，请检查网络连接');\n    }\n    return error instanceof Error ? error : new Error('未知错误');\n  }\n\n  /**\n   * 睡眠函数（用于重试延迟）\n   */\n  private sleep(ms: number): Promise&lt;void&gt; {\n    return new Promise(resolve =&gt; setTimeout(resolve, ms));\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class GoogleProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 227
+          },
+          {
+            "text": "   * 处理错误",
+            "lineNumber": 228
+          },
+          {
+            "text": "   */",
+            "lineNumber": 229
+          },
+          {
+            "text": "  private handleError(error: any): Error {",
+            "lineNumber": 230
+          },
+          {
+            "text": "    if (axios.isAxiosError(error)) {",
+            "lineNumber": 231
+          },
+          {
+            "text": "      const axiosError = error as AxiosError;",
+            "lineNumber": 232
+          },
+          {
+            "text": "      if (axiosError.response) {",
+            "lineNumber": 233
+          },
+          {
+            "text": "        const status = axiosError.response.status;",
+            "lineNumber": 234
+          },
+          {
+            "text": "        const data = axiosError.response.data as any;",
+            "lineNumber": 235
+          },
+          {
+            "text": "        ",
+            "lineNumber": 236
+          },
+          {
+            "text": "        switch (status) {",
+            "lineNumber": 237
+          },
+          {
+            "text": "          case 401:",
+            "lineNumber": 238
+          },
+          {
+            "text": "            return new Error('API密钥无效');",
+            "lineNumber": 239
+          },
+          {
+            "text": "          case 429:",
+            "lineNumber": 240
+          },
+          {
+            "text": "            return new Error('请求频率过高，请稍后重试');",
+            "lineNumber": 241
+          },
+          {
+            "text": "          case 500:",
+            "lineNumber": 242
+          },
+          {
+            "text": "          case 502:",
+            "lineNumber": 243
+          },
+          {
+            "text": "          case 503:",
+            "lineNumber": 244
+          },
+          {
+            "text": "            return new Error('Google服务暂时不可用，请稍后重试');",
+            "lineNumber": 245
+          },
+          {
+            "text": "          default:",
+            "lineNumber": 246
+          },
+          {
+            "text": "            return new Error(data?.error?.message || &#96;API请求失败: ${status}&#96;);",
+            "lineNumber": 247
+          },
+          {
+            "text": "        }",
+            "lineNumber": 248
+          },
+          {
+            "text": "      }",
+            "lineNumber": 249
+          },
+          {
+            "text": "      if (axiosError.code === 'ECONNABORTED') {",
+            "lineNumber": 250
+          },
+          {
+            "text": "        return new Error('请求超时，请稍后重试');",
+            "lineNumber": 251
+          },
+          {
+            "text": "      }",
+            "lineNumber": 252
+          },
+          {
+            "text": "      return new Error('网络错误，请检查网络连接');",
+            "lineNumber": 253
+          },
+          {
+            "text": "    }",
+            "lineNumber": 254
+          },
+          {
+            "text": "    return error instanceof Error ? error : new Error('未知错误');",
+            "lineNumber": 255
+          },
+          {
+            "text": "  }",
+            "lineNumber": 256
+          },
+          {
+            "lineNumber": 257
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 258
+          },
+          {
+            "text": "   * 睡眠函数（用于重试延迟）",
+            "lineNumber": 259
+          },
+          {
+            "text": "   */",
+            "lineNumber": 260
+          },
+          {
+            "text": "  private sleep(ms: number): Promise&lt;void&gt; {",
+            "lineNumber": 261
+          },
+          {
+            "text": "    return new Promise(resolve =&gt; setTimeout(resolve, ms));",
+            "lineNumber": 262
+          },
+          {
+            "text": "  }",
+            "lineNumber": 263
+          },
+          {
+            "text": "}",
+            "lineNumber": 264,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07841116189956665
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/AnthropicProvider.ts",
+        "range": {
+          "startPosition": {
+            "column": 42
+          },
+          "endPosition": {
+            "line": 252,
+            "column": 1
+          }
+        },
+        "contents": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool, ToolCall } from './types';\n\n/**\n * Anthropic (Claude) Provider 实现\n */\nexport class AnthropicProvider implements ILLMProvider {\n  private apiKey: string;\n  private apiBaseUrl: string;\n  private timeout: number = 180000; // 180秒超时\n  private maxRetries: number = 3;\n\n  constructor(apiKey: string, apiBaseUrl?: string) {\n    this.apiKey = apiKey;\n    this.apiBaseUrl = apiBaseUrl || 'https://api.anthropic.com/v1';\n  }\n\n  /**\n   * 发送聊天请求\n   */\n  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {\n    \n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { ILLMProvider, ChatMessage, LLMConfig, LLMResponse, Tool, ToolCall } from './types';",
+            "lineNumber": 2
+          },
+          {
+            "lineNumber": 3
+          },
+          {
+            "text": "/**",
+            "lineNumber": 4
+          },
+          {
+            "text": " * Anthropic (Claude) Provider 实现",
+            "lineNumber": 5
+          },
+          {
+            "text": " */",
+            "lineNumber": 6
+          },
+          {
+            "text": "export class AnthropicProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "  private apiKey: string;",
+            "lineNumber": 8
+          },
+          {
+            "text": "  private apiBaseUrl: string;",
+            "lineNumber": 9
+          },
+          {
+            "text": "  private timeout: number = 180000; // 180秒超时",
+            "lineNumber": 10
+          },
+          {
+            "text": "  private maxRetries: number = 3;",
+            "lineNumber": 11
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "  constructor(apiKey: string, apiBaseUrl?: string) {",
+            "lineNumber": 13
+          },
+          {
+            "text": "    this.apiKey = apiKey;",
+            "lineNumber": 14
+          },
+          {
+            "text": "    this.apiBaseUrl = apiBaseUrl || 'https://api.anthropic.com/v1';",
+            "lineNumber": 15
+          },
+          {
+            "text": "  }",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 18
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 19
+          },
+          {
+            "text": "   */",
+            "lineNumber": 20
+          },
+          {
+            "text": "  async chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    ",
+            "lineNumber": 22
+          },
+          {
+            "text": "  }",
+            "lineNumber": 115
+          },
+          {
+            "text": "}",
+            "lineNumber": 253,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07615982741117477
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 28,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * LLM Provider 类型定义\n */\n\n/**\n * 统一消息格式\n */\nexport interface ChatMessage {\n  role: 'system' | 'user' | 'assistant' | 'tool';\n  content: string;\n  name?: string;        // tool调用时的函数名\n  tool_call_id?: string;\n}\n\n/**\n * 工具定义（用于 Function Calling）\n */\nexport interface Tool {\n  type: 'function'\n;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 1
+          },
+          {
+            "text": " * LLM Provider 类型定义",
+            "lineNumber": 2
+          },
+          {
+            "text": " */",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "/**",
+            "lineNumber": 5
+          },
+          {
+            "text": " * 统一消息格式",
+            "lineNumber": 6
+          },
+          {
+            "text": " */",
+            "lineNumber": 7
+          },
+          {
+            "text": "export interface ChatMessage {",
+            "lineNumber": 8,
+            "isSignature": true
+          },
+          {
+            "text": "  role: 'system' | 'user' | 'assistant' | 'tool';",
+            "lineNumber": 9
+          },
+          {
+            "text": "  content: string;",
+            "lineNumber": 10
+          },
+          {
+            "text": "  name?: string;        // tool调用时的函数名",
+            "lineNumber": 11
+          },
+          {
+            "text": "  tool_call_id?: string;",
+            "lineNumber": 12,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 13,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 14
+          },
+          {
+            "text": "/**",
+            "lineNumber": 15
+          },
+          {
+            "text": " * 工具定义（用于 Function Calling）",
+            "lineNumber": 16
+          },
+          {
+            "text": " */",
+            "lineNumber": 17
+          },
+          {
+            "text": "export interface Tool {",
+            "lineNumber": 18,
+            "isSignature": true
+          },
+          {
+            "text": "  type: 'function'",
+            "lineNumber": 19
+          },
+          {
+            "text": ";",
+            "lineNumber": 28,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 29,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07563495635986328
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {
+            "line": 69,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 89,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * LLM Provider 接口\n */\nexport interface ILLMProvider {\n  /**\n   * 发送聊天请求\n   * @param messages 消息列表\n   * @param config LLM配置\n   * @param tools 可选的工具定义列表（用于 Function Calling）\n   * @returns LLM响应\n   */\n  chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt;;\n  \n  /**\n   * 测试连接\n   * @returns 是否连接成功\n   */\n  testConnection(): Promise&lt;boolean&gt;;\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 72
+          },
+          {
+            "text": " * LLM Provider 接口",
+            "lineNumber": 73
+          },
+          {
+            "text": " */",
+            "lineNumber": 74
+          },
+          {
+            "text": "export interface ILLMProvider {",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 76
+          },
+          {
+            "text": "   * 发送聊天请求",
+            "lineNumber": 77
+          },
+          {
+            "text": "   * @param messages 消息列表",
+            "lineNumber": 78
+          },
+          {
+            "text": "   * @param config LLM配置",
+            "lineNumber": 79
+          },
+          {
+            "text": "   * @param tools 可选的工具定义列表（用于 Function Calling）",
+            "lineNumber": 80
+          },
+          {
+            "text": "   * @returns LLM响应",
+            "lineNumber": 81
+          },
+          {
+            "text": "   */",
+            "lineNumber": 82
+          },
+          {
+            "text": "  chat(messages: ChatMessage[], config: LLMConfig, tools?: Tool[]): Promise&lt;LLMResponse&gt;;",
+            "lineNumber": 83
+          },
+          {
+            "text": "  ",
+            "lineNumber": 84
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 85
+          },
+          {
+            "text": "   * 测试连接",
+            "lineNumber": 86
+          },
+          {
+            "text": "   * @returns 是否连接成功",
+            "lineNumber": 87
+          },
+          {
+            "text": "   */",
+            "lineNumber": 88
+          },
+          {
+            "text": "  testConnection(): Promise&lt;boolean&gt;;",
+            "lineNumber": 89,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 90,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.07382240146398544
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/types.ts",
+        "range": {
+          "startPosition": {
+            "line": 28,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 54,
+            "column": 1
+          }
+        },
+        "contents": "/**\n * 工具调用结果\n */\nexport interface ToolCall {\n  id: string;\n  type: 'function';\n  function: {\n    name: string;\n    arguments: string;  // JSON字符串\n  };\n}\n\n/**\n * LLM配置\n */\nexport interface LLMConfig {\n  provider\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "/**",
+            "lineNumber": 31
+          },
+          {
+            "text": " * 工具调用结果",
+            "lineNumber": 32
+          },
+          {
+            "text": " */",
+            "lineNumber": 33
+          },
+          {
+            "text": "export interface ToolCall {",
+            "lineNumber": 34,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 35
+          },
+          {
+            "text": "  type: 'function';",
+            "lineNumber": 36
+          },
+          {
+            "text": "  function: {",
+            "lineNumber": 37
+          },
+          {
+            "text": "    name: string;",
+            "lineNumber": 38
+          },
+          {
+            "text": "    arguments: string;  // JSON字符串",
+            "lineNumber": 39
+          },
+          {
+            "text": "  };",
+            "lineNumber": 40,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 41,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "text": "/**",
+            "lineNumber": 43
+          },
+          {
+            "text": " * LLM配置",
+            "lineNumber": 44
+          },
+          {
+            "text": " */",
+            "lineNumber": 45
+          },
+          {
+            "text": "export interface LLMConfig {",
+            "lineNumber": 46,
+            "isSignature": true
+          },
+          {
+            "text": "  provider",
+            "lineNumber": 47
+          },
+          {
+            "text": "}",
+            "lineNumber": 55,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.06706863641738892
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/llm/OpenAIProvider.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 247,
+            "column": 1
+          }
+        },
+        "contents": "export class OpenAIProvider implements ILLMProvider {\n\n\n  /**\n   * 格式化消息（OpenAI格式）\n   */\n  private formatMessages(messages: ChatMessage[]): any[] {\n    return messages.map(msg =&gt; {\n      const formatted: any = {\n        role: msg.role,\n        content: msg.content,\n      };\n\n      // 如果是 tool 消息，需要添加 name 和 tool_call_id\n      if (msg.role === 'tool') {\n        formatted.name = msg.name;\n        formatted.tool_call_id = msg.tool_call_id;\n      }\n\n      // 如果是 assistant 消息且包含 tool_calls，需要特殊处理\n      if (msg.role === 'assistant' &amp;&amp; msg.name) {\n        formatted.name = msg.name;\n      }\n\n      return formatted;\n    });\n  }\n\n  /**\n   * 解析响应\n   */\n  private parseResponse(data: any): LLMResponse {\n    const choice = data.choices[0];\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 7,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class OpenAIProvider implements ILLMProvider {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 120
+          },
+          {
+            "text": "   * 格式化消息（OpenAI格式）",
+            "lineNumber": 121
+          },
+          {
+            "text": "   */",
+            "lineNumber": 122
+          },
+          {
+            "text": "  private formatMessages(messages: ChatMessage[]): any[] {",
+            "lineNumber": 123
+          },
+          {
+            "text": "    return messages.map(msg =&gt; {",
+            "lineNumber": 124
+          },
+          {
+            "text": "      const formatted: any = {",
+            "lineNumber": 125
+          },
+          {
+            "text": "        role: msg.role,",
+            "lineNumber": 126
+          },
+          {
+            "text": "        content: msg.content,",
+            "lineNumber": 127
+          },
+          {
+            "text": "      };",
+            "lineNumber": 128
+          },
+          {
+            "lineNumber": 129
+          },
+          {
+            "text": "      // 如果是 tool 消息，需要添加 name 和 tool_call_id",
+            "lineNumber": 130
+          },
+          {
+            "text": "      if (msg.role === 'tool') {",
+            "lineNumber": 131
+          },
+          {
+            "text": "        formatted.name = msg.name;",
+            "lineNumber": 132
+          },
+          {
+            "text": "        formatted.tool_call_id = msg.tool_call_id;",
+            "lineNumber": 133
+          },
+          {
+            "text": "      }",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "      // 如果是 assistant 消息且包含 tool_calls，需要特殊处理",
+            "lineNumber": 136
+          },
+          {
+            "text": "      if (msg.role === 'assistant' &amp;&amp; msg.name) {",
+            "lineNumber": 137
+          },
+          {
+            "text": "        formatted.name = msg.name;",
+            "lineNumber": 138
+          },
+          {
+            "text": "      }",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 140
+          },
+          {
+            "text": "      return formatted;",
+            "lineNumber": 141
+          },
+          {
+            "text": "    });",
+            "lineNumber": 142
+          },
+          {
+            "text": "  }",
+            "lineNumber": 143
+          },
+          {
+            "lineNumber": 144
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 145
+          },
+          {
+            "text": "   * 解析响应",
+            "lineNumber": 146
+          },
+          {
+            "text": "   */",
+            "lineNumber": 147
+          },
+          {
+            "text": "  private parseResponse(data: any): LLMResponse {",
+            "lineNumber": 148
+          },
+          {
+            "text": "    const choice = data.choices[0];",
+            "lineNumber": 149
+          },
+          {
+            "text": "  }",
+            "lineNumber": 176
+          },
+          {
+            "text": "}",
+            "lineNumber": 248,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.05993799865245819
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+编写测试脚本验证配置，并检查流式响应处理：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/routes/aiRole.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+检查 ProviderFactory 是否支持 custom provider，并确认流式响应处理：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/ProviderFactory.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/routes/aiRole.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+发现两个问题需要修复。先验证并修复：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "custom.*provider|provider.*custom",
+  "caseInsensitive": true
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "custom.*provider|provider.*custom",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Volumes/Lexar/git/03T/todify4": {
+        "content": {
+          "matches": [
+            {
+              "file": "./.specstory/history/2026-01-13_05-38Z-llm-configuration-chat-completions-api.md",
+              "matches": [
+                {
+                  "lineNumber": 537,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n    stream?: boolean;     // 是否使用流式响应\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: T [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 558,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 2338,
+                  "content": "        \"contents\": \"    LG--&amp;gt;&amp;gt;API: 返回结果\\n&amp;#96;&amp;#96;&amp;#96;\\n\\n---\\n\\n### 3.4 前端调用节点统计\\n\\n#### 前端服务层（10个）\\n1. &amp;#96;workflowAPI.aiSearch()&amp;#96;\\n2. &amp;#96;workflowAPI.smartSearch()&amp;#96;\\n3. &amp;#96;workflowAPI.techPackage()&amp;#96;\\n4. &amp;#96;workflowAPI.techStrategy()&amp;#96;\\n5. &amp;#96;workflowAPI.techArticle()&amp;#96;\\n6. &amp;#96;workflowAPI.coreDraft()&amp;#96;\\n7. &amp;#96;aiRoleService.chatWithRole()&amp;#96;\\n8. &amp;#96;aiSearchService.triggerFeatureAgent()&amp;#96;\\n9. &amp;#96;WorkflowEngine.callAgent()&amp;#96;\\n10. 各节点组件的AI调用方法\\n\\n#### 后端服务层（15个）\\n1. &amp;#96;AgentOrchestrator.executeAgent()&amp;#96;\\n2. &amp;#96;DifyClient.aiSearch()&amp;#96;\\n3. &amp;#96;DifyClient.techPackage()&amp;#96;\\n4. &amp;#96;DifyClient.techStrategy()&amp;#96;\\n5. &amp;#96;DifyClient.techArticle()&amp;#96;\\n6. &amp;#96;DifyClient.coreDraft()&amp;#96;\\n7. &amp;#96;DifyClient.techPublish()&amp;#96;\\n8. &amp;#96;DifyClient.callApp()&amp;#96;\\n9. &amp;#96;DifyClient.runWorkflow()&amp;#96;\\n10. &amp;#96;TriggerAgentUseCase.execute()&amp;#96;\\n11. &amp;#96;ToolExecutor.executeTool()&amp;#96; (agent类型)\\n12. &amp;#96;SendMessageUseCase.exec [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 3843,
+                  "content": "        \"contents\": \"const AIRoleManagementPage: React.FC = \\n\\n                    &amp;lt;div className=\\\"space-y-6\\\"&amp;gt;\\n                      {/* LLM 配置 Tab */}\\n                      {activeTab === 'llm' &amp;amp;&amp;amp; (\\n                        &amp;lt;div className=\\\"space-y-4\\\"&amp;gt;\\n                          &amp;lt;div&amp;gt;\\n                            &amp;lt;label className=\\\"block text-base font-medium text-gray-700 mb-2\\\"&amp;gt;\\n                              LLM Provider *\\n                            &amp;lt;/label&amp;gt;\\n                            &amp;lt;select\\n                              value={formData.agentConfig?.llm?.provider || 'openai'}\\n                              onChange={(e) =&amp;gt; {\\n                                setFormData(prev =&amp;gt; ({\\n                                  ...prev,\\n                                  agentConfig: {\\n                                    ...prev.agentConfig!,\\n                                    llm: {\\n                                      ...prev.agen [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 4031,
+                  "content": "        \"contents\": \";\\n}\\n\\n/**\\n * Direct Agent配置\\n */\\nexport interface DirectAgentConfig {\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;\\n    model: string;\\n    temperature: number;\\n    maxTokens: number;\\n    topP?: number;\\n    stream?: boolean;  // 是否使用流式响应\\n  };\\n  prompt: {\\n    systemPrompt: string;\\n    variables?: PromptVariable[];\\n    templates?: PromptTemplate[];\\n  };\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';\\n    maxMessages: number;\\n    maxTokens: number;\\n    summaryThreshold?: number;\\n    includeSystemPrompt: boolean;\\n  };\\n  tools?: ToolConfig[];\\n  agentCalls?: AgentCallConfig[];\\n}\\n\\n/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 4069,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 5049,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 5181,
+                  "content": "        \"contents\": \"import aiRoleService from '../services/aiRoleService';\\n\\nconst DEFAULT_CONTEXT_STRATEGY: DirectAgentConfig['contextStrategy'] = {\\n  type: 'window',\\n  maxMessages: 20,\\n  maxTokens: 4000,\\n  includeSystemPrompt: true\\n};\\n\\nexport const PRESET_ROLES: Record&amp;lt;string, Partial&amp;lt;AIRoleConfig&amp;gt;&amp;gt; = {\\n  'five-view-analysis': {\\n    name: '技术转译（五看）助手',\\n    description: '用于进行\\\"五看\\\"（看行业、看市场、看客户、看竞争、看自己）分析。',\\n    provider: 'direct-agent',\\n    agentConfig: {\\n      llm: {\\n        provider: 'openai',\\n        model: 'gpt-4o',\\n        temperature: 0.7,\\n        maxTokens: 2000,\\n        apiKey: 'sk-placeholder-please-update',\\n      },\\n      prompt: {\\n        systemPrompt: &amp;#96;你是一位战略分析专家，擅长使用\\\"五看\\\"方法论进行深度分析。\\n\\n你的任务是根据输入的信息，进行以下五个维度的分析：\\n1. **看行业 (Industry)**: 行业趋势、政策导向、技术变革。\\n2. **看市场 (Market)**: 市场规模、增长潜力、细分领域。\\n3. **看客户 (Customer)**: 客户画像、痛点需求、购买行为。\\n4. **看竞争 (Competition)**: 竞争格局、主要对手、SWOT分析。\\n5. **看自己 (Self)**: 自身优势、短板、核心竞争力。\\n\\n请输出结构化的分析报告，并给出战略建议。&amp;#96; [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 5585,
+                  "content": "        \"contents\": \"/**\\n * LLM配置\\n */\\nexport interface LLMConfig {\\n  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\\n  apiKey: string;\\n  apiBaseUrl?: string;\\n  model: string;\\n  temperature: number;\\n  maxTokens: number;\\n  topP?: number;\\n  stream?: boolean;  // 是否使用流式响应\\n}\\n\\n/**\\n * LLM响应\\n */\\nexport interface LLMResponse {\\n  content: string;\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 5606,
+                  "content": "            \"text\": \"  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\","
+                },
+                {
+                  "lineNumber": 6629,
+                  "content": "        \"contents\": \"/**\\n * LLM配置\\n */\\nexport interface LLMConfig {\\n  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\\n  apiKey: string;\\n  apiBaseUrl?: string;\\n  model: string;\\n  temperature: number;\\n  maxTokens: number;\\n  topP?: number;\\n  stream?: boolean;  // 是否使用流式响应\\n}\\n\\n/**\\n * LLM响应\\n */\\nexport interface LLMResponse {\\n  content: string;\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 6650,
+                  "content": "            \"text\": \"  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';\","
+                },
+                {
+                  "lineNumber": 7782,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n    stream?: boolean;     // 是否使用流式响应\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: T [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7803,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 8742,
+                  "content": "        \"contents\": \";\\n}\\n\\n/**\\n * Direct Agent配置\\n */\\nexport interface DirectAgentConfig {\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;\\n    model: string;\\n    temperature: number;\\n    maxTokens: number;\\n    topP?: number;\\n    stream?: boolean;  // 是否使用流式响应\\n  };\\n  prompt: {\\n    systemPrompt: string;\\n    variables?: PromptVariable[];\\n    templates?: PromptTemplate[];\\n  };\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';\\n    maxMessages: number;\\n    maxTokens: number;\\n    summaryThreshold?: number;\\n    includeSystemPrompt: boolean;\\n  };\\n  tools?: ToolConfig[];\\n  agentCalls?: AgentCallConfig[];\\n}\\n\\n/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 8780,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 10233,
+                  "content": "        \"contents\": \"const DirectAgentConfigSection: React.FC&amp;lt;{\\n  formData: Partial&amp;lt;AIRoleConfig&amp;gt;;\\n  updateFormField: (field: string, value: any) =&amp;gt; void;\\n  activeTab: DirectAgentTab;\\n  setActiveTab: (tab: DirectAgentTab) =&amp;gt; void;\\n  showApiKey: boolean;\\n  setShowApiKey: (show: boolean) =&amp;gt; void;\\n  errors: Record&amp;lt;string, string&amp;gt;;\\n  hideTabs?: boolean;\\n}&amp;gt; = \\n}\\n      {activeTab === 'llm' &amp;amp;&amp;amp; (\\n        &amp;lt;div className=\\\"space-y-4\\\"&amp;gt;\\n          &amp;lt;div&amp;gt;\\n            &amp;lt;label className=\\\"block text-base font-medium text-gray-700 mb-2\\\"&amp;gt;\\n              LLM Provider &amp;lt;span className=\\\"text-red-500\\\"&amp;gt;*&amp;lt;/span&amp;gt;\\n            &amp;lt;/label&amp;gt;\\n            &amp;lt;select\\n              value={formData.agentConfig?.llm?.provider || 'openai'}\\n              onChange={(e) =&amp;gt; {\\n                updateFormField('agentConfig.llm.provider', e.target.value);\\n              }}\\n              className=\\\"w-full px-4 py-2 text-base border border- [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 19076,
+                  "content": "1. 选择 **Provider**：选择 &#96;custom&#96;（自定义端点）"
+                },
+                {
+                  "lineNumber": 19142,
+                  "content": "  \"query\": \"Direct Agent LLM configuration save create API endpoint custom provider\","
+                }
+              ]
+            },
+            {
+              "file": "./backend/src/models/Brainstorm.ts",
+              "matches": [
+                {
+                  "lineNumber": 72,
+                  "content": "    provider: 'same-as-agents' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./frontend/src/types/brainstorm.ts",
+              "matches": [
+                {
+                  "lineNumber": 70,
+                  "content": "    provider: 'same-as-agents' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2026-01-12_05-38Z-页面刷新问题.md",
+              "matches": [
+                {
+                  "lineNumber": 1380,
+                  "content": "        \"contents\": \"import aiRoleService from '../services/aiRoleService';\\n\\nconst DEFAULT_CONTEXT_STRATEGY: DirectAgentConfig['contextStrategy'] = {\\n  type: 'window',\\n  maxMessages: 20,\\n  maxTokens: 4000,\\n  includeSystemPrompt: true\\n};\\n\\nexport const PRESET_ROLES: Record&amp;lt;string, Partial&amp;lt;AIRoleConfig&amp;gt;&amp;gt; = {\\n  'five-view-analysis': {\\n    name: '技术转译（五看）助手',\\n    description: '用于进行\\\"五看\\\"（看行业、看市场、看客户、看竞争、看自己）分析。',\\n    provider: 'direct-agent',\\n    agentConfig: {\\n      llm: {\\n        provider: 'openai',\\n        model: 'gpt-4o',\\n        temperature: 0.7,\\n        maxTokens: 2000,\\n        apiKey: 'sk-placeholder-please-update',\\n      },\\n      prompt: {\\n        systemPrompt: &amp;#96;你是一位战略分析专家，擅长使用\\\"五看\\\"方法论进行深度分析。\\n\\n你的任务是根据输入的信息，进行以下五个维度的分析：\\n1. **看行业 (Industry)**: 行业趋势、政策导向、技术变革。\\n2. **看市场 (Market)**: 市场规模、增长潜力、细分领域。\\n3. **看客户 (Customer)**: 客户画像、痛点需求、购买行为。\\n4. **看竞争 (Competition)**: 竞争格局、主要对手、SWOT分析。\\n5. **看自己 (Self)**: 自身优势、短板、核心竞争力。\\n\\n请输出结构化的分析报告，并给出战略建议。&amp;#96; [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 4152,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n    stream?: boolean;     // 是否使用流式响应\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: T [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 4173,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 12619,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n    stream?: boolean;     // 是否使用流式响应\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: T [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 12640,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 12811,
+                  "content": "        \"contents\": \";\\n}\\n\\n/**\\n * Direct Agent配置\\n */\\nexport interface DirectAgentConfig {\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;\\n    model: string;\\n    temperature: number;\\n    maxTokens: number;\\n    topP?: number;\\n    stream?: boolean;  // 是否使用流式响应\\n  };\\n  prompt: {\\n    systemPrompt: string;\\n    variables?: PromptVariable[];\\n    templates?: PromptTemplate[];\\n  };\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';\\n    maxMessages: number;\\n    maxTokens: number;\\n    summaryThreshold?: number;\\n    includeSystemPrompt: boolean;\\n  };\\n  tools?: ToolConfig[];\\n  agentCalls?: AgentCallConfig[];\\n}\\n\\n/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 12849,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 13756,
+                  "content": "        \"contents\": \"import aiRoleService from '../services/aiRoleService';\\n\\nconst DEFAULT_CONTEXT_STRATEGY: DirectAgentConfig['contextStrategy'] = {\\n  type: 'window',\\n  maxMessages: 20,\\n  maxTokens: 4000,\\n  includeSystemPrompt: true\\n};\\n\\nexport const PRESET_ROLES: Record&amp;lt;string, Partial&amp;lt;AIRoleConfig&amp;gt;&amp;gt; = {\\n  'five-view-analysis': {\\n    name: '技术转译（五看）助手',\\n    description: '用于进行\\\"五看\\\"（看行业、看市场、看客户、看竞争、看自己）分析。',\\n    provider: 'direct-agent',\\n    agentConfig: {\\n      llm: {\\n        provider: 'openai',\\n        model: 'gpt-4o',\\n        temperature: 0.7,\\n        maxTokens: 2000,\\n        apiKey: 'sk-placeholder-please-update',\\n      },\\n      prompt: {\\n        systemPrompt: &amp;#96;你是一位战略分析专家，擅长使用\\\"五看\\\"方法论进行深度分析。\\n\\n你的任务是根据输入的信息，进行以下五个维度的分析：\\n1. **看行业 (Industry)**: 行业趋势、政策导向、技术变革。\\n2. **看市场 (Market)**: 市场规模、增长潜力、细分领域。\\n3. **看客户 (Customer)**: 客户画像、痛点需求、购买行为。\\n4. **看竞争 (Competition)**: 竞争格局、主要对手、SWOT分析。\\n5. **看自己 (Self)**: 自身优势、短板、核心竞争力。\\n\\n请输出结构化的分析报告，并给出战略建议。&amp;#96; [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 16084,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 17082,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 17529,
+                  "content": "        \"contents\": \"| **ToolExecutor** | &amp;#96;services/agent/ToolExecutor.ts&amp;#96; | 6种工具类型执行 | &amp;#96;executeTool()&amp;#96; | DifyClient, LangGraphEngine, AgentOrchestrator |\\n| **DifyClient** | &amp;#96;services/DifyClient.ts&amp;#96; | Dify平台统一客户端 | &amp;#96;aiSearch()&amp;#96;, &amp;#96;techPackage()&amp;#96;, etc. | DifyGateway |\\n| **LangGraphEngine** | &amp;#96;services/workflow/langgraph/LangGraphEngine.ts&amp;#96; | DAG工作流执行引擎 | &amp;#96;execute()&amp;#96; | NodeRegistry, AgentOrchestrator, DifyGateway |\\n| **NodeRegistry** | &amp;#96;services/workflow/nodes/NodeRegistry.ts&amp;#96; | 节点类型插件化注册 | &amp;#96;register()&amp;#96;, &amp;#96;execute()&amp;#96; | 9种节点执行器 |\\n\\n### 2.3 Direct Agent配置结构\\n\\n&amp;#96;&amp;#96;&amp;#96;typescript\\ninterface DirectAgentConfig {\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;\\n    model: string;\\n    temperature: number;\\n    maxTokens: number;\\n    topP?: number;\\n    stream?: boolean;\\n  };\\n  prompt: {\\n    systemPrompt: string;\\n    varia [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 17571,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2026-01-12_02-39Z-multi-agent-brainstorming-technical-strategy-evaluation.md",
+              "matches": [
+                {
+                  "lineNumber": 9212,
+                  "content": "        \"contents\": \"/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled?: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n}\\n\\n/**\\n * 更新AI角色DTO\\n */\\nexport interface UpdateAIRoleDTO {\\n  name?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 9650,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 9970,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 18560,
+                  "content": "        \"contents\": \"import aiRoleService from '../services/aiRoleService';\\n\\nconst DEFAULT_CONTEXT_STRATEGY: DirectAgentConfig['contextStrategy'] = {\\n  type: 'window',\\n  maxMessages: 20,\\n  maxTokens: 4000,\\n  includeSystemPrompt: true\\n};\\n\\nexport const PRESET_ROLES: Record&amp;lt;string, Partial&amp;lt;AIRoleConfig&amp;gt;&amp;gt; = {\\n  'five-view-analysis': {\\n    name: '技术转译（五看）助手',\\n    description: '用于进行\\\"五看\\\"（看行业、看市场、看客户、看竞争、看自己）分析。',\\n    provider: 'direct-agent',\\n    agentConfig: {\\n      llm: {\\n        provider: 'openai',\\n        model: 'gpt-4o',\\n        temperature: 0.7,\\n        maxTokens: 2000,\\n        apiKey: 'sk-placeholder-please-update',\\n      },\\n      prompt: {\\n        systemPrompt: &amp;#96;你是一位战略分析专家，擅长使用\\\"五看\\\"方法论进行深度分析。\\n\\n你的任务是根据输入的信息，进行以下五个维度的分析：\\n1. **看行业 (Industry)**: 行业趋势、政策导向、技术变革。\\n2. **看市场 (Market)**: 市场规模、增长潜力、细分领域。\\n3. **看客户 (Customer)**: 客户画像、痛点需求、购买行为。\\n4. **看竞争 (Competition)**: 竞争格局、主要对手、SWOT分析。\\n5. **看自己 (Self)**: 自身优势、短板、核心竞争力。\\n\\n请输出结构化的分析报告，并给出战略建议。&amp;#96; [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./guide/BRAINSTORM_OPTIMIZATION_IMPLEMENTATION.md",
+              "matches": [
+                {
+                  "lineNumber": 186,
+                  "content": "      provider: 'custom',"
+                },
+                {
+                  "lineNumber": 230,
+                  "content": "      provider: 'custom',"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2026-01-12_01-57Z-ai-agent-角色、架构与优化.md",
+              "matches": [
+                {
+                  "lineNumber": 520,
+                  "content": "- 支持多种LLM Provider（openai, azure-openai, qwen, ernie, custom）"
+                },
+                {
+                  "lineNumber": 789,
+                  "content": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./guide/AI_AGENT_COMPLETE_ANALYSIS.md",
+              "matches": [
+                {
+                  "lineNumber": 168,
+                  "content": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';"
+                },
+                {
+                  "lineNumber": 458,
+                  "content": "- &#96;DirectAgentConfig&#96; 定义了5种Provider类型（openai, azure-openai, qwen, ernie, custom）"
+                },
+                {
+                  "lineNumber": 484,
+                  "content": "        return new CustomProvider(config);"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2026-01-09_01-01Z-todify4-阿里云-docker-化部署.md",
+              "matches": [
+                {
+                  "lineNumber": 1681,
+                  "content": "-   provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';"
+                },
+                {
+                  "lineNumber": 1682,
+                  "content": "+   provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';"
+                },
+                {
+                  "lineNumber": 1778,
+                  "content": "   - 修复：将 &#96;provider&#96; 类型从 &#96;'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom'&#96; 扩展为包含 &#96;'anthropic' | 'google' | 'local'&#96;"
+                }
+              ]
+            },
+            {
+              "file": "./backend/src/services/llm/types.ts",
+              "matches": [
+                {
+                  "lineNumber": 47,
+                  "content": "  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom' | 'anthropic' | 'google' | 'local';"
+                }
+              ]
+            },
+            {
+              "file": "./.cursor/plans/头脑风暴群聊功能_56f3b3c9.plan.md",
+              "matches": [
+                {
+                  "lineNumber": 157,
+                  "content": "    provider: 'same-as-agents' | 'custom'"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2026-01-06_02-49Z-多agent头脑风暴.md",
+              "matches": [
+                {
+                  "lineNumber": 647,
+                  "content": "  \"plan\": \"# 头脑风暴群聊功能实现规划\\n\\n## 一、架构设计\\n\\n### 1.1 核心机制\\n\\n采用**并行 Agent 协作**模式：\\n\\n&amp;#96;&amp;#96;&amp;#96;mermaid\\ngraph TB\\n    User[用户] --&amp;gt;|1_创建会话+选择话题| Session[头脑风暴会话]\\n    User --&amp;gt;|2_选择专家| Experts[专家角色池]\\n    Session --&amp;gt;|3_并行调度| Orchestrator[头脑风暴编排器]\\n    Orchestrator --&amp;gt;|同时调用| Agent1[专家Agent1]\\n    Orchestrator --&amp;gt;|同时调用| Agent2[专家Agent2]\\n    Orchestrator --&amp;gt;|同时调用| Agent3[专家AgentN]\\n    Agent1 --&amp;gt;|观点1| Discussion[讨论记录]\\n    Agent2 --&amp;gt;|观点2| Discussion\\n    Agent3 --&amp;gt;|观点N| Discussion\\n    Discussion --&amp;gt;|4_判断条件| StopCondition{终止条件?}\\n    StopCondition --&amp;gt;|否| Orchestrator\\n    StopCondition --&amp;gt;|是| Summary[生成总结]\\n    Summary --&amp;gt;|输出| Results[讨论成果]\\n&amp;#96;&amp;#96;&amp;#96;\\n\\n### 1.2 数据流转\\n\\n&amp;#96;&amp;#96;&amp;#96;mermaid\\nsequenceDiagram\\n    participant U as 用户\\n    participant F as 前端页面\\n    participant API as 后端API\\n    participant BO as 头脑风暴编排器\\n    participant A1 as Agent1\\n    participant A2 as Agent2\\n    participant DB as 数据库\\n    \\n    U-&amp;gt;&amp;gt;F: 创建会话+选择专家角色\\n   [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 1028,
+                  "content": "+     provider: 'same-as-agents' | 'custom';"
+                },
+                {
+                  "lineNumber": 2970,
+                  "content": "+     provider: 'same-as-agents' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./frontend/src/types/aiRole.ts",
+              "matches": [
+                {
+                  "lineNumber": 87,
+                  "content": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./backend/src/models/AIRole.ts",
+              "matches": [
+                {
+                  "lineNumber": 115,
+                  "content": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-19_02-58Z-ai-role-edit-save-issue.md",
+              "matches": [
+                {
+                  "lineNumber": 3497,
+                  "content": "        \"contents\": \"/**\\n * 更新AI角色DTO\\n */\\nexport interface UpdateAIRoleDTO {\\n  name?: string;\\n  description?: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled?: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n}\\n\\n// ==================== 模型类 ====================\\n\\n/**\\n * AI角色模型\\n */\\nexport class AIRoleModel {\\n  private db: DatabaseManager\\n}\","
+                },
+                {
+                  "lineNumber": 5574,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 18034,
+                  "content": "        \"contents\": \"const DirectAgentConfigSection: React.FC&amp;lt;{\\n  formData: Partial&amp;lt;AIRoleConfig&amp;gt;;\\n  updateFormField: (field: string, value: any) =&amp;gt; void;\\n  activeTab: DirectAgentTab;\\n  setActiveTab: (tab: DirectAgentTab) =&amp;gt; void;\\n  showApiKey: boolean;\\n  setShowApiKey: (show: boolean) =&amp;gt; void;\\n  errors: Record&amp;lt;string, string&amp;gt;;\\n  hideTabs?: boolean;\\n}&amp;gt; = \\n\\n\\n            ].map(tab =&amp;gt; {\\n              const Icon = tab.icon;\\n              return (\\n                &amp;lt;button\\n                  key={tab.id}\\n                  onClick={() =&amp;gt; setActiveTab(tab.id as DirectAgentTab)}\\n                  className={&amp;#96;flex items-center gap-2 px-4 py-2 border-b-2 transition-colors text-sm font-medium ${\\n                    activeTab === tab.id\\n                      ? 'border-blue-600 text-blue-600'\\n                      : 'border-transparent text-gray-500 hover:text-gray-700'\\n                  }&amp;#96;}\\n                &amp;gt;\\n                  &amp;lt; [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 39788,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-19_01-51Z-field-mapping-management-ai-module-addition.md",
+              "matches": [
+                {
+                  "lineNumber": 5785,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 7259,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 51437,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-12_01-28Z-ai-角色管理页面显示优化.md",
+              "matches": [
+                {
+                  "lineNumber": 12356,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'agent-workflow' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 13377,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-10_07-32Z-管理项目ai角色显示.md",
+              "matches": [
+                {
+                  "lineNumber": 5823,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  \\\\\\\"contents\\\\\\\": \\\\\\\"import express from 'express';\\\\\\\\nimport multer from 'multer';\\\\\\\\nimport path from 'path';\\\\\\\\nimport fs from 'fs';\\\\\\\\nimport DifyClient from '../services/DifyClient';\\\\\\\\nimport { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';\\\\\\\\nimport { aiRoleModel } from '../models';\\\\\\\\nimport { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';\\\\\\\\nimport { OpenAIProvider } from '../services/llm/OpenAIProvider';\\\\\\\\nimport { ChatMessage } from '../services/llm/types';\\\\\\\\nimport { AgentOrchestrator } from '../services/agent/AgentOrchestrator';\\\\\\\\nimport { FileService } from '../services/FileService';\\\\\\\\n\\\\\\\\nconst router = express.Router();\\\\\\\\n\\\\\\\\n// 配置multer用于文件上传\\\\\\\\nconst storage = multer.diskStorage({\\\\\\\\n  destination: (req, file, cb) =&amp;amp;amp;gt; {\\\\\\\\n    const uploadDir = 'uploads/ai-roles/';\\\\\\\\n    if (!fs.existsSync(uploadDir)) {\\\\\\\\n      fs.mkdirSyn [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 8745,
+                  "content": "                  \"content\": \"  \\\"contents\\\": \\\"import express from 'express';\\\\nimport multer from 'multer';\\\\nimport path from 'path';\\\\nimport fs from 'fs';\\\\nimport DifyClient from '../services/DifyClient';\\\\nimport { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';\\\\nimport { aiRoleModel } from '../models';\\\\nimport { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';\\\\nimport { OpenAIProvider } from '../services/llm/OpenAIProvider';\\\\nimport { ChatMessage } from '../services/llm/types';\\\\nimport { AgentOrchestrator } from '../services/agent/AgentOrchestrator';\\\\nimport { FileService } from '../services/FileService';\\\\n\\\\nconst router = express.Router();\\\\n\\\\n// 配置multer用于文件上传\\\\nconst storage = multer.diskStorage({\\\\n  destination: (req, file, cb) =&amp;amp;gt; {\\\\n    const uploadDir = 'uploads/ai-roles/';\\\\n    if (!fs.existsSync(uploadDir)) {\\\\n      fs.mkdirSync(uploadDir, { recursive: true });\\\\n    }\\\\n    cb(null, uploadDir);\\\\n  },\\\\n  fi [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 24871,
+                  "content": "        \"contents\": \"            ---\\n\\n\\n            **输出执行逻辑**:\\n\\n            1. **问题类型判断**: 分析用户问题特征和信息丰富度\\n\\n            2. **结构自适应**: 选择最适合的输出框架（A/B/C/D/E类）\\n\\n            3. **信息源整合**: 标注所有信息来源，确保透明度\\n\\n            4. **技术转译增强**: 为每个技术点提供通俗化理解\\n\\n            5. **质量保证**: 确保逻辑完整、信息准确、用户友好\\n\\n\\n            **输出质量标准**:\\n\\n            ✅ 信息来源透明，可追溯验证\\n\\n            ✅ 技术内容准确，逻辑完整\\n\\n            ✅ 结构清晰，层次分明\\n\\n            ✅ 专业性与可读性平衡\\n\\n            ✅ 突出技术价值和实际应用意义\\n\\n\\n            请基于以上框架生成结构化技术分析报告。'\\n        selected: false\\n        title: 整合后结构化输出\\n        type: llm\\n        variables: []\\n        vision:\\n          enabled: false\\n      height: 182\\n      id: '1758902818625'\\n      position:\\n        x: 1383.2291243347436\\n        y: 84.17026259905379\\n      positionAbsolute:\\n        x: 1383.2291243347436\\n        y: 84.17026259905379\\n      selected: false\\n      sourcePosition: right\\n      targetPosition: left\\n      type: custom\\n      width: 244\\n    - data:\\n        dataset_ [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 27476,
+                  "content": "        \"contents\": \"    - data:\\n        items:\\n        - input_type: variable\\n          operation: over-write\\n          value:\\n          - '17615694008280'\\n          - text\\n          variable_selector:\\n          - conversation\\n          - First_draft\\n          write_mode: over-write\\n        - input_type: variable\\n          operation: over-write\\n          value:\\n          - '17615694008280'\\n          - text\\n          variable_selector:\\n          - conversation\\n          - Latest_conversations\\n          write_mode: over-write\\n        selected: false\\n        title: 技术内容初写\\n        type: assigner\\n        version: '2'\\n      height: 110\\n      id: '1761033341744'\\n      position:\\n        x: 1211.5967414576096\\n        y: 145.69312721443953\\n      positionAbsolute:\\n        x: 1211.5967414576096\\n        y: 145.69312721443953\\n      selected: true\\n      sourcePosition: right\\n      targetPosition: left\\n      type: custom\\n      width: 242\\n    - data:\\n        datas [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-09_11-36Z-删除node功能子页面.md",
+              "matches": [
+                {
+                  "lineNumber": 20969,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 22248,
+                  "content": "  \"contents\": \"// AI角色类型定义\\n\\n// Dify工作流输入字段配置\\nexport interface DifyInputField {\\n  variable: string;              // 字段变量名（如：Additional_information, input1等）\\n  label: string;                 // 字段标签（显示名称）\\n  type: 'text' | 'paragraph' | 'select' | 'file-list' | 'number';  // 字段类型\\n  required?: boolean;            // 是否必填\\n  maxLength?: number;            // 最大长度（文本类型）\\n  placeholder?: string;          // 占位符\\n  hint?: string;                 // 提示信息\\n  options?: string[];            // 选项列表（select类型）\\n  default?: string;              // 默认值\\n  allowedFileTypes?: string[];   // 允许的文件类型（file-list）\\n  allowedFileExtensions?: string[]; // 允许的文件扩展名（file-list）\\n  maxFiles?: number;             // 最大文件数（file-list）\\n}\\n\\n// Dify配置\\nexport interface DifyConfig {\\n  apiUrl: string;              // Dify API地址\\n  apiKey: string;              // API密钥\\n  connectionType: 'chatflow' | 'workflow';\\n  inputFields?: DifyInputField[];  // Dify工作流输入字段配置\\n}\\n\\n// Prompt变量定义\\nexport interface PromptVaria [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 22339,
+                  "content": "  \"contents\": \"                                className=\\\"bg-white rounded-lg p-3 border border-gray-200 hover:border-purple-300 transition-colors\\\"\\n                              &amp;gt;\\n                                &amp;lt;div className=\\\"flex items-start justify-between\\\"&amp;gt;\\n                                  &amp;lt;div className=\\\"flex items-start gap-2 flex-1\\\"&amp;gt;\\n                                    {location.type === 'independent-page' &amp;amp;&amp;amp; (\\n                                      &amp;lt;FileText size={16} className=\\\"text-green-600 mt-0.5\\\" /&amp;gt;\\n                                    )}\\n                                    {location.type === 'agent-workflow' &amp;amp;&amp;amp; (\\n                                      &amp;lt;Workflow size={16} className=\\\"text-blue-600 mt-0.5\\\" /&amp;gt;\\n                                    )}\\n                                    {location.type === 'multi-chat' &amp;amp;&amp;amp; (\\n                                      &amp;lt;MessageCircle size={16} className=\\\"text-purp [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 23678,
+                  "content": "  \"contents\": \"                        &amp;lt;option value=\\\"file-list\\\"&amp;gt;文件列表 (file-list)&amp;lt;/option&amp;gt;\\n                        &amp;lt;option value=\\\"number\\\"&amp;gt;数字 (number)&amp;lt;/option&amp;gt;\\n                      &amp;lt;/select&amp;gt;\\n                    &amp;lt;/div&amp;gt;\\n                    &amp;lt;div className=\\\"flex items-center pt-6\\\"&amp;gt;\\n                      &amp;lt;input\\n                        type=\\\"checkbox\\\"\\n                        checked={field.required}\\n                        onChange={(e) =&amp;gt; updateInputField(index, { required: e.target.checked })}\\n                        className=\\\"w-4 h-4 text-blue-600 rounded\\\"\\n                      /&amp;gt;\\n                      &amp;lt;label className=\\\"ml-2 text-sm text-gray-700\\\"&amp;gt;必填&amp;lt;/label&amp;gt;\\n                    &amp;lt;/div&amp;gt;\\n                  &amp;lt;/div&amp;gt;\\n                &amp;lt;/div&amp;gt;\\n              ))\\n            ) : (\\n              &amp;lt;div className=\\\"text-center py-8 text-gray-500 text-sm\\\"&amp;gt;\\n                暂无输入字段，点击上方按钮添加\\n   [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 24249,
+                  "content": "  \"contents\": \"// Direct Agent配置部分组件（简化版，完整版需要更多代码）\\nconst DirectAgentConfigSection: React.FC&amp;lt;{\\n  formData: Partial&amp;lt;AIRoleConfig&amp;gt;;\\n  updateFormField: (field: string, value: any) =&amp;gt; void;\\n  activeTab: DirectAgentTab;\\n  setActiveTab: (tab: DirectAgentTab) =&amp;gt; void;\\n  showApiKey: boolean;\\n  setShowApiKey: (show: boolean) =&amp;gt; void;\\n  errors: Record&amp;lt;string, string&amp;gt;;\\n}&amp;gt; = ({\\n  formData,\\n  updateFormField,\\n  activeTab,\\n  setActiveTab,\\n  showApiKey,\\n  setShowApiKey,\\n  errors\\n}) =&amp;gt; {\\n  return (\\n    &amp;lt;div&amp;gt;\\n      {/* Tab 导航 */}\\n      &amp;lt;div className=\\\"border-b border-gray-200 mb-6\\\"&amp;gt;\\n        &amp;lt;nav className=\\\"flex space-x-4\\\"&amp;gt;\\n          {[\\n            { id: 'llm', label: 'LLM配置', icon: Cpu },\\n            { id: 'prompt', label: 'Prompt配置', icon: FileText },\\n            { id: 'context', label: '上下文策略', icon: Layers },\\n            { id: 'tools', label: '工具配置', icon: Wrench },\\n            { id: 'agents', label: 'Agent协作', icon: Net [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 24281,
+                  "content": "  \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: ToolConfig[];\\n  \\n  // Agent协作配置\\n  agentCall [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 24313,
+                  "content": "  \"contents\": \"                        })}\\n                      &amp;lt;/nav&amp;gt;\\n                    &amp;lt;/div&amp;gt;\\n\\n                    {/* Tab 内容 */}\\n                    &amp;lt;div className=\\\"space-y-6\\\"&amp;gt;\\n                      {/* LLM 配置 Tab */}\\n                      {activeTab === 'llm' &amp;amp;&amp;amp; (\\n                        &amp;lt;div className=\\\"space-y-4\\\"&amp;gt;\\n                          &amp;lt;div&amp;gt;\\n                            &amp;lt;label className=\\\"block text-base font-medium text-gray-700 mb-2\\\"&amp;gt;\\n                              LLM Provider *\\n                            &amp;lt;/label&amp;gt;\\n                            &amp;lt;select\\n                              value={formData.agentConfig?.llm?.provider || 'openai'}\\n                              onChange={(e) =&amp;gt; {\\n                                setFormData(prev =&amp;gt; ({\\n                                  ...prev,\\n                                  agentConfig: {\\n                                    ...prev.agentConfig!,\\n       [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 24353,
+                  "content": "  \"contents\": \"// AI角色类型定义\\n\\n// Dify工作流输入字段配置\\nexport interface DifyInputField {\\n  variable: string;              // 字段变量名（如：Additional_information, input1等）\\n  label: string;                 // 字段标签（显示名称）\\n  type: 'text' | 'paragraph' | 'select' | 'file-list' | 'number';  // 字段类型\\n  required?: boolean;            // 是否必填\\n  maxLength?: number;            // 最大长度（文本类型）\\n  placeholder?: string;          // 占位符\\n  hint?: string;                 // 提示信息\\n  options?: string[];            // 选项列表（select类型）\\n  default?: string;              // 默认值\\n  allowedFileTypes?: string[];   // 允许的文件类型（file-list）\\n  allowedFileExtensions?: string[]; // 允许的文件扩展名（file-list）\\n  maxFiles?: number;             // 最大文件数（file-list）\\n}\\n\\n// Dify配置\\nexport interface DifyConfig {\\n  apiUrl: string;              // Dify API地址\\n  apiKey: string;              // API密钥\\n  connectionType: 'chatflow' | 'workflow';\\n  inputFields?: DifyInputField[];  // Dify工作流输入字段配置\\n}\\n\\n// Prompt变量定义\\nexport interface PromptVaria [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-09_11-53Z-优化页面交互体验.md",
+              "matches": [
+                {
+                  "lineNumber": 7487,
+                  "content": "                  \"content\": \"  \\\"contents\\\": \\\"                                className=\\\\\\\"bg-white rounded-lg p-3 border border-gray-200 hover:border-purple-300 transition-colors\\\\\\\"\\\\n                              &amp;amp;gt;\\\\n                                &amp;amp;lt;div className=\\\\\\\"flex items-start justify-between\\\\\\\"&amp;amp;gt;\\\\n                                  &amp;amp;lt;div className=\\\\\\\"flex items-start gap-2 flex-1\\\\\\\"&amp;amp;gt;\\\\n                                    {location.type === 'independent-page' &amp;amp;amp;&amp;amp;amp; (\\\\n                                      &amp;amp;lt;FileText size={16} className=\\\\\\\"text-green-600 mt-0.5\\\\\\\" /&amp;amp;gt;\\\\n                                    )}\\\\n                                    {location.type === 'agent-workflow' &amp;amp;amp;&amp;amp;amp; (\\\\n                                      &amp;amp;lt;Workflow size={16} className=\\\\\\\"text-blue-600 mt-0.5\\\\\\\" /&amp;amp;gt;\\\\n                                    )}\\\\n                                    {location.type === [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7614,
+                  "content": "                  \"content\": \"  \\\"contents\\\": \\\"import express from 'express';\\\\nimport multer from 'multer';\\\\nimport path from 'path';\\\\nimport fs from 'fs';\\\\nimport DifyClient from '../services/DifyClient';\\\\nimport { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';\\\\nimport { aiRoleModel } from '../models';\\\\nimport { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';\\\\nimport { OpenAIProvider } from '../services/llm/OpenAIProvider';\\\\nimport { ChatMessage } from '../services/llm/types';\\\\nimport { AgentOrchestrator } from '../services/agent/AgentOrchestrator';\\\\nimport { FileService } from '../services/FileService';\\\\n\\\\nconst router = express.Router();\\\\n\\\\n// 配置multer用于文件上传\\\\nconst storage = multer.diskStorage({\\\\n  destination: (req, file, cb) =&amp;amp;gt; {\\\\n    const uploadDir = 'uploads/ai-roles/';\\\\n    if (!fs.existsSync(uploadDir)) {\\\\n      fs.mkdirSync(uploadDir, { recursive: true });\\\\n    }\\\\n    cb(null, uploadDir);\\\\n  },\\\\n  fi [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-09_11-22Z-将ai角色配置改为两个tab.md",
+              "matches": [
+                {
+                  "lineNumber": 3681,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 3806,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-09_11-20Z-ai问答助手agent配置管理.md",
+              "matches": [
+                {
+                  "lineNumber": 6012,
+                  "content": "  \"contents\": \"import express from 'express';\\nimport multer from 'multer';\\nimport path from 'path';\\nimport fs from 'fs';\\nimport DifyClient from '../services/DifyClient';\\nimport { formatApiResponse, formatValidationErrorResponse } from '../utils/validation';\\nimport { aiRoleModel } from '../models';\\nimport { CreateAIRoleDTO, UpdateAIRoleDTO } from '../models/AIRole';\\nimport { OpenAIProvider } from '../services/llm/OpenAIProvider';\\nimport { ChatMessage } from '../services/llm/types';\\nimport { AgentOrchestrator } from '../services/agent/AgentOrchestrator';\\nimport { FileService } from '../services/FileService';\\n\\nconst router = express.Router();\\n\\n// 配置multer用于文件上传\\nconst storage = multer.diskStorage({\\n  destination: (req, file, cb) =&amp;gt; {\\n    const uploadDir = 'uploads/ai-roles/';\\n    if (!fs.existsSync(uploadDir)) {\\n      fs.mkdirSync(uploadDir, { recursive: true });\\n    }\\n    cb(null, uploadDir);\\n  },\\n  filename: (req, file, cb) =&amp;gt; {\\n    // 生成唯一文件名，但保留原始扩展名\\n    [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-08_02-42Z-互联网搜索框显示异常.md",
+              "matches": [
+                {
+                  "lineNumber": 35560,
+                  "content": "        \"contents\": \"/**\\n * LLM配置\\n */\\nexport interface LLMConfig {\\n  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n  apiKey: string;\\n  apiBaseUrl?: string;\\n  model: string;\\n  temperature: number;\\n  maxTokens: number;\\n  topP?: number;\\n}\\n\\n/**\\n * LLM响应\\n */\\nexport interface LLMResponse {\\n  content: string;\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 35581,
+                  "content": "            \"text\": \"  provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 42593,
+                  "content": "        \"contents\": \";\\n}\\n\\n/**\\n * Direct Agent配置\\n */\\nexport interface DirectAgentConfig {\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;\\n    model: string;\\n    temperature: number;\\n    maxTokens: number;\\n    topP?: number;\\n  };\\n  prompt: {\\n    systemPrompt: string;\\n    variables?: PromptVariable[];\\n    templates?: PromptTemplate[];\\n  };\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';\\n    maxMessages: number;\\n    maxTokens: number;\\n    summaryThreshold?: number;\\n    includeSystemPrompt: boolean;\\n  };\\n  tools?: ToolConfig[];\\n  agentCalls?: AgentCallConfig[];\\n}\\n\\n/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 42631,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_06-38Z-识别项目ai-agent调用节点.md",
+              "matches": [
+                {
+                  "lineNumber": 64376,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 66013,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 68369,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 69056,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 70418,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: ToolConfig[];\\n  \\n  // Agent协作配置\\n  age [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 70439,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                },
+                {
+                  "lineNumber": 76009,
+                  "content": "                  \"content\": \"        \\\"contents\\\": \\\"export interface AIRoleConfig {\\\\n  id: string;                    // 唯一标识\\\\n  name: string;                  // 角色名称\\\\n  description: string;           // 角色描述\\\\n  avatar?: string;               // 角色头像URL\\\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\\\n  \\\\n  // Dify配置（保持现有，可选）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增，可选）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;              // 是否启用\\\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface ConversationState {\\\\n  id: string;                    // 对话ID\\\\n  roleId: string\\\\n;\\\\n}\\\",\""
+                },
+                {
+                  "lineNumber": 76041,
+                  "content": "                  \"content\": \"        \\\"contents\\\": \\\"/**\\\\n * AI角色配置（前端格式）\\\\n */\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  systemPrompt?: string;\\\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\\\n  difyConfig?: DifyConfig;\\\\n  agentConfig?: DirectAgentConfig;\\\\n  enabled: boolean;\\\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\n/**\\\\n * 创建AI角色DTO\\\\n */\\\\nexport interface CreateAIRoleDTO {\\\\n  id?: string\\\\n;\\\\n}\\\",\""
+                },
+                {
+                  "lineNumber": 76696,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig;\\\\\\\\n  \\\\ [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 76700,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 78025,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig;\\\\\\\\n  \\\\ [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 78029,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 79362,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig;\\\\\\\\n  \\\\ [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 79366,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 80699,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig;\\\\\\\\n  \\\\ [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 80703,
+                  "content": "                  \"content\": \"                  \\\"content\\\": \\\"  &amp;amp;amp;quot;plan&amp;amp;amp;quot;: &amp;amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\\\\\n\\\\\\\\n## 核心目标\\\\\\\\n\\\\\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\\\\\n\\\\\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\\\\\n\\\\\\\\n---\\\\\\\\n\\\\\\\\n## 1. 类型定义与数据模型\\\\\\\\n\\\\\\\\n### Frontend (&amp;amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;amp;#96;)\\\\\\\\n\\\\\\\\n扩展 &amp;amp;amp;#96;AIRoleConfig&amp;amp;amp;#96;：\\\\\\\\n\\\\\\\\n&amp;amp;amp;#96;&amp;amp;amp;#96;&amp;amp;amp;#96;typescript\\\\\\\\nexport interface AIRoleConfig {\\\\\\\\n  id: string;\\\\\\\\n  name: string;\\\\\\\\n  description: string;\\\\\\\\n  avatar?: string;\\\\\\\\n  \\\\\\\\n  // Provider配置（Dify 或 Direct Agent）\\\\\\\\n  provider: &amp;amp;amp;#39;dify&amp;amp;amp;#39; | &amp;amp;amp;#39;direct-agent&amp;amp;amp;#39;;\\\\\\\\n  \\\\\\\\n  // Dify配置（保持现有）\\\\\\\\n  difyConfig?: DifyConfig;\\\\\\\\n  \\\\\\\\n  // Direct Agent配置（新增）\\\\\\\\n  agentConfig?: DirectAgentConfig [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_06-58Z-untitled.md",
+              "matches": [
+                {
+                  "lineNumber": 7621,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n  llm: [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7625,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_06-58Z-unterminated-jsx-error-in-react-component-1.md",
+              "matches": [
+                {
+                  "lineNumber": 7621,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n  llm: [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7625,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_06-58Z-unterminated-jsx-error-in-react-component.md",
+              "matches": [
+                {
+                  "lineNumber": 7621,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n  llm: [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7625,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_06-58Z-修复-500-服务器错误.md",
+              "matches": [
+                {
+                  "lineNumber": 7621,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n  llm: [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 7625,
+                  "content": "                  \"content\": \"  &amp;amp;quot;plan&amp;amp;quot;: &amp;amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\\\n\\\\n## 核心目标\\\\n\\\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\\\n\\\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\\\n4. **Agent协作**：调用其他Agent或Workflow\\\\n\\\\n---\\\\n\\\\n## 1. 类型定义与数据模型\\\\n\\\\n### Frontend (&amp;amp;#96;frontend/src/types/aiRole.ts&amp;amp;#96;)\\\\n\\\\n扩展 &amp;amp;#96;AIRoleConfig&amp;amp;#96;：\\\\n\\\\n&amp;amp;#96;&amp;amp;#96;&amp;amp;#96;typescript\\\\nexport interface AIRoleConfig {\\\\n  id: string;\\\\n  name: string;\\\\n  description: string;\\\\n  avatar?: string;\\\\n  \\\\n  // Provider配置（Dify 或 Direct Agent）\\\\n  provider: &amp;amp;#39;dify&amp;amp;#39; | &amp;amp;#39;direct-agent&amp;amp;#39;;\\\\n  \\\\n  // Dify配置（保持现有）\\\\n  difyConfig?: DifyConfig;\\\\n  \\\\n  // Direct Agent配置（新增）\\\\n  agentConfig?: DirectAgentConfig;\\\\n  \\\\n  enabled: boolean;\\\\n  source?: string;\\\\n  createdAt: Date;\\\\n  updatedAt: Date;\\\\n}\\\\n\\\\nexport interface DirectAgentConfig {\\\\n  // LLM基础配置\\\\n [... omitted end of long line]"
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_04-23Z-页面跳转时ai对话摘要.md",
+              "matches": [
+                {
+                  "lineNumber": 39900,
+                  "content": "        \"contents\": \"// Direct Agent配置\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\\n    apiKey: string;\\n    apiBaseUrl?: string;  // 自定义端点\\n    model: string;        // gpt-4, gpt-3.5-turbo, qwen-max等\\n    temperature: number;  // 0-2\\n    maxTokens: number;    // 最大生成token数\\n    topP?: number;        // 0-1\\n  };\\n  \\n  // Prompt配置\\n  prompt: {\\n    systemPrompt: string;           // 系统提示词\\n    variables?: PromptVariable[];   // 动态变量\\n    templates?: PromptTemplate[];   // 预设模板\\n  };\\n  \\n  // 上下文管理策略\\n  contextStrategy: {\\n    type: 'window' | 'summary' | 'hybrid';  // 窗口/摘要/混合\\n    maxMessages: number;                     // 最大历史消息数\\n    maxTokens: number;                       // 最大上下文token数\\n    summaryThreshold?: number;               // 触发摘要的消息数阈值\\n    includeSystemPrompt: boolean;            // 是否每次都包含system prompt\\n  };\\n  \\n  // 工具调用配置\\n  tools?: ToolConfig[];\\n  \\n  // Agent协作配置\\n  age [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 39921,
+                  "content": "            \"text\": \"    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-12-05_02-03Z-更改导航组件链接.md",
+              "matches": [
+                {
+                  "lineNumber": 15322,
+                  "content": "        \"contents\": \"export interface AIRoleConfig {\\n  id: string;                    // 唯一标识\\n  name: string;                  // 角色名称\\n  description: string;           // 角色描述\\n  avatar?: string;               // 角色头像URL\\n  systemPrompt?: string;         // 系统提示词（保留用于向后兼容）\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  \\n  // Dify配置（保持现有，可选）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增，可选）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;              // 是否启用\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';  // 来源标记\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface ConversationState {\\n  id: string;                    // 对话ID\\n  roleId: string\\n;\\n}\","
+                },
+                {
+                  "lineNumber": 18619,
+                  "content": "        \"contents\": \"/**\\n * AI角色配置（前端格式）\\n */\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  systemPrompt?: string;\\n  provider?: 'dify' | 'direct-agent';  // 默认为 'dify' 以保持向后兼容\\n  difyConfig?: DifyConfig;\\n  agentConfig?: DirectAgentConfig;\\n  enabled: boolean;\\n  source?: 'smart-workflow' | 'independent-page' | 'custom';\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\n/**\\n * 创建AI角色DTO\\n */\\nexport interface CreateAIRoleDTO {\\n  id?: string\\n;\\n}\","
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-11-25_02-19Z-修复后端启动问题.md",
+              "matches": [
+                {
+                  "lineNumber": 1904,
+                  "content": "-                           {(formData.agentConfig?.llm?.provider === &amp;#39;custom&amp;#39; || formData.agentConfig?.llm?.provider === &amp;#39;azure-openai&amp;#39;) &amp;amp;&amp;amp; ("
+                }
+              ]
+            },
+            {
+              "file": "./.specstory/history/2025-11-24_01-14Z-新增独立的ai角色配置.md",
+              "matches": [
+                {
+                  "lineNumber": 431,
+                  "content": "- Provider 选择器（Dify / OpenAI / Azure OpenAI / Custom）"
+                },
+                {
+                  "lineNumber": 527,
+                  "content": "  &amp;quot;plan&amp;quot;: &amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\n\\n## 核心目标\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\n4. **Agent协作**：调用其他Agent或Workflow\\n\\n---\\n\\n## 1. 类型定义与数据模型\\n\\n### Frontend (&amp;#96;frontend/src/types/aiRole.ts&amp;#96;)\\n\\n扩展 &amp;#96;AIRoleConfig&amp;#96;：\\n\\n&amp;#96;&amp;#96;&amp;#96;typescript\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider: &amp;#39;dify&amp;#39; | &amp;#39;direct-agent&amp;#39;;\\n  \\n  // Dify配置（保持现有）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;\\n  source?: string;\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: &amp;#39;openai&amp;#39; | &amp;#39;azure-openai&amp;#39; | &amp;#39;qwen&amp;#39; | &amp;#39;ernie&amp;#39; | &amp;#39;custom&amp;#39;;\\n    apiKey: [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 653,
+                  "content": "  &amp;quot;plan&amp;quot;: &amp;quot;# 新增独立的AI Agent配置（完整Agent能力）\\n\\n## 核心目标\\n\\n构建完整的独立AI Agent系统，不依赖Dify，支持：\\n\\n1. **高级Prompt管理**：System Prompt + 动态变量 + 模板\\n2. **上下文管理策略**：历史消息窗口、摘要压缩、Token控制\\n3. **工具调用能力**：Function Calling集成（搜索、计算、API调用等）\\n4. **Agent协作**：调用其他Agent或Workflow\\n\\n---\\n\\n## 1. 类型定义与数据模型\\n\\n### Frontend (&amp;#96;frontend/src/types/aiRole.ts&amp;#96;)\\n\\n扩展 &amp;#96;AIRoleConfig&amp;#96;：\\n\\n&amp;#96;&amp;#96;&amp;#96;typescript\\nexport interface AIRoleConfig {\\n  id: string;\\n  name: string;\\n  description: string;\\n  avatar?: string;\\n  \\n  // Provider配置（Dify 或 Direct Agent）\\n  provider: &amp;#39;dify&amp;#39; | &amp;#39;direct-agent&amp;#39;;\\n  \\n  // Dify配置（保持现有）\\n  difyConfig?: DifyConfig;\\n  \\n  // Direct Agent配置（新增）\\n  agentConfig?: DirectAgentConfig;\\n  \\n  enabled: boolean;\\n  source?: string;\\n  createdAt: Date;\\n  updatedAt: Date;\\n}\\n\\nexport interface DirectAgentConfig {\\n  // LLM基础配置\\n  llm: {\\n    provider: &amp;#39;openai&amp;#39; | &amp;#39;azure-openai&amp;#39; | &amp;#39;qwen&amp;#39; | &amp;#39;ernie&amp;#39; | &amp;#39;custom&amp;#39;;\\n    api [... omitted end of long line]"
+                },
+                {
+                  "lineNumber": 824,
+                  "content": "+     provider: &amp;#39;openai&amp;#39; | &amp;#39;azure-openai&amp;#39; | &amp;#39;qwen&amp;#39; | &amp;#39;ernie&amp;#39; | &amp;#39;custom&amp;#39;;"
+                },
+                {
+                  "lineNumber": 987,
+                  "content": "+     provider: &amp;#39;openai&amp;#39; | &amp;#39;azure-openai&amp;#39; | &amp;#39;qwen&amp;#39; | &amp;#39;ernie&amp;#39; | &amp;#39;custom&amp;#39;;"
+                },
+                {
+                  "lineNumber": 1305,
+                  "content": "+   provider: &amp;#39;openai&amp;#39; | &amp;#39;azure-openai&amp;#39; | &amp;#39;qwen&amp;#39; | &amp;#39;ernie&amp;#39; | &amp;#39;custom&amp;#39;;"
+                },
+                {
+                  "lineNumber": 4934,
+                  "content": "+                           {(formData.agentConfig?.llm?.provider === &amp;#39;custom&amp;#39; || formData.agentConfig?.llm?.provider === &amp;#39;azure-openai&amp;#39;) &amp;amp;&amp;amp; ("
+                }
+              ]
+            }
+          ],
+          "totalLines": 120,
+          "totalMatchedLines": 120
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+修复两个问题：
+1. 后端测试连接不支持 `custom` provider
+2. 流式响应处理缺失
+
+开始修复：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/backend/src/routes/aiRole.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+修复流式响应处理：测试连接时禁用流式，并添加说明：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/AIRoleEditModal.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/backend/src/services/llm/OpenAIProvider.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+在前端界面添加 stream 配置选项：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/AIRoleEditModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+验证总结：
+
+## 验证结果
+
+### 已支持的功能
+
+1. 自定义 API 端点：支持
+   - 可在 LLM 配置中设置 `apiBaseUrl` 为 `http://10.246.32.62:32810/v1`
+
+2. Bearer Token 认证：支持
+   - `apiKey` 字段会自动添加 `Bearer` 前缀
+   - 设置 `apiKey` 为 `aic-scc-poc` 即可
+
+3. 模型名称：支持
+   - 可设置 `model` 为 `qwen3-235B-thinking`
+
+4. Custom Provider：已修复
+   - 后端测试连接现在支持 `custom` provider（使用 OpenAI 兼容格式）
+
+### 部分支持的功能
+
+5. 流式响应（Stream）：部分支持
+   - 前端界面已添加 stream 配置选项
+   - 后端会接收 `stream: true` 参数，但当前会自动转换为 `stream: false`
+   - 原因：当前实现不支持 SSE 流式响应解析
+   - 影响：API 调用会成功，但响应是同步返回的，不是流式
+
+### 配置方法
+
+在 `/ai-roles` 页面创建或编辑 AI 角色时：
+
+1. Provider：选择 `custom`（自定义端点）
+2. API 地址：`http://10.246.32.62:32810/v1`
+3. API Key：`aic-scc-poc`
+4. 模型名称：`qwen3-235B-thinking`
+5. Stream：可勾选，但当前会自动转换为非流式
+
+### 注意事项
+
+- 流式响应：如果 API 需要流式响应，当前会以非流式方式处理。如需完整流式支持，需要实现 SSE 解析逻辑。
+- 测试连接：现在支持 `custom` provider 的测试连接功能。
+
+总结：你的 API 格式基本支持，但流式响应会被自动转换为非流式。如需完整流式支持，需要额外开发。
 
 ---
 

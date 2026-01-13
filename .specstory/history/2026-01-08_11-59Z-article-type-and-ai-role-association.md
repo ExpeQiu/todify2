@@ -1532,7 +1532,6 @@ _**Agent (model default, mode Agent)**_
 
 ---
 
-
 查看其他页面的弹窗实现，然后改为弹窗交互。
 
 
@@ -1591,7 +1590,6 @@ Output mode: files_with_matches
 
 
 ---
-
 
 将编辑关联AI角色的交互改为弹窗形式，参考其他页面的实现。
 
@@ -1850,7 +1848,6 @@ Lint results
 
 ---
 
-
 检查文件末尾，确保弹窗代码已正确添加：
 
 
@@ -1870,8 +1867,6 @@ Lint results
 
 
 
-
-
 ---
 
 <tool-use data-tool-type="read" data-tool-name="read_file">
@@ -1885,7 +1880,6 @@ Lint results
 
 
 ---
-
 
 删除旧的 RoleSelector 组件，并在正确位置添加弹窗代码：
 
@@ -2079,7 +2073,6 @@ Lint results
 
 
 ---
-
 
 已将编辑关联AI角色的交互改为弹窗形式。主要改动如下：
 

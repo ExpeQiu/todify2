@@ -38853,3 +38853,232 @@ Status: **completed**
 
 ---
 
+
+检查前端 API 的超时配置：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/shared/lib/api/apiClient.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/services/api.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+问题原因：
+1. 前端 API 超时：`apiClient` 默认超时为 120 秒（2 分钟）
+2. 后端执行时间：`AgentOrchestrator.executeAgent` 最大执行时间为 360 秒（6 分钟）
+3. 超时冲突：Agent 执行超过 2 分钟时，前端会超时，即使后端仍在执行
+
+解决方案：为 `triggerFeatureAgent` 调用单独设置更长的超时时间（至少 7 分钟）。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/services/aiSearchService.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/services/aiSearchService.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+检查 `api` 对象的定义，确认是否支持传递 timeout：
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "^import.*api|^const api|^export.*api",
+  "path": "frontend/src/services/aiSearchService.ts",
+  "contextAfter": 5,
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "^import.*api|^const api|^export.*api",
+    "path": "frontend/src/services/aiSearchService.ts",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Volumes/Lexar/git/03T/todify4": {
+        "content": {
+          "matches": [
+            {
+              "file": "frontend/src/services/aiSearchService.ts",
+              "matches": [
+                {
+                  "lineNumber": 1,
+                  "content": "import api from './api';"
+                },
+                {
+                  "lineNumber": 2,
+                  "content": "import { techPointService } from './techPointService';",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 3,
+                  "content": "import { knowledgePointService } from './knowledgePointService';",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 4,
+                  "content": "import { agentWorkflowService } from './agentWorkflowService';",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 5,
+                  "content": "import { Source } from '../components/ai-search/SourceSidebar';",
+                  "isContextLine": true
+                },
+                {
+                  "lineNumber": 6,
+                  "content": "import {",
+                  "isContextLine": true
+                }
+              ]
+            }
+          ],
+          "totalLines": 6,
+          "totalMatchedLines": 1
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/services/aiSearchService.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+检查 `api` 对象是否支持传递 timeout 参数：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/services/api.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+确认 `api` 对象支持传递 timeout 配置。验证修改是否正确：
+
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/services/aiSearchService.ts"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/services/aiSearchService.ts"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+## 问题分析
+
+**超时原因**：
+1. 前端 API 超时时间过短：`apiClient` 默认超时为 120 秒（2 分钟）
+2. 后端执行时间较长：`AgentOrchestrator.executeAgent` 最大执行时间为 360 秒（6 分钟），且可能涉及多轮工具调用
+3. 超时冲突：当 Agent 执行超过 2 分钟时，前端会超时，即使后端仍在执行
+
+**上下文长度**：
+- 虽然使用了 `contextWindowSize` 限制上下文，但即使设置为 0（全部历史）或较大值，主要问题仍是超时时间不匹配
+- 上下文过长可能增加处理时间，但根本原因是超时设置
+
+## 解决方案
+
+已为 `triggerFeatureAgent` API 调用单独设置更长的超时时间：
+
+```typescript
+timeout: 420_000  // 7分钟（420秒）
+```
+
+这样：
+- 匹配后端的最大执行时间（6 分钟）+ 1 分钟缓冲
+- 支持 Agent 的多轮工具调用场景
+- 避免前端过早超时
+
+**建议**：
+1. 如果对话历史很长，建议将 `contextWindowSize` 设置为 5、10 或 20，而不是 0（全部历史）
+2. 这样可以减少请求体大小和处理时间，提高成功率
+
+修改已完成，现在 `triggerFeatureAgent` 调用有 7 分钟的超时时间，应该能覆盖大部分 Agent 执行场景。
+
+---
+

@@ -25225,11 +25225,242 @@ Status: **completed**
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
 
-Status: **loading**
+</details>
+
+</tool-use>
+
+---
+
+
+更新前端类型定义，使其与后端配置结构一致：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/types/brainstorm.ts</summary>
 
 </details>
 
 </tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/types/brainstorm.ts",
+    "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/types/brainstorm.ts"
+    },
+    {
+      "relativeWorkspacePath": "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+优化辩论模式的 Agent 选择逻辑，确保正反方不重复：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+修复辩论模式下的 participantRoleIds 设置：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+已更新 `BrainstormSetupModal` 组件，添加了所有新功能的配置选项。
+
+## 更新总结
+
+### 新增配置项
+
+1. 讨论模式
+   - 添加“辩论模式”选项
+   - 支持 `parallel` | `round-robin` | `debate` 三种模式
+
+2. 辩论模式配置（当选择辩论模式时显示）
+   - 正方Agent选择（多选）
+   - 反方Agent选择（多选）
+   - 裁判Agent选择（可选）
+   - 自动防止正反方选择重复的Agent
+
+3. 共识检测详细配置
+   - 检测方法选择（语义分析/投票机制/混合模式）
+   - 共识阈值滑块（0.5-1.0）
+   - 最小同意比例滑块（0.5-1.0）
+
+4. 高级配置区域（可折叠）
+   - 结构化上下文配置
+     - 启用/禁用开关
+     - 摘要频率设置
+     - 提取关键观点开关
+     - 检测分歧点开关
+   - 评审-反思循环配置
+     - 启用/禁用开关
+     - 最大迭代次数
+     - 质量阈值滑块
+     - 反思频率设置
+
+### UI 优化
+
+- 使用折叠面板组织高级配置，保持界面简洁
+- 颜色编码区分不同配置模块（绿色=结构化上下文，紫色=反思循环/辩论）
+- 实时验证：辩论模式确保正反方都有Agent
+- 提示信息：每个配置项都有说明文字
+
+### 类型定义更新
+
+- 更新了 `frontend/src/types/brainstorm.ts`，添加了所有新配置接口：
+  - `ConsensusDetectionConfig`
+  - `ReflectionLoopConfig`
+  - `StructuredContextConfig`
+  - `DebateConfig`
+
+### 使用方式
+
+用户现在可以在创建会话时：
+1. 选择讨论模式（并行/轮流/辩论）
+2. 配置共识检测的详细参数
+3. 在“高级配置”中启用和配置：
+   - 结构化上下文（默认启用，推荐）
+   - 评审-反思循环（可选，提升质量）
+
+所有配置都会正确传递给后端，与已实现的功能完全对接。
 
 ---
 

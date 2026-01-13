@@ -682,6 +682,12 @@ ${aiContent}
           <div className="max-w-4xl space-y-6">
             {/* 基本信息卡片 */}
             <Card title="基本信息" size="small" className="shadow-sm">
+              {/* 名称字段 */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">名称</label>
+                <div className="text-base font-bold text-gray-900">{currentTechPoint.name}</div>
+              </div>
+
               <Descriptions column={2} size="small">
                 <Descriptions.Item label="技术领域">
                   {categoryName || currentTechPoint.category?.name || '未关联技术领域'}
@@ -707,24 +713,21 @@ ${aiContent}
 
               {/* 基本信息字段 */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">名称</label>
-                  <div className="text-base text-gray-900">{currentTechPoint.name}</div>
-                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">技术类型</label>
+                    <Tag color={getTypeColor(currentTechPoint.tech_type)}>{currentTechPoint.tech_type}</Tag>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">技术类型</label>
-                  <Tag color={getTypeColor(currentTechPoint.tech_type)}>{currentTechPoint.tech_type}</Tag>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">优先级</label>
+                    <Tag color={getPriorityColor(currentTechPoint.priority)}>{currentTechPoint.priority}</Tag>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">优先级</label>
-                  <Tag color={getPriorityColor(currentTechPoint.priority)}>{currentTechPoint.priority}</Tag>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
-                  <Tag color={getStatusColor(currentTechPoint.status)}>{currentTechPoint.status}</Tag>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
+                    <Tag color={getStatusColor(currentTechPoint.status)}>{currentTechPoint.status}</Tag>
+                  </div>
                 </div>
 
                 {currentTechPoint.description && (

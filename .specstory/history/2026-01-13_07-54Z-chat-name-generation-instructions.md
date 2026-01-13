@@ -43518,11 +43518,16094 @@ _**Agent (model composer-1, mode Agent)**_
 <details>
 <summary>Tool use: **ripgrep_raw_search**</summary>
 
-Status: **loading**
+
+Parameters:
+
+```json
+{
+  "pattern": "工作流功能已移除",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "工作流功能已移除",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Volumes/Lexar/git/03T/todify4": {
+        "content": {
+          "matches": [
+            {
+              "file": ".specstory/history/2025-12-25_03-19Z-project-familiarity.md",
+              "matches": [
+                {
+                  "lineNumber": 5486,
+                  "content": "+       message: '工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 5497,
+                  "content": "+       message: 'AI角色工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 5737,
+                  "content": "所有依赖问题已解决，服务应能正常启动。AI 问答功能会显示工作流功能已移除的警告，但不会导致启动失败。"
+                },
+                {
+                  "lineNumber": 6957,
+                  "content": "+       message: '工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 6969,
+                  "content": "+       message: '工作流功能已移除',"
+                }
+              ]
+            },
+            {
+              "file": "guide/AI_AGENT_FRAMEWORK_ANALYSIS.md",
+              "matches": [
+                {
+                  "lineNumber": 271,
+                  "content": "  message: '工作流功能已移除',"
+                }
+              ]
+            },
+            {
+              "file": ".specstory/history/2026-01-08_05-52Z-项目ai-agent设计框架优化.md",
+              "matches": [
+                {
+                  "lineNumber": 621,
+                  "content": "+   message: '工作流功能已移除',"
+                }
+              ]
+            },
+            {
+              "file": ".specstory/history/2026-01-09_01-01Z-todify4-阿里云-docker-化部署.md",
+              "matches": [
+                {
+                  "lineNumber": 1770,
+                  "content": "   - 修复：添加 &#96;deleteTemplate&#96; 方法（返回 false，因为工作流功能已移除）"
+                },
+                {
+                  "lineNumber": 2885,
+                  "content": "+     return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 2890,
+                  "content": "+     return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 2895,
+                  "content": "+     return { success: false, message: '工作流功能已移除' };"
+                },
+                {
+                  "lineNumber": 2900,
+                  "content": "+     return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 2925,
+                  "content": "+     return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 2930,
+                  "content": "+     return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 3991,
+                  "content": "      return { success: false, message: '工作流功能已移除', data: null };"
+                }
+              ]
+            },
+            {
+              "file": "frontend/src/services/agentWorkflowService.ts",
+              "matches": [
+                {
+                  "lineNumber": 25,
+                  "content": "      message: '工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 37,
+                  "content": "      message: '工作流功能已移除',"
+                }
+              ]
+            },
+            {
+              "file": "backend/src/services/AgentWorkflowService.ts",
+              "matches": [
+                {
+                  "lineNumber": 19,
+                  "content": "      message: '工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 30,
+                  "content": "      message: 'AI角色工作流功能已移除',"
+                },
+                {
+                  "lineNumber": 54,
+                  "content": "    return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 59,
+                  "content": "    return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 64,
+                  "content": "    return { success: false, message: '工作流功能已移除' };"
+                },
+                {
+                  "lineNumber": 69,
+                  "content": "    return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 94,
+                  "content": "    return { success: false, message: '工作流功能已移除', data: null };"
+                },
+                {
+                  "lineNumber": 99,
+                  "content": "    return { success: false, message: '工作流功能已移除', data: null };"
+                }
+              ]
+            }
+          ],
+          "totalLines": 25,
+          "totalMatchedLines": 25
+        }
+      }
+    }
+  }
+}
+```
+Status: **completed**
 
 
 </details>
 </tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "工作流功能已移除 workflow removed",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/agentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 10,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 49,
+            "column": 1
+          }
+        },
+        "contents": "export const agentWorkflowService = {\n  getAllWorkflows: async (): Promise&lt;AgentWorkflow[]&gt; =&gt; {\n    console.warn('agentWorkflowService.getAllWorkflows called, but agent workflow functionality is removed.');\n    return [];\n  },\n  \n  executeWorkflow: async (workflowId: string, input: any): Promise&lt;any&gt; =&gt; {\n    console.warn('agentWorkflowService.executeWorkflow called, but agent workflow functionality is removed.', {\n      workflowId,\n    });\n    return {\n      success: false,\n      message: '工作流功能已移除',\n      data: null,\n    };\n  },\n  \n  updateWorkflow: async (workflowId: string, data: any): Promise&lt;any&gt; =&gt; {\n    console.warn('agentWorkflowService.updateWorkflow called, but agent workflow functionality is removed.', {\n      workflowId,\n      data,\n    });\n    return {\n      success: false,\n      message: '工作流功能已移除',\n    };\n  },\n};\n\nexport const workflowTemplateService = {\n  createTemplate:\n,\n};",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export const agentWorkflowService = {",
+            "lineNumber": 13
+          },
+          {
+            "text": "  getAllWorkflows: async (): Promise&lt;AgentWorkflow[]&gt; =&gt; {",
+            "lineNumber": 14
+          },
+          {
+            "text": "    console.warn('agentWorkflowService.getAllWorkflows called, but agent workflow functionality is removed.');",
+            "lineNumber": 15
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 16
+          },
+          {
+            "text": "  },",
+            "lineNumber": 17
+          },
+          {
+            "text": "  ",
+            "lineNumber": 18
+          },
+          {
+            "text": "  executeWorkflow: async (workflowId: string, input: any): Promise&lt;any&gt; =&gt; {",
+            "lineNumber": 19
+          },
+          {
+            "text": "    console.warn('agentWorkflowService.executeWorkflow called, but agent workflow functionality is removed.', {",
+            "lineNumber": 20
+          },
+          {
+            "text": "      workflowId,",
+            "lineNumber": 21
+          },
+          {
+            "text": "    });",
+            "lineNumber": 22
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 23
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 24
+          },
+          {
+            "text": "      message: '工作流功能已移除',",
+            "lineNumber": 25
+          },
+          {
+            "text": "      data: null,",
+            "lineNumber": 26
+          },
+          {
+            "text": "    };",
+            "lineNumber": 27
+          },
+          {
+            "text": "  },",
+            "lineNumber": 28
+          },
+          {
+            "text": "  ",
+            "lineNumber": 29
+          },
+          {
+            "text": "  updateWorkflow: async (workflowId: string, data: any): Promise&lt;any&gt; =&gt; {",
+            "lineNumber": 30
+          },
+          {
+            "text": "    console.warn('agentWorkflowService.updateWorkflow called, but agent workflow functionality is removed.', {",
+            "lineNumber": 31
+          },
+          {
+            "text": "      workflowId,",
+            "lineNumber": 32
+          },
+          {
+            "text": "      data,",
+            "lineNumber": 33
+          },
+          {
+            "text": "    });",
+            "lineNumber": 34
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 35
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 36
+          },
+          {
+            "text": "      message: '工作流功能已移除',",
+            "lineNumber": 37
+          },
+          {
+            "text": "    };",
+            "lineNumber": 38
+          },
+          {
+            "text": "  },",
+            "lineNumber": 39
+          },
+          {
+            "text": "};",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "export const workflowTemplateService = {",
+            "lineNumber": 42
+          },
+          {
+            "text": "  createTemplate:",
+            "lineNumber": 43
+          },
+          {
+            "text": ",",
+            "lineNumber": 49
+          },
+          {
+            "text": "};",
+            "lineNumber": 50
+          }
+        ]
+      },
+      "score": 0.5020080804824829
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async executeWorkflow(workflowId: string, params: any) {\n    logger.warn('AgentWorkflowService.executeWorkflow called, but agent workflow functionality is removed.', {\n      workflowId,\n    });\n    return {\n      success: false,\n      message: '工作流功能已移除',\n      data: null,\n    };\n  }\n  \n  async executeRole(roleId: string, params: any) {\n    logger.warn\n\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "  ",
+            "lineNumber": 12
+          },
+          {
+            "text": "  async executeWorkflow(workflowId: string, params: any) {",
+            "lineNumber": 13,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.executeWorkflow called, but agent workflow functionality is removed.', {",
+            "lineNumber": 14
+          },
+          {
+            "text": "      workflowId,",
+            "lineNumber": 15
+          },
+          {
+            "text": "    });",
+            "lineNumber": 16
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 17
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 18
+          },
+          {
+            "text": "      message: '工作流功能已移除',",
+            "lineNumber": 19
+          },
+          {
+            "text": "      data: null,",
+            "lineNumber": 20
+          },
+          {
+            "text": "    };",
+            "lineNumber": 21
+          },
+          {
+            "text": "  }",
+            "lineNumber": 22,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 23
+          },
+          {
+            "text": "  async executeRole(roleId: string, params: any) {",
+            "lineNumber": 24,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "  }",
+            "lineNumber": 33,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.49671339988708496
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async createWorkflow(data: any) {\n    logger.warn('AgentWorkflowService.createWorkflow called, but agent workflow functionality is removed.');\n    return { success: false, message: '工作流功能已移除', data: null };\n  }\n  \n  async updateWorkflow(id: string, data: any) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "  ",
+            "lineNumber": 51
+          },
+          {
+            "text": "  async createWorkflow(data: any) {",
+            "lineNumber": 52,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.createWorkflow called, but agent workflow functionality is removed.');",
+            "lineNumber": 53
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除', data: null };",
+            "lineNumber": 54
+          },
+          {
+            "text": "  }",
+            "lineNumber": 55,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 56
+          },
+          {
+            "text": "  async updateWorkflow(id: string, data: any) {",
+            "lineNumber": 57,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 58
+          },
+          {
+            "text": "  }",
+            "lineNumber": 60,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4849192500114441
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "async createWorkflow(data: any) {\n\n  }\n  \n  async updateWorkflow(id: string, data: any) {\n    logger.warn('AgentWorkflowService.updateWorkflow called, but agent workflow functionality is removed.', { id });\n    return { success: false, message: '工作流功能已移除', data: null };\n  }\n  \n  async deleteWorkflow(id: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async createWorkflow(data: any) {",
+            "lineNumber": 52,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "  }",
+            "lineNumber": 55,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 56
+          },
+          {
+            "text": "  async updateWorkflow(id: string, data: any) {",
+            "lineNumber": 57,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.updateWorkflow called, but agent workflow functionality is removed.', { id });",
+            "lineNumber": 58
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除', data: null };",
+            "lineNumber": 59
+          },
+          {
+            "text": "  }",
+            "lineNumber": 60,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 61
+          },
+          {
+            "text": "  async deleteWorkflow(id: string) {",
+            "lineNumber": 62,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 63
+          },
+          {
+            "text": "  }",
+            "lineNumber": 65,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4835796356201172
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async compileWorkflow(workflowId: string, engine?: string) {\n    logger.warn('AgentWorkflowService.compileWorkflow called, but agent workflow functionality is removed.', { workflowId, engine });\n    return { success: false, message: '工作流功能已移除', data: null };\n  }\n  \n  async getExecutionHistory(workflowId: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 65
+          },
+          {
+            "text": "  ",
+            "lineNumber": 66
+          },
+          {
+            "text": "  async compileWorkflow(workflowId: string, engine?: string) {",
+            "lineNumber": 67,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.compileWorkflow called, but agent workflow functionality is removed.', { workflowId, engine });",
+            "lineNumber": 68
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除', data: null };",
+            "lineNumber": 69
+          },
+          {
+            "text": "  }",
+            "lineNumber": 70,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 71
+          },
+          {
+            "text": "  async getExecutionHistory(workflowId: string) {",
+            "lineNumber": 72,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 73
+          },
+          {
+            "text": "  }",
+            "lineNumber": 75,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.48196566104888916
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async deleteWorkflow(id: string) {\n    logger.warn('AgentWorkflowService.deleteWorkflow called, but agent workflow functionality is removed.', { id });\n    return { success: false, message: '工作流功能已移除' };\n  }\n  \n  async compileWorkflow(workflowId: string, engine?: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 60
+          },
+          {
+            "text": "  ",
+            "lineNumber": 61
+          },
+          {
+            "text": "  async deleteWorkflow(id: string) {",
+            "lineNumber": 62,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.deleteWorkflow called, but agent workflow functionality is removed.', { id });",
+            "lineNumber": 63
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除' };",
+            "lineNumber": 64
+          },
+          {
+            "text": "  }",
+            "lineNumber": 65,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 66
+          },
+          {
+            "text": "  async compileWorkflow(workflowId: string, engine?: string) {",
+            "lineNumber": 67,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 68
+          },
+          {
+            "text": "  }",
+            "lineNumber": 70,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4642818570137024
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 103,
+            "column": 32
+          }
+        },
+        "contents": "async createTemplate(data: any) {\n\n  }\n  \n  async createWorkflowFromTemplate(templateId: string, data: any) {\n    logger.warn('AgentWorkflowService.createWorkflowFromTemplate called, but agent workflow functionality is removed.', { templateId });\n    return { success: false, message: '工作流功能已移除', data: null };\n  }\n}\n\n// Export both class and instance for compatibility\nexport { AgentWorkflowService };",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async createTemplate(data: any) {",
+            "lineNumber": 92,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 94
+          },
+          {
+            "text": "  }",
+            "lineNumber": 95,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 96
+          },
+          {
+            "text": "  async createWorkflowFromTemplate(templateId: string, data: any) {",
+            "lineNumber": 97,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.createWorkflowFromTemplate called, but agent workflow functionality is removed.', { templateId });",
+            "lineNumber": 98
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除', data: null };",
+            "lineNumber": 99
+          },
+          {
+            "text": "  }",
+            "lineNumber": 100,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 101,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "// Export both class and instance for compatibility",
+            "lineNumber": 103
+          },
+          {
+            "text": "export { AgentWorkflowService };",
+            "lineNumber": 104
+          }
+        ]
+      },
+      "score": 0.44428420066833496
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async executeRole(roleId: string, params: any) {\n    logger.warn('AgentWorkflowService.executeRole called, but agent workflow functionality is removed.', {\n      roleId,\n    });\n    return {\n      success: false,\n      message: 'AI角色工作流功能已移除',\n      data: null,\n    };\n  }\n  \n  async deleteTemplate(id: string): Promise&lt;boolean&gt; {\n    logger.warn\n\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "  ",
+            "lineNumber": 23
+          },
+          {
+            "text": "  async executeRole(roleId: string, params: any) {",
+            "lineNumber": 24,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.executeRole called, but agent workflow functionality is removed.', {",
+            "lineNumber": 25
+          },
+          {
+            "text": "      roleId,",
+            "lineNumber": 26
+          },
+          {
+            "text": "    });",
+            "lineNumber": 27
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 28
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 29
+          },
+          {
+            "text": "      message: 'AI角色工作流功能已移除',",
+            "lineNumber": 30
+          },
+          {
+            "text": "      data: null,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    };",
+            "lineNumber": 32
+          },
+          {
+            "text": "  }",
+            "lineNumber": 33,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 34
+          },
+          {
+            "text": "  async deleteTemplate(id: string): Promise&lt;boolean&gt; {",
+            "lineNumber": 35,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4322604537010193
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "// Placeholder for AgentWorkflowService\n// All actual agent workflow logic has been removed as part of project slimming.\n// This file exists to prevent compilation errors from other modules that still import it.\n\nimport { logger } from '@/shared/lib/logger';\n\nclass AgentWorkflowService {\n  async getAllWorkflows() {\n    logger.warn('AgentWorkflowService.getAllWorkflows called, but agent workflow functionality is removed.');\n    return [];\n  }\n  \n  async executeWorkflow(workflowId: string, params: any) {\n    logger.warn\n\n  }",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Placeholder for AgentWorkflowService",
+            "lineNumber": 1
+          },
+          {
+            "text": "// All actual agent workflow logic has been removed as part of project slimming.",
+            "lineNumber": 2
+          },
+          {
+            "text": "// This file exists to prevent compilation errors from other modules that still import it.",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "import { logger } from '@/shared/lib/logger';",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "  async getAllWorkflows() {",
+            "lineNumber": 8,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.getAllWorkflows called, but agent workflow functionality is removed.');",
+            "lineNumber": 9
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 10
+          },
+          {
+            "text": "  }",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 12
+          },
+          {
+            "text": "  async executeWorkflow(workflowId: string, params: any) {",
+            "lineNumber": 13,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "  }",
+            "lineNumber": 22,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.41162610054016113
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async createTemplate(data: any) {\n    logger.warn('AgentWorkflowService.createTemplate called, but agent workflow functionality is removed.');\n    return { success: false, message: '工作流功能已移除', data: null };\n  }\n  \n  async createWorkflowFromTemplate(templateId: string, data: any) {\n    logger.warn\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 90
+          },
+          {
+            "text": "  ",
+            "lineNumber": 91
+          },
+          {
+            "text": "  async createTemplate(data: any) {",
+            "lineNumber": 92,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.createTemplate called, but agent workflow functionality is removed.');",
+            "lineNumber": 93
+          },
+          {
+            "text": "    return { success: false, message: '工作流功能已移除', data: null };",
+            "lineNumber": 94
+          },
+          {
+            "text": "  }",
+            "lineNumber": 95,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 96
+          },
+          {
+            "text": "  async createWorkflowFromTemplate(templateId: string, data: any) {",
+            "lineNumber": 97,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 98
+          },
+          {
+            "text": "  }",
+            "lineNumber": 100,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 101,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.41052690148353577
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/agentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 12
+          },
+          "endPosition": {
+            "line": 51,
+            "column": 36
+          }
+        },
+        "contents": "export const agentWorkflowService = {\nasync (workflowId: string, data: any): Promise&lt;any&gt; =&gt; {\n\n  },\n};\n\nexport const workflowTemplateService = {\n  createTemplate: async (data: any): Promise&lt;any&gt; =&gt; {\n    console.warn('workflowTemplateService.createTemplate called, but workflow template functionality is removed.', { data });\n    return {\n      success: false,\n      message: '工作流模板功能已移除',\n    };\n  },\n};\n\nexport default agentWorkflowService;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export const agentWorkflowService = {",
+            "lineNumber": 13
+          },
+          {
+            "text": "async (workflowId: string, data: any): Promise&lt;any&gt; =&gt; {",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "  },",
+            "lineNumber": 39
+          },
+          {
+            "text": "};",
+            "lineNumber": 40
+          },
+          {
+            "lineNumber": 41
+          },
+          {
+            "text": "export const workflowTemplateService = {",
+            "lineNumber": 42
+          },
+          {
+            "text": "  createTemplate: async (data: any): Promise&lt;any&gt; =&gt; {",
+            "lineNumber": 43
+          },
+          {
+            "text": "    console.warn('workflowTemplateService.createTemplate called, but workflow template functionality is removed.', { data });",
+            "lineNumber": 44
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 45
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 46
+          },
+          {
+            "text": "      message: '工作流模板功能已移除',",
+            "lineNumber": 47
+          },
+          {
+            "text": "    };",
+            "lineNumber": 48
+          },
+          {
+            "text": "  },",
+            "lineNumber": 49
+          },
+          {
+            "text": "};",
+            "lineNumber": 50
+          },
+          {
+            "lineNumber": 51
+          },
+          {
+            "text": "export default agentWorkflowService;",
+            "lineNumber": 52
+          }
+        ]
+      },
+      "score": 0.3990445137023926
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_FRAMEWORK_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 256
+          },
+          "endPosition": {
+            "line": 343
+          }
+        },
+        "contents": "- ⚠️ 状态管理简单：仅依赖sharedContext，缺少持久化\n\n---\n\n### 2.8 AgentWorkflowService（已移除）\n\n**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;\n\n**状态**: ❌ **已被移除为占位符**\n\n&#96;&#96;&#96;typescript\n// 所有方法返回错误提示\nreturn {\n  success: false,\n  message: '工作流功能已移除',\n  data: null,\n};\n&#96;&#96;&#96;\n\n**影响**:\n- ❌ &#96;ToolExecutor&#96;中的&#96;workflow&#96;工具失效\n- ❌ 旧代码中的工作流调用全部失败\n- ⚠️ 需要迁移到&#96;LangGraphEngine&#96;或直接调用Agent\n\n---\n\n### 2.9 BrainstormService（头脑风暴）\n\n**位置**: &#96;backend/src/services/brainstorm/&#96;\n\n**状态**: ⚠️ 存在但功能未完全集成\n\n**包含**:\n- &#96;BrainstormService.ts&#96;\n- &#96;BrainstormOrchestrator.ts&#96;\n\n**说明**: 这是一个独立的头脑风暴功能模块，但在主流程中使用较少。\n\n---\n\n## 三、调用链路分析\n\n### 3.1 Direct Agent调用链路\n\n&#96;&#96;&#96;mermaid\nsequenceDiagram\n    participant U as 用户\n    participant F as 前端服务\n    participant API as 后端API\n    participant AO as AgentOrchestrator\n    participant PM as PromptManager\n    participant CM as ContextManager\n    participant LLM as OpenAIProvider\n    participant TE as ToolExecutor\n    participant DB as 数据库\n\n    U-&gt;&gt;F: 发送消息\n    F-&gt;&gt;API: POST /api/v1/ai-roles/:id/chat\n    API-&gt;&gt;AO: executeAgent(roleId, query)\n    \n    AO-&gt;&gt;DB: 加载Agent配置\n    AO-&gt;&gt;PM: renderPrompt(template, variables)\n    AO-&gt;&gt;CM: getContextMessages(conversationId)\n    CM-&gt;&gt;DB: 查询历史消息\n    CM--&gt;&gt;AO: 返回上下文消息\n    \n    AO-&gt;&gt;LLM: chat(messages, config, tools)\n    LLM--&gt;&gt;AO: 返回响应（可能包含工具调用）\n    \n    alt 包含工具调用\n        loop 最多10轮\n            AO-&gt;&gt;TE: executeTool(toolCall, config)\n            TE--&gt;&gt;AO: 工具执行结果\n            AO-&gt;&gt;LLM: 继续对话（附带工具结果）\n            LLM--&gt;&gt;AO: 返回新响应\n        end\n    end\n    \n    AO-&gt;&gt;DB: 保存消息历史\n    AO--&gt;&gt;API: 返回执行结果\n    API--&gt;&gt;F: 返回响应\n    F--&gt;&gt;U: 显示结果\n&#96;&#96;&#96;\n\n**时间开销分析**:\n- Agent配置加载: ~50ms\n- Prompt渲染: ~10ms",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "- ⚠️ 状态管理简单：仅依赖sharedContext，缺少持久化",
+            "lineNumber": 257
+          },
+          {
+            "lineNumber": 258
+          },
+          {
+            "text": "---",
+            "lineNumber": 259
+          },
+          {
+            "lineNumber": 260
+          },
+          {
+            "text": "### 2.8 AgentWorkflowService（已移除）",
+            "lineNumber": 261
+          },
+          {
+            "lineNumber": 262
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;",
+            "lineNumber": 263
+          },
+          {
+            "lineNumber": 264
+          },
+          {
+            "text": "**状态**: ❌ **已被移除为占位符**",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 267
+          },
+          {
+            "text": "// 所有方法返回错误提示",
+            "lineNumber": 268
+          },
+          {
+            "text": "return {",
+            "lineNumber": 269
+          },
+          {
+            "text": "  success: false,",
+            "lineNumber": 270
+          },
+          {
+            "text": "  message: '工作流功能已移除',",
+            "lineNumber": 271
+          },
+          {
+            "text": "  data: null,",
+            "lineNumber": 272
+          },
+          {
+            "text": "};",
+            "lineNumber": 273
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 274
+          },
+          {
+            "lineNumber": 275
+          },
+          {
+            "text": "**影响**:",
+            "lineNumber": 276
+          },
+          {
+            "text": "- ❌ &#96;ToolExecutor&#96;中的&#96;workflow&#96;工具失效",
+            "lineNumber": 277
+          },
+          {
+            "text": "- ❌ 旧代码中的工作流调用全部失败",
+            "lineNumber": 278
+          },
+          {
+            "text": "- ⚠️ 需要迁移到&#96;LangGraphEngine&#96;或直接调用Agent",
+            "lineNumber": 279
+          },
+          {
+            "lineNumber": 280
+          },
+          {
+            "text": "---",
+            "lineNumber": 281
+          },
+          {
+            "lineNumber": 282
+          },
+          {
+            "text": "### 2.9 BrainstormService（头脑风暴）",
+            "lineNumber": 283
+          },
+          {
+            "lineNumber": 284
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/brainstorm/&#96;",
+            "lineNumber": 285
+          },
+          {
+            "lineNumber": 286
+          },
+          {
+            "text": "**状态**: ⚠️ 存在但功能未完全集成",
+            "lineNumber": 287
+          },
+          {
+            "lineNumber": 288
+          },
+          {
+            "text": "**包含**:",
+            "lineNumber": 289
+          },
+          {
+            "text": "- &#96;BrainstormService.ts&#96;",
+            "lineNumber": 290
+          },
+          {
+            "text": "- &#96;BrainstormOrchestrator.ts&#96;",
+            "lineNumber": 291
+          },
+          {
+            "lineNumber": 292
+          },
+          {
+            "text": "**说明**: 这是一个独立的头脑风暴功能模块，但在主流程中使用较少。",
+            "lineNumber": 293
+          },
+          {
+            "lineNumber": 294
+          },
+          {
+            "text": "---",
+            "lineNumber": 295
+          },
+          {
+            "lineNumber": 296
+          },
+          {
+            "text": "## 三、调用链路分析",
+            "lineNumber": 297
+          },
+          {
+            "lineNumber": 298
+          },
+          {
+            "text": "### 3.1 Direct Agent调用链路",
+            "lineNumber": 299
+          },
+          {
+            "lineNumber": 300
+          },
+          {
+            "text": "&#96;&#96;&#96;mermaid",
+            "lineNumber": 301
+          },
+          {
+            "text": "sequenceDiagram",
+            "lineNumber": 302
+          },
+          {
+            "text": "    participant U as 用户",
+            "lineNumber": 303
+          },
+          {
+            "text": "    participant F as 前端服务",
+            "lineNumber": 304
+          },
+          {
+            "text": "    participant API as 后端API",
+            "lineNumber": 305
+          },
+          {
+            "text": "    participant AO as AgentOrchestrator",
+            "lineNumber": 306
+          },
+          {
+            "text": "    participant PM as PromptManager",
+            "lineNumber": 307
+          },
+          {
+            "text": "    participant CM as ContextManager",
+            "lineNumber": 308
+          },
+          {
+            "text": "    participant LLM as OpenAIProvider",
+            "lineNumber": 309
+          },
+          {
+            "text": "    participant TE as ToolExecutor",
+            "lineNumber": 310
+          },
+          {
+            "text": "    participant DB as 数据库",
+            "lineNumber": 311
+          },
+          {
+            "lineNumber": 312
+          },
+          {
+            "text": "    U-&gt;&gt;F: 发送消息",
+            "lineNumber": 313
+          },
+          {
+            "text": "    F-&gt;&gt;API: POST /api/v1/ai-roles/:id/chat",
+            "lineNumber": 314
+          },
+          {
+            "text": "    API-&gt;&gt;AO: executeAgent(roleId, query)",
+            "lineNumber": 315
+          },
+          {
+            "text": "    ",
+            "lineNumber": 316
+          },
+          {
+            "text": "    AO-&gt;&gt;DB: 加载Agent配置",
+            "lineNumber": 317
+          },
+          {
+            "text": "    AO-&gt;&gt;PM: renderPrompt(template, variables)",
+            "lineNumber": 318
+          },
+          {
+            "text": "    AO-&gt;&gt;CM: getContextMessages(conversationId)",
+            "lineNumber": 319
+          },
+          {
+            "text": "    CM-&gt;&gt;DB: 查询历史消息",
+            "lineNumber": 320
+          },
+          {
+            "text": "    CM--&gt;&gt;AO: 返回上下文消息",
+            "lineNumber": 321
+          },
+          {
+            "text": "    ",
+            "lineNumber": 322
+          },
+          {
+            "text": "    AO-&gt;&gt;LLM: chat(messages, config, tools)",
+            "lineNumber": 323
+          },
+          {
+            "text": "    LLM--&gt;&gt;AO: 返回响应（可能包含工具调用）",
+            "lineNumber": 324
+          },
+          {
+            "text": "    ",
+            "lineNumber": 325
+          },
+          {
+            "text": "    alt 包含工具调用",
+            "lineNumber": 326
+          },
+          {
+            "text": "        loop 最多10轮",
+            "lineNumber": 327
+          },
+          {
+            "text": "            AO-&gt;&gt;TE: executeTool(toolCall, config)",
+            "lineNumber": 328
+          },
+          {
+            "text": "            TE--&gt;&gt;AO: 工具执行结果",
+            "lineNumber": 329
+          },
+          {
+            "text": "            AO-&gt;&gt;LLM: 继续对话（附带工具结果）",
+            "lineNumber": 330
+          },
+          {
+            "text": "            LLM--&gt;&gt;AO: 返回新响应",
+            "lineNumber": 331
+          },
+          {
+            "text": "        end",
+            "lineNumber": 332
+          },
+          {
+            "text": "    end",
+            "lineNumber": 333
+          },
+          {
+            "text": "    ",
+            "lineNumber": 334
+          },
+          {
+            "text": "    AO-&gt;&gt;DB: 保存消息历史",
+            "lineNumber": 335
+          },
+          {
+            "text": "    AO--&gt;&gt;API: 返回执行结果",
+            "lineNumber": 336
+          },
+          {
+            "text": "    API--&gt;&gt;F: 返回响应",
+            "lineNumber": 337
+          },
+          {
+            "text": "    F--&gt;&gt;U: 显示结果",
+            "lineNumber": 338
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 339
+          },
+          {
+            "lineNumber": 340
+          },
+          {
+            "text": "**时间开销分析**:",
+            "lineNumber": 341
+          },
+          {
+            "text": "- Agent配置加载: ~50ms",
+            "lineNumber": 342
+          },
+          {
+            "text": "- Prompt渲染: ~10ms",
+            "lineNumber": 343
+          }
+        ]
+      },
+      "score": 0.37241020798683167
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async searchWorkflows(query: string) {\n    logger.warn('AgentWorkflowService.searchWorkflows called, but agent workflow functionality is removed.');\n    return [];\n  }\n  \n  async getWorkflowById(id: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 40
+          },
+          {
+            "text": "  ",
+            "lineNumber": 41
+          },
+          {
+            "text": "  async searchWorkflows(query: string) {",
+            "lineNumber": 42,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.searchWorkflows called, but agent workflow functionality is removed.');",
+            "lineNumber": 43
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 44
+          },
+          {
+            "text": "  }",
+            "lineNumber": 45,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 46
+          },
+          {
+            "text": "  async getWorkflowById(id: string) {",
+            "lineNumber": 47,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 48
+          },
+          {
+            "text": "  }",
+            "lineNumber": 50,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.37073713541030884
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async getWorkflowById(id: string) {\n    logger.warn('AgentWorkflowService.getWorkflowById called, but agent workflow functionality is removed.', { id });\n    return null;\n  }\n  \n  async createWorkflow(data: any) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "  ",
+            "lineNumber": 46
+          },
+          {
+            "text": "  async getWorkflowById(id: string) {",
+            "lineNumber": 47,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.getWorkflowById called, but agent workflow functionality is removed.', { id });",
+            "lineNumber": 48
+          },
+          {
+            "text": "    return null;",
+            "lineNumber": 49
+          },
+          {
+            "text": "  }",
+            "lineNumber": 50,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 51
+          },
+          {
+            "text": "  async createWorkflow(data: any) {",
+            "lineNumber": 52,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 53
+          },
+          {
+            "text": "  }",
+            "lineNumber": 55,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3680284023284912
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_OPTIMIZATION_TASKS.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 56
+          }
+        },
+        "contents": "# AI Agent 框架优化任务清单\n\n&gt; 基于 &#96;AI_AGENT_FRAMEWORK_ANALYSIS.md&#96; 生成的可执行任务清单  \n&gt; 更新时间: 2025-01-08\n\n---\n\n## 🔴 P0: 紧急任务（必须立即修复）\n\n### ✅ T1: 修复 AgentWorkflowService 移除问题\n- **问题**: AgentWorkflowService已被移除为占位符，导致workflow工具完全失效\n- **影响**: 所有依赖工作流工具的Agent无法正常工作\n- **方案**: 使用LangGraphEngine替代\n- **工作量**: 2天\n- **步骤**:\n  1. [ ] 修改 &#96;ToolExecutor.ts&#96; 中的 &#96;executeWorkflow&#96; 方法，直接调用 &#96;LangGraphEngine&#96;\n  2. [ ] 更新所有依赖 &#96;AgentWorkflowService&#96; 的代码\n  3. [ ] 测试workflow工具调用\n  4. [ ] 更新相关文档\n\n### ✅ T2: 支持 Direct Agent 在工作流中使用\n- **问题**: LangGraphEngine禁止Direct Agent类型，限制了灵活性\n- **位置**: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;\n- **工作量**: 1天\n- **步骤**:\n  1. [ ] 移除Direct Agent类型检查限制\n  2. [ ] 在 &#96;executeAgent&#96; 方法中增加Direct Agent调用分支\n  3. [ ] 调用 &#96;AgentOrchestrator.executeAgent()&#96;\n  4. [ ] 处理返回结果格式转换\n  5. [ ] 测试Direct Agent在工作流中的执行\n\n---\n\n## 🟡 P1: 高优先级任务（重要功能缺失）\n\n### ✅ T3: 实现 search 工具\n- **问题**: search工具只是占位符，未实现实际功能\n- **位置**: &#96;backend/src/services/agent/ToolExecutor.ts:142-169&#96;\n- **工作量**: 2天\n- **步骤**:\n  1. [ ] 集成现有的AI Search功能\n  2. [ ] 实现搜索参数解析和验证\n  3. [ ] 格式化搜索结果\n  4. [ ] 添加缓存机制\n  5. [ ] 编写测试用例\n\n### ✅ T4: 实现 agent 嵌套调用工具\n- **问题**: agent工具只是占位符，未实现嵌套调用\n- **位置**: &#96;backend/src/services/agent/ToolExecutor.ts:392-429&#96;\n- **工作量**: 2天\n- **安全考虑**:\n  - 防止无限递归（最大深度3层）\n  - 累计超时控制\n  - 调用链追踪\n- **步骤**:\n  1. [ ] 实现调用深度检查",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# AI Agent 框架优化任务清单",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "&gt; 基于 &#96;AI_AGENT_FRAMEWORK_ANALYSIS.md&#96; 生成的可执行任务清单  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "&gt; 更新时间: 2025-01-08",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "---",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "## 🔴 P0: 紧急任务（必须立即修复）",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "### ✅ T1: 修复 AgentWorkflowService 移除问题",
+            "lineNumber": 10
+          },
+          {
+            "text": "- **问题**: AgentWorkflowService已被移除为占位符，导致workflow工具完全失效",
+            "lineNumber": 11
+          },
+          {
+            "text": "- **影响**: 所有依赖工作流工具的Agent无法正常工作",
+            "lineNumber": 12
+          },
+          {
+            "text": "- **方案**: 使用LangGraphEngine替代",
+            "lineNumber": 13
+          },
+          {
+            "text": "- **工作量**: 2天",
+            "lineNumber": 14
+          },
+          {
+            "text": "- **步骤**:",
+            "lineNumber": 15
+          },
+          {
+            "text": "  1. [ ] 修改 &#96;ToolExecutor.ts&#96; 中的 &#96;executeWorkflow&#96; 方法，直接调用 &#96;LangGraphEngine&#96;",
+            "lineNumber": 16
+          },
+          {
+            "text": "  2. [ ] 更新所有依赖 &#96;AgentWorkflowService&#96; 的代码",
+            "lineNumber": 17
+          },
+          {
+            "text": "  3. [ ] 测试workflow工具调用",
+            "lineNumber": 18
+          },
+          {
+            "text": "  4. [ ] 更新相关文档",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "### ✅ T2: 支持 Direct Agent 在工作流中使用",
+            "lineNumber": 21
+          },
+          {
+            "text": "- **问题**: LangGraphEngine禁止Direct Agent类型，限制了灵活性",
+            "lineNumber": 22
+          },
+          {
+            "text": "- **位置**: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;",
+            "lineNumber": 23
+          },
+          {
+            "text": "- **工作量**: 1天",
+            "lineNumber": 24
+          },
+          {
+            "text": "- **步骤**:",
+            "lineNumber": 25
+          },
+          {
+            "text": "  1. [ ] 移除Direct Agent类型检查限制",
+            "lineNumber": 26
+          },
+          {
+            "text": "  2. [ ] 在 &#96;executeAgent&#96; 方法中增加Direct Agent调用分支",
+            "lineNumber": 27
+          },
+          {
+            "text": "  3. [ ] 调用 &#96;AgentOrchestrator.executeAgent()&#96;",
+            "lineNumber": 28
+          },
+          {
+            "text": "  4. [ ] 处理返回结果格式转换",
+            "lineNumber": 29
+          },
+          {
+            "text": "  5. [ ] 测试Direct Agent在工作流中的执行",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "---",
+            "lineNumber": 32
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "## 🟡 P1: 高优先级任务（重要功能缺失）",
+            "lineNumber": 34
+          },
+          {
+            "lineNumber": 35
+          },
+          {
+            "text": "### ✅ T3: 实现 search 工具",
+            "lineNumber": 36
+          },
+          {
+            "text": "- **问题**: search工具只是占位符，未实现实际功能",
+            "lineNumber": 37
+          },
+          {
+            "text": "- **位置**: &#96;backend/src/services/agent/ToolExecutor.ts:142-169&#96;",
+            "lineNumber": 38
+          },
+          {
+            "text": "- **工作量**: 2天",
+            "lineNumber": 39
+          },
+          {
+            "text": "- **步骤**:",
+            "lineNumber": 40
+          },
+          {
+            "text": "  1. [ ] 集成现有的AI Search功能",
+            "lineNumber": 41
+          },
+          {
+            "text": "  2. [ ] 实现搜索参数解析和验证",
+            "lineNumber": 42
+          },
+          {
+            "text": "  3. [ ] 格式化搜索结果",
+            "lineNumber": 43
+          },
+          {
+            "text": "  4. [ ] 添加缓存机制",
+            "lineNumber": 44
+          },
+          {
+            "text": "  5. [ ] 编写测试用例",
+            "lineNumber": 45
+          },
+          {
+            "lineNumber": 46
+          },
+          {
+            "text": "### ✅ T4: 实现 agent 嵌套调用工具",
+            "lineNumber": 47
+          },
+          {
+            "text": "- **问题**: agent工具只是占位符，未实现嵌套调用",
+            "lineNumber": 48
+          },
+          {
+            "text": "- **位置**: &#96;backend/src/services/agent/ToolExecutor.ts:392-429&#96;",
+            "lineNumber": 49
+          },
+          {
+            "text": "- **工作量**: 2天",
+            "lineNumber": 50
+          },
+          {
+            "text": "- **安全考虑**:",
+            "lineNumber": 51
+          },
+          {
+            "text": "  - 防止无限递归（最大深度3层）",
+            "lineNumber": 52
+          },
+          {
+            "text": "  - 累计超时控制",
+            "lineNumber": 53
+          },
+          {
+            "text": "  - 调用链追踪",
+            "lineNumber": 54
+          },
+          {
+            "text": "- **步骤**:",
+            "lineNumber": 55
+          },
+          {
+            "text": "  1. [ ] 实现调用深度检查",
+            "lineNumber": 56
+          }
+        ]
+      },
+      "score": 0.35627663135528564
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_FRAMEWORK_EXECUTIVE_SUMMARY.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 69
+          }
+        },
+        "contents": "# AI Agent 框架梳理 - 执行摘要\n\n&gt; **快速阅读版本** - 5分钟了解核心问题与优化方向  \n&gt; 更新时间: 2025-01-08\n\n---\n\n## 📊 整体状况评估\n\n| 维度 | 评分 | 说明 |\n|------|------|------|\n| **架构设计** | ⭐⭐⭐⭐ (4/5) | 双引擎架构合理，但有改进空间 |\n| **功能完整性** | ⭐⭐⭐ (3/5) | 部分工具未实现，workflow功能受损 |\n| **性能表现** | ⭐⭐⭐ (3/5) | 基本可用，有优化空间 |\n| **可扩展性** | ⭐⭐⭐ (3/5) | 节点硬编码，Provider单一 |\n| **可维护性** | ⭐⭐⭐⭐ (4/5) | 代码结构清晰，文档较完善 |\n\n**总体评分**: ⭐⭐⭐ (3.4/5)\n\n---\n\n## 🎯 核心架构\n\n### 三大引擎\n\n1. **Direct Agent** (AgentOrchestrator)\n   - ✅ 完全自主控制\n   - ✅ 支持Function Calling\n   - ✅ 多轮对话管理\n   - ⚠️ 只支持OpenAI\n\n2. **Dify Agent** (DifyClient)\n   - ✅ 快速配置\n   - ✅ 可视化编排\n   - ✅ Mock降级保护\n   - ⚠️ 依赖外部平台\n\n3. **工作流引擎** (LangGraphEngine)\n   - ✅ DAG拓扑执行\n   - ✅ 节点并行支持\n   - ❌ 不支持Direct Agent\n   - ❌ 不支持循环\n\n### 调用节点统计\n\n- 前端调用节点: **10个**\n- 后端调用节点: **15个**\n- 支持的工具类型: **6种** (3种已实现)\n- 支持的LLM Provider: **1种** (OpenAI)\n\n---\n\n## 🔴 严重问题（必须立即解决）\n\n### 问题1: AgentWorkflowService已移除 ❌\n- **影响**: workflow工具完全失效\n- **后果**: 所有依赖工作流工具的Agent无法工作\n- **位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;\n- **解决方案**: 使用LangGraphEngine替代\n- **工作量**: 2天\n\n### 问题2: 工作流不支持Direct Agent ❌\n- **影响**: 无法在工作流中使用功能更强大的Direct Agent\n- **后果**: 限制了灵活性，工作流只能用Dify Agent\n- **位置**: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;\n- **解决方案**: 移除限制，增加Direct Agent调用分支\n- **工作量**: 1天\n\n### 问题3: 工作流不支持循环 ❌",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# AI Agent 框架梳理 - 执行摘要",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "&gt; **快速阅读版本** - 5分钟了解核心问题与优化方向  ",
+            "lineNumber": 3
+          },
+          {
+            "text": "&gt; 更新时间: 2025-01-08",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "---",
+            "lineNumber": 6
+          },
+          {
+            "lineNumber": 7
+          },
+          {
+            "text": "## 📊 整体状况评估",
+            "lineNumber": 8
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "| 维度 | 评分 | 说明 |",
+            "lineNumber": 10
+          },
+          {
+            "text": "|------|------|------|",
+            "lineNumber": 11
+          },
+          {
+            "text": "| **架构设计** | ⭐⭐⭐⭐ (4/5) | 双引擎架构合理，但有改进空间 |",
+            "lineNumber": 12
+          },
+          {
+            "text": "| **功能完整性** | ⭐⭐⭐ (3/5) | 部分工具未实现，workflow功能受损 |",
+            "lineNumber": 13
+          },
+          {
+            "text": "| **性能表现** | ⭐⭐⭐ (3/5) | 基本可用，有优化空间 |",
+            "lineNumber": 14
+          },
+          {
+            "text": "| **可扩展性** | ⭐⭐⭐ (3/5) | 节点硬编码，Provider单一 |",
+            "lineNumber": 15
+          },
+          {
+            "text": "| **可维护性** | ⭐⭐⭐⭐ (4/5) | 代码结构清晰，文档较完善 |",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "**总体评分**: ⭐⭐⭐ (3.4/5)",
+            "lineNumber": 18
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "---",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "## 🎯 核心架构",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "### 三大引擎",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "1. **Direct Agent** (AgentOrchestrator)",
+            "lineNumber": 26
+          },
+          {
+            "text": "   - ✅ 完全自主控制",
+            "lineNumber": 27
+          },
+          {
+            "text": "   - ✅ 支持Function Calling",
+            "lineNumber": 28
+          },
+          {
+            "text": "   - ✅ 多轮对话管理",
+            "lineNumber": 29
+          },
+          {
+            "text": "   - ⚠️ 只支持OpenAI",
+            "lineNumber": 30
+          },
+          {
+            "lineNumber": 31
+          },
+          {
+            "text": "2. **Dify Agent** (DifyClient)",
+            "lineNumber": 32
+          },
+          {
+            "text": "   - ✅ 快速配置",
+            "lineNumber": 33
+          },
+          {
+            "text": "   - ✅ 可视化编排",
+            "lineNumber": 34
+          },
+          {
+            "text": "   - ✅ Mock降级保护",
+            "lineNumber": 35
+          },
+          {
+            "text": "   - ⚠️ 依赖外部平台",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 37
+          },
+          {
+            "text": "3. **工作流引擎** (LangGraphEngine)",
+            "lineNumber": 38
+          },
+          {
+            "text": "   - ✅ DAG拓扑执行",
+            "lineNumber": 39
+          },
+          {
+            "text": "   - ✅ 节点并行支持",
+            "lineNumber": 40
+          },
+          {
+            "text": "   - ❌ 不支持Direct Agent",
+            "lineNumber": 41
+          },
+          {
+            "text": "   - ❌ 不支持循环",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "### 调用节点统计",
+            "lineNumber": 44
+          },
+          {
+            "lineNumber": 45
+          },
+          {
+            "text": "- 前端调用节点: **10个**",
+            "lineNumber": 46
+          },
+          {
+            "text": "- 后端调用节点: **15个**",
+            "lineNumber": 47
+          },
+          {
+            "text": "- 支持的工具类型: **6种** (3种已实现)",
+            "lineNumber": 48
+          },
+          {
+            "text": "- 支持的LLM Provider: **1种** (OpenAI)",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "---",
+            "lineNumber": 51
+          },
+          {
+            "lineNumber": 52
+          },
+          {
+            "text": "## 🔴 严重问题（必须立即解决）",
+            "lineNumber": 53
+          },
+          {
+            "lineNumber": 54
+          },
+          {
+            "text": "### 问题1: AgentWorkflowService已移除 ❌",
+            "lineNumber": 55
+          },
+          {
+            "text": "- **影响**: workflow工具完全失效",
+            "lineNumber": 56
+          },
+          {
+            "text": "- **后果**: 所有依赖工作流工具的Agent无法工作",
+            "lineNumber": 57
+          },
+          {
+            "text": "- **位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;",
+            "lineNumber": 58
+          },
+          {
+            "text": "- **解决方案**: 使用LangGraphEngine替代",
+            "lineNumber": 59
+          },
+          {
+            "text": "- **工作量**: 2天",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "### 问题2: 工作流不支持Direct Agent ❌",
+            "lineNumber": 62
+          },
+          {
+            "text": "- **影响**: 无法在工作流中使用功能更强大的Direct Agent",
+            "lineNumber": 63
+          },
+          {
+            "text": "- **后果**: 限制了灵活性，工作流只能用Dify Agent",
+            "lineNumber": 64
+          },
+          {
+            "text": "- **位置**: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;",
+            "lineNumber": 65
+          },
+          {
+            "text": "- **解决方案**: 移除限制，增加Direct Agent调用分支",
+            "lineNumber": 66
+          },
+          {
+            "text": "- **工作量**: 1天",
+            "lineNumber": 67
+          },
+          {
+            "lineNumber": 68
+          },
+          {
+            "text": "### 问题3: 工作流不支持循环 ❌",
+            "lineNumber": 69
+          }
+        ]
+      },
+      "score": 0.35433799028396606
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/configService.ts",
+        "range": {
+          "startPosition": {
+            "line": 61
+          },
+          "endPosition": {
+            "line": 686,
+            "column": 1
+          }
+        },
+        "contents": "class ConfigService {\n\n\n  // ========== 智能工作流配置管理 ==========\n  // 已废弃：这些配置已迁移到AI角色管理系统\n  // 以下方法保留以便向后兼容，但返回空数组或执行空操作\n\n  /**\n   * 获取智能工作流节点配置（已废弃）\n   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'smart-workflow'\n   */\n  async getSmartWorkflowConfigs(): Promise&lt;SmartWorkflowNodeConfig[]&gt; {\n    console.warn('getSmartWorkflowConfigs 已废弃，请使用AI角色管理系统');\n    return [];\n  }\n\n  /**\n   * 保存智能工作流节点配置（已废弃）\n   * @deprecated 已迁移到AI角色管理系统\n   */\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 62,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 63,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class ConfigService {",
+            "lineNumber": 62,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 564
+          },
+          {
+            "lineNumber": 565
+          },
+          {
+            "text": "  // ========== 智能工作流配置管理 ==========",
+            "lineNumber": 566
+          },
+          {
+            "text": "  // 已废弃：这些配置已迁移到AI角色管理系统",
+            "lineNumber": 567
+          },
+          {
+            "text": "  // 以下方法保留以便向后兼容，但返回空数组或执行空操作",
+            "lineNumber": 568
+          },
+          {
+            "lineNumber": 569
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 570
+          },
+          {
+            "text": "   * 获取智能工作流节点配置（已废弃）",
+            "lineNumber": 571
+          },
+          {
+            "text": "   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'smart-workflow'",
+            "lineNumber": 572
+          },
+          {
+            "text": "   */",
+            "lineNumber": 573
+          },
+          {
+            "text": "  async getSmartWorkflowConfigs(): Promise&lt;SmartWorkflowNodeConfig[]&gt; {",
+            "lineNumber": 574,
+            "isSignature": true
+          },
+          {
+            "text": "    console.warn('getSmartWorkflowConfigs 已废弃，请使用AI角色管理系统');",
+            "lineNumber": 575
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 576
+          },
+          {
+            "text": "  }",
+            "lineNumber": 577,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 578
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 579
+          },
+          {
+            "text": "   * 保存智能工作流节点配置（已废弃）",
+            "lineNumber": 580
+          },
+          {
+            "text": "   * @deprecated 已迁移到AI角色管理系统",
+            "lineNumber": 581
+          },
+          {
+            "text": "   */",
+            "lineNumber": 582
+          },
+          {
+            "text": "}",
+            "lineNumber": 687,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3367650508880615
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async getExecutionHistory(workflowId: string) {\n    logger.warn('AgentWorkflowService.getExecutionHistory called, but agent workflow functionality is removed.', { workflowId });\n    return [];\n  }\n  \n  async getExecutionById(executionId: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "  ",
+            "lineNumber": 71
+          },
+          {
+            "text": "  async getExecutionHistory(workflowId: string) {",
+            "lineNumber": 72,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.getExecutionHistory called, but agent workflow functionality is removed.', { workflowId });",
+            "lineNumber": 73
+          },
+          {
+            "text": "    return [];",
+            "lineNumber": 74
+          },
+          {
+            "text": "  }",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 76
+          },
+          {
+            "text": "  async getExecutionById(executionId: string) {",
+            "lineNumber": 77,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 78
+          },
+          {
+            "text": "  }",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3307464122772217
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_FRAMEWORK_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 509
+          },
+          "endPosition": {
+            "line": 578
+          }
+        },
+        "contents": "interface WorkflowNode {\n  id: string;\n  type: 'input' | 'agent' | 'output' | 'condition' | 'assign' | 'transform' | 'merge' | 'memory';\n  data: {\n    agentId?: string;  // 对于agent节点\n    inputs?: any[];     // 对于input节点\n    outputs?: any[];    // 对于output节点\n    condition?: any;    // 对于condition节点\n    // ... 其他节点特定配置\n  };\n}\n&#96;&#96;&#96;\n\n### 4.3 消息历史结构\n\n&#96;&#96;&#96;typescript\ninterface ChatMessage {\n  role: 'system' | 'user' | 'assistant' | 'tool';\n  content: string;\n  name?: string;           // 工具名称\n  tool_call_id?: string;   // 工具调用ID\n}\n\ninterface ChatConversation {\n  conversation_id: string;\n  app_type: 'direct-agent' | 'dify' | string;\n  session_name: string;\n  status: 'active' | 'completed';\n  created_at: string;\n  updated_at: string;\n}\n&#96;&#96;&#96;\n\n---\n\n## 五、现有问题识别\n\n### 5.1 架构层面问题\n\n#### 🔴 严重问题\n\n1. **AgentWorkflowService已移除但仍被引用**\n   - 位置: &#96;backend/src/services/AgentWorkflowService.ts&#96;\n   - 影响: &#96;ToolExecutor&#96;的&#96;workflow&#96;工具完全失效\n   - 后果: 所有依赖工作流工具的Agent无法正常工作\n\n2. **LangGraphEngine不支持Direct Agent**\n   - 位置: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;\n   - 代码: &#96;if (provider === 'direct-agent') throw new Error(...)&#96;\n   - 后果: 工作流中无法使用功能更强大的Direct Agent\n\n3. **工作流引擎不支持循环**\n   - 后果: 无法实现迭代优化、反馈循环等高级场景\n\n#### 🟡 中等问题\n\n4. **只支持OpenAI Provider**\n   - 位置: &#96;backend/src/services/agent/AgentOrchestrator.ts:319-327&#96;\n   - 后果: 无法使用其他LLM（如Claude、Gemini等）\n\n5. **工具调用为串行执行**\n   - 位置: &#96;backend/src/services/agent/AgentOrchestrator.ts:220-267&#96;\n   - 后果: 多个工具调用时性能低下\n\n6. **缺少Mock模式**\n   - 后果: 开发测试时成本高昂\n\n7. **节点类型硬编码**\n   - 位置: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:88-108&#96;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "interface WorkflowNode {",
+            "lineNumber": 510
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 511
+          },
+          {
+            "text": "  type: 'input' | 'agent' | 'output' | 'condition' | 'assign' | 'transform' | 'merge' | 'memory';",
+            "lineNumber": 512
+          },
+          {
+            "text": "  data: {",
+            "lineNumber": 513
+          },
+          {
+            "text": "    agentId?: string;  // 对于agent节点",
+            "lineNumber": 514
+          },
+          {
+            "text": "    inputs?: any[];     // 对于input节点",
+            "lineNumber": 515
+          },
+          {
+            "text": "    outputs?: any[];    // 对于output节点",
+            "lineNumber": 516
+          },
+          {
+            "text": "    condition?: any;    // 对于condition节点",
+            "lineNumber": 517
+          },
+          {
+            "text": "    // ... 其他节点特定配置",
+            "lineNumber": 518
+          },
+          {
+            "text": "  };",
+            "lineNumber": 519
+          },
+          {
+            "text": "}",
+            "lineNumber": 520
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 521
+          },
+          {
+            "lineNumber": 522
+          },
+          {
+            "text": "### 4.3 消息历史结构",
+            "lineNumber": 523
+          },
+          {
+            "lineNumber": 524
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 525
+          },
+          {
+            "text": "interface ChatMessage {",
+            "lineNumber": 526
+          },
+          {
+            "text": "  role: 'system' | 'user' | 'assistant' | 'tool';",
+            "lineNumber": 527
+          },
+          {
+            "text": "  content: string;",
+            "lineNumber": 528
+          },
+          {
+            "text": "  name?: string;           // 工具名称",
+            "lineNumber": 529
+          },
+          {
+            "text": "  tool_call_id?: string;   // 工具调用ID",
+            "lineNumber": 530
+          },
+          {
+            "text": "}",
+            "lineNumber": 531
+          },
+          {
+            "lineNumber": 532
+          },
+          {
+            "text": "interface ChatConversation {",
+            "lineNumber": 533
+          },
+          {
+            "text": "  conversation_id: string;",
+            "lineNumber": 534
+          },
+          {
+            "text": "  app_type: 'direct-agent' | 'dify' | string;",
+            "lineNumber": 535
+          },
+          {
+            "text": "  session_name: string;",
+            "lineNumber": 536
+          },
+          {
+            "text": "  status: 'active' | 'completed';",
+            "lineNumber": 537
+          },
+          {
+            "text": "  created_at: string;",
+            "lineNumber": 538
+          },
+          {
+            "text": "  updated_at: string;",
+            "lineNumber": 539
+          },
+          {
+            "text": "}",
+            "lineNumber": 540
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 541
+          },
+          {
+            "lineNumber": 542
+          },
+          {
+            "text": "---",
+            "lineNumber": 543
+          },
+          {
+            "lineNumber": 544
+          },
+          {
+            "text": "## 五、现有问题识别",
+            "lineNumber": 545
+          },
+          {
+            "lineNumber": 546
+          },
+          {
+            "text": "### 5.1 架构层面问题",
+            "lineNumber": 547
+          },
+          {
+            "lineNumber": 548
+          },
+          {
+            "text": "#### 🔴 严重问题",
+            "lineNumber": 549
+          },
+          {
+            "lineNumber": 550
+          },
+          {
+            "text": "1. **AgentWorkflowService已移除但仍被引用**",
+            "lineNumber": 551
+          },
+          {
+            "text": "   - 位置: &#96;backend/src/services/AgentWorkflowService.ts&#96;",
+            "lineNumber": 552
+          },
+          {
+            "text": "   - 影响: &#96;ToolExecutor&#96;的&#96;workflow&#96;工具完全失效",
+            "lineNumber": 553
+          },
+          {
+            "text": "   - 后果: 所有依赖工作流工具的Agent无法正常工作",
+            "lineNumber": 554
+          },
+          {
+            "lineNumber": 555
+          },
+          {
+            "text": "2. **LangGraphEngine不支持Direct Agent**",
+            "lineNumber": 556
+          },
+          {
+            "text": "   - 位置: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:133&#96;",
+            "lineNumber": 557
+          },
+          {
+            "text": "   - 代码: &#96;if (provider === 'direct-agent') throw new Error(...)&#96;",
+            "lineNumber": 558
+          },
+          {
+            "text": "   - 后果: 工作流中无法使用功能更强大的Direct Agent",
+            "lineNumber": 559
+          },
+          {
+            "lineNumber": 560
+          },
+          {
+            "text": "3. **工作流引擎不支持循环**",
+            "lineNumber": 561
+          },
+          {
+            "text": "   - 后果: 无法实现迭代优化、反馈循环等高级场景",
+            "lineNumber": 562
+          },
+          {
+            "lineNumber": 563
+          },
+          {
+            "text": "#### 🟡 中等问题",
+            "lineNumber": 564
+          },
+          {
+            "lineNumber": 565
+          },
+          {
+            "text": "4. **只支持OpenAI Provider**",
+            "lineNumber": 566
+          },
+          {
+            "text": "   - 位置: &#96;backend/src/services/agent/AgentOrchestrator.ts:319-327&#96;",
+            "lineNumber": 567
+          },
+          {
+            "text": "   - 后果: 无法使用其他LLM（如Claude、Gemini等）",
+            "lineNumber": 568
+          },
+          {
+            "lineNumber": 569
+          },
+          {
+            "text": "5. **工具调用为串行执行**",
+            "lineNumber": 570
+          },
+          {
+            "text": "   - 位置: &#96;backend/src/services/agent/AgentOrchestrator.ts:220-267&#96;",
+            "lineNumber": 571
+          },
+          {
+            "text": "   - 后果: 多个工具调用时性能低下",
+            "lineNumber": 572
+          },
+          {
+            "lineNumber": 573
+          },
+          {
+            "text": "6. **缺少Mock模式**",
+            "lineNumber": 574
+          },
+          {
+            "text": "   - 后果: 开发测试时成本高昂",
+            "lineNumber": 575
+          },
+          {
+            "lineNumber": 576
+          },
+          {
+            "text": "7. **节点类型硬编码**",
+            "lineNumber": 577
+          },
+          {
+            "text": "   - 位置: &#96;backend/src/services/workflow/langgraph/LangGraphEngine.ts:88-108&#96;",
+            "lineNumber": 578
+          }
+        ]
+      },
+      "score": 0.3291550874710083
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/agentWorkflowService.ts",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 39,
+            "column": 1
+          }
+        },
+        "contents": "// Placeholder for agentWorkflowService\n// All actual agent workflow logic has been removed as part of project slimming.\n// This file exists to prevent compilation errors from other modules that still import it.\n\nexport interface AgentWorkflow {\n  id: string;\n  name: string;\n  description?: string;\n  published?: boolean;\n  [key: string]: any;\n}\n\nexport const agentWorkflowService = {\n  getAllWorkflows:\n,\n};",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "// Placeholder for agentWorkflowService",
+            "lineNumber": 1
+          },
+          {
+            "text": "// All actual agent workflow logic has been removed as part of project slimming.",
+            "lineNumber": 2
+          },
+          {
+            "text": "// This file exists to prevent compilation errors from other modules that still import it.",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "export interface AgentWorkflow {",
+            "lineNumber": 5,
+            "isSignature": true
+          },
+          {
+            "text": "  id: string;",
+            "lineNumber": 6
+          },
+          {
+            "text": "  name: string;",
+            "lineNumber": 7
+          },
+          {
+            "text": "  description?: string;",
+            "lineNumber": 8
+          },
+          {
+            "text": "  published?: boolean;",
+            "lineNumber": 9
+          },
+          {
+            "text": "  [key: string]: any;",
+            "lineNumber": 10,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 11,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 12
+          },
+          {
+            "text": "export const agentWorkflowService = {",
+            "lineNumber": 13
+          },
+          {
+            "text": "  getAllWorkflows:",
+            "lineNumber": 14
+          },
+          {
+            "text": ",",
+            "lineNumber": 39
+          },
+          {
+            "text": "};",
+            "lineNumber": 40
+          }
+        ]
+      },
+      "score": 0.32516729831695557
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/pages/AIRoleManagementPage.tsx",
+        "range": {
+          "startPosition": {
+            "line": 54
+          },
+          "endPosition": {
+            "line": 3598,
+            "column": 1
+          }
+        },
+        "contents": "const AIRoleManagementPage: React.FC = \nconst checkDuplicates = async \n\n      setDuplicateInfo(null);\n    }\n  };\n\n  const loadPublishedWorkflows = async () =&gt; {\n    try {\n      const wfs = await agentWorkflowService.getAllWorkflows();\n      setDebugWorkflows(wfs); // Store for debugging\n      console.log('Fetched workflows:', wfs);\n      // 默认显示全部自编工作流，不进行发布状态过滤\n      setPublishedWorkflows(wfs);\n    } catch (error) {\n      console.error('Error loading workflows:', error);\n    }\n  };\n\n  // 清除重复角色\n  const handleRemoveDuplicates = async () =&gt; {\n    if (!duplicateInfo || duplicateInfo.totalDuplicates === 0) {\n      return;\n    }\n\n    if (!confirm(&#96;确定要删除 ${duplicateInfo.totalDuplicates} 个重复角色吗？\\n\\n此操作不可恢复！&#96;)) {\n      return;\n    }\n\n    setRemovingDuplicates(true);\n    try {\n      const result = await aiRoleService.removeDuplicates();\n      if (result.success) {\n        setMessage({ \n          type: 'success', \n          text: result.message || &#96;成功清除 ${duplicateInfo.totalDuplicates} 个重复角色&#96; \n        });\n        await loadRoles();\n        setDuplicateInfo(null);\n      } else {\n        setMessage({ type: 'error', text: result.error || '清除重复角色失败' });\n      }\n    } catch (error) {\n      console.error('清除重复角色失败:', error);\n      setMessage({ type: 'error', text: '清除重复角色失败' });\n    } finally {\n      setRemovingDuplicates(false);\n    }\n  };\n\n  // 检查迁移状态\n  const checkMigrationStatus = async (existingRoles?: AIRoleConfig[]) =&gt; {\n    try {\n      const status = await migrationService.checkMigrationStatus(existingRoles);\n      setMigrationStatus(status);\n    } catch (error) {\n      const errorMessage = error instanceof Error ? error.message : '未知错误';\n      console.error('检查迁移状态失败:', {\n        message: errorMessage,\n        error\n      });\n    }\n  };\n\n  // 执行迁移\n  const handleMigrate = async () =&gt;\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 7
+              }
+            },
+            {
+              "startPosition": {
+                "line": 55,
+                "column": 7
+              },
+              "endPosition": {
+                "line": 55,
+                "column": 40
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "const AIRoleManagementPage: React.FC = ",
+            "lineNumber": 55
+          },
+          {
+            "text": "const checkDuplicates = async ",
+            "lineNumber": 170
+          },
+          {
+            "lineNumber": 180
+          },
+          {
+            "text": "      setDuplicateInfo(null);",
+            "lineNumber": 181
+          },
+          {
+            "text": "    }",
+            "lineNumber": 182
+          },
+          {
+            "text": "  };",
+            "lineNumber": 183
+          },
+          {
+            "lineNumber": 184
+          },
+          {
+            "text": "  const loadPublishedWorkflows = async () =&gt; {",
+            "lineNumber": 185
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 186
+          },
+          {
+            "text": "      const wfs = await agentWorkflowService.getAllWorkflows();",
+            "lineNumber": 187
+          },
+          {
+            "text": "      setDebugWorkflows(wfs); // Store for debugging",
+            "lineNumber": 188
+          },
+          {
+            "text": "      console.log('Fetched workflows:', wfs);",
+            "lineNumber": 189
+          },
+          {
+            "text": "      // 默认显示全部自编工作流，不进行发布状态过滤",
+            "lineNumber": 190
+          },
+          {
+            "text": "      setPublishedWorkflows(wfs);",
+            "lineNumber": 191
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 192
+          },
+          {
+            "text": "      console.error('Error loading workflows:', error);",
+            "lineNumber": 193
+          },
+          {
+            "text": "    }",
+            "lineNumber": 194
+          },
+          {
+            "text": "  };",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "  // 清除重复角色",
+            "lineNumber": 197
+          },
+          {
+            "text": "  const handleRemoveDuplicates = async () =&gt; {",
+            "lineNumber": 198
+          },
+          {
+            "text": "    if (!duplicateInfo || duplicateInfo.totalDuplicates === 0) {",
+            "lineNumber": 199
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 200
+          },
+          {
+            "text": "    }",
+            "lineNumber": 201
+          },
+          {
+            "lineNumber": 202
+          },
+          {
+            "text": "    if (!confirm(&#96;确定要删除 ${duplicateInfo.totalDuplicates} 个重复角色吗？\\n\\n此操作不可恢复！&#96;)) {",
+            "lineNumber": 203
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 204
+          },
+          {
+            "text": "    }",
+            "lineNumber": 205
+          },
+          {
+            "lineNumber": 206
+          },
+          {
+            "text": "    setRemovingDuplicates(true);",
+            "lineNumber": 207
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 208
+          },
+          {
+            "text": "      const result = await aiRoleService.removeDuplicates();",
+            "lineNumber": 209
+          },
+          {
+            "text": "      if (result.success) {",
+            "lineNumber": 210
+          },
+          {
+            "text": "        setMessage({ ",
+            "lineNumber": 211
+          },
+          {
+            "text": "          type: 'success', ",
+            "lineNumber": 212
+          },
+          {
+            "text": "          text: result.message || &#96;成功清除 ${duplicateInfo.totalDuplicates} 个重复角色&#96; ",
+            "lineNumber": 213
+          },
+          {
+            "text": "        });",
+            "lineNumber": 214
+          },
+          {
+            "text": "        await loadRoles();",
+            "lineNumber": 215
+          },
+          {
+            "text": "        setDuplicateInfo(null);",
+            "lineNumber": 216
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 217
+          },
+          {
+            "text": "        setMessage({ type: 'error', text: result.error || '清除重复角色失败' });",
+            "lineNumber": 218
+          },
+          {
+            "text": "      }",
+            "lineNumber": 219
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 220
+          },
+          {
+            "text": "      console.error('清除重复角色失败:', error);",
+            "lineNumber": 221
+          },
+          {
+            "text": "      setMessage({ type: 'error', text: '清除重复角色失败' });",
+            "lineNumber": 222
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 223
+          },
+          {
+            "text": "      setRemovingDuplicates(false);",
+            "lineNumber": 224
+          },
+          {
+            "text": "    }",
+            "lineNumber": 225
+          },
+          {
+            "text": "  };",
+            "lineNumber": 226
+          },
+          {
+            "lineNumber": 227
+          },
+          {
+            "text": "  // 检查迁移状态",
+            "lineNumber": 228
+          },
+          {
+            "text": "  const checkMigrationStatus = async (existingRoles?: AIRoleConfig[]) =&gt; {",
+            "lineNumber": 229
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 230
+          },
+          {
+            "text": "      const status = await migrationService.checkMigrationStatus(existingRoles);",
+            "lineNumber": 231
+          },
+          {
+            "text": "      setMigrationStatus(status);",
+            "lineNumber": 232
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 233
+          },
+          {
+            "text": "      const errorMessage = error instanceof Error ? error.message : '未知错误';",
+            "lineNumber": 234
+          },
+          {
+            "text": "      console.error('检查迁移状态失败:', {",
+            "lineNumber": 235
+          },
+          {
+            "text": "        message: errorMessage,",
+            "lineNumber": 236
+          },
+          {
+            "text": "        error",
+            "lineNumber": 237
+          },
+          {
+            "text": "      });",
+            "lineNumber": 238
+          },
+          {
+            "text": "    }",
+            "lineNumber": 239
+          },
+          {
+            "text": "  };",
+            "lineNumber": 240
+          },
+          {
+            "lineNumber": 241
+          },
+          {
+            "text": "  // 执行迁移",
+            "lineNumber": 242
+          },
+          {
+            "text": "  const handleMigrate = async () =&gt;",
+            "lineNumber": 243
+          },
+          {
+            "text": ";",
+            "lineNumber": 287
+          },
+          {
+            "text": ";",
+            "lineNumber": 3599
+          }
+        ]
+      },
+      "score": 0.3199549913406372
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async getExecutionById(executionId: string) {\n    logger.warn('AgentWorkflowService.getExecutionById called, but agent workflow functionality is removed.', { executionId });\n    return null;\n  }\n  \n  async getAllTemplates(category?: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "  ",
+            "lineNumber": 76
+          },
+          {
+            "text": "  async getExecutionById(executionId: string) {",
+            "lineNumber": 77,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.getExecutionById called, but agent workflow functionality is removed.', { executionId });",
+            "lineNumber": 78
+          },
+          {
+            "text": "    return null;",
+            "lineNumber": 79
+          },
+          {
+            "text": "  }",
+            "lineNumber": 80,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 81
+          },
+          {
+            "text": "  async getAllTemplates(category?: string) {",
+            "lineNumber": 82,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 83
+          },
+          {
+            "text": "  }",
+            "lineNumber": 85,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3067137897014618
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/configService.ts",
+        "range": {
+          "startPosition": {
+            "line": 61
+          },
+          "endPosition": {
+            "line": 686,
+            "column": 1
+          }
+        },
+        "contents": "async saveSmartWorkflowConfigs(_configs: SmartWorkflowNodeConfig[]): Promise&lt;ConfigResponse&gt; {\n\n  }\n\n  /**\n   * 更新智能工作流节点配置（已废弃）\n   * @deprecated 已迁移到AI角色管理系统\n   */\n  async updateSmartWorkflowConfig(_id: string, _updates: Partial&lt;SmartWorkflowNodeConfig&gt;): Promise&lt;ConfigResponse&gt; {\n    console.warn('updateSmartWorkflowConfig 已废弃，请使用AI角色管理系统');\n    return { success: false, message: '配置已迁移到AI角色管理系统' };\n  }\n\n  // ========== 独立页面配置管理 ==========\n  // 已废弃：这些配置已迁移到AI角色管理系统\n\n  /**\n   * 获取独立页面配置（已废弃）\n   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'independent-page'\n   */\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 62,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 63,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async saveSmartWorkflowConfigs(_configs: SmartWorkflowNodeConfig[]): Promise&lt;ConfigResponse&gt; {",
+            "lineNumber": 583,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 585
+          },
+          {
+            "text": "  }",
+            "lineNumber": 586,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 587
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 588
+          },
+          {
+            "text": "   * 更新智能工作流节点配置（已废弃）",
+            "lineNumber": 589
+          },
+          {
+            "text": "   * @deprecated 已迁移到AI角色管理系统",
+            "lineNumber": 590
+          },
+          {
+            "text": "   */",
+            "lineNumber": 591
+          },
+          {
+            "text": "  async updateSmartWorkflowConfig(_id: string, _updates: Partial&lt;SmartWorkflowNodeConfig&gt;): Promise&lt;ConfigResponse&gt; {",
+            "lineNumber": 592,
+            "isSignature": true
+          },
+          {
+            "text": "    console.warn('updateSmartWorkflowConfig 已废弃，请使用AI角色管理系统');",
+            "lineNumber": 593
+          },
+          {
+            "text": "    return { success: false, message: '配置已迁移到AI角色管理系统' };",
+            "lineNumber": 594
+          },
+          {
+            "text": "  }",
+            "lineNumber": 595,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 596
+          },
+          {
+            "text": "  // ========== 独立页面配置管理 ==========",
+            "lineNumber": 597
+          },
+          {
+            "text": "  // 已废弃：这些配置已迁移到AI角色管理系统",
+            "lineNumber": 598
+          },
+          {
+            "lineNumber": 599
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 600
+          },
+          {
+            "text": "   * 获取独立页面配置（已废弃）",
+            "lineNumber": 601
+          },
+          {
+            "text": "   * @deprecated 已迁移到AI角色管理系统，请使用 aiRoleService.getAIRoles() 并过滤 source === 'independent-page'",
+            "lineNumber": 602
+          },
+          {
+            "text": "   */",
+            "lineNumber": 603
+          },
+          {
+            "text": "}",
+            "lineNumber": 687,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3056744337081909
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/configService.ts",
+        "range": {
+          "startPosition": {
+            "line": 61
+          },
+          "endPosition": {
+            "line": 689,
+            "column": 49
+          }
+        },
+        "contents": "class ConfigService {\n\n\n  /**\n   * 导入所有配置（已更新：智能工作流和独立页面配置需迁移到AI角色系统）\n   */\n  async importAllConfigs(data: {\n    difyConfigs?: DifyAPIConfig[],\n    workflowConfigs?: WorkflowStepConfig[],\n    smartWorkflowConfigs?: SmartWorkflowNodeConfig[], // 已废弃，会被忽略\n    independentPageConfigs?: IndependentPageConfig[] // 已废弃，会被忽略\n  }): Promise&lt;ConfigResponse&gt; {\n    try {\n      // 如果包含已废弃的配置，提示用户\n      if (data.smartWorkflowConfigs &amp;&amp; data.smartWorkflowConfigs.length &gt; 0) {\n        console.warn('smartWorkflowConfigs 已废弃，请使用AI角色管理系统迁移');\n      }\n      if (data.independentPageConfigs &amp;&amp; data.independentPageConfigs.length &gt; 0) {\n        console.warn('independentPageConfigs 已废弃，请使用AI角色管理系统迁移');\n      }\n\n      const results = await Promise.all([\n        data.difyConfigs ? this.saveDifyConfigs(data.difyConfigs) : Promise.resolve({ success: true }),\n        data.workflowConfigs ? this.saveWorkflowConfigs(data.workflowConfigs) : Promise.resolve({ success: true }),\n        // 已废弃的配置不再保存\n      ]);\n\n      const failedResults = results.filter(result =&gt; !result.success);\n      if (failedResults.length &gt; 0) {\n        return { success: false, message: '部分配置导入失败' };\n      }\n\n      return { success: true, message: '配置导入成功（注意：智能工作流和独立页面配置需通过AI角色管理系统迁移）' };\n    } catch (error) {\n      console.error('导入配置失败:', error);\n      return { success: false, message: '导入配置失败' };\n    }\n  }\n}\n\n// 创建单例实例\nexport const configService = new ConfigService();",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 62,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 63,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class ConfigService {",
+            "lineNumber": 62,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 650
+          },
+          {
+            "lineNumber": 651
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 652
+          },
+          {
+            "text": "   * 导入所有配置（已更新：智能工作流和独立页面配置需迁移到AI角色系统）",
+            "lineNumber": 653
+          },
+          {
+            "text": "   */",
+            "lineNumber": 654
+          },
+          {
+            "text": "  async importAllConfigs(data: {",
+            "lineNumber": 655,
+            "isSignature": true
+          },
+          {
+            "text": "    difyConfigs?: DifyAPIConfig[],",
+            "lineNumber": 656,
+            "isSignature": true
+          },
+          {
+            "text": "    workflowConfigs?: WorkflowStepConfig[],",
+            "lineNumber": 657,
+            "isSignature": true
+          },
+          {
+            "text": "    smartWorkflowConfigs?: SmartWorkflowNodeConfig[], // 已废弃，会被忽略",
+            "lineNumber": 658,
+            "isSignature": true
+          },
+          {
+            "text": "    independentPageConfigs?: IndependentPageConfig[] // 已废弃，会被忽略",
+            "lineNumber": 659,
+            "isSignature": true
+          },
+          {
+            "text": "  }): Promise&lt;ConfigResponse&gt; {",
+            "lineNumber": 660,
+            "isSignature": true
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 661
+          },
+          {
+            "text": "      // 如果包含已废弃的配置，提示用户",
+            "lineNumber": 662
+          },
+          {
+            "text": "      if (data.smartWorkflowConfigs &amp;&amp; data.smartWorkflowConfigs.length &gt; 0) {",
+            "lineNumber": 663
+          },
+          {
+            "text": "        console.warn('smartWorkflowConfigs 已废弃，请使用AI角色管理系统迁移');",
+            "lineNumber": 664
+          },
+          {
+            "text": "      }",
+            "lineNumber": 665
+          },
+          {
+            "text": "      if (data.independentPageConfigs &amp;&amp; data.independentPageConfigs.length &gt; 0) {",
+            "lineNumber": 666
+          },
+          {
+            "text": "        console.warn('independentPageConfigs 已废弃，请使用AI角色管理系统迁移');",
+            "lineNumber": 667
+          },
+          {
+            "text": "      }",
+            "lineNumber": 668
+          },
+          {
+            "lineNumber": 669
+          },
+          {
+            "text": "      const results = await Promise.all([",
+            "lineNumber": 670
+          },
+          {
+            "text": "        data.difyConfigs ? this.saveDifyConfigs(data.difyConfigs) : Promise.resolve({ success: true }),",
+            "lineNumber": 671
+          },
+          {
+            "text": "        data.workflowConfigs ? this.saveWorkflowConfigs(data.workflowConfigs) : Promise.resolve({ success: true }),",
+            "lineNumber": 672
+          },
+          {
+            "text": "        // 已废弃的配置不再保存",
+            "lineNumber": 673
+          },
+          {
+            "text": "      ]);",
+            "lineNumber": 674
+          },
+          {
+            "lineNumber": 675
+          },
+          {
+            "text": "      const failedResults = results.filter(result =&gt; !result.success);",
+            "lineNumber": 676
+          },
+          {
+            "text": "      if (failedResults.length &gt; 0) {",
+            "lineNumber": 677
+          },
+          {
+            "text": "        return { success: false, message: '部分配置导入失败' };",
+            "lineNumber": 678
+          },
+          {
+            "text": "      }",
+            "lineNumber": 679
+          },
+          {
+            "lineNumber": 680
+          },
+          {
+            "text": "      return { success: true, message: '配置导入成功（注意：智能工作流和独立页面配置需通过AI角色管理系统迁移）' };",
+            "lineNumber": 681
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 682
+          },
+          {
+            "text": "      console.error('导入配置失败:', error);",
+            "lineNumber": 683
+          },
+          {
+            "text": "      return { success: false, message: '导入配置失败' };",
+            "lineNumber": 684
+          },
+          {
+            "text": "    }",
+            "lineNumber": 685
+          },
+          {
+            "text": "  }",
+            "lineNumber": 686,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 687,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 688
+          },
+          {
+            "text": "// 创建单例实例",
+            "lineNumber": 689
+          },
+          {
+            "text": "export const configService = new ConfigService();",
+            "lineNumber": 690
+          }
+        ]
+      },
+      "score": 0.30428439378738403
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async deleteTemplate(id: string): Promise&lt;boolean&gt; {\n    logger.warn('AgentWorkflowService.deleteTemplate called, but agent workflow functionality is removed.', {\n      id,\n    });\n    return false;\n  }\n  \n  async searchWorkflows(query: string) {\n    logger.warn\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 33
+          },
+          {
+            "text": "  ",
+            "lineNumber": 34
+          },
+          {
+            "text": "  async deleteTemplate(id: string): Promise&lt;boolean&gt; {",
+            "lineNumber": 35,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.deleteTemplate called, but agent workflow functionality is removed.', {",
+            "lineNumber": 36
+          },
+          {
+            "text": "      id,",
+            "lineNumber": 37
+          },
+          {
+            "text": "    });",
+            "lineNumber": 38
+          },
+          {
+            "text": "    return false;",
+            "lineNumber": 39
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 41
+          },
+          {
+            "text": "  async searchWorkflows(query: string) {",
+            "lineNumber": 42,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 43
+          },
+          {
+            "text": "  }",
+            "lineNumber": 45,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.3014068603515625
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+
+查看 `SendMessageUseCase` 中如何调用工作流服务：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/services/AgentWorkflowService.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "executeRole DifyGateway executeAgent AgentOrchestrator",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/nodes/AgentNodeExecutor.ts",
+        "range": {
+          "startPosition": {
+            "column": 46
+          },
+          "endPosition": {
+            "line": 79,
+            "column": 1
+          }
+        },
+        "contents": "import { aiRoleModel } from '../../../models';\nimport { DifyGateway } from '@/shared/infrastructure/integrations/dify';\nimport { AgentOrchestrator } from '../../agent/AgentOrchestrator';\n\n/**\n * Agent节点执行器\n */\nexport class AgentNodeExecutor implements NodeExecutor {\n  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    \n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    \n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...context, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const agentContext: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          agentContext[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig)\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { aiRoleModel } from '../../../models';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { DifyGateway } from '@/shared/infrastructure/integrations/dify';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { AgentOrchestrator } from '../../agent/AgentOrchestrator';",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "/**",
+            "lineNumber": 6
+          },
+          {
+            "text": " * Agent节点执行器",
+            "lineNumber": 7
+          },
+          {
+            "text": " */",
+            "lineNumber": 8
+          },
+          {
+            "text": "export class AgentNodeExecutor implements NodeExecutor {",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 10
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 12
+          },
+          {
+            "text": "    ",
+            "lineNumber": 13
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 14
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 15
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 16
+          },
+          {
+            "text": "    ",
+            "lineNumber": 17
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 18
+          },
+          {
+            "text": "    ",
+            "lineNumber": 19
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 20
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 21
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 22
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 23
+          },
+          {
+            "text": "      }",
+            "lineNumber": 24
+          },
+          {
+            "text": "      ",
+            "lineNumber": 25
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 26
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 27
+          },
+          {
+            "text": "      const nodeInput = { ...context, ...(node.data?.inputs || {}) };",
+            "lineNumber": 28
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 29
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 30
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 31
+          },
+          {
+            "text": "      }",
+            "lineNumber": 32
+          },
+          {
+            "text": "      ",
+            "lineNumber": 33
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 34
+          },
+          {
+            "text": "      const agentContext: Record&lt;string, any&gt; = {};",
+            "lineNumber": 35
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 37
+          },
+          {
+            "text": "          agentContext[key] = nodeInput[key];",
+            "lineNumber": 38
+          },
+          {
+            "text": "        }",
+            "lineNumber": 39
+          },
+          {
+            "text": "      });",
+            "lineNumber": 40
+          },
+          {
+            "text": "      ",
+            "lineNumber": 41
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);",
+            "lineNumber": 42
+          },
+          {
+            "text": "      ",
+            "lineNumber": 43
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 44
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 45
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 46
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 47
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 48
+          },
+          {
+            "text": "      };",
+            "lineNumber": 49
+          },
+          {
+            "text": "    }",
+            "lineNumber": 50
+          },
+          {
+            "text": "    ",
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 52
+          },
+          {
+            "text": "    if (!role.difyConfig)",
+            "lineNumber": 53
+          },
+          {
+            "text": "  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "}",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5893001556396484
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/langgraph/LangGraphEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 449,
+            "column": 1
+          }
+        },
+        "contents": "export class LangGraphEngine {\n\n\n  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const context: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          context[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', context);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);\n    const { connectionType, apiKey, apiUrl } = role.difyConfig;\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LangGraphEngine {",
+            "lineNumber": 16,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 148
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 149
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 150
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 151
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 152
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 153
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 154
+          },
+          {
+            "text": "    ",
+            "lineNumber": 155
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 156
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 157
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 158
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 159
+          },
+          {
+            "text": "      }",
+            "lineNumber": 160
+          },
+          {
+            "text": "      ",
+            "lineNumber": 161
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 162
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 163
+          },
+          {
+            "text": "      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };",
+            "lineNumber": 164
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 165
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 166
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 167
+          },
+          {
+            "text": "      }",
+            "lineNumber": 168
+          },
+          {
+            "text": "      ",
+            "lineNumber": 169
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 170
+          },
+          {
+            "text": "      const context: Record&lt;string, any&gt; = {};",
+            "lineNumber": 171
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 172
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 173
+          },
+          {
+            "text": "          context[key] = nodeInput[key];",
+            "lineNumber": 174
+          },
+          {
+            "text": "        }",
+            "lineNumber": 175
+          },
+          {
+            "text": "      });",
+            "lineNumber": 176
+          },
+          {
+            "text": "      ",
+            "lineNumber": 177
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', context);",
+            "lineNumber": 178
+          },
+          {
+            "text": "      ",
+            "lineNumber": 179
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 180
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 181
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 182
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 184
+          },
+          {
+            "text": "      };",
+            "lineNumber": 185
+          },
+          {
+            "text": "    }",
+            "lineNumber": 186
+          },
+          {
+            "text": "    ",
+            "lineNumber": 187
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 188
+          },
+          {
+            "text": "    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);",
+            "lineNumber": 189
+          },
+          {
+            "text": "    const { connectionType, apiKey, apiUrl } = role.difyConfig;",
+            "lineNumber": 190
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 191
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;",
+            "lineNumber": 193
+          },
+          {
+            "text": "  }",
+            "lineNumber": 215
+          },
+          {
+            "text": "}",
+            "lineNumber": 450,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5737267732620239
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/nodes/AgentNodeExecutor.ts",
+        "range": {
+          "startPosition": {
+            "line": 8
+          },
+          "endPosition": {
+            "line": 79,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentNodeExecutor implements NodeExecutor {\nasync execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);\n    const { connectionType, apiKey, apiUrl } = role.difyConfig;\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });\n    const nodeInput = { ...context, ...(node.data?.inputs || {}) };\n    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n    const inputs = { ...nodeInput };\n    delete inputs.query;\n    delete inputs.input;\n    if (connectionType === 'chatflow') {\n      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify聊天调用失败');\n    } else {\n      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify工作流调用失败');\n    }\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 9,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 9,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 9,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 10,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 10,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 11,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentNodeExecutor implements NodeExecutor {",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 49
+          },
+          {
+            "text": "    }",
+            "lineNumber": 50
+          },
+          {
+            "text": "    ",
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 52
+          },
+          {
+            "text": "    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);",
+            "lineNumber": 53
+          },
+          {
+            "text": "    const { connectionType, apiKey, apiUrl } = role.difyConfig;",
+            "lineNumber": 54
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 55
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 56
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });",
+            "lineNumber": 57
+          },
+          {
+            "text": "    const nodeInput = { ...context, ...(node.data?.inputs || {}) };",
+            "lineNumber": 58
+          },
+          {
+            "text": "    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 59
+          },
+          {
+            "text": "    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 60
+          },
+          {
+            "text": "    const inputs = { ...nodeInput };",
+            "lineNumber": 61
+          },
+          {
+            "text": "    delete inputs.query;",
+            "lineNumber": 62
+          },
+          {
+            "text": "    delete inputs.input;",
+            "lineNumber": 63
+          },
+          {
+            "text": "    if (connectionType === 'chatflow') {",
+            "lineNumber": 64
+          },
+          {
+            "text": "      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });",
+            "lineNumber": 65
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 66
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 67
+          },
+          {
+            "text": "        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };",
+            "lineNumber": 68
+          },
+          {
+            "text": "      }",
+            "lineNumber": 69
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify聊天调用失败');",
+            "lineNumber": 70
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 71
+          },
+          {
+            "text": "      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });",
+            "lineNumber": 72
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 73
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 74
+          },
+          {
+            "text": "        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };",
+            "lineNumber": 75
+          },
+          {
+            "text": "      }",
+            "lineNumber": 76
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify工作流调用失败');",
+            "lineNumber": 77
+          },
+          {
+            "text": "    }",
+            "lineNumber": 78
+          },
+          {
+            "text": "  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "}",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5481227040290833
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 598,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\n\n    \n    console.log('AI角色对话请求:', {\n      roleId: id,\n      roleName: role.name,\n      query: query.substring(0, 100),\n      conversationId,\n      provider: role.provider || 'dify'\n    });\n    \n    // 根据 provider 类型选择不同的处理逻辑\n    const provider = role.provider || 'dify';\n    \n    if (provider === 'direct-agent') {\n      // Direct Agent 模式\n      if (!role.agentConfig) {\n        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));\n      }\n      \n      // 使用 AgentOrchestrator 执行\n      const orchestrator = new AgentOrchestrator();\n      const context = inputs || {}; // 将 inputs 作为 context 传递\n      \n      const result = await orchestrator.executeAgent(\n        id,\n        query,\n        conversationId,\n        context\n      );\n      \n      // 返回统一格式\n      res.json(formatApiResponse(true, {\n        answer: result.content,\n        conversation_id: result.conversationId,\n        metadata: {\n          ...result.metadata,\n          usage: result.usage\n        }\n      }, '对话成功'));\n    } else {\n      // Dify 模式（保持现有逻辑）\n      if (!role.difyConfig)\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 421
+          },
+          {
+            "text": "    ",
+            "lineNumber": 422
+          },
+          {
+            "text": "    console.log('AI角色对话请求:', {",
+            "lineNumber": 423
+          },
+          {
+            "text": "      roleId: id,",
+            "lineNumber": 424
+          },
+          {
+            "text": "      roleName: role.name,",
+            "lineNumber": 425
+          },
+          {
+            "text": "      query: query.substring(0, 100),",
+            "lineNumber": 426
+          },
+          {
+            "text": "      conversationId,",
+            "lineNumber": 427
+          },
+          {
+            "text": "      provider: role.provider || 'dify'",
+            "lineNumber": 428
+          },
+          {
+            "text": "    });",
+            "lineNumber": 429
+          },
+          {
+            "text": "    ",
+            "lineNumber": 430
+          },
+          {
+            "text": "    // 根据 provider 类型选择不同的处理逻辑",
+            "lineNumber": 431
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 432
+          },
+          {
+            "text": "    ",
+            "lineNumber": 433
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 434
+          },
+          {
+            "text": "      // Direct Agent 模式",
+            "lineNumber": 435
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 436
+          },
+          {
+            "text": "        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));",
+            "lineNumber": 437
+          },
+          {
+            "text": "      }",
+            "lineNumber": 438
+          },
+          {
+            "text": "      ",
+            "lineNumber": 439
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行",
+            "lineNumber": 440
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 441
+          },
+          {
+            "text": "      const context = inputs || {}; // 将 inputs 作为 context 传递",
+            "lineNumber": 442
+          },
+          {
+            "text": "      ",
+            "lineNumber": 443
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(",
+            "lineNumber": 444
+          },
+          {
+            "text": "        id,",
+            "lineNumber": 445
+          },
+          {
+            "text": "        query,",
+            "lineNumber": 446
+          },
+          {
+            "text": "        conversationId,",
+            "lineNumber": 447
+          },
+          {
+            "text": "        context",
+            "lineNumber": 448
+          },
+          {
+            "text": "      );",
+            "lineNumber": 449
+          },
+          {
+            "text": "      ",
+            "lineNumber": 450
+          },
+          {
+            "text": "      // 返回统一格式",
+            "lineNumber": 451
+          },
+          {
+            "text": "      res.json(formatApiResponse(true, {",
+            "lineNumber": 452
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 453
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 454
+          },
+          {
+            "text": "        metadata: {",
+            "lineNumber": 455
+          },
+          {
+            "text": "          ...result.metadata,",
+            "lineNumber": 456
+          },
+          {
+            "text": "          usage: result.usage",
+            "lineNumber": 457
+          },
+          {
+            "text": "        }",
+            "lineNumber": 458
+          },
+          {
+            "text": "      }, '对话成功'));",
+            "lineNumber": 459
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 460
+          },
+          {
+            "text": "      // Dify 模式（保持现有逻辑）",
+            "lineNumber": 461
+          },
+          {
+            "text": "      if (!role.difyConfig)",
+            "lineNumber": 462
+          },
+          {
+            "text": "}",
+            "lineNumber": 599
+          }
+        ]
+      },
+      "score": 0.5170779228210449
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AGENT_ARCHITECTURE_ANALYSIS.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 61
+          }
+        },
+        "contents": "# Agent架构与信息处理链路分析\n\n## 一、整体架构概览\n\n项目采用**混合式双引擎架构**，支持两种Agent执行模式：\n\n### 1. Direct Agent（内部引擎）\n- **核心组件**: &#96;AgentOrchestrator&#96;\n- **特点**: 直接调用LLM，支持Function Calling，完全自主控制\n- **适用场景**: 需要精细控制、工具调用、多轮对话的场景\n\n### 2. Dify Agent（外部引擎）\n- **核心组件**: &#96;DifyClient&#96; + &#96;DifyGateway&#96;\n- **特点**: 依赖Dify平台，支持复杂业务流程\n- **适用场景**: 预定义的复杂业务流程（技术策略、技术通稿等）\n\n### 3. 工作流引擎\n- **核心组件**: &#96;LangGraphEngine&#96;\n- **特点**: 基于拓扑排序的DAG执行器\n- **适用场景**: 多节点编排、条件分支、数据转换\n\n---\n\n## 二、核心组件架构\n\n### 2.1 AgentOrchestrator（Agent编排器）\n\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n\n**职责**:\n- 执行Direct Agent类型的AI角色\n- 管理完整的Agent生命周期\n- 协调Prompt、Context、Tool的执行\n\n**核心方法**:\n&#96;&#96;&#96;typescript\nasync executeAgent(\n  roleId: string,\n  query: string,\n  conversationId: string = '',\n  context: Record&lt;string, any&gt; = {}\n): Promise&lt;AgentExecutionResult&gt;\n&#96;&#96;&#96;\n\n**执行流程**:\n1. 获取Agent配置（从数据库加载AI角色配置）\n2. 生成/使用conversationId（支持多轮对话）\n3. 渲染System Prompt（变量替换）\n4. 获取上下文消息（根据策略加载历史对话）\n5. 构建完整消息列表（system + history + user）\n6. 准备工具定义（转换为OpenAI Function格式）\n7. 调用LLM（支持多轮工具调用循环）\n8. 保存消息历史（持久化对话记录）\n9. 返回执行结果\n\n**关键特性**:\n- **超时控制**: 6分钟总体超时，每个工具60秒超时\n- **工具调用循环**: 最多10轮迭代，防止无限循环\n- **上下文策略**: 支持窗口、摘要、混合三种策略\n- **Mock模式**: 支持&#96;AI_MOCK_MODE=true&#96;环境变量，开发测试时节省成本\n- **执行追踪**: 完整的执行步骤记录和性能指标追踪",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Agent架构与信息处理链路分析",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "## 一、整体架构概览",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "项目采用**混合式双引擎架构**，支持两种Agent执行模式：",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "### 1. Direct Agent（内部引擎）",
+            "lineNumber": 7
+          },
+          {
+            "text": "- **核心组件**: &#96;AgentOrchestrator&#96;",
+            "lineNumber": 8
+          },
+          {
+            "text": "- **特点**: 直接调用LLM，支持Function Calling，完全自主控制",
+            "lineNumber": 9
+          },
+          {
+            "text": "- **适用场景**: 需要精细控制、工具调用、多轮对话的场景",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "### 2. Dify Agent（外部引擎）",
+            "lineNumber": 12
+          },
+          {
+            "text": "- **核心组件**: &#96;DifyClient&#96; + &#96;DifyGateway&#96;",
+            "lineNumber": 13
+          },
+          {
+            "text": "- **特点**: 依赖Dify平台，支持复杂业务流程",
+            "lineNumber": 14
+          },
+          {
+            "text": "- **适用场景**: 预定义的复杂业务流程（技术策略、技术通稿等）",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "### 3. 工作流引擎",
+            "lineNumber": 17
+          },
+          {
+            "text": "- **核心组件**: &#96;LangGraphEngine&#96;",
+            "lineNumber": 18
+          },
+          {
+            "text": "- **特点**: 基于拓扑排序的DAG执行器",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **适用场景**: 多节点编排、条件分支、数据转换",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "---",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "## 二、核心组件架构",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "### 2.1 AgentOrchestrator（Agent编排器）",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "**职责**:",
+            "lineNumber": 30
+          },
+          {
+            "text": "- 执行Direct Agent类型的AI角色",
+            "lineNumber": 31
+          },
+          {
+            "text": "- 管理完整的Agent生命周期",
+            "lineNumber": 32
+          },
+          {
+            "text": "- 协调Prompt、Context、Tool的执行",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "**核心方法**:",
+            "lineNumber": 35
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 36
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 37
+          },
+          {
+            "text": "  roleId: string,",
+            "lineNumber": 38
+          },
+          {
+            "text": "  query: string,",
+            "lineNumber": 39
+          },
+          {
+            "text": "  conversationId: string = '',",
+            "lineNumber": 40
+          },
+          {
+            "text": "  context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 41
+          },
+          {
+            "text": "): Promise&lt;AgentExecutionResult&gt;",
+            "lineNumber": 42
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "**执行流程**:",
+            "lineNumber": 45
+          },
+          {
+            "text": "1. 获取Agent配置（从数据库加载AI角色配置）",
+            "lineNumber": 46
+          },
+          {
+            "text": "2. 生成/使用conversationId（支持多轮对话）",
+            "lineNumber": 47
+          },
+          {
+            "text": "3. 渲染System Prompt（变量替换）",
+            "lineNumber": 48
+          },
+          {
+            "text": "4. 获取上下文消息（根据策略加载历史对话）",
+            "lineNumber": 49
+          },
+          {
+            "text": "5. 构建完整消息列表（system + history + user）",
+            "lineNumber": 50
+          },
+          {
+            "text": "6. 准备工具定义（转换为OpenAI Function格式）",
+            "lineNumber": 51
+          },
+          {
+            "text": "7. 调用LLM（支持多轮工具调用循环）",
+            "lineNumber": 52
+          },
+          {
+            "text": "8. 保存消息历史（持久化对话记录）",
+            "lineNumber": 53
+          },
+          {
+            "text": "9. 返回执行结果",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "**关键特性**:",
+            "lineNumber": 56
+          },
+          {
+            "text": "- **超时控制**: 6分钟总体超时，每个工具60秒超时",
+            "lineNumber": 57
+          },
+          {
+            "text": "- **工具调用循环**: 最多10轮迭代，防止无限循环",
+            "lineNumber": 58
+          },
+          {
+            "text": "- **上下文策略**: 支持窗口、摘要、混合三种策略",
+            "lineNumber": 59
+          },
+          {
+            "text": "- **Mock模式**: 支持&#96;AI_MOCK_MODE=true&#96;环境变量，开发测试时节省成本",
+            "lineNumber": 60
+          },
+          {
+            "text": "- **执行追踪**: 完整的执行步骤记录和性能指标追踪",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.5143515467643738
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AGENT_ARCHITECTURE_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 187
+          },
+          "endPosition": {
+            "line": 279
+          }
+        },
+        "contents": "用户输入\n  ↓\n前端页面组件 (AIChatPage/AIRoleChatPage)\n  ↓\n前端服务层 (aiRoleService.chatWithRole)\n  ↓\n后端API路由 (POST /api/ai-roles/:id/chat)\n  ↓\nAgentOrchestrator.executeAgent()\n  ↓\n├─ PromptManager.renderPrompt() [渲染Prompt]\n├─ ContextManager.getContextMessages() [获取上下文]\n├─ 构建消息列表 [system + history + user]\n├─ 准备工具定义 [转换为Function格式]\n└─ executeWithTools() [LLM调用循环]\n    ↓\n    ├─ LLM Provider.chat() [调用LLM]\n    ├─ 检查工具调用\n    ├─ ToolExecutor.executeTool() [执行工具]\n    │   ├─ 参数验证\n    │   ├─ 根据类型执行\n    │   └─ 返回结果\n    ├─ 将工具结果加入消息历史\n    └─ 继续循环（最多10轮）\n  ↓\nChatMessageService.saveMessages() [保存消息历史]\n  ↓\n返回结果给前端\n&#96;&#96;&#96;\n\n### 3.2 Dify Agent执行链路\n\n&#96;&#96;&#96;\n用户输入\n  ↓\n前端页面组件\n  ↓\n前端服务层 (workflowAPI/aiRoleService)\n  ↓\n后端API路由\n  ↓\nDifyClient (aiSearch/techPackage/techStrategy等)\n  ↓\nDifyGateway.executeChat() / executeWorkflow()\n  ↓\nDify平台API\n  ↓\n返回响应\n  ↓\n格式转换（如需要）\n  ↓\n返回结果给前端\n&#96;&#96;&#96;\n\n### 3.3 工作流执行链路\n\n&#96;&#96;&#96;\n工作流触发\n  ↓\nLangGraphEngine.execute()\n  ↓\n拓扑排序节点\n  ↓\n按层级执行节点\n  ↓\n├─ executeNode() [根据节点类型执行]\n│   ├─ input: 提取输入参数\n│   ├─ agent: 调用AI角色\n│   │   ├─ Direct Agent: 通过AgentOrchestrator执行\n│   │   └─ Dify Agent: 通过DifyGateway执行\n│   ├─ condition: 条件判断\n│   ├─ assign: 变量赋值\n│   ├─ transform: 数据转换\n│   ├─ merge: 数据合并\n│   ├─ memory: 文本记忆\n│   └─ output: 提取输出\n├─ 评估入边条件（gating）\n├─ 更新sharedContext\n└─ 记录节点结果\n  ↓\n提取最终文本\n  ↓\n更新执行记录\n  ↓\n返回结果\n&#96;&#96;&#96;\n\n### 3.4 工具调用链路（嵌套）\n\n&#96;&#96;&#96;\nLLM响应包含工具调用\n  ↓",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "用户输入",
+            "lineNumber": 188
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 189
+          },
+          {
+            "text": "前端页面组件 (AIChatPage/AIRoleChatPage)",
+            "lineNumber": 190
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 191
+          },
+          {
+            "text": "前端服务层 (aiRoleService.chatWithRole)",
+            "lineNumber": 192
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 193
+          },
+          {
+            "text": "后端API路由 (POST /api/ai-roles/:id/chat)",
+            "lineNumber": 194
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 195
+          },
+          {
+            "text": "AgentOrchestrator.executeAgent()",
+            "lineNumber": 196
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 197
+          },
+          {
+            "text": "├─ PromptManager.renderPrompt() [渲染Prompt]",
+            "lineNumber": 198
+          },
+          {
+            "text": "├─ ContextManager.getContextMessages() [获取上下文]",
+            "lineNumber": 199
+          },
+          {
+            "text": "├─ 构建消息列表 [system + history + user]",
+            "lineNumber": 200
+          },
+          {
+            "text": "├─ 准备工具定义 [转换为Function格式]",
+            "lineNumber": 201
+          },
+          {
+            "text": "└─ executeWithTools() [LLM调用循环]",
+            "lineNumber": 202
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 203
+          },
+          {
+            "text": "    ├─ LLM Provider.chat() [调用LLM]",
+            "lineNumber": 204
+          },
+          {
+            "text": "    ├─ 检查工具调用",
+            "lineNumber": 205
+          },
+          {
+            "text": "    ├─ ToolExecutor.executeTool() [执行工具]",
+            "lineNumber": 206
+          },
+          {
+            "text": "    │   ├─ 参数验证",
+            "lineNumber": 207
+          },
+          {
+            "text": "    │   ├─ 根据类型执行",
+            "lineNumber": 208
+          },
+          {
+            "text": "    │   └─ 返回结果",
+            "lineNumber": 209
+          },
+          {
+            "text": "    ├─ 将工具结果加入消息历史",
+            "lineNumber": 210
+          },
+          {
+            "text": "    └─ 继续循环（最多10轮）",
+            "lineNumber": 211
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 212
+          },
+          {
+            "text": "ChatMessageService.saveMessages() [保存消息历史]",
+            "lineNumber": 213
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 214
+          },
+          {
+            "text": "返回结果给前端",
+            "lineNumber": 215
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217
+          },
+          {
+            "text": "### 3.2 Dify Agent执行链路",
+            "lineNumber": 218
+          },
+          {
+            "lineNumber": 219
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 220
+          },
+          {
+            "text": "用户输入",
+            "lineNumber": 221
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 222
+          },
+          {
+            "text": "前端页面组件",
+            "lineNumber": 223
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 224
+          },
+          {
+            "text": "前端服务层 (workflowAPI/aiRoleService)",
+            "lineNumber": 225
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 226
+          },
+          {
+            "text": "后端API路由",
+            "lineNumber": 227
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 228
+          },
+          {
+            "text": "DifyClient (aiSearch/techPackage/techStrategy等)",
+            "lineNumber": 229
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 230
+          },
+          {
+            "text": "DifyGateway.executeChat() / executeWorkflow()",
+            "lineNumber": 231
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 232
+          },
+          {
+            "text": "Dify平台API",
+            "lineNumber": 233
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 234
+          },
+          {
+            "text": "返回响应",
+            "lineNumber": 235
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 236
+          },
+          {
+            "text": "格式转换（如需要）",
+            "lineNumber": 237
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 238
+          },
+          {
+            "text": "返回结果给前端",
+            "lineNumber": 239
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 240
+          },
+          {
+            "lineNumber": 241
+          },
+          {
+            "text": "### 3.3 工作流执行链路",
+            "lineNumber": 242
+          },
+          {
+            "lineNumber": 243
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 244
+          },
+          {
+            "text": "工作流触发",
+            "lineNumber": 245
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 246
+          },
+          {
+            "text": "LangGraphEngine.execute()",
+            "lineNumber": 247
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 248
+          },
+          {
+            "text": "拓扑排序节点",
+            "lineNumber": 249
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 250
+          },
+          {
+            "text": "按层级执行节点",
+            "lineNumber": 251
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 252
+          },
+          {
+            "text": "├─ executeNode() [根据节点类型执行]",
+            "lineNumber": 253
+          },
+          {
+            "text": "│   ├─ input: 提取输入参数",
+            "lineNumber": 254
+          },
+          {
+            "text": "│   ├─ agent: 调用AI角色",
+            "lineNumber": 255
+          },
+          {
+            "text": "│   │   ├─ Direct Agent: 通过AgentOrchestrator执行",
+            "lineNumber": 256
+          },
+          {
+            "text": "│   │   └─ Dify Agent: 通过DifyGateway执行",
+            "lineNumber": 257
+          },
+          {
+            "text": "│   ├─ condition: 条件判断",
+            "lineNumber": 258
+          },
+          {
+            "text": "│   ├─ assign: 变量赋值",
+            "lineNumber": 259
+          },
+          {
+            "text": "│   ├─ transform: 数据转换",
+            "lineNumber": 260
+          },
+          {
+            "text": "│   ├─ merge: 数据合并",
+            "lineNumber": 261
+          },
+          {
+            "text": "│   ├─ memory: 文本记忆",
+            "lineNumber": 262
+          },
+          {
+            "text": "│   └─ output: 提取输出",
+            "lineNumber": 263
+          },
+          {
+            "text": "├─ 评估入边条件（gating）",
+            "lineNumber": 264
+          },
+          {
+            "text": "├─ 更新sharedContext",
+            "lineNumber": 265
+          },
+          {
+            "text": "└─ 记录节点结果",
+            "lineNumber": 266
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 267
+          },
+          {
+            "text": "提取最终文本",
+            "lineNumber": 268
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 269
+          },
+          {
+            "text": "更新执行记录",
+            "lineNumber": 270
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 271
+          },
+          {
+            "text": "返回结果",
+            "lineNumber": 272
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 273
+          },
+          {
+            "lineNumber": 274
+          },
+          {
+            "text": "### 3.4 工具调用链路（嵌套）",
+            "lineNumber": 275
+          },
+          {
+            "lineNumber": 276
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 277
+          },
+          {
+            "text": "LLM响应包含工具调用",
+            "lineNumber": 278
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 279
+          }
+        ]
+      },
+      "score": 0.5104612112045288
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 46
+          }
+        },
+        "contents": "# 项目AI/Agent调用节点完整识别\n\n本文档完整识别了todify3项目中所有的AI/Agent调用节点。\n\n## 一、后端服务层调用节点\n\n### 1. AgentOrchestrator（Agent编排器）\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n- **功能**: 执行Direct Agent类型的AI角色\n- **调用方法**: &#96;executeAgent(roleId, query, conversationId, context)&#96;\n- **特点**: \n  - 支持工具调用（Function Calling）\n  - 支持多轮对话\n  - 支持上下文管理\n  - 支持Prompt变量替换\n- **使用场景**: Direct Agent类型的AI角色对话\n\n### 2. AgentWorkflowService（Agent工作流服务）\n**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;\n- **调用节点1**: &#96;executeRole(roleId, input)&#96; - 直接执行AI角色\n  - 支持Dify类型和Direct Agent类型\n  - 根据provider类型选择不同的执行方式\n  \n- **调用节点2**: &#96;executeWorkflow(workflowId, options)&#96; - 执行工作流\n  - 支持拓扑排序执行节点\n  - 支持并行执行同一层节点\n  \n- **调用节点3**: &#96;executeAgentNode(node, sharedContext)&#96; - 执行工作流中的Agent节点\n  - 支持Dify Chatflow模式\n  - 支持Dify Workflow模式\n  - 支持多轮对话（conversationId传递）\n\n### 3. DifyClient（Dify客户端）\n**位置**: &#96;backend/src/services/DifyClient.ts&#96;\n- **调用节点1**: &#96;aiSearch(query, inputs, conversationId)&#96; - AI搜索\n- **调用节点2**: &#96;techPackage(inputs)&#96; - 技术包装\n- **调用节点3**: &#96;techStrategy(inputs)&#96; - 技术策略\n- **调用节点4**: &#96;techArticle(inputs)&#96; - 技术通稿\n- **调用节点5**: &#96;coreDraft(inputs)&#96; - 核心稿件\n- **调用节点6**: &#96;techPublish(inputs, conversationId)&#96; - 技术发布\n- **调用节点7**: &#96;callApp(appType, inputs, responseMode, user)&#96; - 通用应用调用\n- **调用节点8**: &#96;runWorkflow(appType, inputs, responseMode, user)&#96; - 工作流调用\n\n### 4. TriggerAgentUseCase（触发Agent用例）\n**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;\n- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# 项目AI/Agent调用节点完整识别",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "本文档完整识别了todify3项目中所有的AI/Agent调用节点。",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "## 一、后端服务层调用节点",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "### 1. AgentOrchestrator（Agent编排器）",
+            "lineNumber": 7
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 8
+          },
+          {
+            "text": "- **功能**: 执行Direct Agent类型的AI角色",
+            "lineNumber": 9
+          },
+          {
+            "text": "- **调用方法**: &#96;executeAgent(roleId, query, conversationId, context)&#96;",
+            "lineNumber": 10
+          },
+          {
+            "text": "- **特点**: ",
+            "lineNumber": 11
+          },
+          {
+            "text": "  - 支持工具调用（Function Calling）",
+            "lineNumber": 12
+          },
+          {
+            "text": "  - 支持多轮对话",
+            "lineNumber": 13
+          },
+          {
+            "text": "  - 支持上下文管理",
+            "lineNumber": 14
+          },
+          {
+            "text": "  - 支持Prompt变量替换",
+            "lineNumber": 15
+          },
+          {
+            "text": "- **使用场景**: Direct Agent类型的AI角色对话",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "### 2. AgentWorkflowService（Agent工作流服务）",
+            "lineNumber": 18
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **调用节点1**: &#96;executeRole(roleId, input)&#96; - 直接执行AI角色",
+            "lineNumber": 20
+          },
+          {
+            "text": "  - 支持Dify类型和Direct Agent类型",
+            "lineNumber": 21
+          },
+          {
+            "text": "  - 根据provider类型选择不同的执行方式",
+            "lineNumber": 22
+          },
+          {
+            "text": "  ",
+            "lineNumber": 23
+          },
+          {
+            "text": "- **调用节点2**: &#96;executeWorkflow(workflowId, options)&#96; - 执行工作流",
+            "lineNumber": 24
+          },
+          {
+            "text": "  - 支持拓扑排序执行节点",
+            "lineNumber": 25
+          },
+          {
+            "text": "  - 支持并行执行同一层节点",
+            "lineNumber": 26
+          },
+          {
+            "text": "  ",
+            "lineNumber": 27
+          },
+          {
+            "text": "- **调用节点3**: &#96;executeAgentNode(node, sharedContext)&#96; - 执行工作流中的Agent节点",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - 支持Dify Chatflow模式",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - 支持Dify Workflow模式",
+            "lineNumber": 30
+          },
+          {
+            "text": "  - 支持多轮对话（conversationId传递）",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "### 3. DifyClient（Dify客户端）",
+            "lineNumber": 33
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/DifyClient.ts&#96;",
+            "lineNumber": 34
+          },
+          {
+            "text": "- **调用节点1**: &#96;aiSearch(query, inputs, conversationId)&#96; - AI搜索",
+            "lineNumber": 35
+          },
+          {
+            "text": "- **调用节点2**: &#96;techPackage(inputs)&#96; - 技术包装",
+            "lineNumber": 36
+          },
+          {
+            "text": "- **调用节点3**: &#96;techStrategy(inputs)&#96; - 技术策略",
+            "lineNumber": 37
+          },
+          {
+            "text": "- **调用节点4**: &#96;techArticle(inputs)&#96; - 技术通稿",
+            "lineNumber": 38
+          },
+          {
+            "text": "- **调用节点5**: &#96;coreDraft(inputs)&#96; - 核心稿件",
+            "lineNumber": 39
+          },
+          {
+            "text": "- **调用节点6**: &#96;techPublish(inputs, conversationId)&#96; - 技术发布",
+            "lineNumber": 40
+          },
+          {
+            "text": "- **调用节点7**: &#96;callApp(appType, inputs, responseMode, user)&#96; - 通用应用调用",
+            "lineNumber": 41
+          },
+          {
+            "text": "- **调用节点8**: &#96;runWorkflow(appType, inputs, responseMode, user)&#96; - 工作流调用",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "### 4. TriggerAgentUseCase（触发Agent用例）",
+            "lineNumber": 44
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;",
+            "lineNumber": 45
+          },
+          {
+            "text": "- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）",
+            "lineNumber": 46
+          }
+        ]
+      },
+      "score": 0.5025989413261414
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\n\n\n  /**\n   * 执行 Agent（核心方法）\n   * @param roleId 角色ID\n   * @param query 用户查询\n   * @param conversationId 对话ID（可选，如果不存在会生成新的）\n   * @param context 上下文数据（用于变量替换）\n   * @returns 执行结果\n   */\n  async executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\n    // 生成执行ID（用于追踪）\n    const executionId = context.executionId || &#96;exec-${Date.now()}-${uuidv4()}&#96;;\n    this.currentExecutionId = executionId;\n    this.currentAgentId = roleId;\n\n    // Mock模式检查\n    if (process.env.AI_MOCK_MODE === 'true') {\n      const mockResult = await this.getMockResponse(roleId, query, context);\n      await this.logStep(executionId, 'mock_response', {\n        type: 'mock',\n        input: { query, context },\n        output: { content: mockResult.content },\n        duration: 0,\n        status: 'success'\n      });\n      return mockResult;\n    }\n\n    const startTime = Date.now();\n    const MAX_EXECUTION_TIME = 360000; // 6分钟总体超时（留出缓冲给前端7分钟超时）\n    \n    // 检查超时的辅助函数\n    const checkTimeout = () =&gt; {\n      const elapsed = Date.now() - startTime;\n      if (elapsed &gt; MAX_EXECUTION_TIME) {\n        throw new Error(&#96;Agent执行超时：已执行 ${Math.round(elapsed / 1000)} 秒，超过最大执行时间 ${MAX_EXECUTION_TIME / 1000} 秒&#96;);\n      }\n    };\n    \n    try {\n      // 1. 获取 Agent 配置\n      checkTimeout();\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 44
+          },
+          {
+            "text": "   * 执行 Agent（核心方法）",
+            "lineNumber": 45
+          },
+          {
+            "text": "   * @param roleId 角色ID",
+            "lineNumber": 46
+          },
+          {
+            "text": "   * @param query 用户查询",
+            "lineNumber": 47
+          },
+          {
+            "text": "   * @param conversationId 对话ID（可选，如果不存在会生成新的）",
+            "lineNumber": 48
+          },
+          {
+            "text": "   * @param context 上下文数据（用于变量替换）",
+            "lineNumber": 49
+          },
+          {
+            "text": "   * @returns 执行结果",
+            "lineNumber": 50
+          },
+          {
+            "text": "   */",
+            "lineNumber": 51
+          },
+          {
+            "text": "  async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "text": "    // 生成执行ID（用于追踪）",
+            "lineNumber": 58
+          },
+          {
+            "text": "    const executionId = context.executionId || &#96;exec-${Date.now()}-${uuidv4()}&#96;;",
+            "lineNumber": 59
+          },
+          {
+            "text": "    this.currentExecutionId = executionId;",
+            "lineNumber": 60
+          },
+          {
+            "text": "    this.currentAgentId = roleId;",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "    // Mock模式检查",
+            "lineNumber": 63
+          },
+          {
+            "text": "    if (process.env.AI_MOCK_MODE === 'true') {",
+            "lineNumber": 64
+          },
+          {
+            "text": "      const mockResult = await this.getMockResponse(roleId, query, context);",
+            "lineNumber": 65
+          },
+          {
+            "text": "      await this.logStep(executionId, 'mock_response', {",
+            "lineNumber": 66
+          },
+          {
+            "text": "        type: 'mock',",
+            "lineNumber": 67
+          },
+          {
+            "text": "        input: { query, context },",
+            "lineNumber": 68
+          },
+          {
+            "text": "        output: { content: mockResult.content },",
+            "lineNumber": 69
+          },
+          {
+            "text": "        duration: 0,",
+            "lineNumber": 70
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 71
+          },
+          {
+            "text": "      });",
+            "lineNumber": 72
+          },
+          {
+            "text": "      return mockResult;",
+            "lineNumber": 73
+          },
+          {
+            "text": "    }",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "    const startTime = Date.now();",
+            "lineNumber": 76
+          },
+          {
+            "text": "    const MAX_EXECUTION_TIME = 360000; // 6分钟总体超时（留出缓冲给前端7分钟超时）",
+            "lineNumber": 77
+          },
+          {
+            "text": "    ",
+            "lineNumber": 78
+          },
+          {
+            "text": "    // 检查超时的辅助函数",
+            "lineNumber": 79
+          },
+          {
+            "text": "    const checkTimeout = () =&gt; {",
+            "lineNumber": 80
+          },
+          {
+            "text": "      const elapsed = Date.now() - startTime;",
+            "lineNumber": 81
+          },
+          {
+            "text": "      if (elapsed &gt; MAX_EXECUTION_TIME) {",
+            "lineNumber": 82
+          },
+          {
+            "text": "        throw new Error(&#96;Agent执行超时：已执行 ${Math.round(elapsed / 1000)} 秒，超过最大执行时间 ${MAX_EXECUTION_TIME / 1000} 秒&#96;);",
+            "lineNumber": 83
+          },
+          {
+            "text": "      }",
+            "lineNumber": 84
+          },
+          {
+            "text": "    };",
+            "lineNumber": 85
+          },
+          {
+            "text": "    ",
+            "lineNumber": 86
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 87
+          },
+          {
+            "text": "      // 1. 获取 Agent 配置",
+            "lineNumber": 88
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 89
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4981456995010376
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\nasync executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\n\n    \n    try {\n      // 1. 获取 Agent 配置\n      checkTimeout();\n      await this.logStep(executionId, 'load_config', {\n        type: 'config',\n        input: { roleId },\n        output: null,\n        duration: 0,\n        status: 'success'\n      });\n\n      const role = await aiRoleModel.getById(roleId);\n      if (!role) {\n        throw new Error(&#96;AI角色不存在: ${roleId}&#96;);\n      }\n\n      if (!role.agentConfig) {\n        throw new Error(&#96;Agent配置不存在: ${roleId}&#96;);\n      }\n\n      const config = role.agentConfig;\n\n      // 2. 生成或使用 conversationId\n      const finalConversationId = conversationId || this.generateConversationId();\n\n      // 3. 检查 prompt 配置\n      if (!config.prompt) {\n        throw new Error(&#96;Agent prompt配置不存在: ${roleId}&#96;);\n      }\n\n      if (!config.prompt.systemPrompt) {\n        throw new Error(&#96;Agent systemPrompt配置不存在: ${roleId}&#96;);\n      }\n\n      // 4. 渲染 System Prompt\n      const promptStartTime = Date.now();\n      const systemPrompt = this.promptManager.renderPrompt(\n        config.prompt.systemPrompt,\n        config.prompt.variables || [],\n        context\n      );\n      await this.logStep(executionId, 'render_prompt', {\n        type: 'prompt',\n        input: { systemPrompt: config.prompt.systemPrompt, variables: config.prompt.variables, context },\n        output: { systemPrompt },\n        duration: Date.now() - promptStartTime,\n        status: 'success'\n      });\n\n      // 4. 获取上下文消息\n      checkTimeout();\n      const contextStartTime = Date.now();\n      const contextMessages = await this.contextManager.getContextMessages(\n        finalConversationId,\n        config.contextStrategy,\n        query\n      );\n      await this.logStep(executionId, 'load_context', {\n        type: 'context',\n        input:\n\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 52,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "text": "    ",
+            "lineNumber": 86
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 87
+          },
+          {
+            "text": "      // 1. 获取 Agent 配置",
+            "lineNumber": 88
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 89
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_config', {",
+            "lineNumber": 90
+          },
+          {
+            "text": "        type: 'config',",
+            "lineNumber": 91
+          },
+          {
+            "text": "        input: { roleId },",
+            "lineNumber": 92
+          },
+          {
+            "text": "        output: null,",
+            "lineNumber": 93
+          },
+          {
+            "text": "        duration: 0,",
+            "lineNumber": 94
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 95
+          },
+          {
+            "text": "      });",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "      const role = await aiRoleModel.getById(roleId);",
+            "lineNumber": 98
+          },
+          {
+            "text": "      if (!role) {",
+            "lineNumber": 99
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色不存在: ${roleId}&#96;);",
+            "lineNumber": 100
+          },
+          {
+            "text": "      }",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 103
+          },
+          {
+            "text": "        throw new Error(&#96;Agent配置不存在: ${roleId}&#96;);",
+            "lineNumber": 104
+          },
+          {
+            "text": "      }",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "      const config = role.agentConfig;",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "      // 2. 生成或使用 conversationId",
+            "lineNumber": 109
+          },
+          {
+            "text": "      const finalConversationId = conversationId || this.generateConversationId();",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "      // 3. 检查 prompt 配置",
+            "lineNumber": 112
+          },
+          {
+            "text": "      if (!config.prompt) {",
+            "lineNumber": 113
+          },
+          {
+            "text": "        throw new Error(&#96;Agent prompt配置不存在: ${roleId}&#96;);",
+            "lineNumber": 114
+          },
+          {
+            "text": "      }",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "      if (!config.prompt.systemPrompt) {",
+            "lineNumber": 117
+          },
+          {
+            "text": "        throw new Error(&#96;Agent systemPrompt配置不存在: ${roleId}&#96;);",
+            "lineNumber": 118
+          },
+          {
+            "text": "      }",
+            "lineNumber": 119
+          },
+          {
+            "lineNumber": 120
+          },
+          {
+            "text": "      // 4. 渲染 System Prompt",
+            "lineNumber": 121
+          },
+          {
+            "text": "      const promptStartTime = Date.now();",
+            "lineNumber": 122
+          },
+          {
+            "text": "      const systemPrompt = this.promptManager.renderPrompt(",
+            "lineNumber": 123
+          },
+          {
+            "text": "        config.prompt.systemPrompt,",
+            "lineNumber": 124
+          },
+          {
+            "text": "        config.prompt.variables || [],",
+            "lineNumber": 125
+          },
+          {
+            "text": "        context",
+            "lineNumber": 126
+          },
+          {
+            "text": "      );",
+            "lineNumber": 127
+          },
+          {
+            "text": "      await this.logStep(executionId, 'render_prompt', {",
+            "lineNumber": 128
+          },
+          {
+            "text": "        type: 'prompt',",
+            "lineNumber": 129
+          },
+          {
+            "text": "        input: { systemPrompt: config.prompt.systemPrompt, variables: config.prompt.variables, context },",
+            "lineNumber": 130
+          },
+          {
+            "text": "        output: { systemPrompt },",
+            "lineNumber": 131
+          },
+          {
+            "text": "        duration: Date.now() - promptStartTime,",
+            "lineNumber": 132
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 133
+          },
+          {
+            "text": "      });",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "      // 4. 获取上下文消息",
+            "lineNumber": 136
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 137
+          },
+          {
+            "text": "      const contextStartTime = Date.now();",
+            "lineNumber": 138
+          },
+          {
+            "text": "      const contextMessages = await this.contextManager.getContextMessages(",
+            "lineNumber": 139
+          },
+          {
+            "text": "        finalConversationId,",
+            "lineNumber": 140
+          },
+          {
+            "text": "        config.contextStrategy,",
+            "lineNumber": 141
+          },
+          {
+            "text": "        query",
+            "lineNumber": 142
+          },
+          {
+            "text": "      );",
+            "lineNumber": 143
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_context', {",
+            "lineNumber": 144
+          },
+          {
+            "text": "        type: 'context',",
+            "lineNumber": 145
+          },
+          {
+            "text": "        input:",
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 150
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.49267178773880005
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_FRAMEWORK_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 69
+          },
+          "endPosition": {
+            "line": 135
+          }
+        },
+        "contents": "| **Direct Agent** | AgentOrchestrator | 需要精细控制、工具调用、多轮对话 | ✅ 完全自主控制&lt;br/&gt;✅ 支持Function Calling&lt;br/&gt;❌ 需要自己管理复杂度 |\n| **Dify Agent** | DifyClient + Gateway | 预定义的复杂业务流程 | ✅ 快速配置&lt;br/&gt;✅ 可视化编排&lt;br/&gt;❌ 依赖外部平台 |\n| **工作流引擎** | LangGraphEngine | 多节点编排、条件分支 | ✅ 灵活的DAG执行&lt;br/&gt;❌ 不支持循环&lt;br/&gt;❌ 节点扩展性差 |\n\n---\n\n## 二、核心组件详解\n\n### 2.1 AgentOrchestrator（Agent编排器）\n\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n\n#### 核心职责\n- 执行Direct Agent类型的AI角色\n- 管理完整的Agent生命周期（从请求到响应）\n- 协调Prompt、Context、Tool的执行\n\n#### 关键特性\n&#96;&#96;&#96;typescript\n// 核心执行方法\nasync executeAgent(\n  roleId: string,\n  query: string,\n  conversationId: string = '',\n  context: Record&lt;string, any&gt; = {}\n): Promise&lt;AgentExecutionResult&gt;\n&#96;&#96;&#96;\n\n**执行流程**:\n1. 加载Agent配置（从数据库）\n2. 渲染System Prompt（变量替换）\n3. 获取上下文消息（根据策略）\n4. 构建完整消息列表\n5. 准备工具定义（Function Calling格式）\n6. 调用LLM（支持多轮工具调用循环，最多10轮）\n7. 保存消息历史\n8. 返回执行结果\n\n**超时控制**:\n- ✅ 总体超时: 6分钟\n- ✅ 单个工具调用超时: 60秒\n- ✅ 最大工具调用迭代: 10轮\n\n**问题点**:\n- ⚠️ 只支持OpenAI Provider（其他Provider标记为TODO）\n- ⚠️ 工具调用为串行执行，无并行优化\n- ⚠️ 缺少重试机制（只在LLM层有重试）\n\n---\n\n### 2.2 PromptManager（Prompt管理器）\n\n**位置**: &#96;backend/src/services/agent/PromptManager.ts&#96;\n\n#### 核心职责\n- Prompt模板渲染\n- 变量替换（支持&#96;{{variable}}&#96;和&#96;{variable}&#96;格式）\n- 嵌套属性解析（如&#96;user.profile.name&#96;）\n\n#### 变量类型\n- &#96;static&#96;: 静态值\n- &#96;dynamic&#96;: 从上下文动态获取\n- &#96;context&#96;: 直接使用上下文中的值\n\n---",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "| **Direct Agent** | AgentOrchestrator | 需要精细控制、工具调用、多轮对话 | ✅ 完全自主控制&lt;br/&gt;✅ 支持Function Calling&lt;br/&gt;❌ 需要自己管理复杂度 |",
+            "lineNumber": 70
+          },
+          {
+            "text": "| **Dify Agent** | DifyClient + Gateway | 预定义的复杂业务流程 | ✅ 快速配置&lt;br/&gt;✅ 可视化编排&lt;br/&gt;❌ 依赖外部平台 |",
+            "lineNumber": 71
+          },
+          {
+            "text": "| **工作流引擎** | LangGraphEngine | 多节点编排、条件分支 | ✅ 灵活的DAG执行&lt;br/&gt;❌ 不支持循环&lt;br/&gt;❌ 节点扩展性差 |",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "---",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "## 二、核心组件详解",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "### 2.1 AgentOrchestrator（Agent编排器）",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "#### 核心职责",
+            "lineNumber": 82
+          },
+          {
+            "text": "- 执行Direct Agent类型的AI角色",
+            "lineNumber": 83
+          },
+          {
+            "text": "- 管理完整的Agent生命周期（从请求到响应）",
+            "lineNumber": 84
+          },
+          {
+            "text": "- 协调Prompt、Context、Tool的执行",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "#### 关键特性",
+            "lineNumber": 87
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 88
+          },
+          {
+            "text": "// 核心执行方法",
+            "lineNumber": 89
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 90
+          },
+          {
+            "text": "  roleId: string,",
+            "lineNumber": 91
+          },
+          {
+            "text": "  query: string,",
+            "lineNumber": 92
+          },
+          {
+            "text": "  conversationId: string = '',",
+            "lineNumber": 93
+          },
+          {
+            "text": "  context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 94
+          },
+          {
+            "text": "): Promise&lt;AgentExecutionResult&gt;",
+            "lineNumber": 95
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "**执行流程**:",
+            "lineNumber": 98
+          },
+          {
+            "text": "1. 加载Agent配置（从数据库）",
+            "lineNumber": 99
+          },
+          {
+            "text": "2. 渲染System Prompt（变量替换）",
+            "lineNumber": 100
+          },
+          {
+            "text": "3. 获取上下文消息（根据策略）",
+            "lineNumber": 101
+          },
+          {
+            "text": "4. 构建完整消息列表",
+            "lineNumber": 102
+          },
+          {
+            "text": "5. 准备工具定义（Function Calling格式）",
+            "lineNumber": 103
+          },
+          {
+            "text": "6. 调用LLM（支持多轮工具调用循环，最多10轮）",
+            "lineNumber": 104
+          },
+          {
+            "text": "7. 保存消息历史",
+            "lineNumber": 105
+          },
+          {
+            "text": "8. 返回执行结果",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "**超时控制**:",
+            "lineNumber": 108
+          },
+          {
+            "text": "- ✅ 总体超时: 6分钟",
+            "lineNumber": 109
+          },
+          {
+            "text": "- ✅ 单个工具调用超时: 60秒",
+            "lineNumber": 110
+          },
+          {
+            "text": "- ✅ 最大工具调用迭代: 10轮",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "**问题点**:",
+            "lineNumber": 113
+          },
+          {
+            "text": "- ⚠️ 只支持OpenAI Provider（其他Provider标记为TODO）",
+            "lineNumber": 114
+          },
+          {
+            "text": "- ⚠️ 工具调用为串行执行，无并行优化",
+            "lineNumber": 115
+          },
+          {
+            "text": "- ⚠️ 缺少重试机制（只在LLM层有重试）",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "---",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "### 2.2 PromptManager（Prompt管理器）",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/PromptManager.ts&#96;",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "#### 核心职责",
+            "lineNumber": 124
+          },
+          {
+            "text": "- Prompt模板渲染",
+            "lineNumber": 125
+          },
+          {
+            "text": "- 变量替换（支持&#96;{{variable}}&#96;和&#96;{variable}&#96;格式）",
+            "lineNumber": 126
+          },
+          {
+            "text": "- 嵌套属性解析（如&#96;user.profile.name&#96;）",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "#### 变量类型",
+            "lineNumber": 129
+          },
+          {
+            "text": "- &#96;static&#96;: 静态值",
+            "lineNumber": 130
+          },
+          {
+            "text": "- &#96;dynamic&#96;: 从上下文动态获取",
+            "lineNumber": 131
+          },
+          {
+            "text": "- &#96;context&#96;: 直接使用上下文中的值",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "---",
+            "lineNumber": 134
+          }
+        ]
+      },
+      "score": 0.4768575429916382
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/workflowEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 21
+          },
+          "endPosition": {
+            "line": 1049,
+            "column": 1
+          }
+        },
+        "contents": "export class WorkflowEngine {\n\n\n  /**\n   * 执行Agent节点\n   */\n  private async executeAgentNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {\n    // 获取Agent配置\n    const agent = await aiRoleService.getAIRole(node.agentId!);\n    if (!agent) {\n      throw new Error(&#96;Agent不存在: ${node.agentId}&#96;);\n    }\n\n    // 调用Agent执行（通过Dify API）\n    return await this.callAgent(agent, input);\n  }\n\n  /**\n   * 执行条件节点\n   */\n  private async executeConditionNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 22,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 22,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 22,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 23,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class WorkflowEngine {",
+            "lineNumber": 22,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 352
+          },
+          {
+            "lineNumber": 353
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 354
+          },
+          {
+            "text": "   * 执行Agent节点",
+            "lineNumber": 355
+          },
+          {
+            "text": "   */",
+            "lineNumber": 356
+          },
+          {
+            "text": "  private async executeAgentNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {",
+            "lineNumber": 357
+          },
+          {
+            "text": "    // 获取Agent配置",
+            "lineNumber": 358
+          },
+          {
+            "text": "    const agent = await aiRoleService.getAIRole(node.agentId!);",
+            "lineNumber": 359
+          },
+          {
+            "text": "    if (!agent) {",
+            "lineNumber": 360
+          },
+          {
+            "text": "      throw new Error(&#96;Agent不存在: ${node.agentId}&#96;);",
+            "lineNumber": 361
+          },
+          {
+            "text": "    }",
+            "lineNumber": 362
+          },
+          {
+            "lineNumber": 363
+          },
+          {
+            "text": "    // 调用Agent执行（通过Dify API）",
+            "lineNumber": 364
+          },
+          {
+            "text": "    return await this.callAgent(agent, input);",
+            "lineNumber": 365
+          },
+          {
+            "text": "  }",
+            "lineNumber": 366
+          },
+          {
+            "lineNumber": 367
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 368
+          },
+          {
+            "text": "   * 执行条件节点",
+            "lineNumber": 369
+          },
+          {
+            "text": "   */",
+            "lineNumber": 370
+          },
+          {
+            "text": "  private async executeConditionNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {",
+            "lineNumber": 371
+          },
+          {
+            "text": "    ",
+            "lineNumber": 372
+          },
+          {
+            "text": "  }",
+            "lineNumber": 489
+          },
+          {
+            "text": "}",
+            "lineNumber": 1050,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4762764573097229
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts",
+        "range": {
+          "startPosition": {
+            "line": 16
+          },
+          "endPosition": {
+            "line": 273,
+            "column": 1
+          }
+        },
+        "contents": "export class TriggerAgentUseCase {\nasync execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {\n\n\n      const effectiveOutputMappings = featureConfig.outputMappings?.length\n        ? featureConfig.outputMappings\n        : targetMappingConfig?.outputMappings || [];\n\n      const baseContent = await this.resolveBaseContent(conversation, dto);\n      const conversationQuery = baseContent || &#96;触发子Agent：${dto.featureType}&#96;;\n\n      const conversationData = this.buildConversationData(\n        conversation,\n        conversationQuery,\n        targetSources,\n        dto\n      );\n\n      const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);\n\n      // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID\n      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头\n      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');\n      \n      let workflowResult;\n      if (isRoleId) {\n        // 直接调用 AI 角色\n        logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });\n        workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);\n      } else {\n        // 通过工作流调用\n        logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });\n        workflowResult = await agentWorkflowService.executeWorkflow(\n          targetWorkflowId,\n          { input: workflowInput }\n        );\n      }\n\n      const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);\n\n      const aiContent = extractedOutput.content\n        || workflowResult.message\n        || &#96;子Agent ${dto.featureType} 已执行&#96;;\n\n      const messageOutputs = {\n        ...extractedOutput,\n,\n      };\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 18,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class TriggerAgentUseCase {",
+            "lineNumber": 17,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "      const effectiveOutputMappings = featureConfig.outputMappings?.length",
+            "lineNumber": 118
+          },
+          {
+            "text": "        ? featureConfig.outputMappings",
+            "lineNumber": 119
+          },
+          {
+            "text": "        : targetMappingConfig?.outputMappings || [];",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "      const baseContent = await this.resolveBaseContent(conversation, dto);",
+            "lineNumber": 122
+          },
+          {
+            "text": "      const conversationQuery = baseContent || &#96;触发子Agent：${dto.featureType}&#96;;",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "      const conversationData = this.buildConversationData(",
+            "lineNumber": 125
+          },
+          {
+            "text": "        conversation,",
+            "lineNumber": 126
+          },
+          {
+            "text": "        conversationQuery,",
+            "lineNumber": 127
+          },
+          {
+            "text": "        targetSources,",
+            "lineNumber": 128
+          },
+          {
+            "text": "        dto",
+            "lineNumber": 129
+          },
+          {
+            "text": "      );",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "      const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID",
+            "lineNumber": 134
+          },
+          {
+            "text": "      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头",
+            "lineNumber": 135
+          },
+          {
+            "text": "      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');",
+            "lineNumber": 136
+          },
+          {
+            "text": "      ",
+            "lineNumber": 137
+          },
+          {
+            "text": "      let workflowResult;",
+            "lineNumber": 138
+          },
+          {
+            "text": "      if (isRoleId) {",
+            "lineNumber": 139
+          },
+          {
+            "text": "        // 直接调用 AI 角色",
+            "lineNumber": 140
+          },
+          {
+            "text": "        logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });",
+            "lineNumber": 141
+          },
+          {
+            "text": "        workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);",
+            "lineNumber": 142
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 143
+          },
+          {
+            "text": "        // 通过工作流调用",
+            "lineNumber": 144
+          },
+          {
+            "text": "        logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });",
+            "lineNumber": 145
+          },
+          {
+            "text": "        workflowResult = await agentWorkflowService.executeWorkflow(",
+            "lineNumber": 146
+          },
+          {
+            "text": "          targetWorkflowId,",
+            "lineNumber": 147
+          },
+          {
+            "text": "          { input: workflowInput }",
+            "lineNumber": 148
+          },
+          {
+            "text": "        );",
+            "lineNumber": 149
+          },
+          {
+            "text": "      }",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "      const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);",
+            "lineNumber": 152
+          },
+          {
+            "lineNumber": 153
+          },
+          {
+            "text": "      const aiContent = extractedOutput.content",
+            "lineNumber": 154
+          },
+          {
+            "text": "        || workflowResult.message",
+            "lineNumber": 155
+          },
+          {
+            "text": "        || &#96;子Agent ${dto.featureType} 已执行&#96;;",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "      const messageOutputs = {",
+            "lineNumber": 158
+          },
+          {
+            "text": "        ...extractedOutput,",
+            "lineNumber": 159
+          },
+          {
+            "text": ",",
+            "lineNumber": 175
+          },
+          {
+            "text": "      };",
+            "lineNumber": 176
+          },
+          {
+            "text": "  }",
+            "lineNumber": 198
+          },
+          {
+            "text": "}",
+            "lineNumber": 274,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4724356532096863
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\nasync executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\nconst contextMessages = await \n\n      );\n      await this.logStep(executionId, 'load_context', {\n        type: 'context',\n        input: { conversationId: finalConversationId, strategy: config.contextStrategy, query },\n        output: { messageCount: contextMessages.length },\n        duration: Date.now() - contextStartTime,\n        status: 'success'\n      });\n\n      // 5. 检查 contextStrategy 配置\n      if (!config.contextStrategy) {\n        throw new Error(&#96;Agent contextStrategy配置不存在: ${roleId}&#96;);\n      }\n\n      // 6. 构建完整消息列表\n      const messages: ChatMessage[] = [];\n      \n      // 根据策略决定是否包含 system prompt\n      if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {\n        messages.push({\n          role: 'system',\n          content: systemPrompt\n        });\n      }\n\n      messages.push(...contextMessages);\n      messages.push({\n        role: 'user',\n        content: query\n      });\n\n      // 6. 准备工具定义（Function Calling）\n      const tools = this.prepareTools(config.tools || []);\n\n      // 7. 获取 LLM Provider\n      const provider = this.getProvider(config.llm);\n\n      // 8. 调用 LLM（可能包含多轮工具调用）\n      checkTimeout();\n      const llmStartTime = Date.now();\n      let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout, executionId);\n      const llmDuration = Date.now() - llmStartTime;\n      \n      // 记录性能指标\n      await this.recordPerformanceMetrics(executionId, 'llm_call', llmDuration, response.usage);\n      \n      await this.logStep(executionId, 'llm_call', {\n        type: 'llm',\n        input: { messageCount: messages.length, toolCount: tools.length },\n        output: { content: response.content, toolCalls: response.toolCalls?.length || 0 },\n        duration: llmDuration,\n        status: 'success'\n      });\n\n      // 9. 保存消息历史\n      await this.saveMessages(finalConversationId, query, response, roleId);\n\n      // 10. 返回结果\n      const totalDuration = Date.now() - startTime;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 52,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "text": "const contextMessages = await ",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "      );",
+            "lineNumber": 143
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_context', {",
+            "lineNumber": 144
+          },
+          {
+            "text": "        type: 'context',",
+            "lineNumber": 145
+          },
+          {
+            "text": "        input: { conversationId: finalConversationId, strategy: config.contextStrategy, query },",
+            "lineNumber": 146
+          },
+          {
+            "text": "        output: { messageCount: contextMessages.length },",
+            "lineNumber": 147
+          },
+          {
+            "text": "        duration: Date.now() - contextStartTime,",
+            "lineNumber": 148
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 149
+          },
+          {
+            "text": "      });",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "      // 5. 检查 contextStrategy 配置",
+            "lineNumber": 152
+          },
+          {
+            "text": "      if (!config.contextStrategy) {",
+            "lineNumber": 153
+          },
+          {
+            "text": "        throw new Error(&#96;Agent contextStrategy配置不存在: ${roleId}&#96;);",
+            "lineNumber": 154
+          },
+          {
+            "text": "      }",
+            "lineNumber": 155
+          },
+          {
+            "lineNumber": 156
+          },
+          {
+            "text": "      // 6. 构建完整消息列表",
+            "lineNumber": 157
+          },
+          {
+            "text": "      const messages: ChatMessage[] = [];",
+            "lineNumber": 158
+          },
+          {
+            "text": "      ",
+            "lineNumber": 159
+          },
+          {
+            "text": "      // 根据策略决定是否包含 system prompt",
+            "lineNumber": 160
+          },
+          {
+            "text": "      if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {",
+            "lineNumber": 161
+          },
+          {
+            "text": "        messages.push({",
+            "lineNumber": 162
+          },
+          {
+            "text": "          role: 'system',",
+            "lineNumber": 163
+          },
+          {
+            "text": "          content: systemPrompt",
+            "lineNumber": 164
+          },
+          {
+            "text": "        });",
+            "lineNumber": 165
+          },
+          {
+            "text": "      }",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "      messages.push(...contextMessages);",
+            "lineNumber": 168
+          },
+          {
+            "text": "      messages.push({",
+            "lineNumber": 169
+          },
+          {
+            "text": "        role: 'user',",
+            "lineNumber": 170
+          },
+          {
+            "text": "        content: query",
+            "lineNumber": 171
+          },
+          {
+            "text": "      });",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "      // 6. 准备工具定义（Function Calling）",
+            "lineNumber": 174
+          },
+          {
+            "text": "      const tools = this.prepareTools(config.tools || []);",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "      // 7. 获取 LLM Provider",
+            "lineNumber": 177
+          },
+          {
+            "text": "      const provider = this.getProvider(config.llm);",
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "      // 8. 调用 LLM（可能包含多轮工具调用）",
+            "lineNumber": 180
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 181
+          },
+          {
+            "text": "      const llmStartTime = Date.now();",
+            "lineNumber": 182
+          },
+          {
+            "text": "      let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout, executionId);",
+            "lineNumber": 183
+          },
+          {
+            "text": "      const llmDuration = Date.now() - llmStartTime;",
+            "lineNumber": 184
+          },
+          {
+            "text": "      ",
+            "lineNumber": 185
+          },
+          {
+            "text": "      // 记录性能指标",
+            "lineNumber": 186
+          },
+          {
+            "text": "      await this.recordPerformanceMetrics(executionId, 'llm_call', llmDuration, response.usage);",
+            "lineNumber": 187
+          },
+          {
+            "text": "      ",
+            "lineNumber": 188
+          },
+          {
+            "text": "      await this.logStep(executionId, 'llm_call', {",
+            "lineNumber": 189
+          },
+          {
+            "text": "        type: 'llm',",
+            "lineNumber": 190
+          },
+          {
+            "text": "        input: { messageCount: messages.length, toolCount: tools.length },",
+            "lineNumber": 191
+          },
+          {
+            "text": "        output: { content: response.content, toolCalls: response.toolCalls?.length || 0 },",
+            "lineNumber": 192
+          },
+          {
+            "text": "        duration: llmDuration,",
+            "lineNumber": 193
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 194
+          },
+          {
+            "text": "      });",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "      // 9. 保存消息历史",
+            "lineNumber": 197
+          },
+          {
+            "text": "      await this.saveMessages(finalConversationId, query, response, roleId);",
+            "lineNumber": 198
+          },
+          {
+            "lineNumber": 199
+          },
+          {
+            "text": "      // 10. 返回结果",
+            "lineNumber": 200
+          },
+          {
+            "text": "      const totalDuration = Date.now() - startTime;",
+            "lineNumber": 201
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4674533009529114
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 727
+          }
+        },
+        "contents": "async (req, res) =&gt; {\nconst ;\n        const result = {\n          answer: chatData.answer || chatResult.value.answer,\n          conversation_id: chatData.conversation_id || chatResult.value.conversationId,\n          metadata: chatData.metadata || {}\n        };\n        \n        res.json(formatApiResponse(true, result, '对话成功'));\n      } else {\n        // 使用工作流模式，使用角色配置的API信息\n        const workflowResult = await gateway.executeWorkflow({\n          workflowId: 'custom-workflow',\n          inputs,\n          userId: 'ai-role-user',\n        });\n        \n        if (!workflowResult.success) {\n          return res.status(500).json(formatApiResponse(false, null, 'Dify工作流调用失败', workflowResult.error.message));\n        }\n        \n        const workflowData = workflowResult.value.raw as any;\n        const result = {\n          result: workflowData.data?.outputs?.text || workflowData.data?.outputs?.answer || workflowResult.value.outputs?.text || '',\n          conversation_id: workflowData.conversation_id,\n          workflow_run_id: workflowData.workflow_run_id || workflowResult.value.workflowRunId,\n          task_id: workflowData.task_id || workflowResult.value.taskId\n        };\n        \n        res.json(formatApiResponse(true, result, '对话成功'));\n      }\n    }\n  } catch (error) {\n    console.error('AI角色对话失败:', error);\n    \n    // 统一错误处理\n    const agentError = AgentErrorHandler.normalizeError(error, {\n      roleId: req.params.id,\n      step: 'api_chat'\n    });\n    \n    const statusCode = agentError.recoverable ? 500 : \n                      agentError.code === 'CONFIG_ERROR' ? 400 :\n                      agentError.code === 'AUTHENTICATION_ERROR' ? 401 :\n                      agentError.code === 'RATE_LIMIT_ERROR' ? 429 : 500;\n    \n    res.status(statusCode).json(formatApiResponse(\n      false,\n      null,\n      agentError.message,\n      AgentErrorHandler.formatForFrontend(agentError)\n    ));\n  }\n});\n\n/**\n * 测试AI角色连接\n * POST /api/v1/ai-roles/:id/test\n */\nrouter.post",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "text": "const ;",
+            "lineNumber": 547
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 548
+          },
+          {
+            "text": "          answer: chatData.answer || chatResult.value.answer,",
+            "lineNumber": 549
+          },
+          {
+            "text": "          conversation_id: chatData.conversation_id || chatResult.value.conversationId,",
+            "lineNumber": 550
+          },
+          {
+            "text": "          metadata: chatData.metadata || {}",
+            "lineNumber": 551
+          },
+          {
+            "text": "        };",
+            "lineNumber": 552
+          },
+          {
+            "text": "        ",
+            "lineNumber": 553
+          },
+          {
+            "text": "        res.json(formatApiResponse(true, result, '对话成功'));",
+            "lineNumber": 554
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 555
+          },
+          {
+            "text": "        // 使用工作流模式，使用角色配置的API信息",
+            "lineNumber": 556
+          },
+          {
+            "text": "        const workflowResult = await gateway.executeWorkflow({",
+            "lineNumber": 557
+          },
+          {
+            "text": "          workflowId: 'custom-workflow',",
+            "lineNumber": 558
+          },
+          {
+            "text": "          inputs,",
+            "lineNumber": 559
+          },
+          {
+            "text": "          userId: 'ai-role-user',",
+            "lineNumber": 560
+          },
+          {
+            "text": "        });",
+            "lineNumber": 561
+          },
+          {
+            "text": "        ",
+            "lineNumber": 562
+          },
+          {
+            "text": "        if (!workflowResult.success) {",
+            "lineNumber": 563
+          },
+          {
+            "text": "          return res.status(500).json(formatApiResponse(false, null, 'Dify工作流调用失败', workflowResult.error.message));",
+            "lineNumber": 564
+          },
+          {
+            "text": "        }",
+            "lineNumber": 565
+          },
+          {
+            "text": "        ",
+            "lineNumber": 566
+          },
+          {
+            "text": "        const workflowData = workflowResult.value.raw as any;",
+            "lineNumber": 567
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 568
+          },
+          {
+            "text": "          result: workflowData.data?.outputs?.text || workflowData.data?.outputs?.answer || workflowResult.value.outputs?.text || '',",
+            "lineNumber": 569
+          },
+          {
+            "text": "          conversation_id: workflowData.conversation_id,",
+            "lineNumber": 570
+          },
+          {
+            "text": "          workflow_run_id: workflowData.workflow_run_id || workflowResult.value.workflowRunId,",
+            "lineNumber": 571
+          },
+          {
+            "text": "          task_id: workflowData.task_id || workflowResult.value.taskId",
+            "lineNumber": 572
+          },
+          {
+            "text": "        };",
+            "lineNumber": 573
+          },
+          {
+            "text": "        ",
+            "lineNumber": 574
+          },
+          {
+            "text": "        res.json(formatApiResponse(true, result, '对话成功'));",
+            "lineNumber": 575
+          },
+          {
+            "text": "      }",
+            "lineNumber": 576
+          },
+          {
+            "text": "    }",
+            "lineNumber": 577
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 578
+          },
+          {
+            "text": "    console.error('AI角色对话失败:', error);",
+            "lineNumber": 579
+          },
+          {
+            "text": "    ",
+            "lineNumber": 580
+          },
+          {
+            "text": "    // 统一错误处理",
+            "lineNumber": 581
+          },
+          {
+            "text": "    const agentError = AgentErrorHandler.normalizeError(error, {",
+            "lineNumber": 582
+          },
+          {
+            "text": "      roleId: req.params.id,",
+            "lineNumber": 583
+          },
+          {
+            "text": "      step: 'api_chat'",
+            "lineNumber": 584
+          },
+          {
+            "text": "    });",
+            "lineNumber": 585
+          },
+          {
+            "text": "    ",
+            "lineNumber": 586
+          },
+          {
+            "text": "    const statusCode = agentError.recoverable ? 500 : ",
+            "lineNumber": 587
+          },
+          {
+            "text": "                      agentError.code === 'CONFIG_ERROR' ? 400 :",
+            "lineNumber": 588
+          },
+          {
+            "text": "                      agentError.code === 'AUTHENTICATION_ERROR' ? 401 :",
+            "lineNumber": 589
+          },
+          {
+            "text": "                      agentError.code === 'RATE_LIMIT_ERROR' ? 429 : 500;",
+            "lineNumber": 590
+          },
+          {
+            "text": "    ",
+            "lineNumber": 591
+          },
+          {
+            "text": "    res.status(statusCode).json(formatApiResponse(",
+            "lineNumber": 592
+          },
+          {
+            "text": "      false,",
+            "lineNumber": 593
+          },
+          {
+            "text": "      null,",
+            "lineNumber": 594
+          },
+          {
+            "text": "      agentError.message,",
+            "lineNumber": 595
+          },
+          {
+            "text": "      AgentErrorHandler.formatForFrontend(agentError)",
+            "lineNumber": 596
+          },
+          {
+            "text": "    ));",
+            "lineNumber": 597
+          },
+          {
+            "text": "  }",
+            "lineNumber": 598
+          },
+          {
+            "text": "});",
+            "lineNumber": 599
+          },
+          {
+            "lineNumber": 600
+          },
+          {
+            "text": "/**",
+            "lineNumber": 601
+          },
+          {
+            "text": " * 测试AI角色连接",
+            "lineNumber": 602
+          },
+          {
+            "text": " * POST /api/v1/ai-roles/:id/test",
+            "lineNumber": 603
+          },
+          {
+            "text": " */",
+            "lineNumber": 604
+          },
+          {
+            "text": "router.post",
+            "lineNumber": 605
+          }
+        ]
+      },
+      "score": 0.4632575511932373
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/langgraph/LangGraphEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 449,
+            "column": 1
+          }
+        },
+        "contents": "export class LangGraphEngine {\nprivate async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });\n    const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };\n    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n    const inputs = { ...nodeInput };\n    delete inputs.query;\n    delete inputs.input;\n    if (connectionType === 'chatflow') {\n      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify聊天调用失败');\n    } else {\n      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify工作流调用失败');\n    }\n  }\n\n  private executeOutput(node: any, sharedContext: Record&lt;string, any&gt;): any {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 148,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 149,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LangGraphEngine {",
+            "lineNumber": 16,
+            "isSignature": true
+          },
+          {
+            "text": "private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 148
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 191
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });",
+            "lineNumber": 193
+          },
+          {
+            "text": "    const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };",
+            "lineNumber": 194
+          },
+          {
+            "text": "    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 195
+          },
+          {
+            "text": "    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 196
+          },
+          {
+            "text": "    const inputs = { ...nodeInput };",
+            "lineNumber": 197
+          },
+          {
+            "text": "    delete inputs.query;",
+            "lineNumber": 198
+          },
+          {
+            "text": "    delete inputs.input;",
+            "lineNumber": 199
+          },
+          {
+            "text": "    if (connectionType === 'chatflow') {",
+            "lineNumber": 200
+          },
+          {
+            "text": "      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });",
+            "lineNumber": 201
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 202
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 203
+          },
+          {
+            "text": "        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };",
+            "lineNumber": 204
+          },
+          {
+            "text": "      }",
+            "lineNumber": 205
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify聊天调用失败');",
+            "lineNumber": 206
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 207
+          },
+          {
+            "text": "      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });",
+            "lineNumber": 208
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 209
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 210
+          },
+          {
+            "text": "        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };",
+            "lineNumber": 211
+          },
+          {
+            "text": "      }",
+            "lineNumber": 212
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify工作流调用失败');",
+            "lineNumber": 213
+          },
+          {
+            "text": "    }",
+            "lineNumber": 214
+          },
+          {
+            "text": "  }",
+            "lineNumber": 215
+          },
+          {
+            "lineNumber": 216
+          },
+          {
+            "text": "  private executeOutput(node: any, sharedContext: Record&lt;string, any&gt;): any {",
+            "lineNumber": 217
+          },
+          {
+            "text": "    ",
+            "lineNumber": 218
+          },
+          {
+            "text": "  }",
+            "lineNumber": 236
+          },
+          {
+            "text": "}",
+            "lineNumber": 450,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.45118045806884766
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 598,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\nconst gateway = new \n,\n        maxRetries: 3,\n      });\n      \n      if (connectionType === 'chatflow') {\n        // 使用聊天流模式，使用角色配置的API信息\n        // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理\n        const inputsWithFiles = { ...inputs };\n        if (fileUrls.length &gt; 0) {\n          inputsWithFiles.files = fileUrls;\n        }\n        \n        console.log('准备调用 Dify chatflow，参数:', { \n          query, \n          conversationId, \n          inputsKeys: Object.keys(inputsWithFiles),\n          files: fileUrls.length,\n          fileUrls,\n          userId: 'ai-role-user' \n        });\n        const chatResult = await gateway.executeChat({\n          query: query || '',\n          conversationId,\n          inputs: inputsWithFiles,\n          userId: 'ai-role-user',\n        });\n        \n        console.log('Dify chatflow 调用结果:', { \n          success: chatResult.success, \n          error: chatResult.success ? null : chatResult.error \n        });\n        \n        if (!chatResult.success) {\n          // 提取错误信息\n          const errorObj = chatResult.error || {};\n          const errorDetails = typeof errorObj.details === 'string' ? errorObj.details \n            : typeof errorObj.message === 'string' ? errorObj.message \n            : JSON.stringify(errorObj);\n          const errorCode = errorObj.code || 'API_ERROR';\n          \n          console.error('Dify聊天流调用失败，完整错误对象:', JSON.stringify(chatResult, null, 2));\n          \n          // 返回详细错误信息给前端\n          return res.status(500).json({\n            success: false,\n            error: {\n              code: errorCode,\n              message: 'Dify聊天流调用失败',\n              details: errorDetails,\n              fullError: errorObj // 临时添加完整错误对象用于调试\n            }\n          });\n        }\n        \n        const chatData = chatResult.value.raw as any;\n        const result = {\n          answer: chatData.answer || chatResult.value.answer\n        };\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "text": "const gateway = new ",
+            "lineNumber": 489
+          },
+          {
+            "text": ",",
+            "lineNumber": 493
+          },
+          {
+            "text": "        maxRetries: 3,",
+            "lineNumber": 494
+          },
+          {
+            "text": "      });",
+            "lineNumber": 495
+          },
+          {
+            "text": "      ",
+            "lineNumber": 496
+          },
+          {
+            "text": "      if (connectionType === 'chatflow') {",
+            "lineNumber": 497
+          },
+          {
+            "text": "        // 使用聊天流模式，使用角色配置的API信息",
+            "lineNumber": 498
+          },
+          {
+            "text": "        // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理",
+            "lineNumber": 499
+          },
+          {
+            "text": "        const inputsWithFiles = { ...inputs };",
+            "lineNumber": 500
+          },
+          {
+            "text": "        if (fileUrls.length &gt; 0) {",
+            "lineNumber": 501
+          },
+          {
+            "text": "          inputsWithFiles.files = fileUrls;",
+            "lineNumber": 502
+          },
+          {
+            "text": "        }",
+            "lineNumber": 503
+          },
+          {
+            "text": "        ",
+            "lineNumber": 504
+          },
+          {
+            "text": "        console.log('准备调用 Dify chatflow，参数:', { ",
+            "lineNumber": 505
+          },
+          {
+            "text": "          query, ",
+            "lineNumber": 506
+          },
+          {
+            "text": "          conversationId, ",
+            "lineNumber": 507
+          },
+          {
+            "text": "          inputsKeys: Object.keys(inputsWithFiles),",
+            "lineNumber": 508
+          },
+          {
+            "text": "          files: fileUrls.length,",
+            "lineNumber": 509
+          },
+          {
+            "text": "          fileUrls,",
+            "lineNumber": 510
+          },
+          {
+            "text": "          userId: 'ai-role-user' ",
+            "lineNumber": 511
+          },
+          {
+            "text": "        });",
+            "lineNumber": 512
+          },
+          {
+            "text": "        const chatResult = await gateway.executeChat({",
+            "lineNumber": 513
+          },
+          {
+            "text": "          query: query || '',",
+            "lineNumber": 514
+          },
+          {
+            "text": "          conversationId,",
+            "lineNumber": 515
+          },
+          {
+            "text": "          inputs: inputsWithFiles,",
+            "lineNumber": 516
+          },
+          {
+            "text": "          userId: 'ai-role-user',",
+            "lineNumber": 517
+          },
+          {
+            "text": "        });",
+            "lineNumber": 518
+          },
+          {
+            "text": "        ",
+            "lineNumber": 519
+          },
+          {
+            "text": "        console.log('Dify chatflow 调用结果:', { ",
+            "lineNumber": 520
+          },
+          {
+            "text": "          success: chatResult.success, ",
+            "lineNumber": 521
+          },
+          {
+            "text": "          error: chatResult.success ? null : chatResult.error ",
+            "lineNumber": 522
+          },
+          {
+            "text": "        });",
+            "lineNumber": 523
+          },
+          {
+            "text": "        ",
+            "lineNumber": 524
+          },
+          {
+            "text": "        if (!chatResult.success) {",
+            "lineNumber": 525
+          },
+          {
+            "text": "          // 提取错误信息",
+            "lineNumber": 526
+          },
+          {
+            "text": "          const errorObj = chatResult.error || {};",
+            "lineNumber": 527
+          },
+          {
+            "text": "          const errorDetails = typeof errorObj.details === 'string' ? errorObj.details ",
+            "lineNumber": 528
+          },
+          {
+            "text": "            : typeof errorObj.message === 'string' ? errorObj.message ",
+            "lineNumber": 529
+          },
+          {
+            "text": "            : JSON.stringify(errorObj);",
+            "lineNumber": 530
+          },
+          {
+            "text": "          const errorCode = errorObj.code || 'API_ERROR';",
+            "lineNumber": 531
+          },
+          {
+            "text": "          ",
+            "lineNumber": 532
+          },
+          {
+            "text": "          console.error('Dify聊天流调用失败，完整错误对象:', JSON.stringify(chatResult, null, 2));",
+            "lineNumber": 533
+          },
+          {
+            "text": "          ",
+            "lineNumber": 534
+          },
+          {
+            "text": "          // 返回详细错误信息给前端",
+            "lineNumber": 535
+          },
+          {
+            "text": "          return res.status(500).json({",
+            "lineNumber": 536
+          },
+          {
+            "text": "            success: false,",
+            "lineNumber": 537
+          },
+          {
+            "text": "            error: {",
+            "lineNumber": 538
+          },
+          {
+            "text": "              code: errorCode,",
+            "lineNumber": 539
+          },
+          {
+            "text": "              message: 'Dify聊天流调用失败',",
+            "lineNumber": 540
+          },
+          {
+            "text": "              details: errorDetails,",
+            "lineNumber": 541
+          },
+          {
+            "text": "              fullError: errorObj // 临时添加完整错误对象用于调试",
+            "lineNumber": 542
+          },
+          {
+            "text": "            }",
+            "lineNumber": 543
+          },
+          {
+            "text": "          });",
+            "lineNumber": 544
+          },
+          {
+            "text": "        }",
+            "lineNumber": 545
+          },
+          {
+            "text": "        ",
+            "lineNumber": 546
+          },
+          {
+            "text": "        const chatData = chatResult.value.raw as any;",
+            "lineNumber": 547
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 548
+          },
+          {
+            "text": "          answer: chatData.answer || chatResult.value.answer",
+            "lineNumber": 549
+          },
+          {
+            "text": "        };",
+            "lineNumber": 552
+          },
+          {
+            "text": "}",
+            "lineNumber": 599
+          }
+        ]
+      },
+      "score": 0.4471276104450226
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {
+            "line": 140
+          },
+          "endPosition": {
+            "line": 195
+          }
+        },
+        "contents": "**位置**: &#96;frontend/src/components/nodes/PromotionStrategyNode.tsx&#96;\n- 调用&#96;workflowAPI.techStrategy()&#96;\n\n#### PressReleaseNode（新闻稿节点）\n**位置**: &#96;frontend/src/components/nodes/PressReleaseNode.tsx&#96;\n- 调用相关AI服务\n\n#### TechNewsletterNode（技术通讯节点）\n**位置**: &#96;frontend/src/components/nodes/TechNewsletterNode.tsx&#96;\n- 调用相关AI服务\n\n## 四、后端API路由层调用节点\n\n### 1. AI角色路由\n**位置**: &#96;backend/src/routes/aiRole.ts&#96;\n- **路由**: &#96;POST /api/v1/ai-roles/:id/chat&#96;\n  - 根据provider类型调用：\n    - Direct Agent: &#96;AgentOrchestrator.executeAgent()&#96;\n    - Dify: &#96;DifyGateway.executeChat()&#96; 或 &#96;DifyGateway.executeWorkflow()&#96;\n\n### 2. AI搜索路由\n**位置**: &#96;backend/src/modules/ai-search/api/aiSearch.routes.ts&#96;\n- **路由1**: &#96;POST /api/v1/ai-search/conversations/:id/messages&#96; - 发送消息\n  - 调用&#96;SendMessageUseCase.execute()&#96;\n  \n- **路由2**: &#96;POST /api/v1/ai-search/conversations/:id/agents&#96; - 触发子Agent\n  - 调用&#96;TriggerAgentUseCase.execute()&#96;\n\n### 3. 工作流路由\n**位置**: &#96;backend/src/routes/agentWorkflow.ts&#96;\n- **路由1**: &#96;POST /api/v1/agent-workflows/:id/execute&#96; - 执行工作流\n  - 调用&#96;agentWorkflowService.executeWorkflow()&#96;\n  \n- **路由2**: &#96;POST /api/v1/agent-workflows/roles/:id/execute&#96; - 执行AI角色\n  - 调用&#96;agentWorkflowService.executeRole()&#96;\n\n### 4. 工作流API路由\n**位置**: &#96;backend/src/modules/workflow/api/workflow.routes.ts&#96;\n- **路由**: &#96;POST /api/v1/workflow/ai-search&#96; - AI搜索\n  - 调用&#96;ExecuteAiSearchUseCase.execute()&#96;\n\n## 五、工作流节点类型\n\n### 1. Agent节点（工作流编辑器）\n**位置**: &#96;frontend/src/components/WorkflowEditor/AgentNode.tsx&#96;\n- **类型**: &#96;agent&#96;\n- **功能**: 在工作流中调用AI角色\n- **执行**: 通过后端&#96;AgentWorkflowService.executeAgentNode()&#96;执行\n\n### 2. 其他工作流节点类型\n- &#96;input&#96; - 输入节点\n- &#96;output&#96; - 输出节点\n- &#96;condition&#96; - 条件判断节点\n- &#96;assign&#96; - 变量赋值节点\n- &#96;merge&#96; - 数据合并节点",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/PromotionStrategyNode.tsx&#96;",
+            "lineNumber": 141
+          },
+          {
+            "text": "- 调用&#96;workflowAPI.techStrategy()&#96;",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "#### PressReleaseNode（新闻稿节点）",
+            "lineNumber": 144
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/PressReleaseNode.tsx&#96;",
+            "lineNumber": 145
+          },
+          {
+            "text": "- 调用相关AI服务",
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "#### TechNewsletterNode（技术通讯节点）",
+            "lineNumber": 148
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/TechNewsletterNode.tsx&#96;",
+            "lineNumber": 149
+          },
+          {
+            "text": "- 调用相关AI服务",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "## 四、后端API路由层调用节点",
+            "lineNumber": 152
+          },
+          {
+            "lineNumber": 153
+          },
+          {
+            "text": "### 1. AI角色路由",
+            "lineNumber": 154
+          },
+          {
+            "text": "**位置**: &#96;backend/src/routes/aiRole.ts&#96;",
+            "lineNumber": 155
+          },
+          {
+            "text": "- **路由**: &#96;POST /api/v1/ai-roles/:id/chat&#96;",
+            "lineNumber": 156
+          },
+          {
+            "text": "  - 根据provider类型调用：",
+            "lineNumber": 157
+          },
+          {
+            "text": "    - Direct Agent: &#96;AgentOrchestrator.executeAgent()&#96;",
+            "lineNumber": 158
+          },
+          {
+            "text": "    - Dify: &#96;DifyGateway.executeChat()&#96; 或 &#96;DifyGateway.executeWorkflow()&#96;",
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160
+          },
+          {
+            "text": "### 2. AI搜索路由",
+            "lineNumber": 161
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/ai-search/api/aiSearch.routes.ts&#96;",
+            "lineNumber": 162
+          },
+          {
+            "text": "- **路由1**: &#96;POST /api/v1/ai-search/conversations/:id/messages&#96; - 发送消息",
+            "lineNumber": 163
+          },
+          {
+            "text": "  - 调用&#96;SendMessageUseCase.execute()&#96;",
+            "lineNumber": 164
+          },
+          {
+            "text": "  ",
+            "lineNumber": 165
+          },
+          {
+            "text": "- **路由2**: &#96;POST /api/v1/ai-search/conversations/:id/agents&#96; - 触发子Agent",
+            "lineNumber": 166
+          },
+          {
+            "text": "  - 调用&#96;TriggerAgentUseCase.execute()&#96;",
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "### 3. 工作流路由",
+            "lineNumber": 169
+          },
+          {
+            "text": "**位置**: &#96;backend/src/routes/agentWorkflow.ts&#96;",
+            "lineNumber": 170
+          },
+          {
+            "text": "- **路由1**: &#96;POST /api/v1/agent-workflows/:id/execute&#96; - 执行工作流",
+            "lineNumber": 171
+          },
+          {
+            "text": "  - 调用&#96;agentWorkflowService.executeWorkflow()&#96;",
+            "lineNumber": 172
+          },
+          {
+            "text": "  ",
+            "lineNumber": 173
+          },
+          {
+            "text": "- **路由2**: &#96;POST /api/v1/agent-workflows/roles/:id/execute&#96; - 执行AI角色",
+            "lineNumber": 174
+          },
+          {
+            "text": "  - 调用&#96;agentWorkflowService.executeRole()&#96;",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "### 4. 工作流API路由",
+            "lineNumber": 177
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/workflow/api/workflow.routes.ts&#96;",
+            "lineNumber": 178
+          },
+          {
+            "text": "- **路由**: &#96;POST /api/v1/workflow/ai-search&#96; - AI搜索",
+            "lineNumber": 179
+          },
+          {
+            "text": "  - 调用&#96;ExecuteAiSearchUseCase.execute()&#96;",
+            "lineNumber": 180
+          },
+          {
+            "lineNumber": 181
+          },
+          {
+            "text": "## 五、工作流节点类型",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "### 1. Agent节点（工作流编辑器）",
+            "lineNumber": 184
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/WorkflowEditor/AgentNode.tsx&#96;",
+            "lineNumber": 185
+          },
+          {
+            "text": "- **类型**: &#96;agent&#96;",
+            "lineNumber": 186
+          },
+          {
+            "text": "- **功能**: 在工作流中调用AI角色",
+            "lineNumber": 187
+          },
+          {
+            "text": "- **执行**: 通过后端&#96;AgentWorkflowService.executeAgentNode()&#96;执行",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "### 2. 其他工作流节点类型",
+            "lineNumber": 190
+          },
+          {
+            "text": "- &#96;input&#96; - 输入节点",
+            "lineNumber": 191
+          },
+          {
+            "text": "- &#96;output&#96; - 输出节点",
+            "lineNumber": 192
+          },
+          {
+            "text": "- &#96;condition&#96; - 条件判断节点",
+            "lineNumber": 193
+          },
+          {
+            "text": "- &#96;assign&#96; - 变量赋值节点",
+            "lineNumber": 194
+          },
+          {
+            "text": "- &#96;merge&#96; - 数据合并节点",
+            "lineNumber": 195
+          }
+        ]
+      },
+      "score": 0.44666528701782227
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/ToolExecutor.ts",
+        "range": {
+          "startPosition": {
+            "line": 22
+          },
+          "endPosition": {
+            "line": 504,
+            "column": 1
+          }
+        },
+        "contents": "export class ToolExecutor {\n\n\n  /**\n   * 执行 Agent 嵌套调用工具\n   */\n  private async executeAgent(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {\n    try {\n      const implementation = toolConfig.implementation;\n      if (!implementation || !implementation.agentId) {\n        return {\n          success: false,\n          content: JSON.stringify({ error: 'Agent ID 未配置' })\n        };\n      }\n\n      const agentId = implementation.agentId;\n      const query = args.query || args.input || JSON.stringify(args);\n\n      // 检查调用深度（防止无限递归）\n      const maxDepth = 3;\n      const currentDepth = args._callDepth || 0;\n      if (currentDepth &gt;= maxDepth) {\n        return {\n          success: false,\n          content: JSON.stringify({ \n            error: &#96;Agent嵌套调用深度超过限制: ${maxDepth}&#96;,\n            currentDepth,\n            maxDepth\n          })\n        };\n      }\n\n      // 获取 Agent 配置\n      const agent = await aiRoleModel.getById(agentId);\n      if (!agent || !agent.enabled) {\n        return {\n          success: false,\n          content: JSON.stringify({ error: &#96;Agent 不存在或已禁用: ${agentId}&#96; })\n        };\n      }\n\n      // 只支持 Direct Agent 类型的嵌套调用\n      if (agent.provider !== 'direct-agent') {\n        return {\n          success: false,\n          content: JSON.stringify({ \n            error: &#96;Agent ${agentId} 不是 Direct Agent 类型，不支持嵌套调用&#96;,\n            provider: agent.provider\n          })\n        };\n      }\n\n      // 调用 AgentOrchestrator 执行嵌套 Agent\n      const orchestrator = new AgentOrchestrator();\n      \n      // 从args中提取context，但不包括_callDepth\n      const context: Record&lt;string, any&gt; = { ...args };\n      delete context._callDepth;\n      delete context.query;\n      delete context.input;\n      \n      // 传递调用深度信息\n      const nestedContext = {\n        ...context,\n        _callDepth: currentDepth + 1\n      };\n\n      const result = await orchestrator.executeAgent\n;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 23,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class ToolExecutor {",
+            "lineNumber": 23,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 407
+          },
+          {
+            "lineNumber": 408
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 409
+          },
+          {
+            "text": "   * 执行 Agent 嵌套调用工具",
+            "lineNumber": 410
+          },
+          {
+            "text": "   */",
+            "lineNumber": 411
+          },
+          {
+            "text": "  private async executeAgent(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {",
+            "lineNumber": 412
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 413
+          },
+          {
+            "text": "      const implementation = toolConfig.implementation;",
+            "lineNumber": 414
+          },
+          {
+            "text": "      if (!implementation || !implementation.agentId) {",
+            "lineNumber": 415
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 416
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 417
+          },
+          {
+            "text": "          content: JSON.stringify({ error: 'Agent ID 未配置' })",
+            "lineNumber": 418
+          },
+          {
+            "text": "        };",
+            "lineNumber": 419
+          },
+          {
+            "text": "      }",
+            "lineNumber": 420
+          },
+          {
+            "lineNumber": 421
+          },
+          {
+            "text": "      const agentId = implementation.agentId;",
+            "lineNumber": 422
+          },
+          {
+            "text": "      const query = args.query || args.input || JSON.stringify(args);",
+            "lineNumber": 423
+          },
+          {
+            "lineNumber": 424
+          },
+          {
+            "text": "      // 检查调用深度（防止无限递归）",
+            "lineNumber": 425
+          },
+          {
+            "text": "      const maxDepth = 3;",
+            "lineNumber": 426
+          },
+          {
+            "text": "      const currentDepth = args._callDepth || 0;",
+            "lineNumber": 427
+          },
+          {
+            "text": "      if (currentDepth &gt;= maxDepth) {",
+            "lineNumber": 428
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 429
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 430
+          },
+          {
+            "text": "          content: JSON.stringify({ ",
+            "lineNumber": 431
+          },
+          {
+            "text": "            error: &#96;Agent嵌套调用深度超过限制: ${maxDepth}&#96;,",
+            "lineNumber": 432
+          },
+          {
+            "text": "            currentDepth,",
+            "lineNumber": 433
+          },
+          {
+            "text": "            maxDepth",
+            "lineNumber": 434
+          },
+          {
+            "text": "          })",
+            "lineNumber": 435
+          },
+          {
+            "text": "        };",
+            "lineNumber": 436
+          },
+          {
+            "text": "      }",
+            "lineNumber": 437
+          },
+          {
+            "lineNumber": 438
+          },
+          {
+            "text": "      // 获取 Agent 配置",
+            "lineNumber": 439
+          },
+          {
+            "text": "      const agent = await aiRoleModel.getById(agentId);",
+            "lineNumber": 440
+          },
+          {
+            "text": "      if (!agent || !agent.enabled) {",
+            "lineNumber": 441
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 442
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 443
+          },
+          {
+            "text": "          content: JSON.stringify({ error: &#96;Agent 不存在或已禁用: ${agentId}&#96; })",
+            "lineNumber": 444
+          },
+          {
+            "text": "        };",
+            "lineNumber": 445
+          },
+          {
+            "text": "      }",
+            "lineNumber": 446
+          },
+          {
+            "lineNumber": 447
+          },
+          {
+            "text": "      // 只支持 Direct Agent 类型的嵌套调用",
+            "lineNumber": 448
+          },
+          {
+            "text": "      if (agent.provider !== 'direct-agent') {",
+            "lineNumber": 449
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 450
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 451
+          },
+          {
+            "text": "          content: JSON.stringify({ ",
+            "lineNumber": 452
+          },
+          {
+            "text": "            error: &#96;Agent ${agentId} 不是 Direct Agent 类型，不支持嵌套调用&#96;,",
+            "lineNumber": 453
+          },
+          {
+            "text": "            provider: agent.provider",
+            "lineNumber": 454
+          },
+          {
+            "text": "          })",
+            "lineNumber": 455
+          },
+          {
+            "text": "        };",
+            "lineNumber": 456
+          },
+          {
+            "text": "      }",
+            "lineNumber": 457
+          },
+          {
+            "lineNumber": 458
+          },
+          {
+            "text": "      // 调用 AgentOrchestrator 执行嵌套 Agent",
+            "lineNumber": 459
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 460
+          },
+          {
+            "text": "      ",
+            "lineNumber": 461
+          },
+          {
+            "text": "      // 从args中提取context，但不包括_callDepth",
+            "lineNumber": 462
+          },
+          {
+            "text": "      const context: Record&lt;string, any&gt; = { ...args };",
+            "lineNumber": 463
+          },
+          {
+            "text": "      delete context._callDepth;",
+            "lineNumber": 464
+          },
+          {
+            "text": "      delete context.query;",
+            "lineNumber": 465
+          },
+          {
+            "text": "      delete context.input;",
+            "lineNumber": 466
+          },
+          {
+            "text": "      ",
+            "lineNumber": 467
+          },
+          {
+            "text": "      // 传递调用深度信息",
+            "lineNumber": 468
+          },
+          {
+            "text": "      const nestedContext = {",
+            "lineNumber": 469
+          },
+          {
+            "text": "        ...context,",
+            "lineNumber": 470
+          },
+          {
+            "text": "        _callDepth: currentDepth + 1",
+            "lineNumber": 471
+          },
+          {
+            "text": "      };",
+            "lineNumber": 472
+          },
+          {
+            "lineNumber": 473
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent",
+            "lineNumber": 474
+          },
+          {
+            "text": ";",
+            "lineNumber": 479
+          },
+          {
+            "text": "  }",
+            "lineNumber": 504
+          },
+          {
+            "text": "}",
+            "lineNumber": 505,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4401167631149292
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {
+            "line": 193
+          },
+          "endPosition": {
+            "line": 274
+          }
+        },
+        "contents": "- &#96;assign&#96; - 变量赋值节点\n- &#96;merge&#96; - 数据合并节点\n- &#96;transform&#96; - 数据转换节点\n- &#96;memory&#96; - 文本记忆节点\n\n## 六、调用链路总结\n\n### 链路1: 前端页面 → 前端服务 → 后端API → 后端服务 → Dify/LLM\n&#96;&#96;&#96;\n前端页面组件\n  ↓\n前端服务层 (workflowAPI/aiRoleService/aiSearchService)\n  ↓\n后端API路由层\n  ↓\n后端服务层 (AgentWorkflowService/DifyClient/AgentOrchestrator)\n  ↓\nDify Gateway / LLM Provider\n&#96;&#96;&#96;\n\n### 链路2: 工作流执行 → Agent节点 → AI角色\n&#96;&#96;&#96;\n工作流执行\n  ↓\nAgent节点\n  ↓\nAgentWorkflowService.executeAgentNode()\n  ↓\nAI角色配置 (Dify/Direct Agent)\n  ↓\nDify Gateway / AgentOrchestrator\n&#96;&#96;&#96;\n\n### 链路3: 工具调用 → Agent嵌套调用\n&#96;&#96;&#96;\nLLM工具调用\n  ↓\nToolExecutor.executeTool()\n  ↓\nAgent工具类型\n  ↓\nAgentOrchestrator.executeAgent() (嵌套调用)\n&#96;&#96;&#96;\n\n## 七、AI/Agent调用节点统计\n\n### 后端调用节点（共15个）\n1. AgentOrchestrator.executeAgent()\n2. AgentWorkflowService.executeRole()\n3. AgentWorkflowService.executeWorkflow()\n4. AgentWorkflowService.executeAgentNode()\n5. DifyClient.aiSearch()\n6. DifyClient.techPackage()\n7. DifyClient.techStrategy()\n8. DifyClient.techArticle()\n9. DifyClient.coreDraft()\n10. DifyClient.techPublish()\n11. DifyClient.callApp()\n12. DifyClient.runWorkflow()\n13. TriggerAgentUseCase.execute()\n14. ToolExecutor.executeTool() (agent类型)\n15. SendMessageUseCase.execute()\n\n### 前端调用节点（共10个）\n1. workflowAPI.aiSearch()\n2. workflowAPI.smartSearch()\n3. workflowAPI.techPackage()\n4. workflowAPI.techStrategy()\n5. workflowAPI.techArticle()\n6. workflowAPI.coreDraft()\n7. aiRoleService.chatWithRole()\n8. aiSearchService.triggerFeatureAgent()\n9. WorkflowEngine.callAgent()\n10. 各节点组件的AI调用方法\n\n### 页面/组件调用节点（共8个）\n1. BaseAISearchPage.handleTriggerFeature()\n2. AIChatPage.handleSendMessage()\n3. ProjectResourcesPage.handleAISendMessage()\n4. AiSearchComponent.handleAiSearch()\n5. AiSearchNode的AI调用",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "- &#96;assign&#96; - 变量赋值节点",
+            "lineNumber": 194
+          },
+          {
+            "text": "- &#96;merge&#96; - 数据合并节点",
+            "lineNumber": 195
+          },
+          {
+            "text": "- &#96;transform&#96; - 数据转换节点",
+            "lineNumber": 196
+          },
+          {
+            "text": "- &#96;memory&#96; - 文本记忆节点",
+            "lineNumber": 197
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "text": "## 六、调用链路总结",
+            "lineNumber": 199
+          },
+          {
+            "lineNumber": 200
+          },
+          {
+            "text": "### 链路1: 前端页面 → 前端服务 → 后端API → 后端服务 → Dify/LLM",
+            "lineNumber": 201
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 202
+          },
+          {
+            "text": "前端页面组件",
+            "lineNumber": 203
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 204
+          },
+          {
+            "text": "前端服务层 (workflowAPI/aiRoleService/aiSearchService)",
+            "lineNumber": 205
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 206
+          },
+          {
+            "text": "后端API路由层",
+            "lineNumber": 207
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 208
+          },
+          {
+            "text": "后端服务层 (AgentWorkflowService/DifyClient/AgentOrchestrator)",
+            "lineNumber": 209
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 210
+          },
+          {
+            "text": "Dify Gateway / LLM Provider",
+            "lineNumber": 211
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 212
+          },
+          {
+            "lineNumber": 213
+          },
+          {
+            "text": "### 链路2: 工作流执行 → Agent节点 → AI角色",
+            "lineNumber": 214
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 215
+          },
+          {
+            "text": "工作流执行",
+            "lineNumber": 216
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 217
+          },
+          {
+            "text": "Agent节点",
+            "lineNumber": 218
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 219
+          },
+          {
+            "text": "AgentWorkflowService.executeAgentNode()",
+            "lineNumber": 220
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 221
+          },
+          {
+            "text": "AI角色配置 (Dify/Direct Agent)",
+            "lineNumber": 222
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 223
+          },
+          {
+            "text": "Dify Gateway / AgentOrchestrator",
+            "lineNumber": 224
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 225
+          },
+          {
+            "lineNumber": 226
+          },
+          {
+            "text": "### 链路3: 工具调用 → Agent嵌套调用",
+            "lineNumber": 227
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 228
+          },
+          {
+            "text": "LLM工具调用",
+            "lineNumber": 229
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 230
+          },
+          {
+            "text": "ToolExecutor.executeTool()",
+            "lineNumber": 231
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 232
+          },
+          {
+            "text": "Agent工具类型",
+            "lineNumber": 233
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 234
+          },
+          {
+            "text": "AgentOrchestrator.executeAgent() (嵌套调用)",
+            "lineNumber": 235
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 236
+          },
+          {
+            "lineNumber": 237
+          },
+          {
+            "text": "## 七、AI/Agent调用节点统计",
+            "lineNumber": 238
+          },
+          {
+            "lineNumber": 239
+          },
+          {
+            "text": "### 后端调用节点（共15个）",
+            "lineNumber": 240
+          },
+          {
+            "text": "1. AgentOrchestrator.executeAgent()",
+            "lineNumber": 241
+          },
+          {
+            "text": "2. AgentWorkflowService.executeRole()",
+            "lineNumber": 242
+          },
+          {
+            "text": "3. AgentWorkflowService.executeWorkflow()",
+            "lineNumber": 243
+          },
+          {
+            "text": "4. AgentWorkflowService.executeAgentNode()",
+            "lineNumber": 244
+          },
+          {
+            "text": "5. DifyClient.aiSearch()",
+            "lineNumber": 245
+          },
+          {
+            "text": "6. DifyClient.techPackage()",
+            "lineNumber": 246
+          },
+          {
+            "text": "7. DifyClient.techStrategy()",
+            "lineNumber": 247
+          },
+          {
+            "text": "8. DifyClient.techArticle()",
+            "lineNumber": 248
+          },
+          {
+            "text": "9. DifyClient.coreDraft()",
+            "lineNumber": 249
+          },
+          {
+            "text": "10. DifyClient.techPublish()",
+            "lineNumber": 250
+          },
+          {
+            "text": "11. DifyClient.callApp()",
+            "lineNumber": 251
+          },
+          {
+            "text": "12. DifyClient.runWorkflow()",
+            "lineNumber": 252
+          },
+          {
+            "text": "13. TriggerAgentUseCase.execute()",
+            "lineNumber": 253
+          },
+          {
+            "text": "14. ToolExecutor.executeTool() (agent类型)",
+            "lineNumber": 254
+          },
+          {
+            "text": "15. SendMessageUseCase.execute()",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "### 前端调用节点（共10个）",
+            "lineNumber": 257
+          },
+          {
+            "text": "1. workflowAPI.aiSearch()",
+            "lineNumber": 258
+          },
+          {
+            "text": "2. workflowAPI.smartSearch()",
+            "lineNumber": 259
+          },
+          {
+            "text": "3. workflowAPI.techPackage()",
+            "lineNumber": 260
+          },
+          {
+            "text": "4. workflowAPI.techStrategy()",
+            "lineNumber": 261
+          },
+          {
+            "text": "5. workflowAPI.techArticle()",
+            "lineNumber": 262
+          },
+          {
+            "text": "6. workflowAPI.coreDraft()",
+            "lineNumber": 263
+          },
+          {
+            "text": "7. aiRoleService.chatWithRole()",
+            "lineNumber": 264
+          },
+          {
+            "text": "8. aiSearchService.triggerFeatureAgent()",
+            "lineNumber": 265
+          },
+          {
+            "text": "9. WorkflowEngine.callAgent()",
+            "lineNumber": 266
+          },
+          {
+            "text": "10. 各节点组件的AI调用方法",
+            "lineNumber": 267
+          },
+          {
+            "lineNumber": 268
+          },
+          {
+            "text": "### 页面/组件调用节点（共8个）",
+            "lineNumber": 269
+          },
+          {
+            "text": "1. BaseAISearchPage.handleTriggerFeature()",
+            "lineNumber": 270
+          },
+          {
+            "text": "2. AIChatPage.handleSendMessage()",
+            "lineNumber": 271
+          },
+          {
+            "text": "3. ProjectResourcesPage.handleAISendMessage()",
+            "lineNumber": 272
+          },
+          {
+            "text": "4. AiSearchComponent.handleAiSearch()",
+            "lineNumber": 273
+          },
+          {
+            "text": "5. AiSearchNode的AI调用",
+            "lineNumber": 274
+          }
+        ]
+      },
+      "score": 0.4362640380859375
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_COMPLETE_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 157
+          },
+          "endPosition": {
+            "line": 209
+          }
+        },
+        "contents": "| **ToolExecutor** | &#96;services/agent/ToolExecutor.ts&#96; | 6种工具类型执行 | &#96;executeTool()&#96; | DifyClient, LangGraphEngine, AgentOrchestrator |\n| **DifyClient** | &#96;services/DifyClient.ts&#96; | Dify平台统一客户端 | &#96;aiSearch()&#96;, &#96;techPackage()&#96;, etc. | DifyGateway |\n| **LangGraphEngine** | &#96;services/workflow/langgraph/LangGraphEngine.ts&#96; | DAG工作流执行引擎 | &#96;execute()&#96; | NodeRegistry, AgentOrchestrator, DifyGateway |\n| **NodeRegistry** | &#96;services/workflow/nodes/NodeRegistry.ts&#96; | 节点类型插件化注册 | &#96;register()&#96;, &#96;execute()&#96; | 9种节点执行器 |\n\n### 2.3 Direct Agent配置结构\n\n&#96;&#96;&#96;typescript\ninterface DirectAgentConfig {\n  llm: {\n    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';\n    apiKey: string;\n    apiBaseUrl?: string;\n    model: string;\n    temperature: number;\n    maxTokens: number;\n    topP?: number;\n    stream?: boolean;\n  };\n  prompt: {\n    systemPrompt: string;\n    variables?: PromptVariable[];\n    templates?: PromptTemplate[];\n  };\n  contextStrategy: {\n    type: 'window' | 'summary' | 'hybrid';\n    maxMessages: number;\n    maxTokens: number;\n    summaryThreshold?: number;\n    includeSystemPrompt: boolean;\n  };\n  tools?: ToolConfig[];\n  agentCalls?: AgentCallConfig[];\n}\n&#96;&#96;&#96;\n\n### 2.4 节点插件化系统（已优化实现）\n\n**支持的9种节点类型**：\n\n| 节点类型 | 执行器类 | 功能 | 状态 |\n|---------|---------|------|------|\n| &#96;input&#96; | &#96;InputNodeExecutor&#96; | 提取工作流输入参数 | ✅ |\n| &#96;agent&#96; | &#96;AgentNodeExecutor&#96; | 调用AI角色（支持Direct/Dify） | ✅ |\n| &#96;output&#96; | &#96;OutputNodeExecutor&#96; | 提取最终输出 | ✅ |\n| &#96;condition&#96; | &#96;ConditionNodeExecutor&#96; | 条件判断（支持gating） | ✅ |\n| &#96;assign&#96; | &#96;AssignNodeExecutor&#96; | 变量赋值 | ✅ |\n| &#96;transform&#96; | &#96;TransformNodeExecutor&#96; | 数据转换 | ✅ |\n| &#96;merge&#96; | &#96;MergeNodeExecutor&#96; | 数据合并 | ✅ |\n| &#96;memory&#96; | &#96;MemoryNodeExecutor&#96; | 文本记忆 | ✅ |\n| &#96;loop&#96; | &#96;LoopNodeExecutor&#96; | 循环执行 | ✅ 新增 |",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "| **ToolExecutor** | &#96;services/agent/ToolExecutor.ts&#96; | 6种工具类型执行 | &#96;executeTool()&#96; | DifyClient, LangGraphEngine, AgentOrchestrator |",
+            "lineNumber": 158
+          },
+          {
+            "text": "| **DifyClient** | &#96;services/DifyClient.ts&#96; | Dify平台统一客户端 | &#96;aiSearch()&#96;, &#96;techPackage()&#96;, etc. | DifyGateway |",
+            "lineNumber": 159
+          },
+          {
+            "text": "| **LangGraphEngine** | &#96;services/workflow/langgraph/LangGraphEngine.ts&#96; | DAG工作流执行引擎 | &#96;execute()&#96; | NodeRegistry, AgentOrchestrator, DifyGateway |",
+            "lineNumber": 160
+          },
+          {
+            "text": "| **NodeRegistry** | &#96;services/workflow/nodes/NodeRegistry.ts&#96; | 节点类型插件化注册 | &#96;register()&#96;, &#96;execute()&#96; | 9种节点执行器 |",
+            "lineNumber": 161
+          },
+          {
+            "lineNumber": 162
+          },
+          {
+            "text": "### 2.3 Direct Agent配置结构",
+            "lineNumber": 163
+          },
+          {
+            "lineNumber": 164
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 165
+          },
+          {
+            "text": "interface DirectAgentConfig {",
+            "lineNumber": 166
+          },
+          {
+            "text": "  llm: {",
+            "lineNumber": 167
+          },
+          {
+            "text": "    provider: 'openai' | 'azure-openai' | 'qwen' | 'ernie' | 'custom';",
+            "lineNumber": 168
+          },
+          {
+            "text": "    apiKey: string;",
+            "lineNumber": 169
+          },
+          {
+            "text": "    apiBaseUrl?: string;",
+            "lineNumber": 170
+          },
+          {
+            "text": "    model: string;",
+            "lineNumber": 171
+          },
+          {
+            "text": "    temperature: number;",
+            "lineNumber": 172
+          },
+          {
+            "text": "    maxTokens: number;",
+            "lineNumber": 173
+          },
+          {
+            "text": "    topP?: number;",
+            "lineNumber": 174
+          },
+          {
+            "text": "    stream?: boolean;",
+            "lineNumber": 175
+          },
+          {
+            "text": "  };",
+            "lineNumber": 176
+          },
+          {
+            "text": "  prompt: {",
+            "lineNumber": 177
+          },
+          {
+            "text": "    systemPrompt: string;",
+            "lineNumber": 178
+          },
+          {
+            "text": "    variables?: PromptVariable[];",
+            "lineNumber": 179
+          },
+          {
+            "text": "    templates?: PromptTemplate[];",
+            "lineNumber": 180
+          },
+          {
+            "text": "  };",
+            "lineNumber": 181
+          },
+          {
+            "text": "  contextStrategy: {",
+            "lineNumber": 182
+          },
+          {
+            "text": "    type: 'window' | 'summary' | 'hybrid';",
+            "lineNumber": 183
+          },
+          {
+            "text": "    maxMessages: number;",
+            "lineNumber": 184
+          },
+          {
+            "text": "    maxTokens: number;",
+            "lineNumber": 185
+          },
+          {
+            "text": "    summaryThreshold?: number;",
+            "lineNumber": 186
+          },
+          {
+            "text": "    includeSystemPrompt: boolean;",
+            "lineNumber": 187
+          },
+          {
+            "text": "  };",
+            "lineNumber": 188
+          },
+          {
+            "text": "  tools?: ToolConfig[];",
+            "lineNumber": 189
+          },
+          {
+            "text": "  agentCalls?: AgentCallConfig[];",
+            "lineNumber": 190
+          },
+          {
+            "text": "}",
+            "lineNumber": 191
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 192
+          },
+          {
+            "lineNumber": 193
+          },
+          {
+            "text": "### 2.4 节点插件化系统（已优化实现）",
+            "lineNumber": 194
+          },
+          {
+            "lineNumber": 195
+          },
+          {
+            "text": "**支持的9种节点类型**：",
+            "lineNumber": 196
+          },
+          {
+            "lineNumber": 197
+          },
+          {
+            "text": "| 节点类型 | 执行器类 | 功能 | 状态 |",
+            "lineNumber": 198
+          },
+          {
+            "text": "|---------|---------|------|------|",
+            "lineNumber": 199
+          },
+          {
+            "text": "| &#96;input&#96; | &#96;InputNodeExecutor&#96; | 提取工作流输入参数 | ✅ |",
+            "lineNumber": 200
+          },
+          {
+            "text": "| &#96;agent&#96; | &#96;AgentNodeExecutor&#96; | 调用AI角色（支持Direct/Dify） | ✅ |",
+            "lineNumber": 201
+          },
+          {
+            "text": "| &#96;output&#96; | &#96;OutputNodeExecutor&#96; | 提取最终输出 | ✅ |",
+            "lineNumber": 202
+          },
+          {
+            "text": "| &#96;condition&#96; | &#96;ConditionNodeExecutor&#96; | 条件判断（支持gating） | ✅ |",
+            "lineNumber": 203
+          },
+          {
+            "text": "| &#96;assign&#96; | &#96;AssignNodeExecutor&#96; | 变量赋值 | ✅ |",
+            "lineNumber": 204
+          },
+          {
+            "text": "| &#96;transform&#96; | &#96;TransformNodeExecutor&#96; | 数据转换 | ✅ |",
+            "lineNumber": 205
+          },
+          {
+            "text": "| &#96;merge&#96; | &#96;MergeNodeExecutor&#96; | 数据合并 | ✅ |",
+            "lineNumber": 206
+          },
+          {
+            "text": "| &#96;memory&#96; | &#96;MemoryNodeExecutor&#96; | 文本记忆 | ✅ |",
+            "lineNumber": 207
+          },
+          {
+            "text": "| &#96;loop&#96; | &#96;LoopNodeExecutor&#96; | 循环执行 | ✅ 新增 |",
+            "lineNumber": 208
+          }
+        ]
+      },
+      "score": 0.42688819766044617
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/DifyClient.ts",
+        "range": {
+          "startPosition": {
+            "line": 74
+          },
+          "endPosition": {
+            "line": 350,
+            "column": 1
+          }
+        },
+        "contents": "class DifyClient {\n\n\n  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;DifyWorkflowResponse&gt; {\n    logger.info('调用 Dify 工作流', { appType, responseMode });\n    const gateway = this.getGateway(appType);\n    const result = await gateway.executeWorkflow({\n      workflowId: appType,\n      inputs,\n      userId: user,\n    });\n\n    if (isSuccess(result) &amp;&amp; result.value.raw) {\n      return result.value.raw as DifyWorkflowResponse;\n    }\n\n    if (!isSuccess(result)) {\n      throw new Error(result.error.message);\n    }\n\n    throw new Error('Dify 工作流调用未返回有效数据');\n  }\n\n  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {\n    \n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 75,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 76,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class DifyClient {",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "text": "  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;DifyWorkflowResponse&gt; {",
+            "lineNumber": 106,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.info('调用 Dify 工作流', { appType, responseMode });",
+            "lineNumber": 107
+          },
+          {
+            "text": "    const gateway = this.getGateway(appType);",
+            "lineNumber": 108
+          },
+          {
+            "text": "    const result = await gateway.executeWorkflow({",
+            "lineNumber": 109
+          },
+          {
+            "text": "      workflowId: appType,",
+            "lineNumber": 110
+          },
+          {
+            "text": "      inputs,",
+            "lineNumber": 111
+          },
+          {
+            "text": "      userId: user,",
+            "lineNumber": 112
+          },
+          {
+            "text": "    });",
+            "lineNumber": 113
+          },
+          {
+            "lineNumber": 114
+          },
+          {
+            "text": "    if (isSuccess(result) &amp;&amp; result.value.raw) {",
+            "lineNumber": 115
+          },
+          {
+            "text": "      return result.value.raw as DifyWorkflowResponse;",
+            "lineNumber": 116
+          },
+          {
+            "text": "    }",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "    if (!isSuccess(result)) {",
+            "lineNumber": 119
+          },
+          {
+            "text": "      throw new Error(result.error.message);",
+            "lineNumber": 120
+          },
+          {
+            "text": "    }",
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122
+          },
+          {
+            "text": "    throw new Error('Dify 工作流调用未返回有效数据');",
+            "lineNumber": 123
+          },
+          {
+            "text": "  }",
+            "lineNumber": 124,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {",
+            "lineNumber": 126,
+            "isSignature": true
+          },
+          {
+            "text": "    ",
+            "lineNumber": 127
+          },
+          {
+            "text": "  }",
+            "lineNumber": 145,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4240674078464508
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {
+            "line": 44
+          },
+          "endPosition": {
+            "line": 91
+          }
+        },
+        "contents": "**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;\n- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）\n- **调用方式**: \n  - 通过&#96;agentWorkflowService.executeRole()&#96;直接调用AI角色\n  - 通过&#96;agentWorkflowService.executeWorkflow()&#96;调用工作流\n- **支持的功能类型**:\n  - &#96;five-view-analysis&#96; - 技术转译（五看）\n  - &#96;three-fix-analysis&#96; - 用户场景挖掘（三定）\n  - &#96;tech-matrix&#96; - 技术矩阵\n  - &#96;propagation-strategy&#96; - 传播策略\n  - &#96;exhibition-video&#96; - 展具与视频\n  - &#96;translation&#96; - 翻译\n  - &#96;ppt-outline&#96; - 技术讲稿\n  - &#96;script&#96; - 脚本\n\n### 5. ToolExecutor（工具执行器）\n**位置**: &#96;backend/src/services/agent/ToolExecutor.ts&#96;\n- **调用节点**: &#96;executeTool(toolCall, toolConfig)&#96; - 执行工具调用\n- **支持的工具类型**:\n  - &#96;search&#96; - 搜索工具\n  - &#96;calculation&#96; - 计算工具\n  - &#96;time&#96; - 时间工具\n  - &#96;api&#96; - API调用工具\n  - &#96;workflow&#96; - 工作流调用工具\n  - &#96;agent&#96; - Agent调用工具（嵌套Agent调用）\n\n## 二、前端服务层调用节点\n\n### 1. workflowAPI（工作流API）\n**位置**: &#96;frontend/src/services/api.ts&#96;\n- **调用节点1**: &#96;aiSearch(query, inputs, difyConfig, conversationId)&#96; - AI搜索\n- **调用节点2**: &#96;smartSearch(query, difyConfig, conversationId)&#96; - 智能搜索\n- **调用节点3**: &#96;techPackage(inputs, difyConfig)&#96; - 技术包装\n- **调用节点4**: &#96;techStrategy(inputs, difyConfig)&#96; - 技术策略\n- **调用节点5**: &#96;techArticle(inputs, difyConfig)&#96; - 技术通稿\n- **调用节点6**: &#96;coreDraft(inputs, difyConfig)&#96; - 核心稿件\n\n### 2. aiRoleService（AI角色服务）\n**位置**: &#96;frontend/src/services/aiRoleService.ts&#96;\n- **调用节点**: &#96;chatWithRole(roleId, query, inputs)&#96; - 与AI角色对话\n  - 支持Dify类型和Direct Agent类型\n  - 自动根据角色配置选择调用方式\n\n### 3. aiSearchService（AI搜索服务）\n**位置**: &#96;frontend/src/services/aiSearchService.ts&#96;\n- **调用节点**: &#96;triggerFeatureAgent(conversationId, payload)&#96; - 触发功能Agent\n  - 用于触发子Agent（五看、三定等）",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;",
+            "lineNumber": 45
+          },
+          {
+            "text": "- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）",
+            "lineNumber": 46
+          },
+          {
+            "text": "- **调用方式**: ",
+            "lineNumber": 47
+          },
+          {
+            "text": "  - 通过&#96;agentWorkflowService.executeRole()&#96;直接调用AI角色",
+            "lineNumber": 48
+          },
+          {
+            "text": "  - 通过&#96;agentWorkflowService.executeWorkflow()&#96;调用工作流",
+            "lineNumber": 49
+          },
+          {
+            "text": "- **支持的功能类型**:",
+            "lineNumber": 50
+          },
+          {
+            "text": "  - &#96;five-view-analysis&#96; - 技术转译（五看）",
+            "lineNumber": 51
+          },
+          {
+            "text": "  - &#96;three-fix-analysis&#96; - 用户场景挖掘（三定）",
+            "lineNumber": 52
+          },
+          {
+            "text": "  - &#96;tech-matrix&#96; - 技术矩阵",
+            "lineNumber": 53
+          },
+          {
+            "text": "  - &#96;propagation-strategy&#96; - 传播策略",
+            "lineNumber": 54
+          },
+          {
+            "text": "  - &#96;exhibition-video&#96; - 展具与视频",
+            "lineNumber": 55
+          },
+          {
+            "text": "  - &#96;translation&#96; - 翻译",
+            "lineNumber": 56
+          },
+          {
+            "text": "  - &#96;ppt-outline&#96; - 技术讲稿",
+            "lineNumber": 57
+          },
+          {
+            "text": "  - &#96;script&#96; - 脚本",
+            "lineNumber": 58
+          },
+          {
+            "lineNumber": 59
+          },
+          {
+            "text": "### 5. ToolExecutor（工具执行器）",
+            "lineNumber": 60
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/ToolExecutor.ts&#96;",
+            "lineNumber": 61
+          },
+          {
+            "text": "- **调用节点**: &#96;executeTool(toolCall, toolConfig)&#96; - 执行工具调用",
+            "lineNumber": 62
+          },
+          {
+            "text": "- **支持的工具类型**:",
+            "lineNumber": 63
+          },
+          {
+            "text": "  - &#96;search&#96; - 搜索工具",
+            "lineNumber": 64
+          },
+          {
+            "text": "  - &#96;calculation&#96; - 计算工具",
+            "lineNumber": 65
+          },
+          {
+            "text": "  - &#96;time&#96; - 时间工具",
+            "lineNumber": 66
+          },
+          {
+            "text": "  - &#96;api&#96; - API调用工具",
+            "lineNumber": 67
+          },
+          {
+            "text": "  - &#96;workflow&#96; - 工作流调用工具",
+            "lineNumber": 68
+          },
+          {
+            "text": "  - &#96;agent&#96; - Agent调用工具（嵌套Agent调用）",
+            "lineNumber": 69
+          },
+          {
+            "lineNumber": 70
+          },
+          {
+            "text": "## 二、前端服务层调用节点",
+            "lineNumber": 71
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "text": "### 1. workflowAPI（工作流API）",
+            "lineNumber": 73
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/services/api.ts&#96;",
+            "lineNumber": 74
+          },
+          {
+            "text": "- **调用节点1**: &#96;aiSearch(query, inputs, difyConfig, conversationId)&#96; - AI搜索",
+            "lineNumber": 75
+          },
+          {
+            "text": "- **调用节点2**: &#96;smartSearch(query, difyConfig, conversationId)&#96; - 智能搜索",
+            "lineNumber": 76
+          },
+          {
+            "text": "- **调用节点3**: &#96;techPackage(inputs, difyConfig)&#96; - 技术包装",
+            "lineNumber": 77
+          },
+          {
+            "text": "- **调用节点4**: &#96;techStrategy(inputs, difyConfig)&#96; - 技术策略",
+            "lineNumber": 78
+          },
+          {
+            "text": "- **调用节点5**: &#96;techArticle(inputs, difyConfig)&#96; - 技术通稿",
+            "lineNumber": 79
+          },
+          {
+            "text": "- **调用节点6**: &#96;coreDraft(inputs, difyConfig)&#96; - 核心稿件",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "### 2. aiRoleService（AI角色服务）",
+            "lineNumber": 82
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/services/aiRoleService.ts&#96;",
+            "lineNumber": 83
+          },
+          {
+            "text": "- **调用节点**: &#96;chatWithRole(roleId, query, inputs)&#96; - 与AI角色对话",
+            "lineNumber": 84
+          },
+          {
+            "text": "  - 支持Dify类型和Direct Agent类型",
+            "lineNumber": 85
+          },
+          {
+            "text": "  - 自动根据角色配置选择调用方式",
+            "lineNumber": 86
+          },
+          {
+            "lineNumber": 87
+          },
+          {
+            "text": "### 3. aiSearchService（AI搜索服务）",
+            "lineNumber": 88
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/services/aiSearchService.ts&#96;",
+            "lineNumber": 89
+          },
+          {
+            "text": "- **调用节点**: &#96;triggerFeatureAgent(conversationId, payload)&#96; - 触发功能Agent",
+            "lineNumber": 90
+          },
+          {
+            "text": "  - 用于触发子Agent（五看、三定等）",
+            "lineNumber": 91
+          }
+        ]
+      },
+      "score": 0.4212445914745331
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\nasync executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\n\n\n      // 10. 返回结果\n      const totalDuration = Date.now() - startTime;\n      \n      // 记录总体执行时间\n      await this.recordPerformanceMetrics(executionId, 'execution_time', totalDuration, { \n        roleId, \n        toolCalls: response.toolCalls?.length || 0 \n      });\n      \n      await this.logStep(executionId, 'complete', {\n        type: 'complete',\n        input: { query },\n        output: { content: response.content },\n        duration: totalDuration,\n        status: 'success'\n      });\n\n      return {\n        content: response.content,\n        conversationId: finalConversationId,\n        usage: response.usage,\n        metadata: {\n          model: response.model,\n          finishReason: response.finishReason,\n          toolCalls: response.toolCalls?.length || 0,\n          executionId\n        }\n      };\n    } catch (error) {\n      const totalDuration = Date.now() - startTime;\n      \n      // 标准化错误处理\n      const agentError = AgentErrorHandler.normalizeError(error, {\n        roleId,\n        executionId,\n        step: 'executeAgent'\n      });\n      \n      await this.logStep(executionId, 'error', {\n        type: 'error',\n        input: { query, context },\n        output: null,\n        duration: totalDuration,\n        status: 'failed',\n        error: agentError.message,\n        errorCode: agentError.code,\n        errorDetails: agentError.details\n      });\n      \n      // 抛出标准化的错误\n      throw agentError;\n    } finally {\n      this.currentExecutionId = '';\n      this.currentAgentId = '';\n    }\n  }\n\n  /**\n   * 执行带工具调用的 LLM 请求（可能多轮）\n   */\n  private async executeWithTools(\n    provider: ILLMProvider,\n    messages: ChatMessage[],\n    llmConfig: LLMConfig,\n    tools: Tool[],\n    toolConfigs: ToolConfig[],\n    checkTimeout?: () =&gt; void,\n    executionId?: string\n  ): Promise&lt;LLMResponse&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 52,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 198
+          },
+          {
+            "lineNumber": 199
+          },
+          {
+            "text": "      // 10. 返回结果",
+            "lineNumber": 200
+          },
+          {
+            "text": "      const totalDuration = Date.now() - startTime;",
+            "lineNumber": 201
+          },
+          {
+            "text": "      ",
+            "lineNumber": 202
+          },
+          {
+            "text": "      // 记录总体执行时间",
+            "lineNumber": 203
+          },
+          {
+            "text": "      await this.recordPerformanceMetrics(executionId, 'execution_time', totalDuration, { ",
+            "lineNumber": 204
+          },
+          {
+            "text": "        roleId, ",
+            "lineNumber": 205
+          },
+          {
+            "text": "        toolCalls: response.toolCalls?.length || 0 ",
+            "lineNumber": 206
+          },
+          {
+            "text": "      });",
+            "lineNumber": 207
+          },
+          {
+            "text": "      ",
+            "lineNumber": 208
+          },
+          {
+            "text": "      await this.logStep(executionId, 'complete', {",
+            "lineNumber": 209
+          },
+          {
+            "text": "        type: 'complete',",
+            "lineNumber": 210
+          },
+          {
+            "text": "        input: { query },",
+            "lineNumber": 211
+          },
+          {
+            "text": "        output: { content: response.content },",
+            "lineNumber": 212
+          },
+          {
+            "text": "        duration: totalDuration,",
+            "lineNumber": 213
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 214
+          },
+          {
+            "text": "      });",
+            "lineNumber": 215
+          },
+          {
+            "lineNumber": 216
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 217
+          },
+          {
+            "text": "        content: response.content,",
+            "lineNumber": 218
+          },
+          {
+            "text": "        conversationId: finalConversationId,",
+            "lineNumber": 219
+          },
+          {
+            "text": "        usage: response.usage,",
+            "lineNumber": 220
+          },
+          {
+            "text": "        metadata: {",
+            "lineNumber": 221
+          },
+          {
+            "text": "          model: response.model,",
+            "lineNumber": 222
+          },
+          {
+            "text": "          finishReason: response.finishReason,",
+            "lineNumber": 223
+          },
+          {
+            "text": "          toolCalls: response.toolCalls?.length || 0,",
+            "lineNumber": 224
+          },
+          {
+            "text": "          executionId",
+            "lineNumber": 225
+          },
+          {
+            "text": "        }",
+            "lineNumber": 226
+          },
+          {
+            "text": "      };",
+            "lineNumber": 227
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 228
+          },
+          {
+            "text": "      const totalDuration = Date.now() - startTime;",
+            "lineNumber": 229
+          },
+          {
+            "text": "      ",
+            "lineNumber": 230
+          },
+          {
+            "text": "      // 标准化错误处理",
+            "lineNumber": 231
+          },
+          {
+            "text": "      const agentError = AgentErrorHandler.normalizeError(error, {",
+            "lineNumber": 232
+          },
+          {
+            "text": "        roleId,",
+            "lineNumber": 233
+          },
+          {
+            "text": "        executionId,",
+            "lineNumber": 234
+          },
+          {
+            "text": "        step: 'executeAgent'",
+            "lineNumber": 235
+          },
+          {
+            "text": "      });",
+            "lineNumber": 236
+          },
+          {
+            "text": "      ",
+            "lineNumber": 237
+          },
+          {
+            "text": "      await this.logStep(executionId, 'error', {",
+            "lineNumber": 238
+          },
+          {
+            "text": "        type: 'error',",
+            "lineNumber": 239
+          },
+          {
+            "text": "        input: { query, context },",
+            "lineNumber": 240
+          },
+          {
+            "text": "        output: null,",
+            "lineNumber": 241
+          },
+          {
+            "text": "        duration: totalDuration,",
+            "lineNumber": 242
+          },
+          {
+            "text": "        status: 'failed',",
+            "lineNumber": 243
+          },
+          {
+            "text": "        error: agentError.message,",
+            "lineNumber": 244
+          },
+          {
+            "text": "        errorCode: agentError.code,",
+            "lineNumber": 245
+          },
+          {
+            "text": "        errorDetails: agentError.details",
+            "lineNumber": 246
+          },
+          {
+            "text": "      });",
+            "lineNumber": 247
+          },
+          {
+            "text": "      ",
+            "lineNumber": 248
+          },
+          {
+            "text": "      // 抛出标准化的错误",
+            "lineNumber": 249
+          },
+          {
+            "text": "      throw agentError;",
+            "lineNumber": 250
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 251
+          },
+          {
+            "text": "      this.currentExecutionId = '';",
+            "lineNumber": 252
+          },
+          {
+            "text": "      this.currentAgentId = '';",
+            "lineNumber": 253
+          },
+          {
+            "text": "    }",
+            "lineNumber": 254
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "lineNumber": 256
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 257
+          },
+          {
+            "text": "   * 执行带工具调用的 LLM 请求（可能多轮）",
+            "lineNumber": 258
+          },
+          {
+            "text": "   */",
+            "lineNumber": 259
+          },
+          {
+            "text": "  private async executeWithTools(",
+            "lineNumber": 260
+          },
+          {
+            "text": "    provider: ILLMProvider,",
+            "lineNumber": 261
+          },
+          {
+            "text": "    messages: ChatMessage[],",
+            "lineNumber": 262
+          },
+          {
+            "text": "    llmConfig: LLMConfig,",
+            "lineNumber": 263
+          },
+          {
+            "text": "    tools: Tool[],",
+            "lineNumber": 264
+          },
+          {
+            "text": "    toolConfigs: ToolConfig[],",
+            "lineNumber": 265
+          },
+          {
+            "text": "    checkTimeout?: () =&gt; void,",
+            "lineNumber": 266
+          },
+          {
+            "text": "    executionId?: string",
+            "lineNumber": 267
+          },
+          {
+            "text": "  ): Promise&lt;LLMResponse&gt; {",
+            "lineNumber": 268
+          },
+          {
+            "text": "    ",
+            "lineNumber": 269
+          },
+          {
+            "text": "  }",
+            "lineNumber": 339
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.42078009247779846
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts",
+        "range": {
+          "startPosition": {
+            "line": 42
+          },
+          "endPosition": {
+            "line": 225,
+            "column": 1
+          }
+        },
+        "contents": "export class DifyGateway {\n\n\n  async executeWorkflow(input: WorkflowInput): Promise&lt;Result&lt;WorkflowOutput&gt;&gt; {\n    try {\n      const requestBody: any = {\n        inputs: input.inputs,\n        response_mode: 'blocking',\n        user: input.userId ?? 'todify-user',\n      };\n\n      // 如果提供了 conversation_id，添加到请求体中（Dify工作流API支持此参数用于多轮对话）\n      if (input.conversationId &amp;&amp; input.conversationId.trim() !== '') {\n        requestBody.conversation_id = input.conversationId;\n      }\n\n      const response = await this.retry(() =&gt;\n        this.workflowClient.post('/workflows/run', requestBody)\n      );\n\n      return success({\n        workflowRunId: response.data?.workflow_run_id,\n        taskId: response.data?.task_id,\n        status: response.data?.status,\n        outputs: response.data?.data?.outputs,\n        raw: response.data,\n      });\n    } catch (error) {\n      logger.error('Dify executeWorkflow 失败', { error, input });\n      return failure({\n        code: 'DIFY_WORKFLOW_ERROR',\n        message: '调用 Dify 工作流服务失败',\n        details: error instanceof Error ? error.message : error,\n      });\n    }\n  }\n\n  private async retry&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, retries = this.maxRetries): Promise&lt;T&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 43,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 44,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class DifyGateway {",
+            "lineNumber": 43,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "  async executeWorkflow(input: WorkflowInput): Promise&lt;Result&lt;WorkflowOutput&gt;&gt; {",
+            "lineNumber": 180
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 181
+          },
+          {
+            "text": "      const requestBody: any = {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        inputs: input.inputs,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        response_mode: 'blocking',",
+            "lineNumber": 184
+          },
+          {
+            "text": "        user: input.userId ?? 'todify-user',",
+            "lineNumber": 185
+          },
+          {
+            "text": "      };",
+            "lineNumber": 186
+          },
+          {
+            "lineNumber": 187
+          },
+          {
+            "text": "      // 如果提供了 conversation_id，添加到请求体中（Dify工作流API支持此参数用于多轮对话）",
+            "lineNumber": 188
+          },
+          {
+            "text": "      if (input.conversationId &amp;&amp; input.conversationId.trim() !== '') {",
+            "lineNumber": 189
+          },
+          {
+            "text": "        requestBody.conversation_id = input.conversationId;",
+            "lineNumber": 190
+          },
+          {
+            "text": "      }",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "      const response = await this.retry(() =&gt;",
+            "lineNumber": 193
+          },
+          {
+            "text": "        this.workflowClient.post('/workflows/run', requestBody)",
+            "lineNumber": 194
+          },
+          {
+            "text": "      );",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "      return success({",
+            "lineNumber": 197
+          },
+          {
+            "text": "        workflowRunId: response.data?.workflow_run_id,",
+            "lineNumber": 198
+          },
+          {
+            "text": "        taskId: response.data?.task_id,",
+            "lineNumber": 199
+          },
+          {
+            "text": "        status: response.data?.status,",
+            "lineNumber": 200
+          },
+          {
+            "text": "        outputs: response.data?.data?.outputs,",
+            "lineNumber": 201
+          },
+          {
+            "text": "        raw: response.data,",
+            "lineNumber": 202
+          },
+          {
+            "text": "      });",
+            "lineNumber": 203
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 204
+          },
+          {
+            "text": "      logger.error('Dify executeWorkflow 失败', { error, input });",
+            "lineNumber": 205
+          },
+          {
+            "text": "      return failure({",
+            "lineNumber": 206
+          },
+          {
+            "text": "        code: 'DIFY_WORKFLOW_ERROR',",
+            "lineNumber": 207
+          },
+          {
+            "text": "        message: '调用 Dify 工作流服务失败',",
+            "lineNumber": 208
+          },
+          {
+            "text": "        details: error instanceof Error ? error.message : error,",
+            "lineNumber": 209
+          },
+          {
+            "text": "      });",
+            "lineNumber": 210
+          },
+          {
+            "text": "    }",
+            "lineNumber": 211
+          },
+          {
+            "text": "  }",
+            "lineNumber": 212
+          },
+          {
+            "lineNumber": 213
+          },
+          {
+            "text": "  private async retry&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, retries = this.maxRetries): Promise&lt;T&gt; {",
+            "lineNumber": 214
+          },
+          {
+            "text": "    ",
+            "lineNumber": 215
+          },
+          {
+            "text": "  }",
+            "lineNumber": 225
+          },
+          {
+            "text": "}",
+            "lineNumber": 226,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4192192554473877
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/AgentWorkflowService.ts",
+        "range": {
+          "startPosition": {
+            "line": 6
+          },
+          "endPosition": {
+            "line": 100,
+            "column": 1
+          }
+        },
+        "contents": "class AgentWorkflowService {\n\n  \n  async executeRole(roleId: string, params: any) {\n    logger.warn('AgentWorkflowService.executeRole called, but agent workflow functionality is removed.', {\n      roleId,\n    });\n    return {\n      success: false,\n      message: 'AI角色工作流功能已移除',\n      data: null,\n    };\n  }\n  \n  async deleteTemplate(id: string): Promise&lt;boolean&gt; {\n    logger.warn\n\n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 7,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 8,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class AgentWorkflowService {",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 22
+          },
+          {
+            "text": "  ",
+            "lineNumber": 23
+          },
+          {
+            "text": "  async executeRole(roleId: string, params: any) {",
+            "lineNumber": 24,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn('AgentWorkflowService.executeRole called, but agent workflow functionality is removed.', {",
+            "lineNumber": 25
+          },
+          {
+            "text": "      roleId,",
+            "lineNumber": 26
+          },
+          {
+            "text": "    });",
+            "lineNumber": 27
+          },
+          {
+            "text": "    return {",
+            "lineNumber": 28
+          },
+          {
+            "text": "      success: false,",
+            "lineNumber": 29
+          },
+          {
+            "text": "      message: 'AI角色工作流功能已移除',",
+            "lineNumber": 30
+          },
+          {
+            "text": "      data: null,",
+            "lineNumber": 31
+          },
+          {
+            "text": "    };",
+            "lineNumber": 32
+          },
+          {
+            "text": "  }",
+            "lineNumber": 33,
+            "isSignature": true
+          },
+          {
+            "text": "  ",
+            "lineNumber": 34
+          },
+          {
+            "text": "  async deleteTemplate(id: string): Promise&lt;boolean&gt; {",
+            "lineNumber": 35,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.warn",
+            "lineNumber": 36
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "  }",
+            "lineNumber": 40,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.41752979159355164
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+问题是 `AgentWorkflowService.executeRole` 返回了"工作流功能已移除"，但实际应能执行 AI 角色。修复 `AgentWorkflowService`，实现 `executeRole` 方法：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/services/agent/AgentOrchestrator.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/services/DifyClient.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "executeAgent DifyGateway executeChat executeWorkflow roleId",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/nodes/AgentNodeExecutor.ts",
+        "range": {
+          "startPosition": {
+            "line": 8
+          },
+          "endPosition": {
+            "line": 79,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentNodeExecutor implements NodeExecutor {\nasync execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);\n    const { connectionType, apiKey, apiUrl } = role.difyConfig;\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });\n    const nodeInput = { ...context, ...(node.data?.inputs || {}) };\n    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n    const inputs = { ...nodeInput };\n    delete inputs.query;\n    delete inputs.input;\n    if (connectionType === 'chatflow') {\n      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify聊天调用失败');\n    } else {\n      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify工作流调用失败');\n    }\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 9,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 9,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 9,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 10,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 10,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 11,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentNodeExecutor implements NodeExecutor {",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 49
+          },
+          {
+            "text": "    }",
+            "lineNumber": 50
+          },
+          {
+            "text": "    ",
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 52
+          },
+          {
+            "text": "    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);",
+            "lineNumber": 53
+          },
+          {
+            "text": "    const { connectionType, apiKey, apiUrl } = role.difyConfig;",
+            "lineNumber": 54
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 55
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 56
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });",
+            "lineNumber": 57
+          },
+          {
+            "text": "    const nodeInput = { ...context, ...(node.data?.inputs || {}) };",
+            "lineNumber": 58
+          },
+          {
+            "text": "    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 59
+          },
+          {
+            "text": "    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 60
+          },
+          {
+            "text": "    const inputs = { ...nodeInput };",
+            "lineNumber": 61
+          },
+          {
+            "text": "    delete inputs.query;",
+            "lineNumber": 62
+          },
+          {
+            "text": "    delete inputs.input;",
+            "lineNumber": 63
+          },
+          {
+            "text": "    if (connectionType === 'chatflow') {",
+            "lineNumber": 64
+          },
+          {
+            "text": "      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });",
+            "lineNumber": 65
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 66
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 67
+          },
+          {
+            "text": "        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };",
+            "lineNumber": 68
+          },
+          {
+            "text": "      }",
+            "lineNumber": 69
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify聊天调用失败');",
+            "lineNumber": 70
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 71
+          },
+          {
+            "text": "      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });",
+            "lineNumber": 72
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 73
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 74
+          },
+          {
+            "text": "        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };",
+            "lineNumber": 75
+          },
+          {
+            "text": "      }",
+            "lineNumber": 76
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify工作流调用失败');",
+            "lineNumber": 77
+          },
+          {
+            "text": "    }",
+            "lineNumber": 78
+          },
+          {
+            "text": "  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "}",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.6069943904876709
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/nodes/AgentNodeExecutor.ts",
+        "range": {
+          "startPosition": {
+            "column": 46
+          },
+          "endPosition": {
+            "line": 79,
+            "column": 1
+          }
+        },
+        "contents": "import { aiRoleModel } from '../../../models';\nimport { DifyGateway } from '@/shared/infrastructure/integrations/dify';\nimport { AgentOrchestrator } from '../../agent/AgentOrchestrator';\n\n/**\n * Agent节点执行器\n */\nexport class AgentNodeExecutor implements NodeExecutor {\n  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    \n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    \n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...context, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const agentContext: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          agentContext[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig)\n  }\n}",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { aiRoleModel } from '../../../models';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { DifyGateway } from '@/shared/infrastructure/integrations/dify';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { AgentOrchestrator } from '../../agent/AgentOrchestrator';",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "/**",
+            "lineNumber": 6
+          },
+          {
+            "text": " * Agent节点执行器",
+            "lineNumber": 7
+          },
+          {
+            "text": " */",
+            "lineNumber": 8
+          },
+          {
+            "text": "export class AgentNodeExecutor implements NodeExecutor {",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "  async execute(node: any, context: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 10
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 11
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 12
+          },
+          {
+            "text": "    ",
+            "lineNumber": 13
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 14
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 15
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 16
+          },
+          {
+            "text": "    ",
+            "lineNumber": 17
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 18
+          },
+          {
+            "text": "    ",
+            "lineNumber": 19
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 20
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 21
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 22
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 23
+          },
+          {
+            "text": "      }",
+            "lineNumber": 24
+          },
+          {
+            "text": "      ",
+            "lineNumber": 25
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 26
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 27
+          },
+          {
+            "text": "      const nodeInput = { ...context, ...(node.data?.inputs || {}) };",
+            "lineNumber": 28
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 29
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 30
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 31
+          },
+          {
+            "text": "      }",
+            "lineNumber": 32
+          },
+          {
+            "text": "      ",
+            "lineNumber": 33
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 34
+          },
+          {
+            "text": "      const agentContext: Record&lt;string, any&gt; = {};",
+            "lineNumber": 35
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 36
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 37
+          },
+          {
+            "text": "          agentContext[key] = nodeInput[key];",
+            "lineNumber": 38
+          },
+          {
+            "text": "        }",
+            "lineNumber": 39
+          },
+          {
+            "text": "      });",
+            "lineNumber": 40
+          },
+          {
+            "text": "      ",
+            "lineNumber": 41
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', agentContext);",
+            "lineNumber": 42
+          },
+          {
+            "text": "      ",
+            "lineNumber": 43
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 44
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 45
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 46
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 47
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 48
+          },
+          {
+            "text": "      };",
+            "lineNumber": 49
+          },
+          {
+            "text": "    }",
+            "lineNumber": 50
+          },
+          {
+            "text": "    ",
+            "lineNumber": 51
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 52
+          },
+          {
+            "text": "    if (!role.difyConfig)",
+            "lineNumber": 53
+          },
+          {
+            "text": "  }",
+            "lineNumber": 79
+          },
+          {
+            "text": "}",
+            "lineNumber": 80,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5570036768913269
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/langgraph/LangGraphEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 449,
+            "column": 1
+          }
+        },
+        "contents": "export class LangGraphEngine {\n\n\n  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n    const agentId = node.agentId || node.data?.agentId;\n    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);\n    const role = await aiRoleModel.getById(agentId);\n    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);\n    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);\n    const provider = role.provider || 'dify';\n    \n    // 支持 Direct Agent 类型\n    if (provider === 'direct-agent') {\n      if (!role.agentConfig) {\n        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);\n      }\n      \n      // 使用 AgentOrchestrator 执行 Direct Agent\n      const orchestrator = new AgentOrchestrator();\n      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };\n      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n      if (!query) {\n        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n      }\n      \n      // 从 sharedContext 中提取可用作 context 的数据\n      const context: Record&lt;string, any&gt; = {};\n      Object.keys(nodeInput).forEach(key =&gt; {\n        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {\n          context[key] = nodeInput[key];\n        }\n      });\n      \n      const result = await orchestrator.executeAgent(agentId, query, '', context);\n      \n      return {\n        answer: result.content,\n        result: result.content,\n        conversation_id: result.conversationId,\n        raw: result\n      };\n    }\n    \n    // Dify Agent 类型的原有逻辑\n    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);\n    const { connectionType, apiKey, apiUrl } = role.difyConfig;\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LangGraphEngine {",
+            "lineNumber": 16,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "  private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 148
+          },
+          {
+            "text": "    const agentId = node.agentId || node.data?.agentId;",
+            "lineNumber": 149
+          },
+          {
+            "text": "    if (!agentId) throw new Error(&#96;Agent节点 ${node.id} 未配置agentId&#96;);",
+            "lineNumber": 150
+          },
+          {
+            "text": "    const role = await aiRoleModel.getById(agentId);",
+            "lineNumber": 151
+          },
+          {
+            "text": "    if (!role) throw new Error(&#96;AI角色不存在: ${agentId}&#96;);",
+            "lineNumber": 152
+          },
+          {
+            "text": "    if (!role.enabled) throw new Error(&#96;AI角色已禁用: ${agentId}&#96;);",
+            "lineNumber": 153
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 154
+          },
+          {
+            "text": "    ",
+            "lineNumber": 155
+          },
+          {
+            "text": "    // 支持 Direct Agent 类型",
+            "lineNumber": 156
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 157
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 158
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色 ${agentId} 的Direct Agent配置不存在&#96;);",
+            "lineNumber": 159
+          },
+          {
+            "text": "      }",
+            "lineNumber": 160
+          },
+          {
+            "text": "      ",
+            "lineNumber": 161
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行 Direct Agent",
+            "lineNumber": 162
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 163
+          },
+          {
+            "text": "      const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };",
+            "lineNumber": 164
+          },
+          {
+            "text": "      let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 165
+          },
+          {
+            "text": "      if (!query) {",
+            "lineNumber": 166
+          },
+          {
+            "text": "        query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 167
+          },
+          {
+            "text": "      }",
+            "lineNumber": 168
+          },
+          {
+            "text": "      ",
+            "lineNumber": 169
+          },
+          {
+            "text": "      // 从 sharedContext 中提取可用作 context 的数据",
+            "lineNumber": 170
+          },
+          {
+            "text": "      const context: Record&lt;string, any&gt; = {};",
+            "lineNumber": 171
+          },
+          {
+            "text": "      Object.keys(nodeInput).forEach(key =&gt; {",
+            "lineNumber": 172
+          },
+          {
+            "text": "        if (key !== 'query' &amp;&amp; key !== 'input' &amp;&amp; key !== 'workflowInput') {",
+            "lineNumber": 173
+          },
+          {
+            "text": "          context[key] = nodeInput[key];",
+            "lineNumber": 174
+          },
+          {
+            "text": "        }",
+            "lineNumber": 175
+          },
+          {
+            "text": "      });",
+            "lineNumber": 176
+          },
+          {
+            "text": "      ",
+            "lineNumber": 177
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(agentId, query, '', context);",
+            "lineNumber": 178
+          },
+          {
+            "text": "      ",
+            "lineNumber": 179
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 180
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 181
+          },
+          {
+            "text": "        result: result.content,",
+            "lineNumber": 182
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        raw: result",
+            "lineNumber": 184
+          },
+          {
+            "text": "      };",
+            "lineNumber": 185
+          },
+          {
+            "text": "    }",
+            "lineNumber": 186
+          },
+          {
+            "text": "    ",
+            "lineNumber": 187
+          },
+          {
+            "text": "    // Dify Agent 类型的原有逻辑",
+            "lineNumber": 188
+          },
+          {
+            "text": "    if (!role.difyConfig) throw new Error(&#96;AI角色 ${agentId} 的Dify配置不存在&#96;);",
+            "lineNumber": 189
+          },
+          {
+            "text": "    const { connectionType, apiKey, apiUrl } = role.difyConfig;",
+            "lineNumber": 190
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 191
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl,;",
+            "lineNumber": 193
+          },
+          {
+            "text": "  }",
+            "lineNumber": 215
+          },
+          {
+            "text": "}",
+            "lineNumber": 450,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5527525544166565
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/workflow/langgraph/LangGraphEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 15
+          },
+          "endPosition": {
+            "line": 449,
+            "column": 1
+          }
+        },
+        "contents": "export class LangGraphEngine {\nprivate async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {\n\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });\n    const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };\n    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;\n    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);\n    const inputs = { ...nodeInput };\n    delete inputs.query;\n    delete inputs.input;\n    if (connectionType === 'chatflow') {\n      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify聊天调用失败');\n    } else {\n      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });\n      if ((result as any).ok || (result as any).value) {\n        const raw = (result as any).value?.raw ?? (result as any).raw;\n        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };\n      }\n      throw new Error((result as any).error?.message || 'Dify工作流调用失败');\n    }\n  }\n\n  private executeOutput(node: any, sharedContext: Record&lt;string, any&gt;): any {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 16,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 16,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 148,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 149,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class LangGraphEngine {",
+            "lineNumber": 16,
+            "isSignature": true
+          },
+          {
+            "text": "private async executeAgent(node: any, sharedContext: Record&lt;string, any&gt;): Promise&lt;any&gt; {",
+            "lineNumber": 148
+          },
+          {
+            "lineNumber": 190
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 191
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 192
+          },
+          {
+            "text": "    const gateway = new DifyGateway({ baseUrl: actualBaseUrl, workflowBaseUrl: actualBaseUrl, apiKey, timeout: 60000, maxRetries: 3 });",
+            "lineNumber": 193
+          },
+          {
+            "text": "    const nodeInput = { ...sharedContext, ...(node.data?.inputs || {}) };",
+            "lineNumber": 194
+          },
+          {
+            "text": "    let query = nodeInput.query || nodeInput.input || nodeInput.workflowInput?.query || nodeInput.question || nodeInput.text || nodeInput.content;",
+            "lineNumber": 195
+          },
+          {
+            "text": "    if (!query) query = typeof nodeInput === 'string' ? nodeInput : JSON.stringify(nodeInput);",
+            "lineNumber": 196
+          },
+          {
+            "text": "    const inputs = { ...nodeInput };",
+            "lineNumber": 197
+          },
+          {
+            "text": "    delete inputs.query;",
+            "lineNumber": 198
+          },
+          {
+            "text": "    delete inputs.input;",
+            "lineNumber": 199
+          },
+          {
+            "text": "    if (connectionType === 'chatflow') {",
+            "lineNumber": 200
+          },
+          {
+            "text": "      const result = await gateway.executeChat({ query, conversationId: '', inputs, userId: 'todify3-user' });",
+            "lineNumber": 201
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 202
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 203
+          },
+          {
+            "text": "        return { answer: raw?.answer || (result as any).value?.answer, conversation_id: raw?.conversation_id, raw };",
+            "lineNumber": 204
+          },
+          {
+            "text": "      }",
+            "lineNumber": 205
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify聊天调用失败');",
+            "lineNumber": 206
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 207
+          },
+          {
+            "text": "      const result = await gateway.executeWorkflow({ workflowId: 'workflow', inputs, userId: 'todify3-user' });",
+            "lineNumber": 208
+          },
+          {
+            "text": "      if ((result as any).ok || (result as any).value) {",
+            "lineNumber": 209
+          },
+          {
+            "text": "        const raw = (result as any).value?.raw ?? (result as any).raw;",
+            "lineNumber": 210
+          },
+          {
+            "text": "        return { result: raw?.data?.outputs?.text || raw?.data?.outputs?.answer || '', raw };",
+            "lineNumber": 211
+          },
+          {
+            "text": "      }",
+            "lineNumber": 212
+          },
+          {
+            "text": "      throw new Error((result as any).error?.message || 'Dify工作流调用失败');",
+            "lineNumber": 213
+          },
+          {
+            "text": "    }",
+            "lineNumber": 214
+          },
+          {
+            "text": "  }",
+            "lineNumber": 215
+          },
+          {
+            "lineNumber": 216
+          },
+          {
+            "text": "  private executeOutput(node: any, sharedContext: Record&lt;string, any&gt;): any {",
+            "lineNumber": 217
+          },
+          {
+            "text": "    ",
+            "lineNumber": 218
+          },
+          {
+            "text": "  }",
+            "lineNumber": 236
+          },
+          {
+            "text": "}",
+            "lineNumber": 450,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5497629642486572
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 727
+          }
+        },
+        "contents": "async (req, res) =&gt; {\nconst ;\n        const result = {\n          answer: chatData.answer || chatResult.value.answer,\n          conversation_id: chatData.conversation_id || chatResult.value.conversationId,\n          metadata: chatData.metadata || {}\n        };\n        \n        res.json(formatApiResponse(true, result, '对话成功'));\n      } else {\n        // 使用工作流模式，使用角色配置的API信息\n        const workflowResult = await gateway.executeWorkflow({\n          workflowId: 'custom-workflow',\n          inputs,\n          userId: 'ai-role-user',\n        });\n        \n        if (!workflowResult.success) {\n          return res.status(500).json(formatApiResponse(false, null, 'Dify工作流调用失败', workflowResult.error.message));\n        }\n        \n        const workflowData = workflowResult.value.raw as any;\n        const result = {\n          result: workflowData.data?.outputs?.text || workflowData.data?.outputs?.answer || workflowResult.value.outputs?.text || '',\n          conversation_id: workflowData.conversation_id,\n          workflow_run_id: workflowData.workflow_run_id || workflowResult.value.workflowRunId,\n          task_id: workflowData.task_id || workflowResult.value.taskId\n        };\n        \n        res.json(formatApiResponse(true, result, '对话成功'));\n      }\n    }\n  } catch (error) {\n    console.error('AI角色对话失败:', error);\n    \n    // 统一错误处理\n    const agentError = AgentErrorHandler.normalizeError(error, {\n      roleId: req.params.id,\n      step: 'api_chat'\n    });\n    \n    const statusCode = agentError.recoverable ? 500 : \n                      agentError.code === 'CONFIG_ERROR' ? 400 :\n                      agentError.code === 'AUTHENTICATION_ERROR' ? 401 :\n                      agentError.code === 'RATE_LIMIT_ERROR' ? 429 : 500;\n    \n    res.status(statusCode).json(formatApiResponse(\n      false,\n      null,\n      agentError.message,\n      AgentErrorHandler.formatForFrontend(agentError)\n    ));\n  }\n});\n\n/**\n * 测试AI角色连接\n * POST /api/v1/ai-roles/:id/test\n */\nrouter.post",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "text": "const ;",
+            "lineNumber": 547
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 548
+          },
+          {
+            "text": "          answer: chatData.answer || chatResult.value.answer,",
+            "lineNumber": 549
+          },
+          {
+            "text": "          conversation_id: chatData.conversation_id || chatResult.value.conversationId,",
+            "lineNumber": 550
+          },
+          {
+            "text": "          metadata: chatData.metadata || {}",
+            "lineNumber": 551
+          },
+          {
+            "text": "        };",
+            "lineNumber": 552
+          },
+          {
+            "text": "        ",
+            "lineNumber": 553
+          },
+          {
+            "text": "        res.json(formatApiResponse(true, result, '对话成功'));",
+            "lineNumber": 554
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 555
+          },
+          {
+            "text": "        // 使用工作流模式，使用角色配置的API信息",
+            "lineNumber": 556
+          },
+          {
+            "text": "        const workflowResult = await gateway.executeWorkflow({",
+            "lineNumber": 557
+          },
+          {
+            "text": "          workflowId: 'custom-workflow',",
+            "lineNumber": 558
+          },
+          {
+            "text": "          inputs,",
+            "lineNumber": 559
+          },
+          {
+            "text": "          userId: 'ai-role-user',",
+            "lineNumber": 560
+          },
+          {
+            "text": "        });",
+            "lineNumber": 561
+          },
+          {
+            "text": "        ",
+            "lineNumber": 562
+          },
+          {
+            "text": "        if (!workflowResult.success) {",
+            "lineNumber": 563
+          },
+          {
+            "text": "          return res.status(500).json(formatApiResponse(false, null, 'Dify工作流调用失败', workflowResult.error.message));",
+            "lineNumber": 564
+          },
+          {
+            "text": "        }",
+            "lineNumber": 565
+          },
+          {
+            "text": "        ",
+            "lineNumber": 566
+          },
+          {
+            "text": "        const workflowData = workflowResult.value.raw as any;",
+            "lineNumber": 567
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 568
+          },
+          {
+            "text": "          result: workflowData.data?.outputs?.text || workflowData.data?.outputs?.answer || workflowResult.value.outputs?.text || '',",
+            "lineNumber": 569
+          },
+          {
+            "text": "          conversation_id: workflowData.conversation_id,",
+            "lineNumber": 570
+          },
+          {
+            "text": "          workflow_run_id: workflowData.workflow_run_id || workflowResult.value.workflowRunId,",
+            "lineNumber": 571
+          },
+          {
+            "text": "          task_id: workflowData.task_id || workflowResult.value.taskId",
+            "lineNumber": 572
+          },
+          {
+            "text": "        };",
+            "lineNumber": 573
+          },
+          {
+            "text": "        ",
+            "lineNumber": 574
+          },
+          {
+            "text": "        res.json(formatApiResponse(true, result, '对话成功'));",
+            "lineNumber": 575
+          },
+          {
+            "text": "      }",
+            "lineNumber": 576
+          },
+          {
+            "text": "    }",
+            "lineNumber": 577
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 578
+          },
+          {
+            "text": "    console.error('AI角色对话失败:', error);",
+            "lineNumber": 579
+          },
+          {
+            "text": "    ",
+            "lineNumber": 580
+          },
+          {
+            "text": "    // 统一错误处理",
+            "lineNumber": 581
+          },
+          {
+            "text": "    const agentError = AgentErrorHandler.normalizeError(error, {",
+            "lineNumber": 582
+          },
+          {
+            "text": "      roleId: req.params.id,",
+            "lineNumber": 583
+          },
+          {
+            "text": "      step: 'api_chat'",
+            "lineNumber": 584
+          },
+          {
+            "text": "    });",
+            "lineNumber": 585
+          },
+          {
+            "text": "    ",
+            "lineNumber": 586
+          },
+          {
+            "text": "    const statusCode = agentError.recoverable ? 500 : ",
+            "lineNumber": 587
+          },
+          {
+            "text": "                      agentError.code === 'CONFIG_ERROR' ? 400 :",
+            "lineNumber": 588
+          },
+          {
+            "text": "                      agentError.code === 'AUTHENTICATION_ERROR' ? 401 :",
+            "lineNumber": 589
+          },
+          {
+            "text": "                      agentError.code === 'RATE_LIMIT_ERROR' ? 429 : 500;",
+            "lineNumber": 590
+          },
+          {
+            "text": "    ",
+            "lineNumber": 591
+          },
+          {
+            "text": "    res.status(statusCode).json(formatApiResponse(",
+            "lineNumber": 592
+          },
+          {
+            "text": "      false,",
+            "lineNumber": 593
+          },
+          {
+            "text": "      null,",
+            "lineNumber": 594
+          },
+          {
+            "text": "      agentError.message,",
+            "lineNumber": 595
+          },
+          {
+            "text": "      AgentErrorHandler.formatForFrontend(agentError)",
+            "lineNumber": 596
+          },
+          {
+            "text": "    ));",
+            "lineNumber": 597
+          },
+          {
+            "text": "  }",
+            "lineNumber": 598
+          },
+          {
+            "text": "});",
+            "lineNumber": 599
+          },
+          {
+            "lineNumber": 600
+          },
+          {
+            "text": "/**",
+            "lineNumber": 601
+          },
+          {
+            "text": " * 测试AI角色连接",
+            "lineNumber": 602
+          },
+          {
+            "text": " * POST /api/v1/ai-roles/:id/test",
+            "lineNumber": 603
+          },
+          {
+            "text": " */",
+            "lineNumber": 604
+          },
+          {
+            "text": "router.post",
+            "lineNumber": 605
+          }
+        ]
+      },
+      "score": 0.5359835624694824
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts",
+        "range": {
+          "startPosition": {
+            "line": 16
+          },
+          "endPosition": {
+            "line": 273,
+            "column": 1
+          }
+        },
+        "contents": "export class TriggerAgentUseCase {\nasync execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {\n\n\n      const effectiveOutputMappings = featureConfig.outputMappings?.length\n        ? featureConfig.outputMappings\n        : targetMappingConfig?.outputMappings || [];\n\n      const baseContent = await this.resolveBaseContent(conversation, dto);\n      const conversationQuery = baseContent || &#96;触发子Agent：${dto.featureType}&#96;;\n\n      const conversationData = this.buildConversationData(\n        conversation,\n        conversationQuery,\n        targetSources,\n        dto\n      );\n\n      const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);\n\n      // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID\n      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头\n      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');\n      \n      let workflowResult;\n      if (isRoleId) {\n        // 直接调用 AI 角色\n        logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });\n        workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);\n      } else {\n        // 通过工作流调用\n        logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });\n        workflowResult = await agentWorkflowService.executeWorkflow(\n          targetWorkflowId,\n          { input: workflowInput }\n        );\n      }\n\n      const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);\n\n      const aiContent = extractedOutput.content\n        || workflowResult.message\n        || &#96;子Agent ${dto.featureType} 已执行&#96;;\n\n      const messageOutputs = {\n        ...extractedOutput,\n,\n      };\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 18,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class TriggerAgentUseCase {",
+            "lineNumber": 17,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "      const effectiveOutputMappings = featureConfig.outputMappings?.length",
+            "lineNumber": 118
+          },
+          {
+            "text": "        ? featureConfig.outputMappings",
+            "lineNumber": 119
+          },
+          {
+            "text": "        : targetMappingConfig?.outputMappings || [];",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "      const baseContent = await this.resolveBaseContent(conversation, dto);",
+            "lineNumber": 122
+          },
+          {
+            "text": "      const conversationQuery = baseContent || &#96;触发子Agent：${dto.featureType}&#96;;",
+            "lineNumber": 123
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "text": "      const conversationData = this.buildConversationData(",
+            "lineNumber": 125
+          },
+          {
+            "text": "        conversation,",
+            "lineNumber": 126
+          },
+          {
+            "text": "        conversationQuery,",
+            "lineNumber": 127
+          },
+          {
+            "text": "        targetSources,",
+            "lineNumber": 128
+          },
+          {
+            "text": "        dto",
+            "lineNumber": 129
+          },
+          {
+            "text": "      );",
+            "lineNumber": 130
+          },
+          {
+            "lineNumber": 131
+          },
+          {
+            "text": "      const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "      // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID",
+            "lineNumber": 134
+          },
+          {
+            "text": "      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头",
+            "lineNumber": 135
+          },
+          {
+            "text": "      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');",
+            "lineNumber": 136
+          },
+          {
+            "text": "      ",
+            "lineNumber": 137
+          },
+          {
+            "text": "      let workflowResult;",
+            "lineNumber": 138
+          },
+          {
+            "text": "      if (isRoleId) {",
+            "lineNumber": 139
+          },
+          {
+            "text": "        // 直接调用 AI 角色",
+            "lineNumber": 140
+          },
+          {
+            "text": "        logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });",
+            "lineNumber": 141
+          },
+          {
+            "text": "        workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);",
+            "lineNumber": 142
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 143
+          },
+          {
+            "text": "        // 通过工作流调用",
+            "lineNumber": 144
+          },
+          {
+            "text": "        logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });",
+            "lineNumber": 145
+          },
+          {
+            "text": "        workflowResult = await agentWorkflowService.executeWorkflow(",
+            "lineNumber": 146
+          },
+          {
+            "text": "          targetWorkflowId,",
+            "lineNumber": 147
+          },
+          {
+            "text": "          { input: workflowInput }",
+            "lineNumber": 148
+          },
+          {
+            "text": "        );",
+            "lineNumber": 149
+          },
+          {
+            "text": "      }",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "      const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);",
+            "lineNumber": 152
+          },
+          {
+            "lineNumber": 153
+          },
+          {
+            "text": "      const aiContent = extractedOutput.content",
+            "lineNumber": 154
+          },
+          {
+            "text": "        || workflowResult.message",
+            "lineNumber": 155
+          },
+          {
+            "text": "        || &#96;子Agent ${dto.featureType} 已执行&#96;;",
+            "lineNumber": 156
+          },
+          {
+            "lineNumber": 157
+          },
+          {
+            "text": "      const messageOutputs = {",
+            "lineNumber": 158
+          },
+          {
+            "text": "        ...extractedOutput,",
+            "lineNumber": 159
+          },
+          {
+            "text": ",",
+            "lineNumber": 175
+          },
+          {
+            "text": "      };",
+            "lineNumber": 176
+          },
+          {
+            "text": "  }",
+            "lineNumber": 198
+          },
+          {
+            "text": "}",
+            "lineNumber": 274,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5179833769798279
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts",
+        "range": {
+          "startPosition": {
+            "line": 42
+          },
+          "endPosition": {
+            "line": 225,
+            "column": 1
+          }
+        },
+        "contents": "export class DifyGateway {\n\n\n  async executeWorkflow(input: WorkflowInput): Promise&lt;Result&lt;WorkflowOutput&gt;&gt; {\n    try {\n      const requestBody: any = {\n        inputs: input.inputs,\n        response_mode: 'blocking',\n        user: input.userId ?? 'todify-user',\n      };\n\n      // 如果提供了 conversation_id，添加到请求体中（Dify工作流API支持此参数用于多轮对话）\n      if (input.conversationId &amp;&amp; input.conversationId.trim() !== '') {\n        requestBody.conversation_id = input.conversationId;\n      }\n\n      const response = await this.retry(() =&gt;\n        this.workflowClient.post('/workflows/run', requestBody)\n      );\n\n      return success({\n        workflowRunId: response.data?.workflow_run_id,\n        taskId: response.data?.task_id,\n        status: response.data?.status,\n        outputs: response.data?.data?.outputs,\n        raw: response.data,\n      });\n    } catch (error) {\n      logger.error('Dify executeWorkflow 失败', { error, input });\n      return failure({\n        code: 'DIFY_WORKFLOW_ERROR',\n        message: '调用 Dify 工作流服务失败',\n        details: error instanceof Error ? error.message : error,\n      });\n    }\n  }\n\n  private async retry&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, retries = this.maxRetries): Promise&lt;T&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 43,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 44,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class DifyGateway {",
+            "lineNumber": 43,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "  async executeWorkflow(input: WorkflowInput): Promise&lt;Result&lt;WorkflowOutput&gt;&gt; {",
+            "lineNumber": 180
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 181
+          },
+          {
+            "text": "      const requestBody: any = {",
+            "lineNumber": 182
+          },
+          {
+            "text": "        inputs: input.inputs,",
+            "lineNumber": 183
+          },
+          {
+            "text": "        response_mode: 'blocking',",
+            "lineNumber": 184
+          },
+          {
+            "text": "        user: input.userId ?? 'todify-user',",
+            "lineNumber": 185
+          },
+          {
+            "text": "      };",
+            "lineNumber": 186
+          },
+          {
+            "lineNumber": 187
+          },
+          {
+            "text": "      // 如果提供了 conversation_id，添加到请求体中（Dify工作流API支持此参数用于多轮对话）",
+            "lineNumber": 188
+          },
+          {
+            "text": "      if (input.conversationId &amp;&amp; input.conversationId.trim() !== '') {",
+            "lineNumber": 189
+          },
+          {
+            "text": "        requestBody.conversation_id = input.conversationId;",
+            "lineNumber": 190
+          },
+          {
+            "text": "      }",
+            "lineNumber": 191
+          },
+          {
+            "lineNumber": 192
+          },
+          {
+            "text": "      const response = await this.retry(() =&gt;",
+            "lineNumber": 193
+          },
+          {
+            "text": "        this.workflowClient.post('/workflows/run', requestBody)",
+            "lineNumber": 194
+          },
+          {
+            "text": "      );",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "      return success({",
+            "lineNumber": 197
+          },
+          {
+            "text": "        workflowRunId: response.data?.workflow_run_id,",
+            "lineNumber": 198
+          },
+          {
+            "text": "        taskId: response.data?.task_id,",
+            "lineNumber": 199
+          },
+          {
+            "text": "        status: response.data?.status,",
+            "lineNumber": 200
+          },
+          {
+            "text": "        outputs: response.data?.data?.outputs,",
+            "lineNumber": 201
+          },
+          {
+            "text": "        raw: response.data,",
+            "lineNumber": 202
+          },
+          {
+            "text": "      });",
+            "lineNumber": 203
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 204
+          },
+          {
+            "text": "      logger.error('Dify executeWorkflow 失败', { error, input });",
+            "lineNumber": 205
+          },
+          {
+            "text": "      return failure({",
+            "lineNumber": 206
+          },
+          {
+            "text": "        code: 'DIFY_WORKFLOW_ERROR',",
+            "lineNumber": 207
+          },
+          {
+            "text": "        message: '调用 Dify 工作流服务失败',",
+            "lineNumber": 208
+          },
+          {
+            "text": "        details: error instanceof Error ? error.message : error,",
+            "lineNumber": 209
+          },
+          {
+            "text": "      });",
+            "lineNumber": 210
+          },
+          {
+            "text": "    }",
+            "lineNumber": 211
+          },
+          {
+            "text": "  }",
+            "lineNumber": 212
+          },
+          {
+            "lineNumber": 213
+          },
+          {
+            "text": "  private async retry&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, retries = this.maxRetries): Promise&lt;T&gt; {",
+            "lineNumber": 214
+          },
+          {
+            "text": "    ",
+            "lineNumber": 215
+          },
+          {
+            "text": "  }",
+            "lineNumber": 225
+          },
+          {
+            "text": "}",
+            "lineNumber": 226,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.516105592250824
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/shared/infrastructure/integrations/dify/DifyGateway.ts",
+        "range": {
+          "startPosition": {
+            "line": 42
+          },
+          "endPosition": {
+            "line": 225,
+            "column": 1
+          }
+        },
+        "contents": "export class DifyGateway {\n\n\n  async executeChat(input: ChatInput): Promise&lt;Result&lt;ChatOutput&gt;&gt; {\n    try {\n      const response = await this.retry(() =&gt;\n        this.chatClient.post('/chat-messages', {\n          query: input.query,\n          conversation_id: input.conversationId,\n          inputs: input.inputs ?? {},\n          response_mode: 'blocking',\n          user: input.userId ?? 'todify-user',\n          files: [],\n        })\n      );\n\n      return success({\n        conversationId: response.data?.conversation_id,\n        messageId: response.data?.message_id,\n        answer: response.data?.answer,\n        raw: response.data,\n      });\n    } catch (error) {\n      const axiosError = error as any;\n      const errorDetails = {\n        message: axiosError.message || (error instanceof Error ? error.message : String(error)),\n        code: axiosError.code,\n        status: axiosError.response?.status,\n        statusText: axiosError.response?.statusText,\n        responseData: axiosError.response?.data,\n        requestUrl: axiosError.config?.url,\n        requestBaseURL: axiosError.config?.baseURL,\n        fullUrl: axiosError.config?.baseURL ? &#96;${axiosError.config.baseURL}${axiosError.config.url}&#96; : axiosError.config?.url,\n        errno: axiosError.errno,\n        syscall: axiosError.syscall,\n        address: axiosError.address,\n        port: axiosError.port,\n      };\n      logger.error('Dify executeChat 失败', { error: errorDetails, input });\n      console.error('Dify executeChat 详细错误:', JSON.stringify(errorDetails, null, 2));\n      \n      // 构建详细的错误消息\n      let errorMessage = errorDetails.message;\n      if (errorDetails.code) {\n        errorMessage += &#96; (${errorDetails.code})&#96;;\n      }\n      if (errorDetails.status) {\n        errorMessage += &#96; [HTTP ${errorDetails.status}]&#96;;\n      }\n      if (errorDetails.responseData) {\n        errorMessage += &#96;: ${JSON.stringify(errorDetails.responseData)}&#96;;\n      }\n      \n      return failure({\n        code: 'DIFY_CHAT_ERROR',\n\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 43,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 43,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 44,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class DifyGateway {",
+            "lineNumber": 43,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "  async executeChat(input: ChatInput): Promise&lt;Result&lt;ChatOutput&gt;&gt; {",
+            "lineNumber": 122
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 123
+          },
+          {
+            "text": "      const response = await this.retry(() =&gt;",
+            "lineNumber": 124
+          },
+          {
+            "text": "        this.chatClient.post('/chat-messages', {",
+            "lineNumber": 125
+          },
+          {
+            "text": "          query: input.query,",
+            "lineNumber": 126
+          },
+          {
+            "text": "          conversation_id: input.conversationId,",
+            "lineNumber": 127
+          },
+          {
+            "text": "          inputs: input.inputs ?? {},",
+            "lineNumber": 128
+          },
+          {
+            "text": "          response_mode: 'blocking',",
+            "lineNumber": 129
+          },
+          {
+            "text": "          user: input.userId ?? 'todify-user',",
+            "lineNumber": 130
+          },
+          {
+            "text": "          files: [],",
+            "lineNumber": 131
+          },
+          {
+            "text": "        })",
+            "lineNumber": 132
+          },
+          {
+            "text": "      );",
+            "lineNumber": 133
+          },
+          {
+            "lineNumber": 134
+          },
+          {
+            "text": "      return success({",
+            "lineNumber": 135
+          },
+          {
+            "text": "        conversationId: response.data?.conversation_id,",
+            "lineNumber": 136
+          },
+          {
+            "text": "        messageId: response.data?.message_id,",
+            "lineNumber": 137
+          },
+          {
+            "text": "        answer: response.data?.answer,",
+            "lineNumber": 138
+          },
+          {
+            "text": "        raw: response.data,",
+            "lineNumber": 139
+          },
+          {
+            "text": "      });",
+            "lineNumber": 140
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 141
+          },
+          {
+            "text": "      const axiosError = error as any;",
+            "lineNumber": 142
+          },
+          {
+            "text": "      const errorDetails = {",
+            "lineNumber": 143
+          },
+          {
+            "text": "        message: axiosError.message || (error instanceof Error ? error.message : String(error)),",
+            "lineNumber": 144
+          },
+          {
+            "text": "        code: axiosError.code,",
+            "lineNumber": 145
+          },
+          {
+            "text": "        status: axiosError.response?.status,",
+            "lineNumber": 146
+          },
+          {
+            "text": "        statusText: axiosError.response?.statusText,",
+            "lineNumber": 147
+          },
+          {
+            "text": "        responseData: axiosError.response?.data,",
+            "lineNumber": 148
+          },
+          {
+            "text": "        requestUrl: axiosError.config?.url,",
+            "lineNumber": 149
+          },
+          {
+            "text": "        requestBaseURL: axiosError.config?.baseURL,",
+            "lineNumber": 150
+          },
+          {
+            "text": "        fullUrl: axiosError.config?.baseURL ? &#96;${axiosError.config.baseURL}${axiosError.config.url}&#96; : axiosError.config?.url,",
+            "lineNumber": 151
+          },
+          {
+            "text": "        errno: axiosError.errno,",
+            "lineNumber": 152
+          },
+          {
+            "text": "        syscall: axiosError.syscall,",
+            "lineNumber": 153
+          },
+          {
+            "text": "        address: axiosError.address,",
+            "lineNumber": 154
+          },
+          {
+            "text": "        port: axiosError.port,",
+            "lineNumber": 155
+          },
+          {
+            "text": "      };",
+            "lineNumber": 156
+          },
+          {
+            "text": "      logger.error('Dify executeChat 失败', { error: errorDetails, input });",
+            "lineNumber": 157
+          },
+          {
+            "text": "      console.error('Dify executeChat 详细错误:', JSON.stringify(errorDetails, null, 2));",
+            "lineNumber": 158
+          },
+          {
+            "text": "      ",
+            "lineNumber": 159
+          },
+          {
+            "text": "      // 构建详细的错误消息",
+            "lineNumber": 160
+          },
+          {
+            "text": "      let errorMessage = errorDetails.message;",
+            "lineNumber": 161
+          },
+          {
+            "text": "      if (errorDetails.code) {",
+            "lineNumber": 162
+          },
+          {
+            "text": "        errorMessage += &#96; (${errorDetails.code})&#96;;",
+            "lineNumber": 163
+          },
+          {
+            "text": "      }",
+            "lineNumber": 164
+          },
+          {
+            "text": "      if (errorDetails.status) {",
+            "lineNumber": 165
+          },
+          {
+            "text": "        errorMessage += &#96; [HTTP ${errorDetails.status}]&#96;;",
+            "lineNumber": 166
+          },
+          {
+            "text": "      }",
+            "lineNumber": 167
+          },
+          {
+            "text": "      if (errorDetails.responseData) {",
+            "lineNumber": 168
+          },
+          {
+            "text": "        errorMessage += &#96;: ${JSON.stringify(errorDetails.responseData)}&#96;;",
+            "lineNumber": 169
+          },
+          {
+            "text": "      }",
+            "lineNumber": 170
+          },
+          {
+            "text": "      ",
+            "lineNumber": 171
+          },
+          {
+            "text": "      return failure({",
+            "lineNumber": 172
+          },
+          {
+            "text": "        code: 'DIFY_CHAT_ERROR',",
+            "lineNumber": 173
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "  }",
+            "lineNumber": 178
+          },
+          {
+            "text": "}",
+            "lineNumber": 226,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.5041304230690002
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 598,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\nconst gateway = new \n,\n        maxRetries: 3,\n      });\n      \n      if (connectionType === 'chatflow') {\n        // 使用聊天流模式，使用角色配置的API信息\n        // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理\n        const inputsWithFiles = { ...inputs };\n        if (fileUrls.length &gt; 0) {\n          inputsWithFiles.files = fileUrls;\n        }\n        \n        console.log('准备调用 Dify chatflow，参数:', { \n          query, \n          conversationId, \n          inputsKeys: Object.keys(inputsWithFiles),\n          files: fileUrls.length,\n          fileUrls,\n          userId: 'ai-role-user' \n        });\n        const chatResult = await gateway.executeChat({\n          query: query || '',\n          conversationId,\n          inputs: inputsWithFiles,\n          userId: 'ai-role-user',\n        });\n        \n        console.log('Dify chatflow 调用结果:', { \n          success: chatResult.success, \n          error: chatResult.success ? null : chatResult.error \n        });\n        \n        if (!chatResult.success) {\n          // 提取错误信息\n          const errorObj = chatResult.error || {};\n          const errorDetails = typeof errorObj.details === 'string' ? errorObj.details \n            : typeof errorObj.message === 'string' ? errorObj.message \n            : JSON.stringify(errorObj);\n          const errorCode = errorObj.code || 'API_ERROR';\n          \n          console.error('Dify聊天流调用失败，完整错误对象:', JSON.stringify(chatResult, null, 2));\n          \n          // 返回详细错误信息给前端\n          return res.status(500).json({\n            success: false,\n            error: {\n              code: errorCode,\n              message: 'Dify聊天流调用失败',\n              details: errorDetails,\n              fullError: errorObj // 临时添加完整错误对象用于调试\n            }\n          });\n        }\n        \n        const chatData = chatResult.value.raw as any;\n        const result = {\n          answer: chatData.answer || chatResult.value.answer\n        };\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "text": "const gateway = new ",
+            "lineNumber": 489
+          },
+          {
+            "text": ",",
+            "lineNumber": 493
+          },
+          {
+            "text": "        maxRetries: 3,",
+            "lineNumber": 494
+          },
+          {
+            "text": "      });",
+            "lineNumber": 495
+          },
+          {
+            "text": "      ",
+            "lineNumber": 496
+          },
+          {
+            "text": "      if (connectionType === 'chatflow') {",
+            "lineNumber": 497
+          },
+          {
+            "text": "        // 使用聊天流模式，使用角色配置的API信息",
+            "lineNumber": 498
+          },
+          {
+            "text": "        // 将文件URL添加到inputs.files中，这样DifyGateway会自动处理",
+            "lineNumber": 499
+          },
+          {
+            "text": "        const inputsWithFiles = { ...inputs };",
+            "lineNumber": 500
+          },
+          {
+            "text": "        if (fileUrls.length &gt; 0) {",
+            "lineNumber": 501
+          },
+          {
+            "text": "          inputsWithFiles.files = fileUrls;",
+            "lineNumber": 502
+          },
+          {
+            "text": "        }",
+            "lineNumber": 503
+          },
+          {
+            "text": "        ",
+            "lineNumber": 504
+          },
+          {
+            "text": "        console.log('准备调用 Dify chatflow，参数:', { ",
+            "lineNumber": 505
+          },
+          {
+            "text": "          query, ",
+            "lineNumber": 506
+          },
+          {
+            "text": "          conversationId, ",
+            "lineNumber": 507
+          },
+          {
+            "text": "          inputsKeys: Object.keys(inputsWithFiles),",
+            "lineNumber": 508
+          },
+          {
+            "text": "          files: fileUrls.length,",
+            "lineNumber": 509
+          },
+          {
+            "text": "          fileUrls,",
+            "lineNumber": 510
+          },
+          {
+            "text": "          userId: 'ai-role-user' ",
+            "lineNumber": 511
+          },
+          {
+            "text": "        });",
+            "lineNumber": 512
+          },
+          {
+            "text": "        const chatResult = await gateway.executeChat({",
+            "lineNumber": 513
+          },
+          {
+            "text": "          query: query || '',",
+            "lineNumber": 514
+          },
+          {
+            "text": "          conversationId,",
+            "lineNumber": 515
+          },
+          {
+            "text": "          inputs: inputsWithFiles,",
+            "lineNumber": 516
+          },
+          {
+            "text": "          userId: 'ai-role-user',",
+            "lineNumber": 517
+          },
+          {
+            "text": "        });",
+            "lineNumber": 518
+          },
+          {
+            "text": "        ",
+            "lineNumber": 519
+          },
+          {
+            "text": "        console.log('Dify chatflow 调用结果:', { ",
+            "lineNumber": 520
+          },
+          {
+            "text": "          success: chatResult.success, ",
+            "lineNumber": 521
+          },
+          {
+            "text": "          error: chatResult.success ? null : chatResult.error ",
+            "lineNumber": 522
+          },
+          {
+            "text": "        });",
+            "lineNumber": 523
+          },
+          {
+            "text": "        ",
+            "lineNumber": 524
+          },
+          {
+            "text": "        if (!chatResult.success) {",
+            "lineNumber": 525
+          },
+          {
+            "text": "          // 提取错误信息",
+            "lineNumber": 526
+          },
+          {
+            "text": "          const errorObj = chatResult.error || {};",
+            "lineNumber": 527
+          },
+          {
+            "text": "          const errorDetails = typeof errorObj.details === 'string' ? errorObj.details ",
+            "lineNumber": 528
+          },
+          {
+            "text": "            : typeof errorObj.message === 'string' ? errorObj.message ",
+            "lineNumber": 529
+          },
+          {
+            "text": "            : JSON.stringify(errorObj);",
+            "lineNumber": 530
+          },
+          {
+            "text": "          const errorCode = errorObj.code || 'API_ERROR';",
+            "lineNumber": 531
+          },
+          {
+            "text": "          ",
+            "lineNumber": 532
+          },
+          {
+            "text": "          console.error('Dify聊天流调用失败，完整错误对象:', JSON.stringify(chatResult, null, 2));",
+            "lineNumber": 533
+          },
+          {
+            "text": "          ",
+            "lineNumber": 534
+          },
+          {
+            "text": "          // 返回详细错误信息给前端",
+            "lineNumber": 535
+          },
+          {
+            "text": "          return res.status(500).json({",
+            "lineNumber": 536
+          },
+          {
+            "text": "            success: false,",
+            "lineNumber": 537
+          },
+          {
+            "text": "            error: {",
+            "lineNumber": 538
+          },
+          {
+            "text": "              code: errorCode,",
+            "lineNumber": 539
+          },
+          {
+            "text": "              message: 'Dify聊天流调用失败',",
+            "lineNumber": 540
+          },
+          {
+            "text": "              details: errorDetails,",
+            "lineNumber": 541
+          },
+          {
+            "text": "              fullError: errorObj // 临时添加完整错误对象用于调试",
+            "lineNumber": 542
+          },
+          {
+            "text": "            }",
+            "lineNumber": 543
+          },
+          {
+            "text": "          });",
+            "lineNumber": 544
+          },
+          {
+            "text": "        }",
+            "lineNumber": 545
+          },
+          {
+            "text": "        ",
+            "lineNumber": 546
+          },
+          {
+            "text": "        const chatData = chatResult.value.raw as any;",
+            "lineNumber": 547
+          },
+          {
+            "text": "        const result = {",
+            "lineNumber": 548
+          },
+          {
+            "text": "          answer: chatData.answer || chatResult.value.answer",
+            "lineNumber": 549
+          },
+          {
+            "text": "        };",
+            "lineNumber": 552
+          },
+          {
+            "text": "}",
+            "lineNumber": 599
+          }
+        ]
+      },
+      "score": 0.49968409538269043
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AGENT_ARCHITECTURE_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 187
+          },
+          "endPosition": {
+            "line": 279
+          }
+        },
+        "contents": "用户输入\n  ↓\n前端页面组件 (AIChatPage/AIRoleChatPage)\n  ↓\n前端服务层 (aiRoleService.chatWithRole)\n  ↓\n后端API路由 (POST /api/ai-roles/:id/chat)\n  ↓\nAgentOrchestrator.executeAgent()\n  ↓\n├─ PromptManager.renderPrompt() [渲染Prompt]\n├─ ContextManager.getContextMessages() [获取上下文]\n├─ 构建消息列表 [system + history + user]\n├─ 准备工具定义 [转换为Function格式]\n└─ executeWithTools() [LLM调用循环]\n    ↓\n    ├─ LLM Provider.chat() [调用LLM]\n    ├─ 检查工具调用\n    ├─ ToolExecutor.executeTool() [执行工具]\n    │   ├─ 参数验证\n    │   ├─ 根据类型执行\n    │   └─ 返回结果\n    ├─ 将工具结果加入消息历史\n    └─ 继续循环（最多10轮）\n  ↓\nChatMessageService.saveMessages() [保存消息历史]\n  ↓\n返回结果给前端\n&#96;&#96;&#96;\n\n### 3.2 Dify Agent执行链路\n\n&#96;&#96;&#96;\n用户输入\n  ↓\n前端页面组件\n  ↓\n前端服务层 (workflowAPI/aiRoleService)\n  ↓\n后端API路由\n  ↓\nDifyClient (aiSearch/techPackage/techStrategy等)\n  ↓\nDifyGateway.executeChat() / executeWorkflow()\n  ↓\nDify平台API\n  ↓\n返回响应\n  ↓\n格式转换（如需要）\n  ↓\n返回结果给前端\n&#96;&#96;&#96;\n\n### 3.3 工作流执行链路\n\n&#96;&#96;&#96;\n工作流触发\n  ↓\nLangGraphEngine.execute()\n  ↓\n拓扑排序节点\n  ↓\n按层级执行节点\n  ↓\n├─ executeNode() [根据节点类型执行]\n│   ├─ input: 提取输入参数\n│   ├─ agent: 调用AI角色\n│   │   ├─ Direct Agent: 通过AgentOrchestrator执行\n│   │   └─ Dify Agent: 通过DifyGateway执行\n│   ├─ condition: 条件判断\n│   ├─ assign: 变量赋值\n│   ├─ transform: 数据转换\n│   ├─ merge: 数据合并\n│   ├─ memory: 文本记忆\n│   └─ output: 提取输出\n├─ 评估入边条件（gating）\n├─ 更新sharedContext\n└─ 记录节点结果\n  ↓\n提取最终文本\n  ↓\n更新执行记录\n  ↓\n返回结果\n&#96;&#96;&#96;\n\n### 3.4 工具调用链路（嵌套）\n\n&#96;&#96;&#96;\nLLM响应包含工具调用\n  ↓",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "用户输入",
+            "lineNumber": 188
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 189
+          },
+          {
+            "text": "前端页面组件 (AIChatPage/AIRoleChatPage)",
+            "lineNumber": 190
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 191
+          },
+          {
+            "text": "前端服务层 (aiRoleService.chatWithRole)",
+            "lineNumber": 192
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 193
+          },
+          {
+            "text": "后端API路由 (POST /api/ai-roles/:id/chat)",
+            "lineNumber": 194
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 195
+          },
+          {
+            "text": "AgentOrchestrator.executeAgent()",
+            "lineNumber": 196
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 197
+          },
+          {
+            "text": "├─ PromptManager.renderPrompt() [渲染Prompt]",
+            "lineNumber": 198
+          },
+          {
+            "text": "├─ ContextManager.getContextMessages() [获取上下文]",
+            "lineNumber": 199
+          },
+          {
+            "text": "├─ 构建消息列表 [system + history + user]",
+            "lineNumber": 200
+          },
+          {
+            "text": "├─ 准备工具定义 [转换为Function格式]",
+            "lineNumber": 201
+          },
+          {
+            "text": "└─ executeWithTools() [LLM调用循环]",
+            "lineNumber": 202
+          },
+          {
+            "text": "    ↓",
+            "lineNumber": 203
+          },
+          {
+            "text": "    ├─ LLM Provider.chat() [调用LLM]",
+            "lineNumber": 204
+          },
+          {
+            "text": "    ├─ 检查工具调用",
+            "lineNumber": 205
+          },
+          {
+            "text": "    ├─ ToolExecutor.executeTool() [执行工具]",
+            "lineNumber": 206
+          },
+          {
+            "text": "    │   ├─ 参数验证",
+            "lineNumber": 207
+          },
+          {
+            "text": "    │   ├─ 根据类型执行",
+            "lineNumber": 208
+          },
+          {
+            "text": "    │   └─ 返回结果",
+            "lineNumber": 209
+          },
+          {
+            "text": "    ├─ 将工具结果加入消息历史",
+            "lineNumber": 210
+          },
+          {
+            "text": "    └─ 继续循环（最多10轮）",
+            "lineNumber": 211
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 212
+          },
+          {
+            "text": "ChatMessageService.saveMessages() [保存消息历史]",
+            "lineNumber": 213
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 214
+          },
+          {
+            "text": "返回结果给前端",
+            "lineNumber": 215
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 216
+          },
+          {
+            "lineNumber": 217
+          },
+          {
+            "text": "### 3.2 Dify Agent执行链路",
+            "lineNumber": 218
+          },
+          {
+            "lineNumber": 219
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 220
+          },
+          {
+            "text": "用户输入",
+            "lineNumber": 221
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 222
+          },
+          {
+            "text": "前端页面组件",
+            "lineNumber": 223
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 224
+          },
+          {
+            "text": "前端服务层 (workflowAPI/aiRoleService)",
+            "lineNumber": 225
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 226
+          },
+          {
+            "text": "后端API路由",
+            "lineNumber": 227
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 228
+          },
+          {
+            "text": "DifyClient (aiSearch/techPackage/techStrategy等)",
+            "lineNumber": 229
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 230
+          },
+          {
+            "text": "DifyGateway.executeChat() / executeWorkflow()",
+            "lineNumber": 231
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 232
+          },
+          {
+            "text": "Dify平台API",
+            "lineNumber": 233
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 234
+          },
+          {
+            "text": "返回响应",
+            "lineNumber": 235
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 236
+          },
+          {
+            "text": "格式转换（如需要）",
+            "lineNumber": 237
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 238
+          },
+          {
+            "text": "返回结果给前端",
+            "lineNumber": 239
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 240
+          },
+          {
+            "lineNumber": 241
+          },
+          {
+            "text": "### 3.3 工作流执行链路",
+            "lineNumber": 242
+          },
+          {
+            "lineNumber": 243
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 244
+          },
+          {
+            "text": "工作流触发",
+            "lineNumber": 245
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 246
+          },
+          {
+            "text": "LangGraphEngine.execute()",
+            "lineNumber": 247
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 248
+          },
+          {
+            "text": "拓扑排序节点",
+            "lineNumber": 249
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 250
+          },
+          {
+            "text": "按层级执行节点",
+            "lineNumber": 251
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 252
+          },
+          {
+            "text": "├─ executeNode() [根据节点类型执行]",
+            "lineNumber": 253
+          },
+          {
+            "text": "│   ├─ input: 提取输入参数",
+            "lineNumber": 254
+          },
+          {
+            "text": "│   ├─ agent: 调用AI角色",
+            "lineNumber": 255
+          },
+          {
+            "text": "│   │   ├─ Direct Agent: 通过AgentOrchestrator执行",
+            "lineNumber": 256
+          },
+          {
+            "text": "│   │   └─ Dify Agent: 通过DifyGateway执行",
+            "lineNumber": 257
+          },
+          {
+            "text": "│   ├─ condition: 条件判断",
+            "lineNumber": 258
+          },
+          {
+            "text": "│   ├─ assign: 变量赋值",
+            "lineNumber": 259
+          },
+          {
+            "text": "│   ├─ transform: 数据转换",
+            "lineNumber": 260
+          },
+          {
+            "text": "│   ├─ merge: 数据合并",
+            "lineNumber": 261
+          },
+          {
+            "text": "│   ├─ memory: 文本记忆",
+            "lineNumber": 262
+          },
+          {
+            "text": "│   └─ output: 提取输出",
+            "lineNumber": 263
+          },
+          {
+            "text": "├─ 评估入边条件（gating）",
+            "lineNumber": 264
+          },
+          {
+            "text": "├─ 更新sharedContext",
+            "lineNumber": 265
+          },
+          {
+            "text": "└─ 记录节点结果",
+            "lineNumber": 266
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 267
+          },
+          {
+            "text": "提取最终文本",
+            "lineNumber": 268
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 269
+          },
+          {
+            "text": "更新执行记录",
+            "lineNumber": 270
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 271
+          },
+          {
+            "text": "返回结果",
+            "lineNumber": 272
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 273
+          },
+          {
+            "lineNumber": 274
+          },
+          {
+            "text": "### 3.4 工具调用链路（嵌套）",
+            "lineNumber": 275
+          },
+          {
+            "lineNumber": 276
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 277
+          },
+          {
+            "text": "LLM响应包含工具调用",
+            "lineNumber": 278
+          },
+          {
+            "text": "  ↓",
+            "lineNumber": 279
+          }
+        ]
+      },
+      "score": 0.49414265155792236
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\n\n\n  /**\n   * 执行 Agent（核心方法）\n   * @param roleId 角色ID\n   * @param query 用户查询\n   * @param conversationId 对话ID（可选，如果不存在会生成新的）\n   * @param context 上下文数据（用于变量替换）\n   * @returns 执行结果\n   */\n  async executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\n    // 生成执行ID（用于追踪）\n    const executionId = context.executionId || &#96;exec-${Date.now()}-${uuidv4()}&#96;;\n    this.currentExecutionId = executionId;\n    this.currentAgentId = roleId;\n\n    // Mock模式检查\n    if (process.env.AI_MOCK_MODE === 'true') {\n      const mockResult = await this.getMockResponse(roleId, query, context);\n      await this.logStep(executionId, 'mock_response', {\n        type: 'mock',\n        input: { query, context },\n        output: { content: mockResult.content },\n        duration: 0,\n        status: 'success'\n      });\n      return mockResult;\n    }\n\n    const startTime = Date.now();\n    const MAX_EXECUTION_TIME = 360000; // 6分钟总体超时（留出缓冲给前端7分钟超时）\n    \n    // 检查超时的辅助函数\n    const checkTimeout = () =&gt; {\n      const elapsed = Date.now() - startTime;\n      if (elapsed &gt; MAX_EXECUTION_TIME) {\n        throw new Error(&#96;Agent执行超时：已执行 ${Math.round(elapsed / 1000)} 秒，超过最大执行时间 ${MAX_EXECUTION_TIME / 1000} 秒&#96;);\n      }\n    };\n    \n    try {\n      // 1. 获取 Agent 配置\n      checkTimeout();\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 44
+          },
+          {
+            "text": "   * 执行 Agent（核心方法）",
+            "lineNumber": 45
+          },
+          {
+            "text": "   * @param roleId 角色ID",
+            "lineNumber": 46
+          },
+          {
+            "text": "   * @param query 用户查询",
+            "lineNumber": 47
+          },
+          {
+            "text": "   * @param conversationId 对话ID（可选，如果不存在会生成新的）",
+            "lineNumber": 48
+          },
+          {
+            "text": "   * @param context 上下文数据（用于变量替换）",
+            "lineNumber": 49
+          },
+          {
+            "text": "   * @returns 执行结果",
+            "lineNumber": 50
+          },
+          {
+            "text": "   */",
+            "lineNumber": 51
+          },
+          {
+            "text": "  async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "text": "    // 生成执行ID（用于追踪）",
+            "lineNumber": 58
+          },
+          {
+            "text": "    const executionId = context.executionId || &#96;exec-${Date.now()}-${uuidv4()}&#96;;",
+            "lineNumber": 59
+          },
+          {
+            "text": "    this.currentExecutionId = executionId;",
+            "lineNumber": 60
+          },
+          {
+            "text": "    this.currentAgentId = roleId;",
+            "lineNumber": 61
+          },
+          {
+            "lineNumber": 62
+          },
+          {
+            "text": "    // Mock模式检查",
+            "lineNumber": 63
+          },
+          {
+            "text": "    if (process.env.AI_MOCK_MODE === 'true') {",
+            "lineNumber": 64
+          },
+          {
+            "text": "      const mockResult = await this.getMockResponse(roleId, query, context);",
+            "lineNumber": 65
+          },
+          {
+            "text": "      await this.logStep(executionId, 'mock_response', {",
+            "lineNumber": 66
+          },
+          {
+            "text": "        type: 'mock',",
+            "lineNumber": 67
+          },
+          {
+            "text": "        input: { query, context },",
+            "lineNumber": 68
+          },
+          {
+            "text": "        output: { content: mockResult.content },",
+            "lineNumber": 69
+          },
+          {
+            "text": "        duration: 0,",
+            "lineNumber": 70
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 71
+          },
+          {
+            "text": "      });",
+            "lineNumber": 72
+          },
+          {
+            "text": "      return mockResult;",
+            "lineNumber": 73
+          },
+          {
+            "text": "    }",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "    const startTime = Date.now();",
+            "lineNumber": 76
+          },
+          {
+            "text": "    const MAX_EXECUTION_TIME = 360000; // 6分钟总体超时（留出缓冲给前端7分钟超时）",
+            "lineNumber": 77
+          },
+          {
+            "text": "    ",
+            "lineNumber": 78
+          },
+          {
+            "text": "    // 检查超时的辅助函数",
+            "lineNumber": 79
+          },
+          {
+            "text": "    const checkTimeout = () =&gt; {",
+            "lineNumber": 80
+          },
+          {
+            "text": "      const elapsed = Date.now() - startTime;",
+            "lineNumber": 81
+          },
+          {
+            "text": "      if (elapsed &gt; MAX_EXECUTION_TIME) {",
+            "lineNumber": 82
+          },
+          {
+            "text": "        throw new Error(&#96;Agent执行超时：已执行 ${Math.round(elapsed / 1000)} 秒，超过最大执行时间 ${MAX_EXECUTION_TIME / 1000} 秒&#96;);",
+            "lineNumber": 83
+          },
+          {
+            "text": "      }",
+            "lineNumber": 84
+          },
+          {
+            "text": "    };",
+            "lineNumber": 85
+          },
+          {
+            "text": "    ",
+            "lineNumber": 86
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 87
+          },
+          {
+            "text": "      // 1. 获取 Agent 配置",
+            "lineNumber": 88
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 89
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.49324536323547363
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AGENT_ARCHITECTURE_ANALYSIS.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 61
+          }
+        },
+        "contents": "# Agent架构与信息处理链路分析\n\n## 一、整体架构概览\n\n项目采用**混合式双引擎架构**，支持两种Agent执行模式：\n\n### 1. Direct Agent（内部引擎）\n- **核心组件**: &#96;AgentOrchestrator&#96;\n- **特点**: 直接调用LLM，支持Function Calling，完全自主控制\n- **适用场景**: 需要精细控制、工具调用、多轮对话的场景\n\n### 2. Dify Agent（外部引擎）\n- **核心组件**: &#96;DifyClient&#96; + &#96;DifyGateway&#96;\n- **特点**: 依赖Dify平台，支持复杂业务流程\n- **适用场景**: 预定义的复杂业务流程（技术策略、技术通稿等）\n\n### 3. 工作流引擎\n- **核心组件**: &#96;LangGraphEngine&#96;\n- **特点**: 基于拓扑排序的DAG执行器\n- **适用场景**: 多节点编排、条件分支、数据转换\n\n---\n\n## 二、核心组件架构\n\n### 2.1 AgentOrchestrator（Agent编排器）\n\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n\n**职责**:\n- 执行Direct Agent类型的AI角色\n- 管理完整的Agent生命周期\n- 协调Prompt、Context、Tool的执行\n\n**核心方法**:\n&#96;&#96;&#96;typescript\nasync executeAgent(\n  roleId: string,\n  query: string,\n  conversationId: string = '',\n  context: Record&lt;string, any&gt; = {}\n): Promise&lt;AgentExecutionResult&gt;\n&#96;&#96;&#96;\n\n**执行流程**:\n1. 获取Agent配置（从数据库加载AI角色配置）\n2. 生成/使用conversationId（支持多轮对话）\n3. 渲染System Prompt（变量替换）\n4. 获取上下文消息（根据策略加载历史对话）\n5. 构建完整消息列表（system + history + user）\n6. 准备工具定义（转换为OpenAI Function格式）\n7. 调用LLM（支持多轮工具调用循环）\n8. 保存消息历史（持久化对话记录）\n9. 返回执行结果\n\n**关键特性**:\n- **超时控制**: 6分钟总体超时，每个工具60秒超时\n- **工具调用循环**: 最多10轮迭代，防止无限循环\n- **上下文策略**: 支持窗口、摘要、混合三种策略\n- **Mock模式**: 支持&#96;AI_MOCK_MODE=true&#96;环境变量，开发测试时节省成本\n- **执行追踪**: 完整的执行步骤记录和性能指标追踪",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# Agent架构与信息处理链路分析",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "## 一、整体架构概览",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "项目采用**混合式双引擎架构**，支持两种Agent执行模式：",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "### 1. Direct Agent（内部引擎）",
+            "lineNumber": 7
+          },
+          {
+            "text": "- **核心组件**: &#96;AgentOrchestrator&#96;",
+            "lineNumber": 8
+          },
+          {
+            "text": "- **特点**: 直接调用LLM，支持Function Calling，完全自主控制",
+            "lineNumber": 9
+          },
+          {
+            "text": "- **适用场景**: 需要精细控制、工具调用、多轮对话的场景",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "### 2. Dify Agent（外部引擎）",
+            "lineNumber": 12
+          },
+          {
+            "text": "- **核心组件**: &#96;DifyClient&#96; + &#96;DifyGateway&#96;",
+            "lineNumber": 13
+          },
+          {
+            "text": "- **特点**: 依赖Dify平台，支持复杂业务流程",
+            "lineNumber": 14
+          },
+          {
+            "text": "- **适用场景**: 预定义的复杂业务流程（技术策略、技术通稿等）",
+            "lineNumber": 15
+          },
+          {
+            "lineNumber": 16
+          },
+          {
+            "text": "### 3. 工作流引擎",
+            "lineNumber": 17
+          },
+          {
+            "text": "- **核心组件**: &#96;LangGraphEngine&#96;",
+            "lineNumber": 18
+          },
+          {
+            "text": "- **特点**: 基于拓扑排序的DAG执行器",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **适用场景**: 多节点编排、条件分支、数据转换",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 21
+          },
+          {
+            "text": "---",
+            "lineNumber": 22
+          },
+          {
+            "lineNumber": 23
+          },
+          {
+            "text": "## 二、核心组件架构",
+            "lineNumber": 24
+          },
+          {
+            "lineNumber": 25
+          },
+          {
+            "text": "### 2.1 AgentOrchestrator（Agent编排器）",
+            "lineNumber": 26
+          },
+          {
+            "lineNumber": 27
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 28
+          },
+          {
+            "lineNumber": 29
+          },
+          {
+            "text": "**职责**:",
+            "lineNumber": 30
+          },
+          {
+            "text": "- 执行Direct Agent类型的AI角色",
+            "lineNumber": 31
+          },
+          {
+            "text": "- 管理完整的Agent生命周期",
+            "lineNumber": 32
+          },
+          {
+            "text": "- 协调Prompt、Context、Tool的执行",
+            "lineNumber": 33
+          },
+          {
+            "lineNumber": 34
+          },
+          {
+            "text": "**核心方法**:",
+            "lineNumber": 35
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 36
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 37
+          },
+          {
+            "text": "  roleId: string,",
+            "lineNumber": 38
+          },
+          {
+            "text": "  query: string,",
+            "lineNumber": 39
+          },
+          {
+            "text": "  conversationId: string = '',",
+            "lineNumber": 40
+          },
+          {
+            "text": "  context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 41
+          },
+          {
+            "text": "): Promise&lt;AgentExecutionResult&gt;",
+            "lineNumber": 42
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 43
+          },
+          {
+            "lineNumber": 44
+          },
+          {
+            "text": "**执行流程**:",
+            "lineNumber": 45
+          },
+          {
+            "text": "1. 获取Agent配置（从数据库加载AI角色配置）",
+            "lineNumber": 46
+          },
+          {
+            "text": "2. 生成/使用conversationId（支持多轮对话）",
+            "lineNumber": 47
+          },
+          {
+            "text": "3. 渲染System Prompt（变量替换）",
+            "lineNumber": 48
+          },
+          {
+            "text": "4. 获取上下文消息（根据策略加载历史对话）",
+            "lineNumber": 49
+          },
+          {
+            "text": "5. 构建完整消息列表（system + history + user）",
+            "lineNumber": 50
+          },
+          {
+            "text": "6. 准备工具定义（转换为OpenAI Function格式）",
+            "lineNumber": 51
+          },
+          {
+            "text": "7. 调用LLM（支持多轮工具调用循环）",
+            "lineNumber": 52
+          },
+          {
+            "text": "8. 保存消息历史（持久化对话记录）",
+            "lineNumber": 53
+          },
+          {
+            "text": "9. 返回执行结果",
+            "lineNumber": 54
+          },
+          {
+            "lineNumber": 55
+          },
+          {
+            "text": "**关键特性**:",
+            "lineNumber": 56
+          },
+          {
+            "text": "- **超时控制**: 6分钟总体超时，每个工具60秒超时",
+            "lineNumber": 57
+          },
+          {
+            "text": "- **工具调用循环**: 最多10轮迭代，防止无限循环",
+            "lineNumber": 58
+          },
+          {
+            "text": "- **上下文策略**: 支持窗口、摘要、混合三种策略",
+            "lineNumber": 59
+          },
+          {
+            "text": "- **Mock模式**: 支持&#96;AI_MOCK_MODE=true&#96;环境变量，开发测试时节省成本",
+            "lineNumber": 60
+          },
+          {
+            "text": "- **执行追踪**: 完整的执行步骤记录和性能指标追踪",
+            "lineNumber": 61
+          }
+        ]
+      },
+      "score": 0.4870242476463318
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 324
+          },
+          "endPosition": {
+            "line": 598,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\n\n    \n    console.log('AI角色对话请求:', {\n      roleId: id,\n      roleName: role.name,\n      query: query.substring(0, 100),\n      conversationId,\n      provider: role.provider || 'dify'\n    });\n    \n    // 根据 provider 类型选择不同的处理逻辑\n    const provider = role.provider || 'dify';\n    \n    if (provider === 'direct-agent') {\n      // Direct Agent 模式\n      if (!role.agentConfig) {\n        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));\n      }\n      \n      // 使用 AgentOrchestrator 执行\n      const orchestrator = new AgentOrchestrator();\n      const context = inputs || {}; // 将 inputs 作为 context 传递\n      \n      const result = await orchestrator.executeAgent(\n        id,\n        query,\n        conversationId,\n        context\n      );\n      \n      // 返回统一格式\n      res.json(formatApiResponse(true, {\n        answer: result.content,\n        conversation_id: result.conversationId,\n        metadata: {\n          ...result.metadata,\n          usage: result.usage\n        }\n      }, '对话成功'));\n    } else {\n      // Dify 模式（保持现有逻辑）\n      if (!role.difyConfig)\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 325,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 325,
+                "column": 53
+              },
+              "endPosition": {
+                "line": 326,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 325
+          },
+          {
+            "lineNumber": 421
+          },
+          {
+            "text": "    ",
+            "lineNumber": 422
+          },
+          {
+            "text": "    console.log('AI角色对话请求:', {",
+            "lineNumber": 423
+          },
+          {
+            "text": "      roleId: id,",
+            "lineNumber": 424
+          },
+          {
+            "text": "      roleName: role.name,",
+            "lineNumber": 425
+          },
+          {
+            "text": "      query: query.substring(0, 100),",
+            "lineNumber": 426
+          },
+          {
+            "text": "      conversationId,",
+            "lineNumber": 427
+          },
+          {
+            "text": "      provider: role.provider || 'dify'",
+            "lineNumber": 428
+          },
+          {
+            "text": "    });",
+            "lineNumber": 429
+          },
+          {
+            "text": "    ",
+            "lineNumber": 430
+          },
+          {
+            "text": "    // 根据 provider 类型选择不同的处理逻辑",
+            "lineNumber": 431
+          },
+          {
+            "text": "    const provider = role.provider || 'dify';",
+            "lineNumber": 432
+          },
+          {
+            "text": "    ",
+            "lineNumber": 433
+          },
+          {
+            "text": "    if (provider === 'direct-agent') {",
+            "lineNumber": 434
+          },
+          {
+            "text": "      // Direct Agent 模式",
+            "lineNumber": 435
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 436
+          },
+          {
+            "text": "        return res.status(400).json(formatApiResponse(false, null, 'Direct Agent配置不存在'));",
+            "lineNumber": 437
+          },
+          {
+            "text": "      }",
+            "lineNumber": 438
+          },
+          {
+            "text": "      ",
+            "lineNumber": 439
+          },
+          {
+            "text": "      // 使用 AgentOrchestrator 执行",
+            "lineNumber": 440
+          },
+          {
+            "text": "      const orchestrator = new AgentOrchestrator();",
+            "lineNumber": 441
+          },
+          {
+            "text": "      const context = inputs || {}; // 将 inputs 作为 context 传递",
+            "lineNumber": 442
+          },
+          {
+            "text": "      ",
+            "lineNumber": 443
+          },
+          {
+            "text": "      const result = await orchestrator.executeAgent(",
+            "lineNumber": 444
+          },
+          {
+            "text": "        id,",
+            "lineNumber": 445
+          },
+          {
+            "text": "        query,",
+            "lineNumber": 446
+          },
+          {
+            "text": "        conversationId,",
+            "lineNumber": 447
+          },
+          {
+            "text": "        context",
+            "lineNumber": 448
+          },
+          {
+            "text": "      );",
+            "lineNumber": 449
+          },
+          {
+            "text": "      ",
+            "lineNumber": 450
+          },
+          {
+            "text": "      // 返回统一格式",
+            "lineNumber": 451
+          },
+          {
+            "text": "      res.json(formatApiResponse(true, {",
+            "lineNumber": 452
+          },
+          {
+            "text": "        answer: result.content,",
+            "lineNumber": 453
+          },
+          {
+            "text": "        conversation_id: result.conversationId,",
+            "lineNumber": 454
+          },
+          {
+            "text": "        metadata: {",
+            "lineNumber": 455
+          },
+          {
+            "text": "          ...result.metadata,",
+            "lineNumber": 456
+          },
+          {
+            "text": "          usage: result.usage",
+            "lineNumber": 457
+          },
+          {
+            "text": "        }",
+            "lineNumber": 458
+          },
+          {
+            "text": "      }, '对话成功'));",
+            "lineNumber": 459
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 460
+          },
+          {
+            "text": "      // Dify 模式（保持现有逻辑）",
+            "lineNumber": 461
+          },
+          {
+            "text": "      if (!role.difyConfig)",
+            "lineNumber": 462
+          },
+          {
+            "text": "}",
+            "lineNumber": 599
+          }
+        ]
+      },
+      "score": 0.4850026071071625
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 46
+          }
+        },
+        "contents": "# 项目AI/Agent调用节点完整识别\n\n本文档完整识别了todify3项目中所有的AI/Agent调用节点。\n\n## 一、后端服务层调用节点\n\n### 1. AgentOrchestrator（Agent编排器）\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n- **功能**: 执行Direct Agent类型的AI角色\n- **调用方法**: &#96;executeAgent(roleId, query, conversationId, context)&#96;\n- **特点**: \n  - 支持工具调用（Function Calling）\n  - 支持多轮对话\n  - 支持上下文管理\n  - 支持Prompt变量替换\n- **使用场景**: Direct Agent类型的AI角色对话\n\n### 2. AgentWorkflowService（Agent工作流服务）\n**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;\n- **调用节点1**: &#96;executeRole(roleId, input)&#96; - 直接执行AI角色\n  - 支持Dify类型和Direct Agent类型\n  - 根据provider类型选择不同的执行方式\n  \n- **调用节点2**: &#96;executeWorkflow(workflowId, options)&#96; - 执行工作流\n  - 支持拓扑排序执行节点\n  - 支持并行执行同一层节点\n  \n- **调用节点3**: &#96;executeAgentNode(node, sharedContext)&#96; - 执行工作流中的Agent节点\n  - 支持Dify Chatflow模式\n  - 支持Dify Workflow模式\n  - 支持多轮对话（conversationId传递）\n\n### 3. DifyClient（Dify客户端）\n**位置**: &#96;backend/src/services/DifyClient.ts&#96;\n- **调用节点1**: &#96;aiSearch(query, inputs, conversationId)&#96; - AI搜索\n- **调用节点2**: &#96;techPackage(inputs)&#96; - 技术包装\n- **调用节点3**: &#96;techStrategy(inputs)&#96; - 技术策略\n- **调用节点4**: &#96;techArticle(inputs)&#96; - 技术通稿\n- **调用节点5**: &#96;coreDraft(inputs)&#96; - 核心稿件\n- **调用节点6**: &#96;techPublish(inputs, conversationId)&#96; - 技术发布\n- **调用节点7**: &#96;callApp(appType, inputs, responseMode, user)&#96; - 通用应用调用\n- **调用节点8**: &#96;runWorkflow(appType, inputs, responseMode, user)&#96; - 工作流调用\n\n### 4. TriggerAgentUseCase（触发Agent用例）\n**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;\n- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "# 项目AI/Agent调用节点完整识别",
+            "lineNumber": 1
+          },
+          {
+            "lineNumber": 2
+          },
+          {
+            "text": "本文档完整识别了todify3项目中所有的AI/Agent调用节点。",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "## 一、后端服务层调用节点",
+            "lineNumber": 5
+          },
+          {
+            "lineNumber": 6
+          },
+          {
+            "text": "### 1. AgentOrchestrator（Agent编排器）",
+            "lineNumber": 7
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 8
+          },
+          {
+            "text": "- **功能**: 执行Direct Agent类型的AI角色",
+            "lineNumber": 9
+          },
+          {
+            "text": "- **调用方法**: &#96;executeAgent(roleId, query, conversationId, context)&#96;",
+            "lineNumber": 10
+          },
+          {
+            "text": "- **特点**: ",
+            "lineNumber": 11
+          },
+          {
+            "text": "  - 支持工具调用（Function Calling）",
+            "lineNumber": 12
+          },
+          {
+            "text": "  - 支持多轮对话",
+            "lineNumber": 13
+          },
+          {
+            "text": "  - 支持上下文管理",
+            "lineNumber": 14
+          },
+          {
+            "text": "  - 支持Prompt变量替换",
+            "lineNumber": 15
+          },
+          {
+            "text": "- **使用场景**: Direct Agent类型的AI角色对话",
+            "lineNumber": 16
+          },
+          {
+            "lineNumber": 17
+          },
+          {
+            "text": "### 2. AgentWorkflowService（Agent工作流服务）",
+            "lineNumber": 18
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/AgentWorkflowService.ts&#96;",
+            "lineNumber": 19
+          },
+          {
+            "text": "- **调用节点1**: &#96;executeRole(roleId, input)&#96; - 直接执行AI角色",
+            "lineNumber": 20
+          },
+          {
+            "text": "  - 支持Dify类型和Direct Agent类型",
+            "lineNumber": 21
+          },
+          {
+            "text": "  - 根据provider类型选择不同的执行方式",
+            "lineNumber": 22
+          },
+          {
+            "text": "  ",
+            "lineNumber": 23
+          },
+          {
+            "text": "- **调用节点2**: &#96;executeWorkflow(workflowId, options)&#96; - 执行工作流",
+            "lineNumber": 24
+          },
+          {
+            "text": "  - 支持拓扑排序执行节点",
+            "lineNumber": 25
+          },
+          {
+            "text": "  - 支持并行执行同一层节点",
+            "lineNumber": 26
+          },
+          {
+            "text": "  ",
+            "lineNumber": 27
+          },
+          {
+            "text": "- **调用节点3**: &#96;executeAgentNode(node, sharedContext)&#96; - 执行工作流中的Agent节点",
+            "lineNumber": 28
+          },
+          {
+            "text": "  - 支持Dify Chatflow模式",
+            "lineNumber": 29
+          },
+          {
+            "text": "  - 支持Dify Workflow模式",
+            "lineNumber": 30
+          },
+          {
+            "text": "  - 支持多轮对话（conversationId传递）",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "### 3. DifyClient（Dify客户端）",
+            "lineNumber": 33
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/DifyClient.ts&#96;",
+            "lineNumber": 34
+          },
+          {
+            "text": "- **调用节点1**: &#96;aiSearch(query, inputs, conversationId)&#96; - AI搜索",
+            "lineNumber": 35
+          },
+          {
+            "text": "- **调用节点2**: &#96;techPackage(inputs)&#96; - 技术包装",
+            "lineNumber": 36
+          },
+          {
+            "text": "- **调用节点3**: &#96;techStrategy(inputs)&#96; - 技术策略",
+            "lineNumber": 37
+          },
+          {
+            "text": "- **调用节点4**: &#96;techArticle(inputs)&#96; - 技术通稿",
+            "lineNumber": 38
+          },
+          {
+            "text": "- **调用节点5**: &#96;coreDraft(inputs)&#96; - 核心稿件",
+            "lineNumber": 39
+          },
+          {
+            "text": "- **调用节点6**: &#96;techPublish(inputs, conversationId)&#96; - 技术发布",
+            "lineNumber": 40
+          },
+          {
+            "text": "- **调用节点7**: &#96;callApp(appType, inputs, responseMode, user)&#96; - 通用应用调用",
+            "lineNumber": 41
+          },
+          {
+            "text": "- **调用节点8**: &#96;runWorkflow(appType, inputs, responseMode, user)&#96; - 工作流调用",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "### 4. TriggerAgentUseCase（触发Agent用例）",
+            "lineNumber": 44
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts&#96;",
+            "lineNumber": 45
+          },
+          {
+            "text": "- **功能**: 触发子Agent执行（五看、三定、技术矩阵等）",
+            "lineNumber": 46
+          }
+        ]
+      },
+      "score": 0.47775185108184814
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\nasync executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\n\n    \n    try {\n      // 1. 获取 Agent 配置\n      checkTimeout();\n      await this.logStep(executionId, 'load_config', {\n        type: 'config',\n        input: { roleId },\n        output: null,\n        duration: 0,\n        status: 'success'\n      });\n\n      const role = await aiRoleModel.getById(roleId);\n      if (!role) {\n        throw new Error(&#96;AI角色不存在: ${roleId}&#96;);\n      }\n\n      if (!role.agentConfig) {\n        throw new Error(&#96;Agent配置不存在: ${roleId}&#96;);\n      }\n\n      const config = role.agentConfig;\n\n      // 2. 生成或使用 conversationId\n      const finalConversationId = conversationId || this.generateConversationId();\n\n      // 3. 检查 prompt 配置\n      if (!config.prompt) {\n        throw new Error(&#96;Agent prompt配置不存在: ${roleId}&#96;);\n      }\n\n      if (!config.prompt.systemPrompt) {\n        throw new Error(&#96;Agent systemPrompt配置不存在: ${roleId}&#96;);\n      }\n\n      // 4. 渲染 System Prompt\n      const promptStartTime = Date.now();\n      const systemPrompt = this.promptManager.renderPrompt(\n        config.prompt.systemPrompt,\n        config.prompt.variables || [],\n        context\n      );\n      await this.logStep(executionId, 'render_prompt', {\n        type: 'prompt',\n        input: { systemPrompt: config.prompt.systemPrompt, variables: config.prompt.variables, context },\n        output: { systemPrompt },\n        duration: Date.now() - promptStartTime,\n        status: 'success'\n      });\n\n      // 4. 获取上下文消息\n      checkTimeout();\n      const contextStartTime = Date.now();\n      const contextMessages = await this.contextManager.getContextMessages(\n        finalConversationId,\n        config.contextStrategy,\n        query\n      );\n      await this.logStep(executionId, 'load_context', {\n        type: 'context',\n        input:\n\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 52,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "lineNumber": 85
+          },
+          {
+            "text": "    ",
+            "lineNumber": 86
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 87
+          },
+          {
+            "text": "      // 1. 获取 Agent 配置",
+            "lineNumber": 88
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 89
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_config', {",
+            "lineNumber": 90
+          },
+          {
+            "text": "        type: 'config',",
+            "lineNumber": 91
+          },
+          {
+            "text": "        input: { roleId },",
+            "lineNumber": 92
+          },
+          {
+            "text": "        output: null,",
+            "lineNumber": 93
+          },
+          {
+            "text": "        duration: 0,",
+            "lineNumber": 94
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 95
+          },
+          {
+            "text": "      });",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "      const role = await aiRoleModel.getById(roleId);",
+            "lineNumber": 98
+          },
+          {
+            "text": "      if (!role) {",
+            "lineNumber": 99
+          },
+          {
+            "text": "        throw new Error(&#96;AI角色不存在: ${roleId}&#96;);",
+            "lineNumber": 100
+          },
+          {
+            "text": "      }",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "      if (!role.agentConfig) {",
+            "lineNumber": 103
+          },
+          {
+            "text": "        throw new Error(&#96;Agent配置不存在: ${roleId}&#96;);",
+            "lineNumber": 104
+          },
+          {
+            "text": "      }",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "      const config = role.agentConfig;",
+            "lineNumber": 107
+          },
+          {
+            "lineNumber": 108
+          },
+          {
+            "text": "      // 2. 生成或使用 conversationId",
+            "lineNumber": 109
+          },
+          {
+            "text": "      const finalConversationId = conversationId || this.generateConversationId();",
+            "lineNumber": 110
+          },
+          {
+            "lineNumber": 111
+          },
+          {
+            "text": "      // 3. 检查 prompt 配置",
+            "lineNumber": 112
+          },
+          {
+            "text": "      if (!config.prompt) {",
+            "lineNumber": 113
+          },
+          {
+            "text": "        throw new Error(&#96;Agent prompt配置不存在: ${roleId}&#96;);",
+            "lineNumber": 114
+          },
+          {
+            "text": "      }",
+            "lineNumber": 115
+          },
+          {
+            "lineNumber": 116
+          },
+          {
+            "text": "      if (!config.prompt.systemPrompt) {",
+            "lineNumber": 117
+          },
+          {
+            "text": "        throw new Error(&#96;Agent systemPrompt配置不存在: ${roleId}&#96;);",
+            "lineNumber": 118
+          },
+          {
+            "text": "      }",
+            "lineNumber": 119
+          },
+          {
+            "lineNumber": 120
+          },
+          {
+            "text": "      // 4. 渲染 System Prompt",
+            "lineNumber": 121
+          },
+          {
+            "text": "      const promptStartTime = Date.now();",
+            "lineNumber": 122
+          },
+          {
+            "text": "      const systemPrompt = this.promptManager.renderPrompt(",
+            "lineNumber": 123
+          },
+          {
+            "text": "        config.prompt.systemPrompt,",
+            "lineNumber": 124
+          },
+          {
+            "text": "        config.prompt.variables || [],",
+            "lineNumber": 125
+          },
+          {
+            "text": "        context",
+            "lineNumber": 126
+          },
+          {
+            "text": "      );",
+            "lineNumber": 127
+          },
+          {
+            "text": "      await this.logStep(executionId, 'render_prompt', {",
+            "lineNumber": 128
+          },
+          {
+            "text": "        type: 'prompt',",
+            "lineNumber": 129
+          },
+          {
+            "text": "        input: { systemPrompt: config.prompt.systemPrompt, variables: config.prompt.variables, context },",
+            "lineNumber": 130
+          },
+          {
+            "text": "        output: { systemPrompt },",
+            "lineNumber": 131
+          },
+          {
+            "text": "        duration: Date.now() - promptStartTime,",
+            "lineNumber": 132
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 133
+          },
+          {
+            "text": "      });",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "      // 4. 获取上下文消息",
+            "lineNumber": 136
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 137
+          },
+          {
+            "text": "      const contextStartTime = Date.now();",
+            "lineNumber": 138
+          },
+          {
+            "text": "      const contextMessages = await this.contextManager.getContextMessages(",
+            "lineNumber": 139
+          },
+          {
+            "text": "        finalConversationId,",
+            "lineNumber": 140
+          },
+          {
+            "text": "        config.contextStrategy,",
+            "lineNumber": 141
+          },
+          {
+            "text": "        query",
+            "lineNumber": 142
+          },
+          {
+            "text": "      );",
+            "lineNumber": 143
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_context', {",
+            "lineNumber": 144
+          },
+          {
+            "text": "        type: 'context',",
+            "lineNumber": 145
+          },
+          {
+            "text": "        input:",
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 150
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4775651693344116
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/DifyClient.ts",
+        "range": {
+          "startPosition": {
+            "line": 74
+          },
+          "endPosition": {
+            "line": 350,
+            "column": 1
+          }
+        },
+        "contents": "class DifyClient {\n\n\n  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;DifyWorkflowResponse&gt; {\n    logger.info('调用 Dify 工作流', { appType, responseMode });\n    const gateway = this.getGateway(appType);\n    const result = await gateway.executeWorkflow({\n      workflowId: appType,\n      inputs,\n      userId: user,\n    });\n\n    if (isSuccess(result) &amp;&amp; result.value.raw) {\n      return result.value.raw as DifyWorkflowResponse;\n    }\n\n    if (!isSuccess(result)) {\n      throw new Error(result.error.message);\n    }\n\n    throw new Error('Dify 工作流调用未返回有效数据');\n  }\n\n  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {\n    \n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 75,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 76,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class DifyClient {",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 104
+          },
+          {
+            "lineNumber": 105
+          },
+          {
+            "text": "  async runWorkflow(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;DifyWorkflowResponse&gt; {",
+            "lineNumber": 106,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.info('调用 Dify 工作流', { appType, responseMode });",
+            "lineNumber": 107
+          },
+          {
+            "text": "    const gateway = this.getGateway(appType);",
+            "lineNumber": 108
+          },
+          {
+            "text": "    const result = await gateway.executeWorkflow({",
+            "lineNumber": 109
+          },
+          {
+            "text": "      workflowId: appType,",
+            "lineNumber": 110
+          },
+          {
+            "text": "      inputs,",
+            "lineNumber": 111
+          },
+          {
+            "text": "      userId: user,",
+            "lineNumber": 112
+          },
+          {
+            "text": "    });",
+            "lineNumber": 113
+          },
+          {
+            "lineNumber": 114
+          },
+          {
+            "text": "    if (isSuccess(result) &amp;&amp; result.value.raw) {",
+            "lineNumber": 115
+          },
+          {
+            "text": "      return result.value.raw as DifyWorkflowResponse;",
+            "lineNumber": 116
+          },
+          {
+            "text": "    }",
+            "lineNumber": 117
+          },
+          {
+            "lineNumber": 118
+          },
+          {
+            "text": "    if (!isSuccess(result)) {",
+            "lineNumber": 119
+          },
+          {
+            "text": "      throw new Error(result.error.message);",
+            "lineNumber": 120
+          },
+          {
+            "text": "    }",
+            "lineNumber": 121
+          },
+          {
+            "lineNumber": 122
+          },
+          {
+            "text": "    throw new Error('Dify 工作流调用未返回有效数据');",
+            "lineNumber": 123
+          },
+          {
+            "text": "  }",
+            "lineNumber": 124,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {",
+            "lineNumber": 126,
+            "isSignature": true
+          },
+          {
+            "text": "    ",
+            "lineNumber": 127
+          },
+          {
+            "text": "  }",
+            "lineNumber": 145,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4706101417541504
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts",
+        "range": {
+          "startPosition": {
+            "line": 22
+          },
+          "endPosition": {
+            "line": 492,
+            "column": 1
+          }
+        },
+        "contents": "export class SendMessageUseCase {\nasync execute(params: {\n    conversationId: string;\n    content: string;\n    sources?: any[];\n    files?: Express.Multer.File[];\n    contextWindowSize?: number;\n    workflowId?: string;\n    fileList?: string;\n    knowledgeBaseNames?: string;\n  }): Promise&lt;Result&lt;SendMessageResult&gt;&gt; {\n\n        const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);\n\n        // 获取对话的 Dify conversation_id（如果存在），用于多轮对话\n        const difyConversationId = conversationRecord?.difyConversationId || null;\n        \n        logger.info('准备发送消息到Dify工作流', {\n          本地对话ID: params.conversationId,\n          DifyConversationId: difyConversationId || '未设置（首次对话，Dify将返回新的conversation_id）',\n        });\n        \n        // 将 Dify conversation_id 添加到 workflowInput 中，这样 Agent 节点可以获取到\n        if (difyConversationId) {\n          workflowInput.conversationId = difyConversationId;\n          logger.info('已设置Dify conversation_id到工作流输入', { difyConversationId });\n        } else {\n          logger.info('首次对话，未设置Dify conversation_id，Dify将创建新的对话');\n        }\n\n        const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {\n          input: workflowInput,\n        });\n\n        // 从工作流执行结果中提取 Dify conversation_id\n        // Agent 节点的输出中可能包含 conversation_id\n        let newDifyConversationId: string | null = null;\n        \n        // 尝试从工作流执行结果的数据中提取 conversation_id\n        // 首先检查 outputs 中是否包含 conversation_id\n        const workflowData = (workflowResult as any)?.data;\n        if (workflowData?.outputs) {\n          const outputs = workflowData.outputs as any;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 23,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 29,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 39,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class SendMessageUseCase {",
+            "lineNumber": 23,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(params: {",
+            "lineNumber": 29
+          },
+          {
+            "text": "    conversationId: string;",
+            "lineNumber": 30
+          },
+          {
+            "text": "    content: string;",
+            "lineNumber": 31
+          },
+          {
+            "text": "    sources?: any[];",
+            "lineNumber": 32
+          },
+          {
+            "text": "    files?: Express.Multer.File[];",
+            "lineNumber": 33
+          },
+          {
+            "text": "    contextWindowSize?: number;",
+            "lineNumber": 34
+          },
+          {
+            "text": "    workflowId?: string;",
+            "lineNumber": 35
+          },
+          {
+            "text": "    fileList?: string;",
+            "lineNumber": 36
+          },
+          {
+            "text": "    knowledgeBaseNames?: string;",
+            "lineNumber": 37
+          },
+          {
+            "text": "  }): Promise&lt;Result&lt;SendMessageResult&gt;&gt; {",
+            "lineNumber": 38
+          },
+          {
+            "lineNumber": 84
+          },
+          {
+            "text": "        const workflowInput = mapWorkflowInput(conversationData, mappingConfig.inputMappings);",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "        // 获取对话的 Dify conversation_id（如果存在），用于多轮对话",
+            "lineNumber": 87
+          },
+          {
+            "text": "        const difyConversationId = conversationRecord?.difyConversationId || null;",
+            "lineNumber": 88
+          },
+          {
+            "text": "        ",
+            "lineNumber": 89
+          },
+          {
+            "text": "        logger.info('准备发送消息到Dify工作流', {",
+            "lineNumber": 90
+          },
+          {
+            "text": "          本地对话ID: params.conversationId,",
+            "lineNumber": 91
+          },
+          {
+            "text": "          DifyConversationId: difyConversationId || '未设置（首次对话，Dify将返回新的conversation_id）',",
+            "lineNumber": 92
+          },
+          {
+            "text": "        });",
+            "lineNumber": 93
+          },
+          {
+            "text": "        ",
+            "lineNumber": 94
+          },
+          {
+            "text": "        // 将 Dify conversation_id 添加到 workflowInput 中，这样 Agent 节点可以获取到",
+            "lineNumber": 95
+          },
+          {
+            "text": "        if (difyConversationId) {",
+            "lineNumber": 96
+          },
+          {
+            "text": "          workflowInput.conversationId = difyConversationId;",
+            "lineNumber": 97
+          },
+          {
+            "text": "          logger.info('已设置Dify conversation_id到工作流输入', { difyConversationId });",
+            "lineNumber": 98
+          },
+          {
+            "text": "        } else {",
+            "lineNumber": 99
+          },
+          {
+            "text": "          logger.info('首次对话，未设置Dify conversation_id，Dify将创建新的对话');",
+            "lineNumber": 100
+          },
+          {
+            "text": "        }",
+            "lineNumber": 101
+          },
+          {
+            "lineNumber": 102
+          },
+          {
+            "text": "        const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {",
+            "lineNumber": 103
+          },
+          {
+            "text": "          input: workflowInput,",
+            "lineNumber": 104
+          },
+          {
+            "text": "        });",
+            "lineNumber": 105
+          },
+          {
+            "lineNumber": 106
+          },
+          {
+            "text": "        // 从工作流执行结果中提取 Dify conversation_id",
+            "lineNumber": 107
+          },
+          {
+            "text": "        // Agent 节点的输出中可能包含 conversation_id",
+            "lineNumber": 108
+          },
+          {
+            "text": "        let newDifyConversationId: string | null = null;",
+            "lineNumber": 109
+          },
+          {
+            "text": "        ",
+            "lineNumber": 110
+          },
+          {
+            "text": "        // 尝试从工作流执行结果的数据中提取 conversation_id",
+            "lineNumber": 111
+          },
+          {
+            "text": "        // 首先检查 outputs 中是否包含 conversation_id",
+            "lineNumber": 112
+          },
+          {
+            "text": "        const workflowData = (workflowResult as any)?.data;",
+            "lineNumber": 113
+          },
+          {
+            "text": "        if (workflowData?.outputs) {",
+            "lineNumber": 114
+          },
+          {
+            "text": "          const outputs = workflowData.outputs as any;",
+            "lineNumber": 115
+          },
+          {
+            "text": "  }",
+            "lineNumber": 282
+          },
+          {
+            "text": "}",
+            "lineNumber": 493,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4702377915382385
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/services/workflowEngine.ts",
+        "range": {
+          "startPosition": {
+            "line": 21
+          },
+          "endPosition": {
+            "line": 1049,
+            "column": 1
+          }
+        },
+        "contents": "export class WorkflowEngine {\n\n\n  /**\n   * 执行Agent节点\n   */\n  private async executeAgentNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {\n    // 获取Agent配置\n    const agent = await aiRoleService.getAIRole(node.agentId!);\n    if (!agent) {\n      throw new Error(&#96;Agent不存在: ${node.agentId}&#96;);\n    }\n\n    // 调用Agent执行（通过Dify API）\n    return await this.callAgent(agent, input);\n  }\n\n  /**\n   * 执行条件节点\n   */\n  private async executeConditionNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 22,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 22,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 22,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 23,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class WorkflowEngine {",
+            "lineNumber": 22,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 352
+          },
+          {
+            "lineNumber": 353
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 354
+          },
+          {
+            "text": "   * 执行Agent节点",
+            "lineNumber": 355
+          },
+          {
+            "text": "   */",
+            "lineNumber": 356
+          },
+          {
+            "text": "  private async executeAgentNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {",
+            "lineNumber": 357
+          },
+          {
+            "text": "    // 获取Agent配置",
+            "lineNumber": 358
+          },
+          {
+            "text": "    const agent = await aiRoleService.getAIRole(node.agentId!);",
+            "lineNumber": 359
+          },
+          {
+            "text": "    if (!agent) {",
+            "lineNumber": 360
+          },
+          {
+            "text": "      throw new Error(&#96;Agent不存在: ${node.agentId}&#96;);",
+            "lineNumber": 361
+          },
+          {
+            "text": "    }",
+            "lineNumber": 362
+          },
+          {
+            "lineNumber": 363
+          },
+          {
+            "text": "    // 调用Agent执行（通过Dify API）",
+            "lineNumber": 364
+          },
+          {
+            "text": "    return await this.callAgent(agent, input);",
+            "lineNumber": 365
+          },
+          {
+            "text": "  }",
+            "lineNumber": 366
+          },
+          {
+            "lineNumber": 367
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 368
+          },
+          {
+            "text": "   * 执行条件节点",
+            "lineNumber": 369
+          },
+          {
+            "text": "   */",
+            "lineNumber": 370
+          },
+          {
+            "text": "  private async executeConditionNode(node: AgentWorkflowNode, input: any): Promise&lt;any&gt; {",
+            "lineNumber": 371
+          },
+          {
+            "text": "    ",
+            "lineNumber": 372
+          },
+          {
+            "text": "  }",
+            "lineNumber": 489
+          },
+          {
+            "text": "}",
+            "lineNumber": 1050,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4680778980255127
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_CALL_NODES.md",
+        "range": {
+          "startPosition": {
+            "line": 140
+          },
+          "endPosition": {
+            "line": 195
+          }
+        },
+        "contents": "**位置**: &#96;frontend/src/components/nodes/PromotionStrategyNode.tsx&#96;\n- 调用&#96;workflowAPI.techStrategy()&#96;\n\n#### PressReleaseNode（新闻稿节点）\n**位置**: &#96;frontend/src/components/nodes/PressReleaseNode.tsx&#96;\n- 调用相关AI服务\n\n#### TechNewsletterNode（技术通讯节点）\n**位置**: &#96;frontend/src/components/nodes/TechNewsletterNode.tsx&#96;\n- 调用相关AI服务\n\n## 四、后端API路由层调用节点\n\n### 1. AI角色路由\n**位置**: &#96;backend/src/routes/aiRole.ts&#96;\n- **路由**: &#96;POST /api/v1/ai-roles/:id/chat&#96;\n  - 根据provider类型调用：\n    - Direct Agent: &#96;AgentOrchestrator.executeAgent()&#96;\n    - Dify: &#96;DifyGateway.executeChat()&#96; 或 &#96;DifyGateway.executeWorkflow()&#96;\n\n### 2. AI搜索路由\n**位置**: &#96;backend/src/modules/ai-search/api/aiSearch.routes.ts&#96;\n- **路由1**: &#96;POST /api/v1/ai-search/conversations/:id/messages&#96; - 发送消息\n  - 调用&#96;SendMessageUseCase.execute()&#96;\n  \n- **路由2**: &#96;POST /api/v1/ai-search/conversations/:id/agents&#96; - 触发子Agent\n  - 调用&#96;TriggerAgentUseCase.execute()&#96;\n\n### 3. 工作流路由\n**位置**: &#96;backend/src/routes/agentWorkflow.ts&#96;\n- **路由1**: &#96;POST /api/v1/agent-workflows/:id/execute&#96; - 执行工作流\n  - 调用&#96;agentWorkflowService.executeWorkflow()&#96;\n  \n- **路由2**: &#96;POST /api/v1/agent-workflows/roles/:id/execute&#96; - 执行AI角色\n  - 调用&#96;agentWorkflowService.executeRole()&#96;\n\n### 4. 工作流API路由\n**位置**: &#96;backend/src/modules/workflow/api/workflow.routes.ts&#96;\n- **路由**: &#96;POST /api/v1/workflow/ai-search&#96; - AI搜索\n  - 调用&#96;ExecuteAiSearchUseCase.execute()&#96;\n\n## 五、工作流节点类型\n\n### 1. Agent节点（工作流编辑器）\n**位置**: &#96;frontend/src/components/WorkflowEditor/AgentNode.tsx&#96;\n- **类型**: &#96;agent&#96;\n- **功能**: 在工作流中调用AI角色\n- **执行**: 通过后端&#96;AgentWorkflowService.executeAgentNode()&#96;执行\n\n### 2. 其他工作流节点类型\n- &#96;input&#96; - 输入节点\n- &#96;output&#96; - 输出节点\n- &#96;condition&#96; - 条件判断节点\n- &#96;assign&#96; - 变量赋值节点\n- &#96;merge&#96; - 数据合并节点",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/PromotionStrategyNode.tsx&#96;",
+            "lineNumber": 141
+          },
+          {
+            "text": "- 调用&#96;workflowAPI.techStrategy()&#96;",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "#### PressReleaseNode（新闻稿节点）",
+            "lineNumber": 144
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/PressReleaseNode.tsx&#96;",
+            "lineNumber": 145
+          },
+          {
+            "text": "- 调用相关AI服务",
+            "lineNumber": 146
+          },
+          {
+            "lineNumber": 147
+          },
+          {
+            "text": "#### TechNewsletterNode（技术通讯节点）",
+            "lineNumber": 148
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/nodes/TechNewsletterNode.tsx&#96;",
+            "lineNumber": 149
+          },
+          {
+            "text": "- 调用相关AI服务",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "## 四、后端API路由层调用节点",
+            "lineNumber": 152
+          },
+          {
+            "lineNumber": 153
+          },
+          {
+            "text": "### 1. AI角色路由",
+            "lineNumber": 154
+          },
+          {
+            "text": "**位置**: &#96;backend/src/routes/aiRole.ts&#96;",
+            "lineNumber": 155
+          },
+          {
+            "text": "- **路由**: &#96;POST /api/v1/ai-roles/:id/chat&#96;",
+            "lineNumber": 156
+          },
+          {
+            "text": "  - 根据provider类型调用：",
+            "lineNumber": 157
+          },
+          {
+            "text": "    - Direct Agent: &#96;AgentOrchestrator.executeAgent()&#96;",
+            "lineNumber": 158
+          },
+          {
+            "text": "    - Dify: &#96;DifyGateway.executeChat()&#96; 或 &#96;DifyGateway.executeWorkflow()&#96;",
+            "lineNumber": 159
+          },
+          {
+            "lineNumber": 160
+          },
+          {
+            "text": "### 2. AI搜索路由",
+            "lineNumber": 161
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/ai-search/api/aiSearch.routes.ts&#96;",
+            "lineNumber": 162
+          },
+          {
+            "text": "- **路由1**: &#96;POST /api/v1/ai-search/conversations/:id/messages&#96; - 发送消息",
+            "lineNumber": 163
+          },
+          {
+            "text": "  - 调用&#96;SendMessageUseCase.execute()&#96;",
+            "lineNumber": 164
+          },
+          {
+            "text": "  ",
+            "lineNumber": 165
+          },
+          {
+            "text": "- **路由2**: &#96;POST /api/v1/ai-search/conversations/:id/agents&#96; - 触发子Agent",
+            "lineNumber": 166
+          },
+          {
+            "text": "  - 调用&#96;TriggerAgentUseCase.execute()&#96;",
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "### 3. 工作流路由",
+            "lineNumber": 169
+          },
+          {
+            "text": "**位置**: &#96;backend/src/routes/agentWorkflow.ts&#96;",
+            "lineNumber": 170
+          },
+          {
+            "text": "- **路由1**: &#96;POST /api/v1/agent-workflows/:id/execute&#96; - 执行工作流",
+            "lineNumber": 171
+          },
+          {
+            "text": "  - 调用&#96;agentWorkflowService.executeWorkflow()&#96;",
+            "lineNumber": 172
+          },
+          {
+            "text": "  ",
+            "lineNumber": 173
+          },
+          {
+            "text": "- **路由2**: &#96;POST /api/v1/agent-workflows/roles/:id/execute&#96; - 执行AI角色",
+            "lineNumber": 174
+          },
+          {
+            "text": "  - 调用&#96;agentWorkflowService.executeRole()&#96;",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "### 4. 工作流API路由",
+            "lineNumber": 177
+          },
+          {
+            "text": "**位置**: &#96;backend/src/modules/workflow/api/workflow.routes.ts&#96;",
+            "lineNumber": 178
+          },
+          {
+            "text": "- **路由**: &#96;POST /api/v1/workflow/ai-search&#96; - AI搜索",
+            "lineNumber": 179
+          },
+          {
+            "text": "  - 调用&#96;ExecuteAiSearchUseCase.execute()&#96;",
+            "lineNumber": 180
+          },
+          {
+            "lineNumber": 181
+          },
+          {
+            "text": "## 五、工作流节点类型",
+            "lineNumber": 182
+          },
+          {
+            "lineNumber": 183
+          },
+          {
+            "text": "### 1. Agent节点（工作流编辑器）",
+            "lineNumber": 184
+          },
+          {
+            "text": "**位置**: &#96;frontend/src/components/WorkflowEditor/AgentNode.tsx&#96;",
+            "lineNumber": 185
+          },
+          {
+            "text": "- **类型**: &#96;agent&#96;",
+            "lineNumber": 186
+          },
+          {
+            "text": "- **功能**: 在工作流中调用AI角色",
+            "lineNumber": 187
+          },
+          {
+            "text": "- **执行**: 通过后端&#96;AgentWorkflowService.executeAgentNode()&#96;执行",
+            "lineNumber": 188
+          },
+          {
+            "lineNumber": 189
+          },
+          {
+            "text": "### 2. 其他工作流节点类型",
+            "lineNumber": 190
+          },
+          {
+            "text": "- &#96;input&#96; - 输入节点",
+            "lineNumber": 191
+          },
+          {
+            "text": "- &#96;output&#96; - 输出节点",
+            "lineNumber": 192
+          },
+          {
+            "text": "- &#96;condition&#96; - 条件判断节点",
+            "lineNumber": 193
+          },
+          {
+            "text": "- &#96;assign&#96; - 变量赋值节点",
+            "lineNumber": 194
+          },
+          {
+            "text": "- &#96;merge&#96; - 数据合并节点",
+            "lineNumber": 195
+          }
+        ]
+      },
+      "score": 0.4615873098373413
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/ToolExecutor.ts",
+        "range": {
+          "startPosition": {
+            "line": 22
+          },
+          "endPosition": {
+            "line": 504,
+            "column": 1
+          }
+        },
+        "contents": "export class ToolExecutor {\n\n\n  /**\n   * 执行 Workflow 工具\n   */\n  private async executeWorkflow(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {\n    try {\n      const implementation = toolConfig.implementation;\n      if (!implementation || !implementation.workflowId) {\n        return {\n          success: false,\n          content: JSON.stringify({ error: 'Workflow ID 未配置' })\n        };\n      }\n\n      const workflowId = implementation.workflowId;\n      const workflowInput = args.inputs || args;\n\n      // 使用 LangGraphEngine 替代 AgentWorkflowService\n      const workflow = await agentWorkflowModel.getById(workflowId);\n      if (!workflow) {\n        return {\n          success: false,\n          content: JSON.stringify({ error: &#96;工作流不存在: ${workflowId}&#96; })\n        };\n      }\n\n      const engine = new LangGraphEngine();\n      const result = await engine.execute(workflow, { input: workflowInput });\n\n      // 提取输出\n      const output = result.data?.outputs || result.message || result;\n\n      return {\n        success: true,\n        content: JSON.stringify(output)\n      };\n    } catch (error) {\n      return {\n        success: false,\n        content: JSON.stringify({ error: error instanceof Error ? error.message : 'Workflow 执行失败' })\n      };\n    }\n  }\n\n  /**\n   * 执行 Agent 嵌套调用工具\n   */\n  private async executeAgent(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {\n    \n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 23,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class ToolExecutor {",
+            "lineNumber": 23,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 364
+          },
+          {
+            "lineNumber": 365
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 366
+          },
+          {
+            "text": "   * 执行 Workflow 工具",
+            "lineNumber": 367
+          },
+          {
+            "text": "   */",
+            "lineNumber": 368
+          },
+          {
+            "text": "  private async executeWorkflow(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {",
+            "lineNumber": 369
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 370
+          },
+          {
+            "text": "      const implementation = toolConfig.implementation;",
+            "lineNumber": 371
+          },
+          {
+            "text": "      if (!implementation || !implementation.workflowId) {",
+            "lineNumber": 372
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 373
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 374
+          },
+          {
+            "text": "          content: JSON.stringify({ error: 'Workflow ID 未配置' })",
+            "lineNumber": 375
+          },
+          {
+            "text": "        };",
+            "lineNumber": 376
+          },
+          {
+            "text": "      }",
+            "lineNumber": 377
+          },
+          {
+            "lineNumber": 378
+          },
+          {
+            "text": "      const workflowId = implementation.workflowId;",
+            "lineNumber": 379
+          },
+          {
+            "text": "      const workflowInput = args.inputs || args;",
+            "lineNumber": 380
+          },
+          {
+            "lineNumber": 381
+          },
+          {
+            "text": "      // 使用 LangGraphEngine 替代 AgentWorkflowService",
+            "lineNumber": 382
+          },
+          {
+            "text": "      const workflow = await agentWorkflowModel.getById(workflowId);",
+            "lineNumber": 383
+          },
+          {
+            "text": "      if (!workflow) {",
+            "lineNumber": 384
+          },
+          {
+            "text": "        return {",
+            "lineNumber": 385
+          },
+          {
+            "text": "          success: false,",
+            "lineNumber": 386
+          },
+          {
+            "text": "          content: JSON.stringify({ error: &#96;工作流不存在: ${workflowId}&#96; })",
+            "lineNumber": 387
+          },
+          {
+            "text": "        };",
+            "lineNumber": 388
+          },
+          {
+            "text": "      }",
+            "lineNumber": 389
+          },
+          {
+            "lineNumber": 390
+          },
+          {
+            "text": "      const engine = new LangGraphEngine();",
+            "lineNumber": 391
+          },
+          {
+            "text": "      const result = await engine.execute(workflow, { input: workflowInput });",
+            "lineNumber": 392
+          },
+          {
+            "lineNumber": 393
+          },
+          {
+            "text": "      // 提取输出",
+            "lineNumber": 394
+          },
+          {
+            "text": "      const output = result.data?.outputs || result.message || result;",
+            "lineNumber": 395
+          },
+          {
+            "lineNumber": 396
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 397
+          },
+          {
+            "text": "        success: true,",
+            "lineNumber": 398
+          },
+          {
+            "text": "        content: JSON.stringify(output)",
+            "lineNumber": 399
+          },
+          {
+            "text": "      };",
+            "lineNumber": 400
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 401
+          },
+          {
+            "text": "      return {",
+            "lineNumber": 402
+          },
+          {
+            "text": "        success: false,",
+            "lineNumber": 403
+          },
+          {
+            "text": "        content: JSON.stringify({ error: error instanceof Error ? error.message : 'Workflow 执行失败' })",
+            "lineNumber": 404
+          },
+          {
+            "text": "      };",
+            "lineNumber": 405
+          },
+          {
+            "text": "    }",
+            "lineNumber": 406
+          },
+          {
+            "text": "  }",
+            "lineNumber": 407
+          },
+          {
+            "lineNumber": 408
+          },
+          {
+            "text": "  /**",
+            "lineNumber": 409
+          },
+          {
+            "text": "   * 执行 Agent 嵌套调用工具",
+            "lineNumber": 410
+          },
+          {
+            "text": "   */",
+            "lineNumber": 411
+          },
+          {
+            "text": "  private async executeAgent(toolConfig: ToolConfig, args: any): Promise&lt;ToolExecutionResult&gt; {",
+            "lineNumber": 412
+          },
+          {
+            "text": "    ",
+            "lineNumber": 413
+          },
+          {
+            "text": "  }",
+            "lineNumber": 504
+          },
+          {
+            "text": "}",
+            "lineNumber": 505,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4518550634384155
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/DifyClient.ts",
+        "range": {
+          "startPosition": {
+            "line": 74
+          },
+          "endPosition": {
+            "line": 350,
+            "column": 1
+          }
+        },
+        "contents": "class DifyClient {\n\n\n  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {\n    logger.info('调用 Dify 应用', { appType, responseMode });\n    const gateway = this.getGateway(appType);\n    const result = await gateway.executeChat({\n      query: inputs.query || '',\n      conversationId: inputs.conversation_id,\n      inputs,\n      userId: user,\n    });\n\n    if (isSuccess(result) &amp;&amp; result.value.raw) {\n      return result.value.raw;\n    }\n\n    if (!isSuccess(result)) {\n      throw new Error(result.error.message);\n    }\n\n    throw new Error('Dify 应用调用未返回有效数据');\n  }\n\n  async aiSearch(query: string, inputs: any = {}, conversationId = '', responseMode = 'blocking'): Promise&lt;DifyChatResponse&gt; {\n    \n  }",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 75,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 76,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "class DifyClient {",
+            "lineNumber": 75,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 124
+          },
+          {
+            "lineNumber": 125
+          },
+          {
+            "text": "  async callApp(appType: DifyAppType, inputs: any, responseMode = 'blocking', user = 'todify3-user'): Promise&lt;any&gt; {",
+            "lineNumber": 126,
+            "isSignature": true
+          },
+          {
+            "text": "    logger.info('调用 Dify 应用', { appType, responseMode });",
+            "lineNumber": 127
+          },
+          {
+            "text": "    const gateway = this.getGateway(appType);",
+            "lineNumber": 128
+          },
+          {
+            "text": "    const result = await gateway.executeChat({",
+            "lineNumber": 129
+          },
+          {
+            "text": "      query: inputs.query || '',",
+            "lineNumber": 130
+          },
+          {
+            "text": "      conversationId: inputs.conversation_id,",
+            "lineNumber": 131
+          },
+          {
+            "text": "      inputs,",
+            "lineNumber": 132
+          },
+          {
+            "text": "      userId: user,",
+            "lineNumber": 133
+          },
+          {
+            "text": "    });",
+            "lineNumber": 134
+          },
+          {
+            "lineNumber": 135
+          },
+          {
+            "text": "    if (isSuccess(result) &amp;&amp; result.value.raw) {",
+            "lineNumber": 136
+          },
+          {
+            "text": "      return result.value.raw;",
+            "lineNumber": 137
+          },
+          {
+            "text": "    }",
+            "lineNumber": 138
+          },
+          {
+            "lineNumber": 139
+          },
+          {
+            "text": "    if (!isSuccess(result)) {",
+            "lineNumber": 140
+          },
+          {
+            "text": "      throw new Error(result.error.message);",
+            "lineNumber": 141
+          },
+          {
+            "text": "    }",
+            "lineNumber": 142
+          },
+          {
+            "lineNumber": 143
+          },
+          {
+            "text": "    throw new Error('Dify 应用调用未返回有效数据');",
+            "lineNumber": 144
+          },
+          {
+            "text": "  }",
+            "lineNumber": 145,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 146
+          },
+          {
+            "text": "  async aiSearch(query: string, inputs: any = {}, conversationId = '', responseMode = 'blocking'): Promise&lt;DifyChatResponse&gt; {",
+            "lineNumber": 147,
+            "isSignature": true
+          },
+          {
+            "text": "    ",
+            "lineNumber": 148
+          },
+          {
+            "text": "  }",
+            "lineNumber": 165,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4494597017765045
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/routes/aiRole.ts",
+        "range": {
+          "startPosition": {
+            "line": 604
+          },
+          "endPosition": {
+            "line": 727,
+            "column": 1
+          }
+        },
+        "contents": "async (req, res) =&gt; {\n\n    let actualBaseUrl = apiUrl;\n    if (apiUrl.startsWith('/')) {\n      // 相对路径，通过后端代理处理，使用实际的 Dify 服务器地址\n      actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';\n    }\n    \n    // 使用角色配置的API信息进行连接测试\n    const testQuery = 'Hello, this is a connection test.';\n    const startTime = Date.now();\n    \n    try {\n      // 创建使用角色配置的DifyGateway实例\n      const { DifyGateway } = await import('@/shared/infrastructure/integrations/dify');\n      const gateway = new DifyGateway({\n        baseUrl: actualBaseUrl,\n        workflowBaseUrl: actualBaseUrl,\n        apiKey,\n        timeout: 30_000,\n        maxRetries: 1,\n      });\n      \n      if (connectionType === 'chatflow') {\n        const testResult = await gateway.executeChat({\n          query: testQuery,\n          conversationId: '',\n          inputs: {},\n          userId: 'test-user',\n        });\n        \n        if (!testResult.success) {\n          throw new Error(testResult.error.message);\n        }\n      } else {\n        const testResult = await gateway.executeWorkflow({\n          workflowId: 'test-workflow',\n          inputs: {},\n          userId: 'test-user',\n        });\n        \n        if (!testResult.success) {\n          throw new Error(testResult.error.message);\n        }\n      }\n      \n      const responseTime = Date.now() - startTime;\n      \n      res.json(formatApiResponse(true, {\n        success: true,\n        responseTime\n      }, '连接测试成功'));\n    } catch (testError) {\n      const responseTime = Date.now() - startTime;\n      \n      res.json(formatApiResponse(true, {\n        success: false,\n        responseTime,\n        error: testError instanceof Error ? testError.message : '连接失败'\n      }, '连接测试失败'));\n    }\n  } catch (error) {\n    console.error('AI角色连接测试失败:', error);\n    res.status(500).json(formatApiResponse\n\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 605,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 605,
+                "column": 1
+              }
+            },
+            {
+              "startPosition": {
+                "line": 605,
+                "column": 26
+              },
+              "endPosition": {
+                "line": 606,
+                "column": 3
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "async (req, res) =&gt; {",
+            "lineNumber": 605
+          },
+          {
+            "lineNumber": 659
+          },
+          {
+            "text": "    let actualBaseUrl = apiUrl;",
+            "lineNumber": 660
+          },
+          {
+            "text": "    if (apiUrl.startsWith('/')) {",
+            "lineNumber": 661
+          },
+          {
+            "text": "      // 相对路径，通过后端代理处理，使用实际的 Dify 服务器地址",
+            "lineNumber": 662
+          },
+          {
+            "text": "      actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';",
+            "lineNumber": 663
+          },
+          {
+            "text": "    }",
+            "lineNumber": 664
+          },
+          {
+            "text": "    ",
+            "lineNumber": 665
+          },
+          {
+            "text": "    // 使用角色配置的API信息进行连接测试",
+            "lineNumber": 666
+          },
+          {
+            "text": "    const testQuery = 'Hello, this is a connection test.';",
+            "lineNumber": 667
+          },
+          {
+            "text": "    const startTime = Date.now();",
+            "lineNumber": 668
+          },
+          {
+            "text": "    ",
+            "lineNumber": 669
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 670
+          },
+          {
+            "text": "      // 创建使用角色配置的DifyGateway实例",
+            "lineNumber": 671
+          },
+          {
+            "text": "      const { DifyGateway } = await import('@/shared/infrastructure/integrations/dify');",
+            "lineNumber": 672
+          },
+          {
+            "text": "      const gateway = new DifyGateway({",
+            "lineNumber": 673
+          },
+          {
+            "text": "        baseUrl: actualBaseUrl,",
+            "lineNumber": 674
+          },
+          {
+            "text": "        workflowBaseUrl: actualBaseUrl,",
+            "lineNumber": 675
+          },
+          {
+            "text": "        apiKey,",
+            "lineNumber": 676
+          },
+          {
+            "text": "        timeout: 30_000,",
+            "lineNumber": 677
+          },
+          {
+            "text": "        maxRetries: 1,",
+            "lineNumber": 678
+          },
+          {
+            "text": "      });",
+            "lineNumber": 679
+          },
+          {
+            "text": "      ",
+            "lineNumber": 680
+          },
+          {
+            "text": "      if (connectionType === 'chatflow') {",
+            "lineNumber": 681
+          },
+          {
+            "text": "        const testResult = await gateway.executeChat({",
+            "lineNumber": 682
+          },
+          {
+            "text": "          query: testQuery,",
+            "lineNumber": 683
+          },
+          {
+            "text": "          conversationId: '',",
+            "lineNumber": 684
+          },
+          {
+            "text": "          inputs: {},",
+            "lineNumber": 685
+          },
+          {
+            "text": "          userId: 'test-user',",
+            "lineNumber": 686
+          },
+          {
+            "text": "        });",
+            "lineNumber": 687
+          },
+          {
+            "text": "        ",
+            "lineNumber": 688
+          },
+          {
+            "text": "        if (!testResult.success) {",
+            "lineNumber": 689
+          },
+          {
+            "text": "          throw new Error(testResult.error.message);",
+            "lineNumber": 690
+          },
+          {
+            "text": "        }",
+            "lineNumber": 691
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 692
+          },
+          {
+            "text": "        const testResult = await gateway.executeWorkflow({",
+            "lineNumber": 693
+          },
+          {
+            "text": "          workflowId: 'test-workflow',",
+            "lineNumber": 694
+          },
+          {
+            "text": "          inputs: {},",
+            "lineNumber": 695
+          },
+          {
+            "text": "          userId: 'test-user',",
+            "lineNumber": 696
+          },
+          {
+            "text": "        });",
+            "lineNumber": 697
+          },
+          {
+            "text": "        ",
+            "lineNumber": 698
+          },
+          {
+            "text": "        if (!testResult.success) {",
+            "lineNumber": 699
+          },
+          {
+            "text": "          throw new Error(testResult.error.message);",
+            "lineNumber": 700
+          },
+          {
+            "text": "        }",
+            "lineNumber": 701
+          },
+          {
+            "text": "      }",
+            "lineNumber": 702
+          },
+          {
+            "text": "      ",
+            "lineNumber": 703
+          },
+          {
+            "text": "      const responseTime = Date.now() - startTime;",
+            "lineNumber": 704
+          },
+          {
+            "text": "      ",
+            "lineNumber": 705
+          },
+          {
+            "text": "      res.json(formatApiResponse(true, {",
+            "lineNumber": 706
+          },
+          {
+            "text": "        success: true,",
+            "lineNumber": 707
+          },
+          {
+            "text": "        responseTime",
+            "lineNumber": 708
+          },
+          {
+            "text": "      }, '连接测试成功'));",
+            "lineNumber": 709
+          },
+          {
+            "text": "    } catch (testError) {",
+            "lineNumber": 710
+          },
+          {
+            "text": "      const responseTime = Date.now() - startTime;",
+            "lineNumber": 711
+          },
+          {
+            "text": "      ",
+            "lineNumber": 712
+          },
+          {
+            "text": "      res.json(formatApiResponse(true, {",
+            "lineNumber": 713
+          },
+          {
+            "text": "        success: false,",
+            "lineNumber": 714
+          },
+          {
+            "text": "        responseTime,",
+            "lineNumber": 715
+          },
+          {
+            "text": "        error: testError instanceof Error ? testError.message : '连接失败'",
+            "lineNumber": 716
+          },
+          {
+            "text": "      }, '连接测试失败'));",
+            "lineNumber": 717
+          },
+          {
+            "text": "    }",
+            "lineNumber": 718
+          },
+          {
+            "text": "  } catch (error) {",
+            "lineNumber": 719
+          },
+          {
+            "text": "    console.error('AI角色连接测试失败:', error);",
+            "lineNumber": 720
+          },
+          {
+            "text": "    res.status(500).json(formatApiResponse",
+            "lineNumber": 721
+          },
+          {
+            "lineNumber": 726
+          },
+          {
+            "text": "}",
+            "lineNumber": 728
+          }
+        ]
+      },
+      "score": 0.4423854351043701
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./guide/AI_AGENT_FRAMEWORK_ANALYSIS.md",
+        "range": {
+          "startPosition": {
+            "line": 69
+          },
+          "endPosition": {
+            "line": 135
+          }
+        },
+        "contents": "| **Direct Agent** | AgentOrchestrator | 需要精细控制、工具调用、多轮对话 | ✅ 完全自主控制&lt;br/&gt;✅ 支持Function Calling&lt;br/&gt;❌ 需要自己管理复杂度 |\n| **Dify Agent** | DifyClient + Gateway | 预定义的复杂业务流程 | ✅ 快速配置&lt;br/&gt;✅ 可视化编排&lt;br/&gt;❌ 依赖外部平台 |\n| **工作流引擎** | LangGraphEngine | 多节点编排、条件分支 | ✅ 灵活的DAG执行&lt;br/&gt;❌ 不支持循环&lt;br/&gt;❌ 节点扩展性差 |\n\n---\n\n## 二、核心组件详解\n\n### 2.1 AgentOrchestrator（Agent编排器）\n\n**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;\n\n#### 核心职责\n- 执行Direct Agent类型的AI角色\n- 管理完整的Agent生命周期（从请求到响应）\n- 协调Prompt、Context、Tool的执行\n\n#### 关键特性\n&#96;&#96;&#96;typescript\n// 核心执行方法\nasync executeAgent(\n  roleId: string,\n  query: string,\n  conversationId: string = '',\n  context: Record&lt;string, any&gt; = {}\n): Promise&lt;AgentExecutionResult&gt;\n&#96;&#96;&#96;\n\n**执行流程**:\n1. 加载Agent配置（从数据库）\n2. 渲染System Prompt（变量替换）\n3. 获取上下文消息（根据策略）\n4. 构建完整消息列表\n5. 准备工具定义（Function Calling格式）\n6. 调用LLM（支持多轮工具调用循环，最多10轮）\n7. 保存消息历史\n8. 返回执行结果\n\n**超时控制**:\n- ✅ 总体超时: 6分钟\n- ✅ 单个工具调用超时: 60秒\n- ✅ 最大工具调用迭代: 10轮\n\n**问题点**:\n- ⚠️ 只支持OpenAI Provider（其他Provider标记为TODO）\n- ⚠️ 工具调用为串行执行，无并行优化\n- ⚠️ 缺少重试机制（只在LLM层有重试）\n\n---\n\n### 2.2 PromptManager（Prompt管理器）\n\n**位置**: &#96;backend/src/services/agent/PromptManager.ts&#96;\n\n#### 核心职责\n- Prompt模板渲染\n- 变量替换（支持&#96;{{variable}}&#96;和&#96;{variable}&#96;格式）\n- 嵌套属性解析（如&#96;user.profile.name&#96;）\n\n#### 变量类型\n- &#96;static&#96;: 静态值\n- &#96;dynamic&#96;: 从上下文动态获取\n- &#96;context&#96;: 直接使用上下文中的值\n\n---",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "| **Direct Agent** | AgentOrchestrator | 需要精细控制、工具调用、多轮对话 | ✅ 完全自主控制&lt;br/&gt;✅ 支持Function Calling&lt;br/&gt;❌ 需要自己管理复杂度 |",
+            "lineNumber": 70
+          },
+          {
+            "text": "| **Dify Agent** | DifyClient + Gateway | 预定义的复杂业务流程 | ✅ 快速配置&lt;br/&gt;✅ 可视化编排&lt;br/&gt;❌ 依赖外部平台 |",
+            "lineNumber": 71
+          },
+          {
+            "text": "| **工作流引擎** | LangGraphEngine | 多节点编排、条件分支 | ✅ 灵活的DAG执行&lt;br/&gt;❌ 不支持循环&lt;br/&gt;❌ 节点扩展性差 |",
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "---",
+            "lineNumber": 74
+          },
+          {
+            "lineNumber": 75
+          },
+          {
+            "text": "## 二、核心组件详解",
+            "lineNumber": 76
+          },
+          {
+            "lineNumber": 77
+          },
+          {
+            "text": "### 2.1 AgentOrchestrator（Agent编排器）",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/AgentOrchestrator.ts&#96;",
+            "lineNumber": 80
+          },
+          {
+            "lineNumber": 81
+          },
+          {
+            "text": "#### 核心职责",
+            "lineNumber": 82
+          },
+          {
+            "text": "- 执行Direct Agent类型的AI角色",
+            "lineNumber": 83
+          },
+          {
+            "text": "- 管理完整的Agent生命周期（从请求到响应）",
+            "lineNumber": 84
+          },
+          {
+            "text": "- 协调Prompt、Context、Tool的执行",
+            "lineNumber": 85
+          },
+          {
+            "lineNumber": 86
+          },
+          {
+            "text": "#### 关键特性",
+            "lineNumber": 87
+          },
+          {
+            "text": "&#96;&#96;&#96;typescript",
+            "lineNumber": 88
+          },
+          {
+            "text": "// 核心执行方法",
+            "lineNumber": 89
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 90
+          },
+          {
+            "text": "  roleId: string,",
+            "lineNumber": 91
+          },
+          {
+            "text": "  query: string,",
+            "lineNumber": 92
+          },
+          {
+            "text": "  conversationId: string = '',",
+            "lineNumber": 93
+          },
+          {
+            "text": "  context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 94
+          },
+          {
+            "text": "): Promise&lt;AgentExecutionResult&gt;",
+            "lineNumber": 95
+          },
+          {
+            "text": "&#96;&#96;&#96;",
+            "lineNumber": 96
+          },
+          {
+            "lineNumber": 97
+          },
+          {
+            "text": "**执行流程**:",
+            "lineNumber": 98
+          },
+          {
+            "text": "1. 加载Agent配置（从数据库）",
+            "lineNumber": 99
+          },
+          {
+            "text": "2. 渲染System Prompt（变量替换）",
+            "lineNumber": 100
+          },
+          {
+            "text": "3. 获取上下文消息（根据策略）",
+            "lineNumber": 101
+          },
+          {
+            "text": "4. 构建完整消息列表",
+            "lineNumber": 102
+          },
+          {
+            "text": "5. 准备工具定义（Function Calling格式）",
+            "lineNumber": 103
+          },
+          {
+            "text": "6. 调用LLM（支持多轮工具调用循环，最多10轮）",
+            "lineNumber": 104
+          },
+          {
+            "text": "7. 保存消息历史",
+            "lineNumber": 105
+          },
+          {
+            "text": "8. 返回执行结果",
+            "lineNumber": 106
+          },
+          {
+            "lineNumber": 107
+          },
+          {
+            "text": "**超时控制**:",
+            "lineNumber": 108
+          },
+          {
+            "text": "- ✅ 总体超时: 6分钟",
+            "lineNumber": 109
+          },
+          {
+            "text": "- ✅ 单个工具调用超时: 60秒",
+            "lineNumber": 110
+          },
+          {
+            "text": "- ✅ 最大工具调用迭代: 10轮",
+            "lineNumber": 111
+          },
+          {
+            "lineNumber": 112
+          },
+          {
+            "text": "**问题点**:",
+            "lineNumber": 113
+          },
+          {
+            "text": "- ⚠️ 只支持OpenAI Provider（其他Provider标记为TODO）",
+            "lineNumber": 114
+          },
+          {
+            "text": "- ⚠️ 工具调用为串行执行，无并行优化",
+            "lineNumber": 115
+          },
+          {
+            "text": "- ⚠️ 缺少重试机制（只在LLM层有重试）",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "---",
+            "lineNumber": 118
+          },
+          {
+            "lineNumber": 119
+          },
+          {
+            "text": "### 2.2 PromptManager（Prompt管理器）",
+            "lineNumber": 120
+          },
+          {
+            "lineNumber": 121
+          },
+          {
+            "text": "**位置**: &#96;backend/src/services/agent/PromptManager.ts&#96;",
+            "lineNumber": 122
+          },
+          {
+            "lineNumber": 123
+          },
+          {
+            "text": "#### 核心职责",
+            "lineNumber": 124
+          },
+          {
+            "text": "- Prompt模板渲染",
+            "lineNumber": 125
+          },
+          {
+            "text": "- 变量替换（支持&#96;{{variable}}&#96;和&#96;{variable}&#96;格式）",
+            "lineNumber": 126
+          },
+          {
+            "text": "- 嵌套属性解析（如&#96;user.profile.name&#96;）",
+            "lineNumber": 127
+          },
+          {
+            "lineNumber": 128
+          },
+          {
+            "text": "#### 变量类型",
+            "lineNumber": 129
+          },
+          {
+            "text": "- &#96;static&#96;: 静态值",
+            "lineNumber": 130
+          },
+          {
+            "text": "- &#96;dynamic&#96;: 从上下文动态获取",
+            "lineNumber": 131
+          },
+          {
+            "text": "- &#96;context&#96;: 直接使用上下文中的值",
+            "lineNumber": 132
+          },
+          {
+            "lineNumber": 133
+          },
+          {
+            "text": "---",
+            "lineNumber": 134
+          }
+        ]
+      },
+      "score": 0.43783795833587646
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/modules/ai-search/application/useCases/TriggerAgent.usecase.ts",
+        "range": {
+          "startPosition": {
+            "line": 16
+          },
+          "endPosition": {
+            "line": 273,
+            "column": 1
+          }
+        },
+        "contents": "export class TriggerAgentUseCase {\nasync execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {\n\n\n      if (!featureConfig) {\n        return failure({\n          code: 'FEATURE_NOT_FOUND',\n          message: &#96;未找到功能对象映射配置: ${dto.featureType}&#96;,\n        });\n      }\n\n      // 优先使用 agentId（AI角色ID），如果没有再使用 workflowId\n      // agentId 用于直接调用 AI 角色，workflowId 用于通过工作流调用\n      const configuredAgentId = (featureConfig as any).agentId;\n      const configuredWorkflowId = featureConfig.workflowId;\n      \n      // 如果配置了 agentId，使用它；否则使用 workflowId\n      // 注意：只有当 agentId 是不同的角色时才使用它，避免使用当前工作流\n      let targetWorkflowId: string;\n      if (configuredAgentId &amp;&amp; configuredAgentId !== workflowId) {\n        targetWorkflowId = configuredAgentId;\n        logger.info('使用配置的 AI 角色', {\n          featureType: dto.featureType,\n          agentId: configuredAgentId,\n        });\n      } else if (configuredWorkflowId &amp;&amp; configuredWorkflowId !== workflowId) {\n        targetWorkflowId = configuredWorkflowId;\n        logger.info('使用配置的工作流', {\n          featureType: dto.featureType,\n          workflowId: configuredWorkflowId,\n        });\n      } else {\n        targetWorkflowId = workflowId;\n        logger.warn('功能对象未配置专属 agentId 或 workflowId，将使用当前工作流', {\n          featureType: dto.featureType,\n          fallbackWorkflowId: workflowId,\n          configuredAgentId,\n          configuredWorkflowId,\n        });\n      }\n      const targetMappingConfig = targetWorkflowId === workflowId\n        ? baseMappingConfig\n        : await ensureFieldMappingConfig(this.fieldMappingService, targetWorkflowId);\n\n      const effectiveInputMappings = featureConfig.inputMappings?.length\n        ? featureConfig.inputMappings\n        : targetMappingConfig?.inputMappings || [];\n\n      const effectiveOutputMappings = featureConfig.outputMappings?.length\n;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 17,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 17,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 18,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 23,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 24,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class TriggerAgentUseCase {",
+            "lineNumber": 17,
+            "isSignature": true
+          },
+          {
+            "text": "async execute(conversationId: string, dto: TriggerAgentDTO): Promise&lt;Result&lt;any&gt;&gt; {",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 72
+          },
+          {
+            "lineNumber": 73
+          },
+          {
+            "text": "      if (!featureConfig) {",
+            "lineNumber": 74
+          },
+          {
+            "text": "        return failure({",
+            "lineNumber": 75
+          },
+          {
+            "text": "          code: 'FEATURE_NOT_FOUND',",
+            "lineNumber": 76
+          },
+          {
+            "text": "          message: &#96;未找到功能对象映射配置: ${dto.featureType}&#96;,",
+            "lineNumber": 77
+          },
+          {
+            "text": "        });",
+            "lineNumber": 78
+          },
+          {
+            "text": "      }",
+            "lineNumber": 79
+          },
+          {
+            "lineNumber": 80
+          },
+          {
+            "text": "      // 优先使用 agentId（AI角色ID），如果没有再使用 workflowId",
+            "lineNumber": 81
+          },
+          {
+            "text": "      // agentId 用于直接调用 AI 角色，workflowId 用于通过工作流调用",
+            "lineNumber": 82
+          },
+          {
+            "text": "      const configuredAgentId = (featureConfig as any).agentId;",
+            "lineNumber": 83
+          },
+          {
+            "text": "      const configuredWorkflowId = featureConfig.workflowId;",
+            "lineNumber": 84
+          },
+          {
+            "text": "      ",
+            "lineNumber": 85
+          },
+          {
+            "text": "      // 如果配置了 agentId，使用它；否则使用 workflowId",
+            "lineNumber": 86
+          },
+          {
+            "text": "      // 注意：只有当 agentId 是不同的角色时才使用它，避免使用当前工作流",
+            "lineNumber": 87
+          },
+          {
+            "text": "      let targetWorkflowId: string;",
+            "lineNumber": 88
+          },
+          {
+            "text": "      if (configuredAgentId &amp;&amp; configuredAgentId !== workflowId) {",
+            "lineNumber": 89
+          },
+          {
+            "text": "        targetWorkflowId = configuredAgentId;",
+            "lineNumber": 90
+          },
+          {
+            "text": "        logger.info('使用配置的 AI 角色', {",
+            "lineNumber": 91
+          },
+          {
+            "text": "          featureType: dto.featureType,",
+            "lineNumber": 92
+          },
+          {
+            "text": "          agentId: configuredAgentId,",
+            "lineNumber": 93
+          },
+          {
+            "text": "        });",
+            "lineNumber": 94
+          },
+          {
+            "text": "      } else if (configuredWorkflowId &amp;&amp; configuredWorkflowId !== workflowId) {",
+            "lineNumber": 95
+          },
+          {
+            "text": "        targetWorkflowId = configuredWorkflowId;",
+            "lineNumber": 96
+          },
+          {
+            "text": "        logger.info('使用配置的工作流', {",
+            "lineNumber": 97
+          },
+          {
+            "text": "          featureType: dto.featureType,",
+            "lineNumber": 98
+          },
+          {
+            "text": "          workflowId: configuredWorkflowId,",
+            "lineNumber": 99
+          },
+          {
+            "text": "        });",
+            "lineNumber": 100
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 101
+          },
+          {
+            "text": "        targetWorkflowId = workflowId;",
+            "lineNumber": 102
+          },
+          {
+            "text": "        logger.warn('功能对象未配置专属 agentId 或 workflowId，将使用当前工作流', {",
+            "lineNumber": 103
+          },
+          {
+            "text": "          featureType: dto.featureType,",
+            "lineNumber": 104
+          },
+          {
+            "text": "          fallbackWorkflowId: workflowId,",
+            "lineNumber": 105
+          },
+          {
+            "text": "          configuredAgentId,",
+            "lineNumber": 106
+          },
+          {
+            "text": "          configuredWorkflowId,",
+            "lineNumber": 107
+          },
+          {
+            "text": "        });",
+            "lineNumber": 108
+          },
+          {
+            "text": "      }",
+            "lineNumber": 109
+          },
+          {
+            "text": "      const targetMappingConfig = targetWorkflowId === workflowId",
+            "lineNumber": 110
+          },
+          {
+            "text": "        ? baseMappingConfig",
+            "lineNumber": 111
+          },
+          {
+            "text": "        : await ensureFieldMappingConfig(this.fieldMappingService, targetWorkflowId);",
+            "lineNumber": 112
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "text": "      const effectiveInputMappings = featureConfig.inputMappings?.length",
+            "lineNumber": 114
+          },
+          {
+            "text": "        ? featureConfig.inputMappings",
+            "lineNumber": 115
+          },
+          {
+            "text": "        : targetMappingConfig?.inputMappings || [];",
+            "lineNumber": 116
+          },
+          {
+            "lineNumber": 117
+          },
+          {
+            "text": "      const effectiveOutputMappings = featureConfig.outputMappings?.length",
+            "lineNumber": 118
+          },
+          {
+            "text": ";",
+            "lineNumber": 120
+          },
+          {
+            "text": "  }",
+            "lineNumber": 198
+          },
+          {
+            "text": "}",
+            "lineNumber": 274,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.42749589681625366
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./backend/src/services/agent/AgentOrchestrator.ts",
+        "range": {
+          "startPosition": {
+            "line": 29
+          },
+          "endPosition": {
+            "line": 741,
+            "column": 1
+          }
+        },
+        "contents": "export class AgentOrchestrator {\nasync executeAgent(\n    roleId: string,\n    query: string,\n    conversationId: string = '',\n    context: Record&lt;string, any&gt; = {}\n  ): Promise&lt;AgentExecutionResult&gt; {\nconst contextMessages = await \n\n      );\n      await this.logStep(executionId, 'load_context', {\n        type: 'context',\n        input: { conversationId: finalConversationId, strategy: config.contextStrategy, query },\n        output: { messageCount: contextMessages.length },\n        duration: Date.now() - contextStartTime,\n        status: 'success'\n      });\n\n      // 5. 检查 contextStrategy 配置\n      if (!config.contextStrategy) {\n        throw new Error(&#96;Agent contextStrategy配置不存在: ${roleId}&#96;);\n      }\n\n      // 6. 构建完整消息列表\n      const messages: ChatMessage[] = [];\n      \n      // 根据策略决定是否包含 system prompt\n      if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {\n        messages.push({\n          role: 'system',\n          content: systemPrompt\n        });\n      }\n\n      messages.push(...contextMessages);\n      messages.push({\n        role: 'user',\n        content: query\n      });\n\n      // 6. 准备工具定义（Function Calling）\n      const tools = this.prepareTools(config.tools || []);\n\n      // 7. 获取 LLM Provider\n      const provider = this.getProvider(config.llm);\n\n      // 8. 调用 LLM（可能包含多轮工具调用）\n      checkTimeout();\n      const llmStartTime = Date.now();\n      let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout, executionId);\n      const llmDuration = Date.now() - llmStartTime;\n      \n      // 记录性能指标\n      await this.recordPerformanceMetrics(executionId, 'llm_call', llmDuration, response.usage);\n      \n      await this.logStep(executionId, 'llm_call', {\n        type: 'llm',\n        input: { messageCount: messages.length, toolCount: tools.length },\n        output: { content: response.content, toolCalls: response.toolCalls?.length || 0 },\n        duration: llmDuration,\n        status: 'success'\n      });\n\n      // 9. 保存消息历史\n      await this.saveMessages(finalConversationId, query, response, roleId);\n\n      // 10. 返回结果\n      const totalDuration = Date.now() - startTime;\n  }\n}",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 30,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 30,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 31,
+                "column": 3
+              }
+            },
+            {
+              "startPosition": {
+                "line": 52,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 58,
+                "column": 5
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export class AgentOrchestrator {",
+            "lineNumber": 30,
+            "isSignature": true
+          },
+          {
+            "text": "async executeAgent(",
+            "lineNumber": 52
+          },
+          {
+            "text": "    roleId: string,",
+            "lineNumber": 53
+          },
+          {
+            "text": "    query: string,",
+            "lineNumber": 54
+          },
+          {
+            "text": "    conversationId: string = '',",
+            "lineNumber": 55
+          },
+          {
+            "text": "    context: Record&lt;string, any&gt; = {}",
+            "lineNumber": 56
+          },
+          {
+            "text": "  ): Promise&lt;AgentExecutionResult&gt; {",
+            "lineNumber": 57
+          },
+          {
+            "text": "const contextMessages = await ",
+            "lineNumber": 139
+          },
+          {
+            "lineNumber": 142
+          },
+          {
+            "text": "      );",
+            "lineNumber": 143
+          },
+          {
+            "text": "      await this.logStep(executionId, 'load_context', {",
+            "lineNumber": 144
+          },
+          {
+            "text": "        type: 'context',",
+            "lineNumber": 145
+          },
+          {
+            "text": "        input: { conversationId: finalConversationId, strategy: config.contextStrategy, query },",
+            "lineNumber": 146
+          },
+          {
+            "text": "        output: { messageCount: contextMessages.length },",
+            "lineNumber": 147
+          },
+          {
+            "text": "        duration: Date.now() - contextStartTime,",
+            "lineNumber": 148
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 149
+          },
+          {
+            "text": "      });",
+            "lineNumber": 150
+          },
+          {
+            "lineNumber": 151
+          },
+          {
+            "text": "      // 5. 检查 contextStrategy 配置",
+            "lineNumber": 152
+          },
+          {
+            "text": "      if (!config.contextStrategy) {",
+            "lineNumber": 153
+          },
+          {
+            "text": "        throw new Error(&#96;Agent contextStrategy配置不存在: ${roleId}&#96;);",
+            "lineNumber": 154
+          },
+          {
+            "text": "      }",
+            "lineNumber": 155
+          },
+          {
+            "lineNumber": 156
+          },
+          {
+            "text": "      // 6. 构建完整消息列表",
+            "lineNumber": 157
+          },
+          {
+            "text": "      const messages: ChatMessage[] = [];",
+            "lineNumber": 158
+          },
+          {
+            "text": "      ",
+            "lineNumber": 159
+          },
+          {
+            "text": "      // 根据策略决定是否包含 system prompt",
+            "lineNumber": 160
+          },
+          {
+            "text": "      if (config.contextStrategy.includeSystemPrompt || contextMessages.length === 0) {",
+            "lineNumber": 161
+          },
+          {
+            "text": "        messages.push({",
+            "lineNumber": 162
+          },
+          {
+            "text": "          role: 'system',",
+            "lineNumber": 163
+          },
+          {
+            "text": "          content: systemPrompt",
+            "lineNumber": 164
+          },
+          {
+            "text": "        });",
+            "lineNumber": 165
+          },
+          {
+            "text": "      }",
+            "lineNumber": 166
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "text": "      messages.push(...contextMessages);",
+            "lineNumber": 168
+          },
+          {
+            "text": "      messages.push({",
+            "lineNumber": 169
+          },
+          {
+            "text": "        role: 'user',",
+            "lineNumber": 170
+          },
+          {
+            "text": "        content: query",
+            "lineNumber": 171
+          },
+          {
+            "text": "      });",
+            "lineNumber": 172
+          },
+          {
+            "lineNumber": 173
+          },
+          {
+            "text": "      // 6. 准备工具定义（Function Calling）",
+            "lineNumber": 174
+          },
+          {
+            "text": "      const tools = this.prepareTools(config.tools || []);",
+            "lineNumber": 175
+          },
+          {
+            "lineNumber": 176
+          },
+          {
+            "text": "      // 7. 获取 LLM Provider",
+            "lineNumber": 177
+          },
+          {
+            "text": "      const provider = this.getProvider(config.llm);",
+            "lineNumber": 178
+          },
+          {
+            "lineNumber": 179
+          },
+          {
+            "text": "      // 8. 调用 LLM（可能包含多轮工具调用）",
+            "lineNumber": 180
+          },
+          {
+            "text": "      checkTimeout();",
+            "lineNumber": 181
+          },
+          {
+            "text": "      const llmStartTime = Date.now();",
+            "lineNumber": 182
+          },
+          {
+            "text": "      let response = await this.executeWithTools(provider, messages, config.llm, tools, config.tools || [], checkTimeout, executionId);",
+            "lineNumber": 183
+          },
+          {
+            "text": "      const llmDuration = Date.now() - llmStartTime;",
+            "lineNumber": 184
+          },
+          {
+            "text": "      ",
+            "lineNumber": 185
+          },
+          {
+            "text": "      // 记录性能指标",
+            "lineNumber": 186
+          },
+          {
+            "text": "      await this.recordPerformanceMetrics(executionId, 'llm_call', llmDuration, response.usage);",
+            "lineNumber": 187
+          },
+          {
+            "text": "      ",
+            "lineNumber": 188
+          },
+          {
+            "text": "      await this.logStep(executionId, 'llm_call', {",
+            "lineNumber": 189
+          },
+          {
+            "text": "        type: 'llm',",
+            "lineNumber": 190
+          },
+          {
+            "text": "        input: { messageCount: messages.length, toolCount: tools.length },",
+            "lineNumber": 191
+          },
+          {
+            "text": "        output: { content: response.content, toolCalls: response.toolCalls?.length || 0 },",
+            "lineNumber": 192
+          },
+          {
+            "text": "        duration: llmDuration,",
+            "lineNumber": 193
+          },
+          {
+            "text": "        status: 'success'",
+            "lineNumber": 194
+          },
+          {
+            "text": "      });",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "      // 9. 保存消息历史",
+            "lineNumber": 197
+          },
+          {
+            "text": "      await this.saveMessages(finalConversationId, query, response, roleId);",
+            "lineNumber": 198
+          },
+          {
+            "lineNumber": 199
+          },
+          {
+            "text": "      // 10. 返回结果",
+            "lineNumber": 200
+          },
+          {
+            "text": "      const totalDuration = Date.now() - startTime;",
+            "lineNumber": 201
+          },
+          {
+            "text": "  }",
+            "lineNumber": 255
+          },
+          {
+            "text": "}",
+            "lineNumber": 742,
+            "isSignature": true
+          }
+        ]
+      },
+      "score": 0.4273354113101959
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+实现 `AgentWorkflowService.executeRole`，并修改 `SendMessageUseCase` 以支持 AI 角色执行：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: backend/src/services/AgentWorkflowService.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+修改 `SendMessageUseCase`，使其能够检测并调用 AI 角色：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+检查 workflowResult 的处理逻辑，确保能正确处理 executeRole 的返回结果：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "backend/src/services/AgentWorkflowService.ts",
+    "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "backend/src/services/AgentWorkflowService.ts"
+    },
+    {
+      "relativeWorkspacePath": "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+检查 workflowResult 失败时的处理逻辑：
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "pattern": "workflowResult\\.success|workflowResult\\.message",
+  "path": "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts",
+  "caseInsensitive": false
+}
+```
+Result:
+
+```json
+{
+  "success": {
+    "pattern": "workflowResult\\.success|workflowResult\\.message",
+    "path": "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts",
+    "outputMode": "content",
+    "workspaceResults": {
+      "/Volumes/Lexar/git/03T/todify4": {
+        "content": {}
+      }
+    }
+  }
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+添加 workflowResult 失败检查：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+
+更新 conversation_id 提取逻辑，兼容 executeRole 的返回格式：
+
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "backend/src/modules/ai-search/application/useCases/SendMessage.usecase.ts"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+## 修复内容
+
+### 1. 实现 `AgentWorkflowService.executeRole` 方法
+- 支持 Direct Agent：使用 `AgentOrchestrator` 执行
+- 支持 Dify Agent：根据 `connectionType`（chatflow/workflow）调用 Dify API
+- 返回统一格式的结果
+
+### 2. 修改 `SendMessageUseCase`
+- 检测 `workflowId` 是否为 AI 角色 ID（以 `ai-role-` 或 `role_` 开头）
+- 如果是 AI 角色 ID，调用 `executeRole` 而不是 `executeWorkflow`
+- 添加错误处理，执行失败时返回错误信息
+
+### 3. 更新 conversation_id 提取逻辑
+- 兼容 `executeRole` 返回格式
+- 优先从 `data.conversation_id` 提取，再从 `outputs` 中提取
+
+## 解决的问题
+
+当用户在技术包装页面选择 AI 角色进行对话时：
+- 系统会检测到这是 AI 角色 ID
+- 调用 `executeRole` 执行 AI 角色
+- 不再返回"工作流功能已移除"的错误
+- 正常执行并返回 AI 回复
+
+可以重新尝试对话，AI 角色应能正常执行并返回回复。
 
 ---
 

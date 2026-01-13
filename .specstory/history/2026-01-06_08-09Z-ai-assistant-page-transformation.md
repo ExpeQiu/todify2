@@ -3537,7 +3537,6 @@ _**Agent (model default, mode Agent)**_
 
 ---
 
-
 查看当前代码结构，将 Tab 导航栏移到头部区域：
 
 
@@ -3554,7 +3553,6 @@ _**Agent (model default, mode Agent)**_
 
 
 ---
-
 
 将 Tab 导航栏移到头部区域内部，调整布局：
 
@@ -3625,7 +3623,6 @@ Lint results
 
 ---
 
-
 已将 Tab 导航栏移到头部区域内部。
 
 **调整内容**：
@@ -3656,7 +3653,6 @@ _**Agent (model default, mode Agent)**_
 
 
 ---
-
 
 删除这两个元素：先查看相关代码：
 
@@ -3701,7 +3697,6 @@ Output mode: content
 
 
 ---
-
 
 删除这两个元素：
 
@@ -3792,7 +3787,6 @@ Lint results
 
 ---
 
-
 检查 EmbeddedTechArticlePage 是否也有项目信息显示需要删除：
 
 
@@ -3819,7 +3813,6 @@ Output mode: content
 
 
 ---
-
 
 删除 EmbeddedTechArticlePage 中的项目信息显示：
 
@@ -3887,7 +3880,6 @@ Lint results
 
 ---
 
-
 检查是否需要清理未使用的导入：
 
 
@@ -3939,7 +3931,6 @@ Output mode: content
 
 ---
 
-
 检查 EmbeddedTechArticlePage 中是否仍在使用 project 相关代码：
 
 
@@ -3990,7 +3981,6 @@ Output mode: content
 
 
 ---
-
 
 清理 EmbeddedTechArticlePage 中未使用的项目相关代码：
 
@@ -4108,7 +4098,6 @@ Lint results
 
 ---
 
-
 已完成以下删除和清理：
 
 1. **删除 BaseAISearchPage 中的项目信息显示框**
@@ -4142,7 +4131,6 @@ _**Agent (model default, mode Agent)**_
 
 ---
 
-
 查看 BrainstormPage 的实现，以便在“技术策略”Tab 中使用专家头脑风暴模式：
 
 
@@ -4167,7 +4155,6 @@ _**Agent (model default, mode Agent)**_
 
 
 ---
-
 
 创建嵌入式的专家头脑风暴页面组件，替换技术策略 Tab：
 
