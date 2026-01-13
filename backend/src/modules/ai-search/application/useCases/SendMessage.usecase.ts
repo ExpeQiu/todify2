@@ -100,18 +100,54 @@ export class SendMessageUseCase {
           logger.info('首次对话，未设置Dify conversation_id，Dify将创建新的对话');
         }
 
-        const workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {
-          input: workflowInput,
-        });
+        // 判断 finalWorkflowId 是 AI 角色 ID 还是工作流 ID
+        // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头
+        const isRoleId = finalWorkflowId.startsWith('role_') || finalWorkflowId.startsWith('ai-role-');
+        
+        let workflowResult;
+        if (isRoleId) {
+          // 直接调用 AI 角色
+          logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: finalWorkflowId });
+          workflowResult = await agentWorkflowService.executeRole(finalWorkflowId, {
+            input: workflowInput,
+          });
+        } else {
+          // 通过工作流调用
+          logger.info('检测到工作流 ID，通过工作流调用', { workflowId: finalWorkflowId });
+          workflowResult = await agentWorkflowService.executeWorkflow(finalWorkflowId, {
+            input: workflowInput,
+          });
+        }
+
+        // 检查执行结果
+        if (!workflowResult || (workflowResult as any).success === false) {
+          const errorMessage = (workflowResult as any)?.message || '工作流执行失败';
+          logger.error('工作流执行失败', { 
+            workflowId: finalWorkflowId, 
+            isRoleId,
+            error: errorMessage 
+          });
+          return success({
+            userMessage: formatMessageRecord(userMessageRecord),
+            error: errorMessage,
+            errorDetail: (workflowResult as any)?.data || '请检查工作流配置或AI角色配置',
+          });
+        }
 
         // 从工作流执行结果中提取 Dify conversation_id
         // Agent 节点的输出中可能包含 conversation_id
         let newDifyConversationId: string | null = null;
         
         // 尝试从工作流执行结果的数据中提取 conversation_id
-        // 首先检查 outputs 中是否包含 conversation_id
         const workflowData = (workflowResult as any)?.data;
-        if (workflowData?.outputs) {
+        
+        // 首先检查 data.conversation_id（AI角色执行结果格式）
+        if (workflowData?.conversation_id && typeof workflowData.conversation_id === 'string') {
+          newDifyConversationId = workflowData.conversation_id;
+        }
+        
+        // 然后检查 outputs 中是否包含 conversation_id
+        if (!newDifyConversationId && workflowData?.outputs) {
           const outputs = workflowData.outputs as any;
           if (outputs.conversation_id && typeof outputs.conversation_id === 'string') {
             newDifyConversationId = outputs.conversation_id;
@@ -187,7 +223,6 @@ export class SendMessageUseCase {
         
         // 如果提取的内容为空，尝试从工作流结果中提取
         if (!aiContent || aiContent.trim() === '') {
-          const workflowData = (workflowResult as any)?.data;
           const outputs = (workflowData?.outputs || {}) as any;
           
           // 按优先级尝试多个字段
@@ -229,10 +264,18 @@ export class SendMessageUseCase {
           aiContent = '工作流执行完成';
         }
 
+        // 从工作流结果中提取工具调用信息
+        const toolCallsHistory = workflowData?.metadata?.toolCallsHistory || 
+                                 (workflowResult as any)?.metadata?.toolCallsHistory;
+
         // 确保 extractedOutput.content 也是字符串（用于保存到 outputs 字段）
         const cleanExtractedOutput = {
           ...extractedOutput,
           content: aiContent, // 使用提取的字符串内容
+          metadata: {
+            ...(extractedOutput.metadata || {}),
+            ...(toolCallsHistory ? { toolCalls: toolCallsHistory } : {})
+          }
         };
 
         // 记录保存的消息内容

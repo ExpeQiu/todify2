@@ -10,6 +10,8 @@ import knowledgePointsRouter from './knowledgePointRoutes';
 import difyProxyRouter from './dify-proxy';
 import aiRoleRouter from './aiRole';
 import projectsRouter from './projects';
+// ⚠️ 已废弃: 以下路由已废弃，对应的表已移除
+// @deprecated 请使用 workflow_executions API
 import techPackagingRouter from './techPackaging';
 import techPromotionRouter from './techPromotion';
 import techPressRouter from './techPress';
@@ -56,6 +58,8 @@ router.use('/knowledge-points', knowledgePointsRouter);
 router.use('/dify', difyProxyRouter);
 router.use('/ai-roles', aiRoleRouter);
 router.use('/projects', projectsRouter);
+// ⚠️ 已废弃: 以下路由已废弃，对应的表已移除
+// @deprecated 请使用 workflow_executions API
 router.use('/tech-packaging', techPackagingRouter);
 router.use('/tech-promotion', techPromotionRouter);
 router.use('/tech-press', techPressRouter);

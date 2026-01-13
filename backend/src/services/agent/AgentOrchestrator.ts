@@ -34,6 +34,8 @@ export class AgentOrchestrator {
   private maxToolCallIterations: number = 10; // 防止无限循环
   private currentExecutionId: string = '';
   private currentAgentId: string = '';
+  private currentConversationId: string = ''; // 当前对话ID，用于工具调用事件
+  private toolCallsHistory: Array<{ toolName: string; status: string; error?: string }> = []; // 工具调用历史
 
   constructor() {
     this.promptManager = new PromptManager();
@@ -108,6 +110,8 @@ export class AgentOrchestrator {
 
       // 2. 生成或使用 conversationId
       const finalConversationId = conversationId || this.generateConversationId();
+      this.currentConversationId = finalConversationId; // 保存当前对话ID
+      this.toolCallsHistory = []; // 重置工具调用历史
 
       // 3. 检查 prompt 配置
       if (!config.prompt) {
@@ -195,7 +199,7 @@ export class AgentOrchestrator {
       });
 
       // 9. 保存消息历史
-      await this.saveMessages(finalConversationId, query, response, roleId);
+      await this.saveMessages(finalConversationId, query, response, roleId, this.toolCallsHistory);
 
       // 10. 返回结果
       const totalDuration = Date.now() - startTime;
@@ -222,7 +226,8 @@ export class AgentOrchestrator {
           model: response.model,
           finishReason: response.finishReason,
           toolCalls: response.toolCalls?.length || 0,
-          executionId
+          executionId,
+          toolCallsHistory: this.toolCallsHistory.length > 0 ? this.toolCallsHistory : undefined
         }
       };
     } catch (error) {
@@ -251,6 +256,7 @@ export class AgentOrchestrator {
     } finally {
       this.currentExecutionId = '';
       this.currentAgentId = '';
+      this.currentConversationId = '';
     }
   }
 
@@ -301,7 +307,40 @@ export class AgentOrchestrator {
         checkTimeout();
       }
       const toolStartTime = Date.now();
-      const toolResults = await this.executeTools(response.toolCalls, toolConfigs, checkTimeout, executionId);
+      
+      // 记录工具调用开始
+      const toolCallsInThisIteration = response.toolCalls.map((tc: any) => ({
+        toolName: tc.function.name,
+        status: 'running'
+      }));
+      this.toolCallsHistory.push(...toolCallsInThisIteration);
+      
+      const toolResults = await this.executeTools(
+        response.toolCalls, 
+        toolConfigs, 
+        checkTimeout, 
+        executionId,
+        this.currentConversationId
+      );
+      
+      // 更新工具调用状态
+      toolResults.forEach((result, index) => {
+        const toolCall = this.toolCallsHistory.find(tc => tc.toolName === response.toolCalls[index]?.function.name);
+        if (toolCall) {
+          try {
+            const resultData = JSON.parse(result.content);
+            if (resultData.error) {
+              toolCall.status = 'error';
+              toolCall.error = resultData.error;
+            } else {
+              toolCall.status = 'complete';
+            }
+          } catch {
+            toolCall.status = 'complete';
+          }
+        }
+      });
+      
       if (executionId) {
         await this.logStep(executionId, `tool_execution_${iteration}`, {
           type: 'tool',
@@ -368,7 +407,8 @@ export class AgentOrchestrator {
     toolCall: any,
     toolConfig: ToolConfig,
     checkTimeout?: () => void,
-    executionId?: string
+    executionId?: string,
+    conversationId?: string
   ): Promise<{ toolCallId: string; toolName: string; content: string }> {
     const TOOL_TIMEOUT = 60000; // 每个工具调用60秒超时
     const toolCallStartTime = Date.now();
@@ -379,7 +419,7 @@ export class AgentOrchestrator {
       }
 
       const result = await Promise.race([
-        this.toolExecutor.executeTool(toolCall, toolConfig),
+        this.toolExecutor.executeTool(toolCall, toolConfig, conversationId),
         new Promise<string>((_, reject) => 
           setTimeout(() => reject(new Error(`工具调用超时: ${toolCall.function.name} (${TOOL_TIMEOUT / 1000}秒)`)), TOOL_TIMEOUT)
         )
@@ -447,7 +487,8 @@ export class AgentOrchestrator {
     toolCalls: any[],
     toolConfigs: ToolConfig[],
     checkTimeout?: () => void,
-    executionId?: string
+    executionId?: string,
+    conversationId?: string
   ): Promise<Array<{ toolCallId: string; toolName: string; content: string }>> {
     // 判断是否可以并行执行
     const canParallel = this.canExecuteInParallel(toolCalls, toolConfigs);
@@ -465,7 +506,7 @@ export class AgentOrchestrator {
           });
         }
 
-        return this.executeSingleTool(toolCall, config, checkTimeout, executionId);
+        return this.executeSingleTool(toolCall, config, checkTimeout, executionId, conversationId);
       });
 
       const results = await Promise.all(promises);
@@ -492,7 +533,7 @@ export class AgentOrchestrator {
         }
 
         // 使用executeSingleTool方法执行单个工具
-        const result = await this.executeSingleTool(toolCall, config, checkTimeout, executionId);
+        const result = await this.executeSingleTool(toolCall, config, checkTimeout, executionId, conversationId);
         results.push(result);
       }
 
@@ -561,7 +602,8 @@ export class AgentOrchestrator {
     conversationId: string,
     userQuery: string,
     response: LLMResponse,
-    roleId: string
+    roleId: string,
+    toolCalls?: Array<{ toolName: string; status: string; error?: string }>
   ): Promise<void> {
     try {
       // 创建或更新对话会话

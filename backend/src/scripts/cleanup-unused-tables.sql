@@ -1,0 +1,73 @@
+-- ==============================================
+-- 数据库清理脚本
+-- 清理未使用的表定义（这些表在Schema中定义但实际不存在）
+-- 生成时间: 2025-01-13
+-- ==============================================
+--
+-- 说明: 以下表采用JSON存储策略，数据存储在 workflow_executions.outputs 中
+-- 因此不需要独立的表。如果未来需要内容管理功能，可以重新创建这些表。
+--
+-- 清理的表列表:
+-- 1. tech_packaging_materials - 技术包装材料（JSON存储）
+-- 2. tech_promotion_strategies - 技术推广策略（JSON存储）
+-- 3. tech_press_releases - 技术通稿（JSON存储）
+-- 4. tech_speeches - 技术演讲稿（JSON存储）
+-- 5. promotion_tech_points - 推广策略与技术点关联（JSON存储）
+-- 6. press_tech_points - 通稿与技术点关联（JSON存储）
+-- 7. speech_tech_points - 演讲稿与技术点关联（JSON存储）
+-- 8. tech_packaging_conversations - 技术包装关联对话（JSON存储）
+-- 9. tech_packaging_sources - 技术包装关联来源（JSON存储）
+-- 10. tech_promotion_conversations - 推广策略关联对话（JSON存储）
+-- 11. tech_promotion_sources - 推广策略关联来源（JSON存储）
+-- 12. tech_press_conversations - 通稿关联对话（JSON存储）
+-- 13. tech_press_sources - 通稿关联来源（JSON存储）
+--
+-- ==============================================
+-- 注意: 此脚本仅用于文档说明，实际这些表在数据库中不存在
+-- 真正的清理工作是在Schema文件中移除这些表的定义
+-- ==============================================
+
+-- 如果这些表存在（不应该存在），可以执行以下删除语句
+-- 但建议先备份数据库！
+
+-- 删除关联表（先删除，因为外键约束）
+-- DROP TABLE IF EXISTS tech_packaging_conversations;
+-- DROP TABLE IF EXISTS tech_packaging_sources;
+-- DROP TABLE IF EXISTS tech_promotion_conversations;
+-- DROP TABLE IF EXISTS tech_promotion_sources;
+-- DROP TABLE IF EXISTS tech_press_conversations;
+-- DROP TABLE IF EXISTS tech_press_sources;
+-- DROP TABLE IF EXISTS promotion_tech_points;
+-- DROP TABLE IF EXISTS press_tech_points;
+-- DROP TABLE IF EXISTS speech_tech_points;
+
+-- 删除主表
+-- DROP TABLE IF EXISTS tech_packaging_materials;
+-- DROP TABLE IF EXISTS tech_promotion_strategies;
+-- DROP TABLE IF EXISTS tech_press_releases;
+-- DROP TABLE IF EXISTS tech_speeches;
+
+-- ==============================================
+-- 验证清理结果
+-- ==============================================
+-- 执行以下查询确认这些表不存在：
+--
+-- SELECT name FROM sqlite_master 
+-- WHERE type='table' 
+-- AND name IN (
+--   'tech_packaging_materials',
+--   'tech_promotion_strategies',
+--   'tech_press_releases',
+--   'tech_speeches',
+--   'promotion_tech_points',
+--   'press_tech_points',
+--   'speech_tech_points',
+--   'tech_packaging_conversations',
+--   'tech_packaging_sources',
+--   'tech_promotion_conversations',
+--   'tech_promotion_sources',
+--   'tech_press_conversations',
+--   'tech_press_sources'
+-- );
+--
+-- 预期结果: 0 rows（这些表不应该存在）

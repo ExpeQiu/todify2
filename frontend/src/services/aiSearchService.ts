@@ -485,9 +485,14 @@ class AiSearchService {
     }
   ): Promise<{ message: Message } | null> {
     try {
+      // 设置更长的超时时间（7分钟），匹配后端的最大执行时间（6分钟）+ 缓冲
+      // 因为 Agent 执行可能需要多轮工具调用，需要较长时间
       const response = await api.post(
         `/ai-search/conversations/${conversationId}/agents`,
-        payload
+        payload,
+        {
+          timeout: 420_000, // 7分钟超时（420秒），匹配后端最大执行时间 + 缓冲
+        }
       );
 
       if (response.data.success && response.data.data?.message) {

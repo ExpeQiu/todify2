@@ -31,6 +31,7 @@ import { GetAllFieldMappingConfigsUseCase } from '../application/useCases/GetAll
 import { DeleteFieldMappingConfigUseCase } from '../application/useCases/DeleteFieldMappingConfig.usecase';
 import { AggregateTechArticleUseCase } from '../application/useCases/AggregateTechArticle.usecase';
 import { AggregateTechArticleSchema } from '../application/dto/AggregateTechArticle.dto';
+import { toolCallEventManager } from '@/services/agent/ToolCallEventManager';
 
 const router = Router();
 
@@ -988,6 +989,54 @@ router.post('/tech-article/aggregate', ensureTablesInitialized, async (req: Requ
       )
     );
   }
+});
+
+/**
+ * 工具调用事件 SSE 流
+ * GET /api/v1/ai-search/tool-events/:conversationId
+ */
+router.get('/tool-events/:conversationId', (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+
+  // 设置 SSE 响应头
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // 禁用 Nginx 缓冲
+
+  // 发送初始连接确认
+  res.write(`data: ${JSON.stringify({ type: 'connected', conversationId })}\n\n`);
+
+  // 订阅工具调用事件
+  const unsubscribe = toolCallEventManager.subscribe(conversationId, (event) => {
+    try {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    } catch (error) {
+      logger.error('发送 SSE 事件失败', { error, conversationId });
+    }
+  });
+
+  // 客户端断开连接时清理
+  req.on('close', () => {
+    unsubscribe();
+    res.end();
+  });
+
+  // 定期发送心跳（防止连接超时）
+  const heartbeatInterval = setInterval(() => {
+    try {
+      res.write(`: heartbeat\n\n`);
+    } catch (error) {
+      clearInterval(heartbeatInterval);
+      unsubscribe();
+      res.end();
+    }
+  }, 30000); // 每30秒发送一次心跳
+
+  // 清理心跳定时器
+  req.on('close', () => {
+    clearInterval(heartbeatInterval);
+  });
 });
 
 export default router;

@@ -3,6 +3,7 @@ import { TechCategoryModel } from './TechCategory';
 import { TechPointModel } from './TechPoint';
 import { AIRoleModel } from './AIRole';
 import { ProjectModel } from './Project';
+// ⚠️ 已废弃: 以下模型对应的表已移除，数据存储在 workflow_executions.outputs 中
 import { TechPackagingMaterialModel } from './TechPackagingMaterial';
 import { TechPromotionStrategyModel } from './TechPromotionStrategy';
 import { TechPressReleaseModel } from './TechPressRelease';
@@ -21,6 +22,8 @@ export const techCategoryModel = new TechCategoryModel(db);
 export const techPointModel = new TechPointModel(db);
 export const aiRoleModel = new AIRoleModel(db);
 export const projectModel = new ProjectModel(db);
+// ⚠️ 已废弃: 以下模型实例已废弃，对应的表已移除
+// @deprecated 请使用 workflow_executions 表获取数据
 export const techPackagingMaterialModel = new TechPackagingMaterialModel(db);
 export const techPromotionStrategyModel = new TechPromotionStrategyModel(db);
 export const techPressReleaseModel = new TechPressReleaseModel(db);
@@ -41,6 +44,8 @@ export { TechCategoryModel } from './TechCategory';
 export { TechPointModel } from './TechPoint';
 export { AIRoleModel } from './AIRole';
 export { ProjectModel } from './Project';
+// ⚠️ 已废弃: 以下模型类已废弃，对应的表已移除
+// @deprecated 请使用 workflow_executions 表获取数据
 export { TechPackagingMaterialModel } from './TechPackagingMaterial';
 export { TechPromotionStrategyModel } from './TechPromotionStrategy';
 export { TechPressReleaseModel } from './TechPressRelease';

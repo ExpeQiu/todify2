@@ -32,6 +32,7 @@ interface DialogueContentProps {
   onHideSidebar?: () => void;
   onShowSourceSidebar?: () => void; // 显示左侧来源边栏的回调
   onShowConversationList?: () => void; // 显示对话历史列表的回调
+  toolOutputModifications?: Map<string, string>; // 修改的工具输出，用于在发送消息时附加到上下文
 }
 
 const DialogueContent: React.FC<DialogueContentProps> = ({
@@ -58,6 +59,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   onHideSidebar,
   onShowSourceSidebar,
   onShowConversationList,
+  toolOutputModifications,
 }) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -256,8 +258,24 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         }
       }
 
+      // 如果有修改的工具输出，附加到消息内容中
+      let finalContent = submission.content;
+      if (toolOutputModifications && toolOutputModifications.size > 0) {
+        const modificationsText = Array.from(toolOutputModifications.entries())
+          .map(([toolName, content]) => {
+            const toolLabel = toolName.replace('Consult_', '').replace(/_/g, ' ');
+            return `\n\n=== ${toolLabel} 修改后的输出（请参考以下内容）===\n${content}`;
+          })
+          .join('\n\n');
+        finalContent = submission.content + modificationsText;
+        console.log('[DialogueContent] 附加修改的工具输出到消息', {
+          toolCount: toolOutputModifications.size,
+          additionalLength: modificationsText.length
+        });
+      }
+
       const response = await aiSearchService.sendMessage(activeConversation.id, {
-        content: submission.content,
+        content: finalContent,
         sources: newSources, // 只传递新增的来源
         contextWindowSize,
         workflowId: finalWorkflowId,

@@ -6,6 +6,9 @@ import { LangGraphEngine } from '../workflow/langgraph/LangGraphEngine';
 import { evaluate } from 'mathjs';
 import DifyClient from '../DifyClient';
 import { AgentOrchestrator } from './AgentOrchestrator';
+import { toolToRoleMapping, toolToFeatureTypeMapping } from './tools/expert-tools';
+import { DifyGateway } from '@/shared/infrastructure/integrations/dify';
+import { toolCallEventManager } from './ToolCallEventManager';
 
 /**
  * 工具执行结果
@@ -29,9 +32,19 @@ export class ToolExecutor {
    * 执行工具调用
    * @param toolCall 工具调用信息
    * @param toolConfig 工具配置
+   * @param conversationId 对话ID（可选，用于事件推送）
    * @returns 执行结果（JSON 字符串）
    */
-  async executeTool(toolCall: ToolCall, toolConfig: ToolConfig): Promise<string> {
+  async executeTool(toolCall: ToolCall, toolConfig: ToolConfig, conversationId?: string): Promise<string> {
+    const toolName = toolConfig.name;
+    
+    // 发送工具开始事件
+    if (conversationId) {
+      toolCallEventManager.emitToolStart(conversationId, toolName, toolConfig.id, {
+        arguments: toolCall.function.arguments
+      });
+    }
+
     try {
       // 解析参数
       const args = JSON.parse(toolCall.function.arguments || '{}');
@@ -64,7 +77,8 @@ export class ToolExecutor {
           break;
 
         case 'agent':
-          result = await this.executeAgent(toolConfig, args);
+          // 传递 conversationId 给 executeAgent
+          result = await this.executeAgent(toolConfig, args, conversationId);
           break;
 
         default:
@@ -75,12 +89,37 @@ export class ToolExecutor {
       }
 
       if (!result.success) {
+        // 发送工具错误事件
+        if (conversationId) {
+          toolCallEventManager.emitToolError(conversationId, toolName, result.error || '工具执行失败');
+        }
         return JSON.stringify({ error: result.error || '工具执行失败' });
+      }
+
+      // 发送工具完成事件
+      if (conversationId) {
+        try {
+          const resultData = JSON.parse(result.content);
+          toolCallEventManager.emitToolComplete(conversationId, toolName, resultData);
+        } catch {
+          // 如果结果不是 JSON，直接发送原始内容
+          toolCallEventManager.emitToolComplete(conversationId, toolName, { content: result.content });
+        }
       }
 
       return result.content;
     } catch (error) {
       console.error(`工具执行失败: ${toolConfig.name}`, error);
+      
+      // 发送工具错误事件
+      if (conversationId) {
+        toolCallEventManager.emitToolError(
+          conversationId, 
+          toolName, 
+          error instanceof Error ? error.message : '工具执行失败'
+        );
+      }
+      
       return JSON.stringify({
         error: error instanceof Error ? error.message : '工具执行失败'
       });
@@ -408,19 +447,112 @@ export class ToolExecutor {
 
   /**
    * 执行 Agent 嵌套调用工具
+   * 支持专家工具（Consult_Tech, Consult_Scene, Consult_Market, Consult_Content）
+   * @param conversationId 对话ID（可选，用于事件推送）
    */
-  private async executeAgent(toolConfig: ToolConfig, args: any): Promise<ToolExecutionResult> {
+  private async executeAgent(toolConfig: ToolConfig, args: any, conversationId?: string): Promise<ToolExecutionResult> {
     try {
       const implementation = toolConfig.implementation;
-      if (!implementation || !implementation.agentId) {
+      
+      // 检查是否是专家工具
+      const isExpertTool = toolConfig.name && (
+        toolConfig.name.startsWith('Consult_') ||
+        toolToRoleMapping[toolConfig.name]
+      );
+
+      let targetAgentId: string | null = null;
+
+      if (isExpertTool && toolConfig.name) {
+        // 专家工具：根据工具名称映射到专家角色
+        const roleId = toolToRoleMapping[toolConfig.name];
+        
+        // 所有专家工具都使用对应的 Direct Agent
+        // 专家角色配置：
+        // - tech-fundamentalist (技术原教旨主义者) - Direct Agent
+        // - scene-alchemist (场景炼金术师) - Direct Agent  
+        // - market-sniper (市场狙击手) - Direct Agent
+        // - content-director (内容大导演) - Direct Agent
+        targetAgentId = roleId || implementation?.agentId;
+        
+        if (!targetAgentId) {
+          console.warn(`专家工具 ${toolConfig.name} 未找到对应的角色ID`, { 
+            toolName: toolConfig.name,
+            roleId,
+            implementation 
+          });
+        }
+      } else {
+        // 普通 Agent 工具
+        if (!implementation || !implementation.agentId) {
+          return {
+            success: false,
+            content: JSON.stringify({ error: 'Agent ID 未配置' })
+          };
+        }
+        targetAgentId = implementation.agentId;
+      }
+
+      if (!targetAgentId) {
         return {
           success: false,
-          content: JSON.stringify({ error: 'Agent ID 未配置' })
+          content: JSON.stringify({ error: '无法确定目标 Agent ID' })
         };
       }
 
-      const agentId = implementation.agentId;
-      const query = args.query || args.input || JSON.stringify(args);
+      // 构建查询内容
+      let query = args.query || args.input || '';
+      if (!query) {
+        // 如果没有 query，根据工具类型构建查询
+        if (toolConfig.name === 'Consult_Tech') {
+          // 技术原教旨主义者：优先使用 techDocument，如果有 analysisType 也包含
+          const techDoc = args.techDocument || '';
+          const analysisType = args.analysisType || '';
+          if (techDoc) {
+            query = analysisType 
+              ? `请进行${analysisType === 'five-view' ? '五看分析' : analysisType === 'three-fix' ? '三定分析' : '技术矩阵分析'}：\n\n${techDoc}`
+              : `请分析以下技术文档：\n\n${techDoc}`;
+          } else {
+            query = '请分析技术文档';
+          }
+        } else if (toolConfig.name === 'Consult_Scene') {
+          // 场景炼金术师：使用 techPoint 和 userContext
+          const techPoint = args.techPoint || '';
+          const userContext = args.userContext || '';
+          query = techPoint 
+            ? `请分析技术点"${techPoint}"的用户场景${userContext ? `，用户画像：${userContext}` : ''}`
+            : '请分析用户场景';
+        } else if (toolConfig.name === 'Consult_Market') {
+          // 市场狙击手：使用 techDescription、targetAudience、competitors
+          const techDesc = args.techDescription || '';
+          const targetAudience = args.targetAudience || '';
+          const competitors = args.competitors || '';
+          const parts: string[] = [];
+          if (techDesc) parts.push(`技术描述：${techDesc}`);
+          if (targetAudience) parts.push(`目标人群：${targetAudience}`);
+          if (competitors) parts.push(`竞品信息：${competitors}`);
+          query = parts.length > 0 
+            ? `请分析市场策略：\n${parts.join('\n')}`
+            : '请分析市场策略';
+        } else if (toolConfig.name === 'Consult_Content') {
+          // 内容大导演：使用 strategy、contentType、materials
+          const strategy = args.strategy || '';
+          const contentType = args.contentType || 'script';
+          const materials = args.materials || '';
+          const parts: string[] = [];
+          if (strategy) parts.push(`传播策略：${strategy}`);
+          if (materials) parts.push(`已有素材：${materials}`);
+          query = parts.length > 0
+            ? `请生成${contentType === 'script' ? '脚本' : contentType === 'ppt-outline' ? 'PPT大纲' : contentType === 'poster' ? '海报文案' : '视频分镜'}：\n${parts.join('\n')}`
+            : `请生成${contentType === 'script' ? '脚本' : contentType === 'ppt-outline' ? 'PPT大纲' : contentType === 'poster' ? '海报文案' : '视频分镜'}`;
+        } else {
+          // 其他工具：尝试从 args 中提取有意义的内容
+          const meaningfulArgs = Object.entries(args)
+            .filter(([key]) => !key.startsWith('_') && args[key])
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n');
+          query = meaningfulArgs || JSON.stringify(args);
+        }
+      }
 
       // 检查调用深度（防止无限递归）
       const maxDepth = 3;
@@ -437,66 +569,175 @@ export class ToolExecutor {
       }
 
       // 获取 Agent 配置
-      const agent = await aiRoleModel.getById(agentId);
+      const agent = await aiRoleModel.getById(targetAgentId);
       if (!agent || !agent.enabled) {
         return {
           success: false,
-          content: JSON.stringify({ error: `Agent 不存在或已禁用: ${agentId}` })
+          content: JSON.stringify({ error: `Agent 不存在或已禁用: ${targetAgentId}` })
         };
       }
 
-      // 只支持 Direct Agent 类型的嵌套调用
-      if (agent.provider !== 'direct-agent') {
+      // 专家工具统一使用 Direct Agent
+      // 所有专家角色（tech-fundamentalist, scene-alchemist, market-sniper, content-director）都是 Direct Agent 类型
+      if (agent.provider === 'direct-agent') {
+        // 使用 Direct Agent
+        const orchestrator = new AgentOrchestrator();
+        
+        // 从args中提取context，但不包括_callDepth
+        const context: Record<string, any> = { ...args };
+        delete context._callDepth;
+        delete context.query;
+        delete context.input;
+        
+        // 传递调用深度信息和工具元数据
+        const nestedContext = {
+          ...context,
+          _callDepth: currentDepth + 1,
+          _toolName: toolConfig.name,
+          _toolType: toolConfig.type
+        };
+
+        const result = await orchestrator.executeAgent(
+          targetAgentId,
+          query,
+          '', // 新对话，避免嵌套调用共享对话历史
+          nestedContext
+        );
+
+        return {
+          success: true,
+          content: JSON.stringify({
+            content: result.content,
+            usage: result.usage,
+            depth: currentDepth + 1,
+            conversationId: result.conversationId,
+            toolName: toolConfig.name,
+            metadata: {
+              ...result.metadata,
+              nestedCall: true,
+              callDepth: currentDepth + 1,
+              toolName: toolConfig.name
+            }
+          })
+        };
+      } else if (agent.provider === 'dify') {
+        // 如果专家工具配置为 Dify 类型（向后兼容），使用 Dify Agent
+        return await this.executeDifyAgent(agent, query, args);
+      } else {
         return {
           success: false,
           content: JSON.stringify({ 
-            error: `Agent ${agentId} 不是 Direct Agent 类型，不支持嵌套调用`,
-            provider: agent.provider
+            error: `Agent ${targetAgentId} 的 provider 类型不支持: ${agent.provider}`,
+            provider: agent.provider,
+            expectedProvider: 'direct-agent'
           })
         };
       }
-
-      // 调用 AgentOrchestrator 执行嵌套 Agent
-      const orchestrator = new AgentOrchestrator();
-      
-      // 从args中提取context，但不包括_callDepth
-      const context: Record<string, any> = { ...args };
-      delete context._callDepth;
-      delete context.query;
-      delete context.input;
-      
-      // 传递调用深度信息
-      const nestedContext = {
-        ...context,
-        _callDepth: currentDepth + 1
-      };
-
-      const result = await orchestrator.executeAgent(
-        agentId,
-        query,
-        '', // 新对话，避免嵌套调用共享对话历史
-        nestedContext
-      );
-
-      return {
-        success: true,
-        content: JSON.stringify({
-          content: result.content,
-          usage: result.usage,
-          depth: currentDepth + 1,
-          conversationId: result.conversationId,
-          metadata: {
-            ...result.metadata,
-            nestedCall: true,
-            callDepth: currentDepth + 1
-          }
-        })
-      };
     } catch (error) {
       return {
         success: false,
         content: JSON.stringify({ 
           error: error instanceof Error ? error.message : 'Agent 调用失败',
+          details: error instanceof Error ? error.stack : String(error)
+        })
+      };
+    }
+  }
+
+  /**
+   * 执行 Dify Agent
+   */
+  private async executeDifyAgent(agent: any, query: string, args: any): Promise<ToolExecutionResult> {
+    try {
+      const difyConfig = agent.difyConfig ? JSON.parse(agent.difyConfig) : null;
+      if (!difyConfig) {
+        return {
+          success: false,
+          content: JSON.stringify({ error: 'Dify 配置不存在' })
+        };
+      }
+
+      const { connectionType, apiKey, apiUrl } = difyConfig;
+      let actualBaseUrl = apiUrl;
+      if (apiUrl && apiUrl.startsWith('/')) {
+        actualBaseUrl = process.env.DIFY_BASE_URL || 'http://47.113.225.93:9999/v1';
+      }
+
+      // 创建 DifyGateway
+      const gateway = new DifyGateway({
+        baseUrl: actualBaseUrl,
+        workflowBaseUrl: actualBaseUrl,
+        apiKey,
+        timeout: 60000,
+        maxRetries: 3,
+      });
+
+      // 构建输入参数
+      const inputs: Record<string, any> = {
+        query: query,
+        ...args
+      };
+      const conversationId = args.conversationId || '';
+
+      // 调用 Dify
+      if (connectionType === 'chatflow') {
+        const chatResult = await gateway.executeChat({
+          query,
+          conversationId,
+          inputs,
+          userId: 'expert-tool',
+        });
+
+        if (chatResult.success && chatResult.value) {
+          const chatData = chatResult.value.raw as any;
+          return {
+            success: true,
+            content: JSON.stringify({
+              content: chatData.answer || chatResult.value.answer || '',
+              conversationId: chatData.conversation_id || chatResult.value.conversationId || conversationId,
+              metadata: chatData.metadata || {}
+            })
+          };
+        } else {
+          return {
+            success: false,
+            content: JSON.stringify({ 
+              error: chatResult.error?.message || 'Dify 聊天调用失败'
+            })
+          };
+        }
+      } else {
+        // workflow 模式
+        const workflowResult = await gateway.executeWorkflow({
+          workflowId: 'custom-workflow',
+          inputs,
+          userId: 'expert-tool',
+        });
+
+        if (workflowResult.success && workflowResult.value) {
+          const workflowData = workflowResult.value.raw as any;
+          return {
+            success: true,
+            content: JSON.stringify({
+              content: workflowData.data?.outputs?.text || workflowData.data?.outputs?.answer || '',
+              conversationId: workflowData.conversation_id || conversationId,
+              metadata: workflowData.metadata || {}
+            })
+          };
+        } else {
+          return {
+            success: false,
+            content: JSON.stringify({ 
+              error: workflowResult.error?.message || 'Dify Workflow 调用失败'
+            })
+          };
+        }
+      }
+    } catch (error) {
+      return {
+        success: false,
+        content: JSON.stringify({ 
+          error: error instanceof Error ? error.message : 'Dify Agent 调用失败',
           details: error instanceof Error ? error.stack : String(error)
         })
       };

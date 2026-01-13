@@ -801,7 +801,7 @@ const TechPointDetail: React.FC<TechPointDetailProps> = ({
                   : modelName;
                 
                 // 调试日志：检查数据准确性
-                if (process.env.NODE_ENV === 'development') {
+                if (import.meta.env.DEV) {
                   console.log('车型数据:', {
                     id: carModel.id,
                     brand_id: carModel.brand_id,

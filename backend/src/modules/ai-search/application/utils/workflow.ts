@@ -2,16 +2,53 @@ import { agentWorkflowService } from '@/services/AgentWorkflowService';
 import type { FieldMappingService } from '@/services/AiSearchService';
 import { fieldMappingEngine } from '@/utils/fieldMapping';
 import { logger } from '@/shared/lib/logger';
+import { aiRoleModel } from '@/models';
+import type { FieldMappingConfig } from '@/types/aiSearch';
 
-export const resolveWorkflowId = async (): Promise<string | null> => {
-  const workflowId = process.env.AI_SEARCH_WORKFLOW_ID || null;
-  if (workflowId) {
-    return workflowId;
+export const resolveWorkflowId = async (pageType?: string): Promise<string | null> => {
+  // 如果是技术包装页面，优先使用主控 AI 角色
+  if (pageType === 'tech-package') {
+    const techPackageRoleId = 'independent-page-tech-package';
+    const role = await aiRoleModel.getById(techPackageRoleId);
+    if (role && role.enabled) {
+      logger.info('技术包装页面使用主控 AI 角色', { roleId: techPackageRoleId });
+      return techPackageRoleId;
+    }
   }
 
+  // 检查环境变量
+  const workflowId = process.env.AI_SEARCH_WORKFLOW_ID || null;
+  if (workflowId) {
+    // 检查是否是 AI 角色 ID
+    const isRoleId = workflowId.startsWith('role_') || workflowId.startsWith('ai-role-') || workflowId.startsWith('independent-page-');
+    if (isRoleId) {
+      const role = await aiRoleModel.getById(workflowId);
+      if (role && role.enabled) {
+        logger.info('使用环境变量指定的 AI 角色', { roleId: workflowId });
+        return workflowId;
+      }
+    } else {
+      // 是工作流 ID，直接返回
+      return workflowId;
+    }
+  }
+
+  // 尝试从工作流中查找
   const workflows = await agentWorkflowService.getAllWorkflows() as any[];
   const defaultWorkflow = workflows.find((w: any) => w.name === '智能工作流');
-  return defaultWorkflow?.id || workflows[0]?.id || null;
+  const foundWorkflowId = defaultWorkflow?.id || workflows[0]?.id || null;
+  
+  // 如果找不到工作流，尝试使用技术包装页面的默认 AI 角色
+  if (!foundWorkflowId) {
+    const techPackageRoleId = 'independent-page-tech-package';
+    const role = await aiRoleModel.getById(techPackageRoleId);
+    if (role && role.enabled) {
+      logger.info('未找到工作流，使用技术包装页面默认 AI 角色', { roleId: techPackageRoleId });
+      return techPackageRoleId;
+    }
+  }
+  
+  return foundWorkflowId;
 };
 
 export const mapWorkflowInput = (
@@ -199,12 +236,138 @@ export const extractWorkflowOutput = (
   return {};
 };
 
+/**
+ * 为AI角色创建默认字段映射配置
+ */
+const createDefaultMappingForAIRole = async (
+  fieldMappingService: FieldMappingService,
+  roleId: string
+): Promise<FieldMappingConfig | null> => {
+  try {
+    // 获取AI角色信息
+    const role = await aiRoleModel.getById(roleId);
+    if (!role) {
+      logger.warn('AI角色不存在，无法创建默认字段映射配置', { roleId });
+      return null;
+    }
+
+    // 解析配置以获取输入字段
+    // 支持 Direct Agent 和 Dify 两种类型
+    let inputFields: Array<{ variable: string; label: string; type: string; required?: boolean }> = [];
+    
+    if (role.provider === 'direct-agent' && role.agentConfig) {
+      // Direct Agent 类型：从工具参数中提取输入字段
+      // 对于主控 Agent，工具参数会通过 query 传递
+      // 这里使用默认的 query 映射
+      inputFields = [
+        {
+          variable: 'query',
+          label: '用户查询',
+          type: 'string',
+          required: true
+        }
+      ];
+    } else if (role.difyConfig) {
+      // Dify 类型：从 Dify 配置中获取输入字段
+      try {
+        const difyConfig = typeof role.difyConfig === 'string' 
+          ? JSON.parse(role.difyConfig) 
+          : role.difyConfig;
+        inputFields = difyConfig.inputFields || [];
+      } catch (error) {
+        logger.warn('解析Dify配置失败，使用默认字段映射', { roleId, error });
+      }
+    }
+
+    // 创建默认输入映射
+    const inputMappings = inputFields.length > 0
+      ? inputFields.map((field) => {
+          // 根据字段名智能匹配
+          const fieldNameLower = field.variable.toLowerCase();
+          let sourceField = 'query'; // 默认映射到query
+          
+          if (fieldNameLower.includes('query') || fieldNameLower.includes('question') || fieldNameLower.includes('input')) {
+            sourceField = 'query';
+          } else if (fieldNameLower.includes('source') || fieldNameLower.includes('knowledge')) {
+            sourceField = 'sources';
+          } else if (fieldNameLower.includes('file')) {
+            sourceField = 'files';
+          } else if (fieldNameLower.includes('history') || fieldNameLower.includes('context')) {
+            sourceField = 'history';
+          }
+
+          return {
+            workflowInputName: field.variable,
+            sourceType: 'field' as const,
+            sourceField,
+          };
+        })
+      : [
+          // 如果没有输入字段配置，使用默认映射
+          {
+            workflowInputName: 'query',
+            sourceType: 'field' as const,
+            sourceField: 'query',
+          },
+        ];
+
+    // 创建默认输出映射
+    const outputMappings = [
+      {
+        workflowOutputName: 'answer',
+        targetField: 'content',
+        extractExpression: 'output.answer || output.text || output.content || output.output',
+      },
+    ];
+
+    const defaultConfig: FieldMappingConfig = {
+      workflowId: roleId,
+      inputMappings,
+      outputMappings,
+    };
+
+    // 保存默认配置
+    await fieldMappingService.saveFieldMappingConfig(roleId, defaultConfig);
+    logger.info('已为AI角色创建默认字段映射配置', { 
+      roleId, 
+      roleName: role.name,
+      inputMappingsCount: inputMappings.length,
+      outputMappingsCount: outputMappings.length,
+    });
+
+    return defaultConfig;
+  } catch (error) {
+    logger.error('为AI角色创建默认字段映射配置失败', { roleId, error });
+    return null;
+  }
+};
+
 export const ensureFieldMappingConfig = async (
   fieldMappingService: FieldMappingService,
   workflowId: string
-) => {
+): Promise<FieldMappingConfig | null> => {
+  // 先尝试获取现有配置
   const config = await fieldMappingService.getFieldMappingConfig(workflowId);
-  return config || null;
+  if (config) {
+    return config;
+  }
+
+  // 如果找不到配置，检查是否是AI角色ID
+  // 支持多种格式：role_*, ai-role-*, independent-page-*
+  const isRoleId = workflowId.startsWith('role_') || 
+                   workflowId.startsWith('ai-role-') || 
+                   workflowId.startsWith('independent-page-') ||
+                   workflowId.startsWith('tech-') ||
+                   workflowId.startsWith('scene-') ||
+                   workflowId.startsWith('market-') ||
+                   workflowId.startsWith('content-');
+  
+  if (isRoleId) {
+    logger.info('检测到AI角色ID，尝试创建默认字段映射配置', { workflowId });
+    return await createDefaultMappingForAIRole(fieldMappingService, workflowId);
+  }
+
+  return null;
 };
 
 export const formatMessageRecord = (record: any) => ({

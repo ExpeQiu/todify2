@@ -1,12 +1,19 @@
 # Dify API 接口文档
 
+> ⚠️ **重要更新**: 本文档已更新为 v2.0 版本  
+> 📖 **完整API文档**: 请查看 [API_DOCUMENTATION_V2.md](./API_DOCUMENTATION_V2.md)  
+> 🔄 **数据库清理**: 13个表已移除，采用JSON存储策略
+
 ## 概述
 
 本文档描述了与Dify平台集成的API接口，包括AI搜索和技术应用相关的接口。
 
+**版本**: v1.0 (部分内容已更新)  
+**最后更新**: 2025-01-13
+
 ## 基础信息
 
-- **基础URL**: `http://localhost:3001`
+- **基础URL**: `http://localhost:8113/api` (已更新)
 - **内容类型**: `application/json`
 - **认证方式**: 通过环境变量配置的API密钥
 
@@ -82,15 +89,20 @@ curl -X POST http://localhost:3001/ai-search \
 
 ### 2. 技术包装接口
 
-**端点**: `POST /tech-package`
+**端点**: `POST /api/v1/ai-search/conversations/:conversationId/messages`
 
-**描述**: 调用技术包装应用，用于技术内容的包装和优化。
+**描述**: 通过AI搜索模块调用技术包装应用，用于技术内容的包装和优化。
+
+**重要变更**: 
+- ⚠️ 旧的 `/api/tech-packaging/*` 端点已废弃
+- ✅ 请使用 `/api/v1/ai-search/conversations/:conversationId/messages` 端点
+- ✅ 生成的内容存储在 `workflow_executions.outputs` 字段中
 
 **请求参数**:
 ```json
 {
+  "query": "string - 查询内容",
   "inputs": {
-    "query": "string - 查询内容",
     "...": "其他输入参数"
   }
 }
@@ -101,8 +113,9 @@ curl -X POST http://localhost:3001/ai-search \
 {
   "success": true,
   "data": {
-    "id": "string - 响应ID",
-    "answer": "string - 处理结果",
+    "message_id": "string - 消息ID",
+    "conversation_id": "string - 对话ID",
+    "content": "string - AI回复内容",
     "metadata": {
       "usage": {
         "prompt_tokens": 0,
@@ -113,33 +126,46 @@ curl -X POST http://localhost:3001/ai-search \
         "latency": 0
       }
     },
-    "created_at": 0
+    "created_at": "2025-01-13T10:00:00Z"
   },
   "message": "技术包装完成"
 }
 ```
 
+**获取生成内容**:
+```bash
+# 从工作流执行记录中获取技术包装内容
+GET /api/workflow-executions/:executionId
+# 响应中的 outputs.tech_package 字段包含技术包装数据
+```
+
 ### 3. 技术策略接口
 
-**端点**: `POST /tech-strategy`
+**端点**: `POST /api/v1/ai-search/conversations/:conversationId/messages`
 
-**描述**: 调用技术策略应用，用于技术策略的制定和分析。
+**描述**: 通过AI搜索模块调用技术策略应用。
 
-**请求/响应格式**: 与技术包装接口相同
+**重要变更**: 
+- ⚠️ 旧的 `/api/tech-promotion/*` 端点已废弃
+- ✅ 请使用 `/api/v1/ai-search/conversations/:conversationId/messages` 端点
+- ✅ 生成的内容存储在 `workflow_executions.outputs.promotion_strategy` 字段中
 
 ### 4. 技术通稿接口
 
-**端点**: `POST /tech-article`
+**端点**: `POST /api/v1/ai-search/conversations/:conversationId/messages`
 
-**描述**: 调用技术通稿应用，用于技术文章和通稿的生成。
+**描述**: 通过AI搜索模块调用技术通稿应用。
 
-**请求/响应格式**: 与技术包装接口相同
+**重要变更**: 
+- ⚠️ 旧的 `/api/tech-press/*` 端点已废弃
+- ✅ 请使用 `/api/v1/ai-search/conversations/:conversationId/messages` 端点
+- ✅ 生成的内容存储在 `workflow_executions.outputs.press_release` 字段中
 
 ### 5. 技术发布接口
 
-**端点**: `POST /tech-publish`
+**端点**: `POST /api/v1/ai-search/conversations/:conversationId/messages`
 
-**描述**: 调用技术发布应用，用于技术内容的发布和推广。
+**描述**: 通过AI搜索模块调用技术发布应用。
 
 **请求/响应格式**: 与技术包装接口相同
 
@@ -199,6 +225,24 @@ TECH_ARTICLE_API_KEY=app-VXaMmvyhPoYENDJzEj8nSOqk
 TECH_PUBLISH_API_KEY=app-MmvyhPoYENDJzEj8nSOqkVXa
 ```
 
+## ⚠️ 重要变更说明
+
+### 数据库清理影响
+
+**清理时间**: 2025-01-13  
+**影响范围**: 技术包装、推广策略、技术通稿相关API
+
+**变更内容**:
+1. **13个表已移除**: tech_packaging_materials, tech_promotion_strategies, tech_press_releases 等
+2. **数据存储策略**: AI生成内容现在存储在 `workflow_executions.outputs` 字段中（JSON格式）
+3. **API端点废弃**: `/api/tech-packaging/*`, `/api/tech-promotion/*`, `/api/tech-press/*` 已废弃
+
+**迁移指南**:
+- 旧API: `GET /api/tech-packaging/:id`
+- 新API: `GET /api/workflow-executions/:executionId` → 查看 `outputs.tech_package` 字段
+
+详细迁移指南请参考: [API_DOCUMENTATION_V2.md](./API_DOCUMENTATION_V2.md)
+
 ## 注意事项
 
 1. AI搜索接口使用聊天消息API (`/chat-messages`)
@@ -206,3 +250,4 @@ TECH_PUBLISH_API_KEY=app-MmvyhPoYENDJzEj8nSOqkVXa
 3. 所有接口都支持阻塞模式响应
 4. 响应数据会进行格式验证，验证失败会在控制台输出警告
 5. 建议在生产环境中添加适当的限流和缓存机制
+6. ⚠️ **废弃API**: 请勿使用 `/api/tech-packaging/*`, `/api/tech-promotion/*`, `/api/tech-press/*` 端点

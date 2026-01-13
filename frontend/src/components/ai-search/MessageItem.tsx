@@ -1,5 +1,5 @@
 import React from "react";
-import { Bot, User, Copy, Save, Check, File, FileText, LayoutGrid } from "lucide-react";
+import { Bot, User, Copy, Save, Check, File, FileText, LayoutGrid, Loader2, Wrench } from "lucide-react";
 import { Message } from "../../types/aiSearch";
 import StructuredContentView from "./result-renderers/StructuredContentView";
 import ReactMarkdown from "react-markdown";
@@ -75,6 +75,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
   const featureType = message.outputs?.metadata?.featureType;
   const featureLabel = featureType ? FEATURE_LABEL_MAP[featureType] || featureType : null;
   const triggeredAt = message.outputs?.metadata?.triggeredAt;
+  
+  // 检测工具调用信息（主 Agent 调用专家工具）
+  const toolCalls = message.outputs?.metadata?.toolCalls || [];
+  const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
   const structuredContent = React.useMemo(() => {
     const outputs = message.outputs;
     if (!outputs) return null;
@@ -162,6 +166,46 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       {/* 消息内容 */}
       <div className={`flex-1 ${isUser ? "items-end" : ""}`}>
+        {/* 工具调用状态卡片 */}
+        {!isUser && hasToolCalls && (
+          <div className="mb-3 space-y-2">
+            {toolCalls.map((toolCall: any, index: number) => {
+              const toolName = toolCall.toolName || toolCall.name || '未知工具';
+              const toolLabel = toolName.replace('Consult_', '').replace(/_/g, ' ');
+              const isComplete = toolCall.status === 'complete' || toolCall.status === 'success';
+              const isError = toolCall.status === 'error';
+              const isRunning = !isComplete && !isError;
+              
+              return (
+                <div
+                  key={index}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${
+                    isError
+                      ? 'bg-red-50 border-red-200 text-red-700'
+                      : isComplete
+                      ? 'bg-green-50 border-green-200 text-green-700'
+                      : 'bg-blue-50 border-blue-200 text-blue-700'
+                  }`}
+                >
+                  {isRunning ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isError ? (
+                    <Wrench className="w-4 h-4" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  <span className="font-medium">
+                    {isRunning ? '正在调用' : isError ? '调用失败' : '已完成'} {toolLabel}
+                  </span>
+                  {toolCall.error && (
+                    <span className="ml-auto text-red-600">错误: {toolCall.error}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* 消息气泡 */}
         <div
           className={`rounded-lg p-4 ${

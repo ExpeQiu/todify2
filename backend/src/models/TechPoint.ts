@@ -454,85 +454,96 @@ export class TechPointModel {
       speeches: [] as any[]
     };
 
+    // ⚠️ 以下表已移除，数据存储在 workflow_executions.outputs 中
+    // tech_packaging_materials, tech_promotion_strategies, tech_press_releases, tech_speeches
+    // 如需获取这些数据，请从 workflow_executions 表中查询 outputs 字段
+    
     try {
-    // 获取技术包装材料
-    const packagingSql = `
-      SELECT * FROM tech_packaging_materials 
-      WHERE tech_point_id = ? 
-      ORDER BY created_at DESC
-    `;
-      try {
-        const packagingResult = await this.db.query(packagingSql, [techPointId]);
-        result.packagingMaterials = Array.isArray(packagingResult) ? packagingResult : [];
-      } catch (error: any) {
-        // 表不存在或其他错误，返回空数组
-        if (!error.message?.includes('no such table')) {
-          console.warn('获取技术包装材料失败:', error.message);
-        }
-      }
+    // ⚠️ 已废弃: 获取技术包装材料（表已移除）
+    // const packagingSql = `
+    //   SELECT * FROM tech_packaging_materials 
+    //   WHERE tech_point_id = ? 
+    //   ORDER BY created_at DESC
+    // `;
+      // 表已移除，返回空数组
+      result.packagingMaterials = [];
+      // try {
+      //   const packagingResult = await this.db.query(packagingSql, [techPointId]);
+      //   result.packagingMaterials = Array.isArray(packagingResult) ? packagingResult : [];
+      // } catch (error: any) {
+      //   if (!error.message?.includes('no such table')) {
+      //     console.warn('获取技术包装材料失败:', error.message);
+      //   }
+      // }
     } catch (error) {
       // 忽略错误
     }
 
     try {
-    // 获取推广策略
-    const promotionSql = `
-      SELECT ts.*, pt.weight 
-      FROM tech_promotion_strategies ts
-      JOIN promotion_tech_points pt ON ts.id = pt.promotion_id
-      WHERE pt.tech_point_id = ?
-      ORDER BY ts.created_at DESC
-    `;
-      try {
-        const promotionResult = await this.db.query(promotionSql, [techPointId]);
-        result.promotionStrategies = Array.isArray(promotionResult) ? promotionResult : [];
-      } catch (error: any) {
-        if (!error.message?.includes('no such table')) {
-          console.warn('获取推广策略失败:', error.message);
-        }
-      }
+    // ⚠️ 已废弃: 获取推广策略（表已移除）
+    // const promotionSql = `
+    //   SELECT ts.*, pt.weight 
+    //   FROM tech_promotion_strategies ts
+    //   JOIN promotion_tech_points pt ON ts.id = pt.promotion_id
+    //   WHERE pt.tech_point_id = ?
+    //   ORDER BY ts.created_at DESC
+    // `;
+      // 表已移除，返回空数组
+      result.promotionStrategies = [];
+      // try {
+      //   const promotionResult = await this.db.query(promotionSql, [techPointId]);
+      //   result.promotionStrategies = Array.isArray(promotionResult) ? promotionResult : [];
+      // } catch (error: any) {
+      //   if (!error.message?.includes('no such table')) {
+      //     console.warn('获取推广策略失败:', error.message);
+      //   }
+      // }
     } catch (error) {
       // 忽略错误
     }
 
     try {
-    // 获取通稿
-    const pressSql = `
-      SELECT pr.*, pt.weight 
-      FROM tech_press_releases pr
-      JOIN press_tech_points pt ON pr.id = pt.press_release_id
-      WHERE pt.tech_point_id = ?
-      ORDER BY pr.created_at DESC
-    `;
-      try {
-        const pressResult = await this.db.query(pressSql, [techPointId]);
-        result.pressReleases = Array.isArray(pressResult) ? pressResult : [];
-      } catch (error: any) {
-        if (!error.message?.includes('no such table')) {
-          console.warn('获取通稿失败:', error.message);
-        }
-      }
+    // ⚠️ 已废弃: 获取通稿（表已移除）
+    // const pressSql = `
+    //   SELECT pr.*, pt.weight 
+    //   FROM tech_press_releases pr
+    //   JOIN press_tech_points pt ON pr.id = pt.press_release_id
+    //   WHERE pt.tech_point_id = ?
+    //   ORDER BY pr.created_at DESC
+    // `;
+      // 表已移除，返回空数组
+      result.pressReleases = [];
+      // try {
+      //   const pressResult = await this.db.query(pressSql, [techPointId]);
+      //   result.pressReleases = Array.isArray(pressResult) ? pressResult : [];
+      // } catch (error: any) {
+      //   if (!error.message?.includes('no such table')) {
+      //     console.warn('获取通稿失败:', error.message);
+      //   }
+      // }
     } catch (error) {
       // 忽略错误
     }
 
     try {
-    // 获取演讲稿
-    const speechSql = `
-      SELECT sp.*, st.weight 
-      FROM tech_speeches sp
-      JOIN speech_tech_points st ON sp.id = st.speech_id
-      WHERE st.tech_point_id = ?
-      ORDER BY sp.created_at DESC
-    `;
-      try {
-        const speechResult = await this.db.query(speechSql, [techPointId]);
-        result.speeches = Array.isArray(speechResult) ? speechResult : [];
-      } catch (error: any) {
-        if (!error.message?.includes('no such table')) {
-          console.warn('获取演讲稿失败:', error.message);
-        }
-      }
+    // ⚠️ 已废弃: 获取演讲稿（表已移除）
+    // const speechSql = `
+    //   SELECT sp.*, st.weight 
+    //   FROM tech_speeches sp
+    //   JOIN speech_tech_points st ON sp.id = st.speech_id
+    //   WHERE st.tech_point_id = ?
+    //   ORDER BY sp.created_at DESC
+    // `;
+      // 表已移除，返回空数组
+      result.speeches = [];
+      // try {
+      //   const speechResult = await this.db.query(speechSql, [techPointId]);
+      //   result.speeches = Array.isArray(speechResult) ? speechResult : [];
+      // } catch (error: any) {
+      //   if (!error.message?.includes('no such table')) {
+      //     console.warn('获取演讲稿失败:', error.message);
+      //   }
+      // }
     } catch (error) {
       // 忽略错误
     }

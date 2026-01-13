@@ -1,7 +1,22 @@
+/**
+ * ⚠️ 警告: 此Controller已废弃
+ * 
+ * tech_promotion_strategies 表已从数据库中移除。
+ * 技术推广策略现在采用JSON存储策略，数据存储在 workflow_executions.outputs 字段中。
+ * 
+ * 此Controller的所有方法将无法正常工作，因为对应的表不存在。
+ * 如需使用技术推广策略数据，请从 workflow_executions 表中查询 outputs 字段。
+ * 
+ * @deprecated 此Controller已废弃，请使用 workflow_executions API
+ */
+
 import { Request, Response } from 'express';
 import { techPromotionStrategyModel } from '../models';
 import { CreateTechPromotionStrategyDTO, UpdateTechPromotionStrategyDTO } from '../types/database';
 
+/**
+ * @deprecated 此Controller已废弃，tech_promotion_strategies 表已移除
+ */
 export class TechPromotionController {
   /**
    * 创建技术推广策略

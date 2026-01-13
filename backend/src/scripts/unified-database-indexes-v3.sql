@@ -1,11 +1,16 @@
--- Todify3 统一数据库索引优化 v3.0
--- 创建日期: 2025-01-XX
+-- Todify4 统一数据库索引优化 v4.0 (清理版)
+-- 创建日期: 2025-01-13
 -- 说明: 优化索引策略，添加缺失索引，提升查询性能
--- 优化点:
--- 1. 添加覆盖索引以优化常见查询
--- 2. 优化复合索引顺序（基于查询模式）
--- 3. 添加缺失的索引
+-- 
+-- 版本变更 (v3.0 -> v4.0):
+-- 1. 移除13个已删除表的相关索引（47个索引）
+-- 2. 添加覆盖索引以优化常见查询
+-- 3. 优化复合索引顺序（基于查询模式）
 -- 4. 为外键字段创建索引（如果尚未存在）
+--
+-- 架构决策:
+-- - AI生成内容表已移除，采用JSON存储策略（workflow_executions.outputs）
+-- - 相关索引已移除，减少维护成本
 
 -- ==============================================
 -- 第一层：基础数据层索引
@@ -98,54 +103,21 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_favorites_knowledge_point ON knowledge_
 CREATE INDEX IF NOT EXISTS idx_knowledge_favorites_user ON knowledge_point_favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_favorites_user_knowledge ON knowledge_point_favorites(user_id, knowledge_point_id);
 
--- 技术包装材料表索引
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_tech_point_id ON tech_packaging_materials(tech_point_id);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_project_id ON tech_packaging_materials(project_id) WHERE project_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_status ON tech_packaging_materials(status);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_type ON tech_packaging_materials(material_type);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_audience ON tech_packaging_materials(target_audience);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_dify_task ON tech_packaging_materials(dify_task_id) WHERE dify_task_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_tech_status ON tech_packaging_materials(tech_point_id, status);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_materials_type_audience ON tech_packaging_materials(material_type, target_audience);
-
--- 技术推广策略表索引
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_strategies_project_id ON tech_promotion_strategies(project_id) WHERE project_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_strategies_status ON tech_promotion_strategies(status);
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_strategies_type ON tech_promotion_strategies(strategy_type);
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_strategies_dify_task ON tech_promotion_strategies(dify_task_id) WHERE dify_task_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_strategies_type_status ON tech_promotion_strategies(strategy_type, status);
-
--- 技术通稿表索引
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_project_id ON tech_press_releases(project_id) WHERE project_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_status ON tech_press_releases(status);
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_type ON tech_press_releases(release_type);
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_publication_date ON tech_press_releases(publication_date) WHERE publication_date IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_dify_task ON tech_press_releases(dify_task_id) WHERE dify_task_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_type_status ON tech_press_releases(release_type, status);
-CREATE INDEX IF NOT EXISTS idx_tech_press_releases_date_status ON tech_press_releases(publication_date, status) WHERE publication_date IS NOT NULL;
-
--- 技术演讲稿表索引
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_status ON tech_speeches(status);
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_type ON tech_speeches(speech_type);
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_event_date ON tech_speeches(event_date) WHERE event_date IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_dify_task ON tech_speeches(dify_task_id) WHERE dify_task_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_type_status ON tech_speeches(speech_type, status);
-CREATE INDEX IF NOT EXISTS idx_tech_speeches_date_status ON tech_speeches(event_date, status) WHERE event_date IS NOT NULL;
-
--- 推广策略与技术点关联表索引
-CREATE INDEX IF NOT EXISTS idx_promotion_tech_points_promotion_id ON promotion_tech_points(promotion_id);
-CREATE INDEX IF NOT EXISTS idx_promotion_tech_points_tech_point_id ON promotion_tech_points(tech_point_id);
-CREATE INDEX IF NOT EXISTS idx_promotion_tech_points_promotion_weight ON promotion_tech_points(promotion_id, weight);
-
--- 通稿与技术点关联表索引
-CREATE INDEX IF NOT EXISTS idx_press_tech_points_press_release_id ON press_tech_points(press_release_id);
-CREATE INDEX IF NOT EXISTS idx_press_tech_points_tech_point_id ON press_tech_points(tech_point_id);
-CREATE INDEX IF NOT EXISTS idx_press_tech_points_press_weight ON press_tech_points(press_release_id, weight);
-
--- 演讲稿与技术点关联表索引
-CREATE INDEX IF NOT EXISTS idx_speech_tech_points_speech_id ON speech_tech_points(speech_id);
-CREATE INDEX IF NOT EXISTS idx_speech_tech_points_tech_point_id ON speech_tech_points(tech_point_id);
-CREATE INDEX IF NOT EXISTS idx_speech_tech_points_speech_weight ON speech_tech_points(speech_id, weight);
+-- ==============================================
+-- 注意: 以下索引已移除（对应的表已采用JSON存储策略）
+-- ==============================================
+-- 
+-- 移除的索引:
+-- - tech_packaging_materials 相关索引（8个）
+-- - tech_promotion_strategies 相关索引（5个）
+-- - tech_press_releases 相关索引（7个）
+-- - tech_speeches 相关索引（6个）
+-- - promotion_tech_points 相关索引（3个）
+-- - press_tech_points 相关索引（3个）
+-- - speech_tech_points 相关索引（3个）
+--
+-- 原因: 这些表已移除，数据存储在 workflow_executions.outputs 中
+-- ==============================================
 
 -- ==============================================
 -- 第四层：工作流与对话层索引
@@ -332,29 +304,20 @@ CREATE INDEX IF NOT EXISTS idx_public_knowledge_files_file_type ON public_knowle
 -- 生成内容关联上下文表索引
 -- ==============================================
 
--- 技术包装材料关联对话表索引
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_conversations_packaging_id ON tech_packaging_conversations(packaging_id);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_conversations_conversation_id ON tech_packaging_conversations(conversation_id);
-
--- 技术包装材料关联来源信息表索引
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_sources_packaging_id ON tech_packaging_sources(packaging_id);
-CREATE INDEX IF NOT EXISTS idx_tech_packaging_sources_source_id ON tech_packaging_sources(source_id);
-
--- 技术推广策略关联对话表索引
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_conversations_promotion_id ON tech_promotion_conversations(promotion_id);
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_conversations_conversation_id ON tech_promotion_conversations(conversation_id);
-
--- 技术推广策略关联来源信息表索引
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_sources_promotion_id ON tech_promotion_sources(promotion_id);
-CREATE INDEX IF NOT EXISTS idx_tech_promotion_sources_source_id ON tech_promotion_sources(source_id);
-
--- 技术通稿关联对话表索引
-CREATE INDEX IF NOT EXISTS idx_tech_press_conversations_press_release_id ON tech_press_conversations(press_release_id);
-CREATE INDEX IF NOT EXISTS idx_tech_press_conversations_conversation_id ON tech_press_conversations(conversation_id);
-
--- 技术通稿关联来源信息表索引
-CREATE INDEX IF NOT EXISTS idx_tech_press_sources_press_release_id ON tech_press_sources(press_release_id);
-CREATE INDEX IF NOT EXISTS idx_tech_press_sources_source_id ON tech_press_sources(source_id);
+-- ==============================================
+-- 注意: 以下关联表索引已移除（对应的表已采用JSON存储策略）
+-- ==============================================
+-- 
+-- 移除的索引:
+-- - tech_packaging_conversations 相关索引（2个）
+-- - tech_packaging_sources 相关索引（2个）
+-- - tech_promotion_conversations 相关索引（2个）
+-- - tech_promotion_sources 相关索引（2个）
+-- - tech_press_conversations 相关索引（2个）
+-- - tech_press_sources 相关索引（2个）
+--
+-- 原因: 这些关联表已移除，关联信息存储在 workflow_executions.outputs 中
+-- ==============================================
 
 -- ==============================================
 -- 系统表索引

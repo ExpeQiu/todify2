@@ -1,7 +1,22 @@
+/**
+ * ⚠️ 警告: 此Controller已废弃
+ * 
+ * tech_packaging_materials 表已从数据库中移除。
+ * 技术包装材料现在采用JSON存储策略，数据存储在 workflow_executions.outputs 字段中。
+ * 
+ * 此Controller的所有方法将无法正常工作，因为对应的表不存在。
+ * 如需使用技术包装材料数据，请从 workflow_executions 表中查询 outputs 字段。
+ * 
+ * @deprecated 此Controller已废弃，请使用 workflow_executions API
+ */
+
 import { Request, Response } from 'express';
 import { techPackagingMaterialModel } from '../models';
 import { CreateTechPackagingMaterialDTO, UpdateTechPackagingMaterialDTO } from '../types/database';
 
+/**
+ * @deprecated 此Controller已废弃，tech_packaging_materials 表已移除
+ */
 export class TechPackagingController {
   /**
    * 创建技术包装材料

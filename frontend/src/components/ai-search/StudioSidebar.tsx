@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, MessageSquare, Trash2, X, Settings, AlertCircle, CheckCircle } from "lucide-react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { MoreVertical, Eye, Target, Grid, Megaphone, Video, Languages, Presentation, FileText, MessageSquare, Trash2, X, Settings, AlertCircle, CheckCircle, Cpu, FlaskConical, Crosshair, Clapperboard, ChevronLeft, Sparkles, Activity, Edit2, Save, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import StudioTools from "./StudioTools";
 import { OutputContent, Conversation, Message, FieldMappingConfig } from "../../types/aiSearch";
 import ConversationDetailModal from "./ConversationDetailModal";
 import { aiSearchService } from "../../services/aiSearchService";
 import aiRoleService from "../../services/aiRoleService";
+import { AgentRoleConfig } from "../../configs/pageConfigs";
 
 interface StudioSidebarProps {
   outputs?: OutputContent[];
@@ -22,6 +23,10 @@ interface StudioSidebarProps {
   onClose?: () => void; // 关闭边栏的回调
   currentConversationId?: string; // 当前选中的对话ID
   onSelectConversation?: (conversation: Conversation) => void; // 选择对话的回调
+  agentRoles?: AgentRoleConfig[]; // 角色配置
+  activeToolCall?: { toolName: string; toolId?: string; data?: any } | null; // 当前激活的工具调用
+  toolCallOutput?: any; // 工具调用输出结果
+  onToolOutputModified?: (toolName: string, modifiedContent: string) => void; // 工具输出修改回调
 }
 
 const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -39,11 +44,19 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onClose,
   currentConversationId,
   onSelectConversation,
+  agentRoles,
+  activeToolCall,
+  toolCallOutput,
+  onToolOutputModified,
 }) => {
   const navigate = useNavigate();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   
+  // Workspace State
+  const [viewMode, setViewMode] = useState<'dashboard' | 'workspace'>('dashboard');
+  const [activeRole, setActiveRole] = useState<AgentRoleConfig | null>(null);
+
   // 字段映射配置弹窗相关状态
   const [showFieldMappingModal, setShowFieldMappingModal] = useState(false);
   const [roles, setRoles] = useState<any[]>([]);
@@ -54,8 +67,72 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
   const [customFeatureLabel, setCustomFeatureLabel] = useState<string>('');
   const [customModules, setCustomModules] = useState<Array<{ id: string; label: string }>>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // 功能模块到AI角色的映射
+  const [featureToRoleMapping, setFeatureToRoleMapping] = useState<Record<string, string>>({});
+  // 主控工作流ID（技术包装页面的主控Agent）
+  const [mainWorkflowId, setMainWorkflowId] = useState<string>('independent-page-tech-package');
+  
+  // 工具输出编辑状态
+  const [isEditingToolOutput, setIsEditingToolOutput] = useState(false);
+  const [editedToolOutput, setEditedToolOutput] = useState<string>('');
   
   const CUSTOM_MODULES_STORAGE_KEY = 'field-mapping-custom-modules';
+
+  // 工具名称到角色ID的映射
+  const toolToRoleMapping: Record<string, string> = {
+    'Consult_Tech': 'tech-fundamentalist',
+    'Consult_Scene': 'scene-alchemist',
+    'Consult_Market': 'market-sniper',
+    'Consult_Content': 'content-director'
+  };
+
+  // 工具名称到功能类型的映射（用于匹配工具按钮）
+  const toolToFeatureTypeMapping: Record<string, string> = {
+    'Consult_Tech': 'five-view-analysis', // 默认使用五看分析
+    'Consult_Scene': 'tech-matrix',
+    'Consult_Market': 'propagation-strategy',
+    'Consult_Content': 'script'
+  };
+
+  // 当有工具正在执行时，自动切换到对应的 Agent Workspace
+  useEffect(() => {
+    if (executingFeatureId && agentRoles) {
+      const role = agentRoles.find(r => r.toolIds.includes(executingFeatureId));
+      if (role) {
+        setActiveRole(role);
+        setViewMode('workspace');
+      }
+    }
+  }, [executingFeatureId, agentRoles]);
+
+  // 工具按钮引用（用于滚动）
+  const toolButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  // 当主 Agent 调用工具时，自动切换到对应的角色视图
+  useEffect(() => {
+    if (activeToolCall && agentRoles) {
+      const roleId = toolToRoleMapping[activeToolCall.toolName];
+      if (roleId) {
+        const role = agentRoles.find(r => r.id === roleId);
+        if (role) {
+          setActiveRole(role);
+          setViewMode('workspace');
+        }
+      }
+    }
+  }, [activeToolCall, agentRoles]);
+
+  // 当工具激活时，自动滚动到对应的工具按钮
+  useEffect(() => {
+    if (executingFeatureId && viewMode === 'workspace') {
+      const toolButton = toolButtonRefs.current.get(executingFeatureId);
+      if (toolButton) {
+        setTimeout(() => {
+          toolButton.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    }
+  }, [executingFeatureId, viewMode]);
 
   const formatDaysAgo = (date: Date) => {
     const now = new Date();
@@ -197,240 +274,298 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     }
   }, [showFieldMappingModal]);
 
+  // 功能模块到专家角色的默认映射关系
+  const defaultFeatureToRoleMapping: Record<string, string> = {
+    'five-view-analysis': 'tech-fundamentalist',
+    'three-fix-analysis': 'tech-fundamentalist',
+    'tech-matrix': 'scene-alchemist',
+    'propagation-strategy': 'market-sniper',
+    'exhibition-video': 'content-director',
+    'translation': 'content-director',
+    'ppt-outline': 'content-director',
+    'script': 'content-director',
+  };
+
   // 加载已配置的字段映射
   useEffect(() => {
-    if (showFieldMappingModal && roles.length > 0) {
-      const loadExistingConfig = async () => {
+    if (showFieldMappingModal && pageType === 'tech-package') {
+      const loadMappings = async () => {
         try {
-          const enabledRoles = roles.filter((r: any) => r.enabled);
-          if (enabledRoles.length === 0) return;
-
-          const roleId = enabledRoles[0].id;
-          const mappingsData = await aiSearchService.getAllFieldMappingConfigs();
-          
-          for (const mapping of mappingsData) {
-            const featureObjects = Array.isArray(mapping.config?.featureObjects) 
-              ? mapping.config.featureObjects 
-              : [];
+          // 获取主控工作流的字段映射配置
+          const config = await aiSearchService.getFieldMappingConfig(mainWorkflowId);
+          if (config && config.featureObjects && Array.isArray(config.featureObjects)) {
+            // 提取已配置的功能模块和对应的AI角色
+            const mappings: Record<string, string> = { ...defaultFeatureToRoleMapping };
+            const selectedFeatures: string[] = [];
             
-            const hasMatchingPageType = featureObjects.some((f: any) => 
-              f.pageType === 'tech-package'
-            );
-            
-            if (hasMatchingPageType) {
-              const configuredFeatures = featureObjects
-                .filter((f: any) => f.pageType === 'tech-package')
-                .map((f: any) => f.featureType);
-              
-              if (configuredFeatures.length > 0) {
-                setSelectedFeatureTypes(configuredFeatures);
+            config.featureObjects.forEach((feature: any) => {
+              if (feature.pageType === 'tech-package' || (!feature.pageType && pageType === 'tech-package')) {
+                if (feature.agentId) {
+                  mappings[feature.featureType] = feature.agentId;
+                }
+                if (!selectedFeatures.includes(feature.featureType)) {
+                  selectedFeatures.push(feature.featureType);
+                }
+                // 如果是自定义模块，添加到自定义模块列表
+                const isStandardModule = Object.keys(FEATURE_LABELS).includes(feature.featureType);
+                if (!isStandardModule && feature.label) {
+                  const existingCustom = customModules.find(m => m.id === feature.featureType);
+                  if (!existingCustom) {
+                    setCustomModules(prev => [...prev, { id: feature.featureType, label: feature.label }]);
+                  }
+                }
               }
-              return;
-            }
+            });
+            
+            setFeatureToRoleMapping(mappings);
+            setSelectedFeatureTypes(selectedFeatures);
+          } else {
+            // 如果没有配置，使用默认映射
+            setFeatureToRoleMapping(defaultFeatureToRoleMapping);
+            setSelectedFeatureTypes([]);
           }
         } catch (error) {
-          console.error('加载配置信息失败:', error);
+          console.error('加载字段映射失败:', error);
+          // 如果加载失败，使用默认映射
+          setFeatureToRoleMapping(defaultFeatureToRoleMapping);
+          setSelectedFeatureTypes([]);
         }
       };
-      loadExistingConfig();
+      loadMappings();
+    } else if (showFieldMappingModal) {
+      // 如果不是 tech-package 页面，初始化默认映射
+      setFeatureToRoleMapping(defaultFeatureToRoleMapping);
+      setSelectedFeatureTypes([]);
     }
-  }, [showFieldMappingModal, roles]);
+  }, [showFieldMappingModal, pageType, mainWorkflowId]);
 
   const handleSaveFieldMapping = async () => {
+    if (!pageType) return;
+    
     try {
-      const selectedPageType = 'tech-package';
-      const featuresToBind = selectedFeatureTypes.length > 0 
-        ? selectedFeatureTypes.filter(ft => ft !== 'ai-dialog')
-        : (selectedFeatureType && selectedFeatureType !== 'ai-dialog' ? [selectedFeatureType] : []);
-      
-      if (featuresToBind.length === 0) {
-        setMessage({ type: 'error', text: '请选择至少一个AI模块（点击⭕️勾选，AI对话框除外）' });
-        return;
-      }
-
-      const enabledRoles = roles.filter((r: any) => r.enabled);
-      const roleIdToUse = enabledRoles.length > 0 ? enabledRoles[0].id : '';
-      if (!roleIdToUse) {
-        setMessage({ type: 'error', text: '没有可用的AI角色，请先创建AI角色' });
-        return;
-      }
-
-      const existing = await aiSearchService.getFieldMappingConfig(roleIdToUse);
-      const normalizedPageType = selectedPageType;
-      let nextConfig: FieldMappingConfig;
-      
-      if (existing) {
-        const fo = Array.isArray(existing.featureObjects) ? existing.featureObjects.slice() : [];
-        const otherPageTypeFeatures = fo.filter((f: any) => {
-          if (!f.pageType) return true;
-          return f.pageType !== normalizedPageType;
-        });
-        
-        const newFeaturesMap = new Map<string, any>();
-        for (const ft of featuresToBind) {
-          const existingFeature = fo.find((f: any) => 
-            f.featureType === ft && f.pageType === normalizedPageType
-          );
-          const customModule = customModules.find(m => m.id === ft);
-          const moduleLabel = customModule?.label || existingFeature?.label || FEATURE_LABELS[ft] || undefined;
-          
-          newFeaturesMap.set(ft, {
-            featureType: ft as any,
-            workflowId: roleIdToUse,
-            inputMappings: existingFeature?.inputMappings || [],
-            outputMappings: existingFeature?.outputMappings || [],
-            pageType: normalizedPageType,
-            label: moduleLabel,
-            agentId: existingFeature?.agentId,
-          });
-        }
-        
-        const newFeatures = Array.from(newFeaturesMap.values());
-        nextConfig = { 
-          ...existing, 
-          featureObjects: [...otherPageTypeFeatures, ...newFeatures]
-        };
-      } else {
-        const featureObjects = featuresToBind.map(ft => {
-          const customModule = customModules.find(m => m.id === ft);
-          const moduleLabel = customModule?.label || FEATURE_LABELS[ft] || undefined;
-          return {
-            featureType: ft as any,
-            workflowId: roleIdToUse,
-            inputMappings: [],
-            outputMappings: [],
-            pageType: normalizedPageType,
-            label: moduleLabel,
-          };
-        });
-        
-        nextConfig = {
-          workflowId: roleIdToUse,
+      // 获取现有的字段映射配置
+      let existingConfig: FieldMappingConfig;
+      try {
+        existingConfig = await aiSearchService.getFieldMappingConfig(mainWorkflowId);
+      } catch (error) {
+        // 如果配置不存在，创建新配置
+        existingConfig = {
+          workflowId: mainWorkflowId,
           inputMappings: [],
           outputMappings: [],
-          featureObjects,
-        } as any;
+          featureObjects: [],
+        };
       }
 
-      await aiSearchService.saveFieldMappingConfig(roleIdToUse, nextConfig);
-      setMessage({ type: 'success', text: `配置修改成功：已为 ${PAGE_LABELS[normalizedPageType]} 页面更新为 ${featuresToBind.length} 个AI模块` });
+      // 构建功能对象配置列表
+      const existingFeatureObjects = Array.isArray(existingConfig.featureObjects) 
+        ? existingConfig.featureObjects 
+        : [];
+      
+      // 移除当前页面的旧配置
+      const filteredFeatureObjects = existingFeatureObjects.filter(
+        (f: any) => !(f.pageType === pageType || (!f.pageType && pageType === 'tech-package'))
+      );
+
+      // 为每个选中的功能模块创建配置（包括标准模块和自定义模块）
+      const newFeatureObjects = selectedFeatureTypes.map((featureType) => {
+        const agentId = featureToRoleMapping[featureType] || defaultFeatureToRoleMapping[featureType];
+        const customModule = customModules.find(m => m.id === featureType);
+        const label = customModule 
+          ? customModule.label 
+          : (FEATURE_LABELS[featureType] || featureType);
+        
+        return {
+          featureType: featureType as any,
+          workflowId: agentId || mainWorkflowId, // 使用专家角色的ID作为workflowId
+          inputMappings: [],
+          outputMappings: [],
+          pageType: pageType as 'tech-package' | 'tech-strategy' | 'tech-article' | 'press-release',
+          label: label,
+          agentId: agentId, // 关联的专家角色ID
+        };
+      });
+
+      // 合并配置
+      const updatedConfig: FieldMappingConfig = {
+        ...existingConfig,
+        workflowId: mainWorkflowId,
+        featureObjects: [...filteredFeatureObjects, ...newFeatureObjects],
+      };
+
+      // 保存配置
+      await aiSearchService.saveFieldMappingConfig(mainWorkflowId, updatedConfig);
+      
+      setMessage({ type: 'success', text: '配置保存成功' });
       setTimeout(() => {
-        setShowFieldMappingModal(false);
-        setSelectedFeatureTypes([]);
-        setSelectedFeatureType('');
-        setCustomFeatureId('');
-        setCustomFeatureLabel('');
-        setShowCustomModuleForm(false);
         setMessage(null);
-      }, 1500);
-    } catch (error: any) {
-      console.error('保存配置失败:', error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || '创建配置失败，请稍后重试';
-      setMessage({ type: 'error', text: errorMessage });
+        setShowFieldMappingModal(false);
+      }, 2000);
+    } catch (error) {
+      console.error('保存字段映射失败:', error);
+      setMessage({ type: 'error', text: `保存失败: ${error instanceof Error ? error.message : '未知错误'}` });
     }
   };
 
-  // 使用 useMemo 优化工具项的计算，避免每次渲染都重新计算
-  const toolItems = useMemo(() => {
-    // 所有可用的工具项
-    const allToolItems = [
-      {
-        id: 'five-view-analysis',
-        label: featureLabelMap['five-view-analysis'] || '技术转译',
-        icon: Eye,
-      },
-      {
-        id: 'three-fix-analysis',
-        label: featureLabelMap['three-fix-analysis'] || '用户场景挖掘',
-        icon: Target,
-      },
-      {
-        id: 'tech-matrix',
-        label: featureLabelMap['tech-matrix'] || '发布会场景化',
-        icon: Grid,
-      },
-      {
-        id: 'propagation-strategy',
-        label: featureLabelMap['propagation-strategy'] || '领导人口语化',
-        icon: Megaphone,
-      },
-      {
-        id: 'exhibition-video',
-        label: featureLabelMap['exhibition-video'] || '展具与视频',
-        icon: Video,
-      },
-      {
-        id: 'translation',
-        label: featureLabelMap['translation'] || '翻译',
-        icon: Languages,
-      },
-      {
-        id: 'ppt-outline',
-        label: featureLabelMap['ppt-outline'] || '技术讲稿',
-        icon: Presentation,
-      },
-      {
-        id: 'script',
-        label: featureLabelMap['script'] || '脚本',
-        icon: FileText,
-      },
-    ];
-
-    // 扩展：为未在静态列表中的启用ID生成通用工具项
-    const staticFiltered = enabledToolIds
-      ? allToolItems.filter(item => enabledToolIds.includes(item.id))
-      : allToolItems;
-
-    const unknownIds = (enabledToolIds || []).filter(id => !allToolItems.some(item => item.id === id));
-    const unknownItems = unknownIds.map(id => ({
-      id,
-      label: featureLabelMap[id] || id,
-      icon: FileText,
+  // 更新功能模块的AI角色映射
+  const handleRoleChange = (featureType: string, roleId: string) => {
+    setFeatureToRoleMapping(prev => ({
+      ...prev,
+      [featureType]: roleId,
     }));
+  };
 
-    return enabledToolIds ? [...staticFiltered, ...unknownItems] : staticFiltered;
-  }, [enabledToolIds, featureLabelMap]);
+  const handleAddCustomModule = () => {
+    if (customFeatureId && customFeatureLabel) {
+      const newModule = { id: customFeatureId, label: customFeatureLabel };
+      const newModules = [...customModules, newModule];
+      setCustomModules(newModules);
+      saveCustomModulesToStorage(newModules);
+      setCustomFeatureId('');
+      setCustomFeatureLabel('');
+      setShowCustomModuleForm(false);
+    }
+  };
 
-  return (
-    <div className="w-80 h-full bg-white border-l border-gray-200 flex flex-col">
-      {/* 标题 - 仅在有工具时显示 */}
-      {toolItems.length > 0 && (
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-gray-900">{studioTitle}</h2>
-              {onClose && (
-                <button
-                  onClick={onClose}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  title="关闭"
+  const handleDeleteCustomModule = (id: string) => {
+    const newModules = customModules.filter(m => m.id !== id);
+    setCustomModules(newModules);
+    saveCustomModulesToStorage(newModules);
+  };
+
+  const getIconByName = (name: string) => {
+    switch (name) {
+      case "Eye": return Eye;
+      case "Target": return Target;
+      case "Grid": return Grid;
+      case "Megaphone": return Megaphone;
+      case "Video": return Video;
+      case "Languages": return Languages;
+      case "Presentation": return Presentation;
+      case "FileText": return FileText;
+      default: return FileText;
+    }
+  };
+
+  const toolItems = useMemo(() => {
+    // 预定义的标准工具配置
+    const standardToolConfig: Record<string, { iconName: string; defaultLabel: string }> = {
+      "five-view-analysis": { iconName: "Eye", defaultLabel: "五看" },
+      "three-fix-analysis": { iconName: "Target", defaultLabel: "三定" },
+      "tech-matrix": { iconName: "Grid", defaultLabel: "技术矩阵" },
+      "propagation-strategy": { iconName: "Megaphone", defaultLabel: "传播" },
+      "exhibition-video": { iconName: "Video", defaultLabel: "展具与视频" },
+      "translation": { iconName: "Languages", defaultLabel: "翻译" },
+      "ppt-outline": { iconName: "Presentation", defaultLabel: "技术讲稿" },
+      "script": { iconName: "FileText", defaultLabel: "脚本" },
+    };
+
+    // 构建工具列表：先添加标准工具，再添加自定义工具
+    const allItemsMap = new Map<string, { id: string; iconName: string; label: string }>();
+    
+    // 1. 添加标准工具
+    Object.keys(standardToolConfig).forEach(toolId => {
+      const config = standardToolConfig[toolId];
+      allItemsMap.set(toolId, {
+        id: toolId,
+        iconName: config.iconName,
+        label: featureLabelMap[toolId] || config.defaultLabel,
+      });
+    });
+
+    // 2. 添加自定义工具（从 enabledToolIds 和 featureLabelMap 中提取）
+    if (enabledToolIds) {
+      enabledToolIds.forEach(toolId => {
+        // 如果不在标准工具列表中，且 featureLabelMap 中有标签，则认为是自定义工具
+        // 同时确保不会重复添加已存在的工具
+        if (!allItemsMap.has(toolId) && !standardToolConfig[toolId] && featureLabelMap[toolId]) {
+          allItemsMap.set(toolId, {
+            id: toolId,
+            iconName: "Grid", // 自定义工具默认使用 Grid 图标
+            label: featureLabelMap[toolId],
+          });
+        }
+      });
+    }
+
+    // 3. 如果指定了 enabledToolIds，则只显示启用的工具
+    let items = Array.from(allItemsMap.values());
+    if (enabledToolIds) {
+      items = items.filter(item => enabledToolIds.includes(item.id));
+    }
+
+    // 4. 确保去重：按 id 去重，保留第一个出现的
+    const uniqueItemsMap = new Map<string, { id: string; iconName: string; label: string }>();
+    items.forEach(item => {
+      if (!uniqueItemsMap.has(item.id)) {
+        uniqueItemsMap.set(item.id, item);
+      }
+    });
+
+    return Array.from(uniqueItemsMap.values()).map(item => ({
+      ...item,
+      icon: getIconByName(item.iconName)
+    }));
+  }, [featureLabelMap, enabledToolIds]);
+
+  const getRoleIcon = (roleId: string) => {
+    switch (roleId) {
+      case 'tech-fundamentalist': return Cpu;
+      case 'scene-alchemist': return FlaskConical;
+      case 'market-sniper': return Crosshair;
+      case 'content-director': return Clapperboard;
+      default: return Grid;
+    }
+  };
+
+  const renderDashboard = () => (
+    <>
+      {/* Tools Section */}
+      {agentRoles ? (
+        <div className="p-4 space-y-4">
+          {agentRoles.map(role => {
+            const roleTools = toolItems.filter(item => role.toolIds.includes(item.id));
+            if (roleTools.length === 0) return null;
+
+            const RoleIcon = getRoleIcon(role.id);
+
+            return (
+              <div 
+                key={role.id} 
+                className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
+              >
+                <div 
+                  className="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between cursor-pointer"
+                  onClick={() => {
+                    setActiveRole(role);
+                    setViewMode('workspace');
+                  }}
                 >
-                  <X className="w-4 h-4 text-gray-500" />
-                </button>
-              )}
-            </div>
-            {statusMessage ? (
-              <p className="text-xs text-gray-500 mt-1">{statusMessage}</p>
-            ) : (
-              <div className="text-xs text-transparent mt-1">占位</div>
-            )}
-          </div>
-          {/* 更多按钮 */}
-          {pageType === 'tech-package' && (
-            <button
-              onClick={() => setShowFieldMappingModal(true)}
-              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors text-gray-500 hover:text-gray-700"
-              title="字段映射配置"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-          )}
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                      <RoleIcon className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">{role.name}</h3>
+                      <p className="text-[10px] text-gray-500 leading-none mt-0.5">{role.description}</p>
+                    </div>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 text-gray-300 rotate-180" />
+                </div>
+                
+                <div className="p-3">
+                  <StudioTools
+                    items={roleTools}
+                    onTrigger={onTriggerFeature}
+                    executingId={executingFeatureId}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
-
-      {/* 工具网格 - 仅在有工具时显示 */}
-      {toolItems.length > 0 && (
-        <div className="p-4 border-b border-gray-200">
+      ) : (
+        <div className="p-4">
           <StudioTools
             items={toolItems}
             onTrigger={onTriggerFeature}
@@ -438,286 +573,820 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
           />
         </div>
       )}
+    </>
+  );
 
-      {/* 对话记录 */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
-        {/* 当没有工具时，在顶部显示对话记录标题 */}
-        {toolItems.length === 0 && (
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">对话记录</h2>
-              {onClose && (
+  const renderRoleSpecificContent = (roleId: string, toolLabel: string) => {
+    switch (roleId) {
+      case 'tech-fundamentalist':
+        return (
+          <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+              <Cpu className="w-5 h-5 text-blue-600" />
+              <h4 className="text-sm font-semibold text-gray-900">技术参数解析</h4>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-500">核心指标</span>
+                <span className="font-mono text-blue-600">Extracting...</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <div className="w-16 h-2 bg-gray-200 rounded animate-pulse" />
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <div className="w-10 h-2 bg-blue-100 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                正在从技术文档中提取 {toolLabel} 相关的硬核参数...
+              </p>
+            </div>
+          </div>
+        );
+      
+      case 'scene-alchemist':
+        return (
+          <div className="bg-white rounded-xl border border-purple-100 shadow-sm p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+              <FlaskConical className="w-5 h-5 text-purple-600" />
+              <h4 className="text-sm font-semibold text-gray-900">场景炼金</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="aspect-square bg-purple-50 rounded-lg p-2 flex flex-col justify-center items-center gap-2 animate-pulse">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full" />
+                  <div className="w-12 h-2 bg-purple-200 rounded" />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              正在模拟用户在不同环境下的真实体验...
+            </p>
+          </div>
+        );
+
+      case 'market-sniper':
+        return (
+          <div className="bg-white rounded-xl border border-red-100 shadow-sm p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+              <Crosshair className="w-5 h-5 text-red-600" />
+              <h4 className="text-sm font-semibold text-gray-900">市场狙击策略</h4>
+            </div>
+            <div className="relative h-32 bg-gray-50 rounded-lg flex items-end justify-around p-4 mb-3">
+               <div className="w-4 h-12 bg-gray-200 rounded-t animate-pulse" />
+               <div className="w-4 h-20 bg-red-200 rounded-t animate-pulse delay-75" />
+               <div className="w-4 h-16 bg-gray-200 rounded-t animate-pulse delay-150" />
+               <div className="w-4 h-24 bg-red-300 rounded-t animate-pulse delay-200" />
+            </div>
+            <p className="text-xs text-gray-400">
+              正在对比竞品数据，寻找差异化打击点...
+            </p>
+          </div>
+        );
+
+      case 'content-director':
+        return (
+          <div className="bg-white rounded-xl border border-green-100 shadow-sm p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+              <Clapperboard className="w-5 h-5 text-green-600" />
+              <h4 className="text-sm font-semibold text-gray-900">内容生成中</h4>
+            </div>
+            <div className="space-y-3">
+               <div className="flex gap-2">
+                 <div className="w-8 h-10 bg-gray-100 rounded border border-gray-200" />
+                 <div className="flex-1 space-y-2 py-1">
+                   <div className="w-3/4 h-2 bg-green-100 rounded animate-pulse" />
+                   <div className="w-1/2 h-2 bg-gray-100 rounded animate-pulse delay-75" />
+                 </div>
+               </div>
+               <div className="flex gap-2">
+                 <div className="w-8 h-10 bg-gray-100 rounded border border-gray-200" />
+                 <div className="flex-1 space-y-2 py-1">
+                   <div className="w-2/3 h-2 bg-green-100 rounded animate-pulse" />
+                   <div className="w-1/2 h-2 bg-gray-100 rounded animate-pulse delay-75" />
+                 </div>
+               </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-3">
+              正在编排 {toolLabel} 的结构与分镜...
+            </p>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="w-5 h-5 text-blue-500 animate-pulse" />
+              <h4 className="text-sm font-semibold text-gray-900">
+                {toolLabel || 'Agent'} 正在思考...
+              </h4>
+            </div>
+            <div className="space-y-3">
+              <div className="h-2 bg-gray-100 rounded-full w-3/4 animate-pulse"></div>
+              <div className="h-2 bg-gray-100 rounded-full w-1/2 animate-pulse delay-75"></div>
+              <div className="h-2 bg-gray-100 rounded-full w-5/6 animate-pulse delay-150"></div>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  const renderWorkspace = () => {
+    if (!activeRole) return null;
+    const RoleIcon = getRoleIcon(activeRole.id);
+    const roleTools = toolItems.filter(item => activeRole.toolIds.includes(item.id));
+    const activeTool = roleTools.find(t => t.id === executingFeatureId);
+    
+    // 判断是否有主 Agent 调用的工具
+    const isMainAgentToolCall = activeToolCall && toolToRoleMapping[activeToolCall.toolName] === activeRole.id;
+    const toolLabel = isMainAgentToolCall 
+      ? activeToolCall.toolName.replace('Consult_', '').replace(/_/g, ' ')
+      : activeTool?.label || 'Agent';
+    
+    // 当前激活的工具ID（用于高亮显示）
+    const currentActiveToolId = executingFeatureId || (isMainAgentToolCall ? activeToolCall.toolName : null);
+
+    return (
+      <div className="flex flex-col h-full bg-gray-50/30">
+        {/* Workspace Header */}
+        <div className="px-4 py-3 bg-white border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setViewMode('dashboard')}
+              className="p-1 -ml-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 flex-1">
+              <div className={`p-1.5 rounded-lg border transition-all ${
+                currentActiveToolId 
+                  ? "bg-blue-50 border-blue-200 shadow-sm" 
+                  : "bg-blue-50 border-blue-100"
+              }`}>
+                <RoleIcon className={`w-4 h-4 transition-colors ${
+                  currentActiveToolId ? "text-blue-600" : "text-blue-500"
+                }`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-gray-900">{activeRole.name}</h3>
+                <p className="text-xs text-blue-600 font-medium">
+                  {currentActiveToolId ? (
+                    <span className="flex items-center gap-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>执行中: </span>
+                      <span className="font-semibold">{toolLabel}</span>
+                    </span>
+                  ) : (
+                    'Expert Workspace'
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* 工具关联指示器 */}
+          {currentActiveToolId && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                <span>当前工具: {toolLabel}</span>
+                <span className="text-gray-300">•</span>
+                <span>共 {roleTools.length} 个可用工具</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Workspace Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {(executingFeatureId || isMainAgentToolCall) ? (
+            <>
+              {isMainAgentToolCall && toolCallOutput ? (
+                // 显示主 Agent 工具调用的结果
+                renderToolCallResult(activeRole.id, toolLabel, toolCallOutput)
+              ) : (
+                // 显示执行状态
+                renderRoleSpecificContent(activeRole.id, toolLabel)
+              )}
+            </>
+          ) : (
+             <div className="text-center py-12">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 shadow-sm">
+                  <RoleIcon className="w-8 h-8 text-gray-300" />
+                </div>
+                <h4 className="text-sm font-medium text-gray-900 mb-1">准备就绪</h4>
+                <p className="text-xs text-gray-500 px-8">
+                  点击下方工具，唤醒 {activeRole.name} 开始工作
+                </p>
+             </div>
+          )}
+
+          {/* Quick Tools Access in Workspace */}
+          <div className="mt-6">
+            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">可用工具</h4>
+            <div className="grid grid-cols-1 gap-2">
+              {roleTools.map(tool => {
+                // 判断工具是否激活（包括主 Agent 调用的工具）
+                // 主 Agent 调用的工具名称（如 Consult_Tech）需要映射到对应的 featureType（如 five-view-analysis）
+                const mainAgentToolFeatureType = isMainAgentToolCall && activeToolCall?.toolName 
+                  ? toolToFeatureTypeMapping[activeToolCall.toolName] 
+                  : null;
+                
+                const isToolActive = executingFeatureId === tool.id || 
+                                   (isMainAgentToolCall && mainAgentToolFeatureType === tool.id);
+                const isToolRelated = !isToolActive && currentActiveToolId && 
+                                     (tool.id === currentActiveToolId || 
+                                      (isMainAgentToolCall && mainAgentToolFeatureType === tool.id));
+                
+                return (
+                  <button
+                    key={tool.id}
+                    ref={(el) => {
+                      if (el) {
+                        toolButtonRefs.current.set(tool.id, el);
+                      } else {
+                        toolButtonRefs.current.delete(tool.id);
+                      }
+                    }}
+                    onClick={() => onTriggerFeature(tool.id)}
+                    disabled={executingFeatureId === tool.id}
+                    className={`
+                      flex items-center gap-3 p-3 rounded-xl border text-left transition-all relative
+                      ${isToolActive
+                        ? "bg-blue-50 border-blue-200 shadow-inner ring-2 ring-blue-300"
+                        : isToolRelated
+                        ? "bg-blue-50/50 border-blue-100"
+                        : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
+                      }
+                    `}
+                    title={isToolActive ? `当前正在执行: ${tool.label}` : `点击执行: ${tool.label}`}
+                  >
+                    {/* 激活指示器 */}
+                    {isToolActive && (
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                    )}
+                    
+                    <div className={`p-2 rounded-lg transition-colors ${
+                      isToolActive 
+                        ? "bg-white shadow-sm" 
+                        : isToolRelated
+                        ? "bg-blue-50"
+                        : "bg-gray-50"
+                    }`}>
+                      <tool.icon className={`w-4 h-4 transition-colors ${
+                        isToolActive 
+                          ? "text-blue-600" 
+                          : isToolRelated
+                          ? "text-blue-500"
+                          : "text-gray-500"
+                      }`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm font-medium block ${
+                        isToolActive 
+                          ? "text-blue-900" 
+                          : isToolRelated
+                          ? "text-blue-700"
+                          : "text-gray-700"
+                      }`}>
+                        {tool.label}
+                      </span>
+                      {isToolActive && (
+                        <span className="text-[10px] text-blue-500 flex items-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          执行中...
+                        </span>
+                      )}
+                      {isToolRelated && !isToolActive && (
+                        <span className="text-[10px] text-blue-400">相关工具</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染工具调用结果
+  const renderToolCallResult = (roleId: string, toolLabel: string, output: any) => {
+    if (output.error) {
+      return (
+        <div className="bg-white rounded-xl border border-red-100 shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <h4 className="text-sm font-semibold text-gray-900">执行失败</h4>
+          </div>
+          <p className="text-sm text-red-600">{output.error}</p>
+        </div>
+      );
+    }
+
+    // 根据角色类型渲染不同的结果展示
+    const content = output.content || output.text || output.answer || JSON.stringify(output, null, 2);
+    const displayContent = isEditingToolOutput ? editedToolOutput : (typeof content === 'string' ? content : JSON.stringify(content, null, 2));
+
+    // 初始化编辑内容
+    useEffect(() => {
+      if (toolCallOutput && !isEditingToolOutput) {
+        const initialContent = toolCallOutput.content || toolCallOutput.text || toolCallOutput.answer || JSON.stringify(toolCallOutput, null, 2);
+        setEditedToolOutput(typeof initialContent === 'string' ? initialContent : JSON.stringify(initialContent, null, 2));
+      }
+    }, [toolCallOutput, isEditingToolOutput]);
+
+    const handleSaveEdit = () => {
+      if (activeToolCall && onToolOutputModified) {
+        onToolOutputModified(activeToolCall.toolName, editedToolOutput);
+        setIsEditingToolOutput(false);
+        setMessage({ type: 'success', text: '修改已保存，将在下次对话中生效' });
+        setTimeout(() => setMessage(null), 3000);
+      }
+    };
+
+    const handleCancelEdit = () => {
+      setIsEditingToolOutput(false);
+      // 恢复原始内容
+      const originalContent = content;
+      setEditedToolOutput(typeof originalContent === 'string' ? originalContent : JSON.stringify(originalContent, null, 2));
+    };
+
+    return (
+      <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h4 className="text-sm font-semibold text-gray-900">{toolLabel} 执行完成</h4>
+          </div>
+          {!isEditingToolOutput ? (
+            <button
+              onClick={() => setIsEditingToolOutput(true)}
+              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+              title="编辑结果"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              编辑
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveEdit}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
+                title="保存修改"
+              >
+                <Save className="w-3.5 h-3.5" />
+                保存
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                title="取消编辑"
+              >
+                <X className="w-3.5 h-3.5" />
+                取消
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="space-y-3">
+          {isEditingToolOutput ? (
+            <textarea
+              value={editedToolOutput}
+              onChange={(e) => setEditedToolOutput(e.target.value)}
+              className="w-full h-64 p-3 text-xs bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono resize-y"
+              placeholder="编辑工具输出内容..."
+            />
+          ) : (
+            <div className="prose prose-sm max-w-none">
+              <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-3 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+                {displayContent}
+              </pre>
+            </div>
+          )}
+        </div>
+        {message && (
+          <div className={`mt-3 p-2 rounded-lg text-xs flex items-center gap-2 ${
+            message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          }`}>
+            {message.type === 'success' ? (
+              <CheckCircle className="w-4 h-4" />
+            ) : (
+              <AlertCircle className="w-4 h-4" />
+            )}
+            {message.text}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-80 border-l border-gray-200 bg-white flex flex-col h-full shadow-lg z-20">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-blue-50 rounded-lg">
+            <Grid className="w-4 h-4 text-blue-600" />
+          </div>
+          <h2 className="text-sm font-semibold text-gray-900">{studioTitle}</h2>
+        </div>
+        <div className="flex items-center gap-1">
+          {pageType === 'tech-package' && (
+            <button
+              onClick={() => setShowFieldMappingModal(true)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              title="字段映射配置"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {viewMode === 'dashboard' ? renderDashboard() : renderWorkspace()}
+
+        {/* History Section (Only visible in Dashboard mode) */}
+        {viewMode === 'dashboard' && (
+          <div className="border-t border-gray-100 mt-4">
+            <div className="p-4 pb-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-gray-400" />
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">历史记录</h3>
+                </div>
                 <button
-                  onClick={onClose}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  title="关闭"
+                  onClick={onShowConversationList}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  查看全部
                 </button>
+              </div>
+            </div>
+            
+            <div className="px-2 pb-4 space-y-1">
+              {conversations.slice(0, 5).map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => handleConversationClick(conv)}
+                  className={`group flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100 ${
+                    currentConversationId === conv.id ? "bg-blue-50 border-blue-100" : ""
+                  }`}
+                >
+                  <div className="flex-1 min-w-0 mr-3">
+                    <p className={`text-sm font-medium truncate ${
+                      currentConversationId === conv.id ? "text-blue-700" : "text-gray-700 group-hover:text-gray-900"
+                    }`}>
+                      {getFirstQuestion(conv)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-2">
+                      <span>{formatDaysAgo(conv.createdAt)}</span>
+                      <span className="w-0.5 h-0.5 bg-gray-300 rounded-full"></span>
+                      <span>{conv.messages?.length || 0} 条对话</span>
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={(e) => handleDeleteClick(e, conv.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all"
+                    title="删除对话"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+              
+              {conversations.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="w-5 h-5 text-gray-300" />
+                  </div>
+                  <p className="text-sm text-gray-500">暂无历史记录</p>
+                </div>
               )}
             </div>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            {toolItems.length > 0 && (
-              <h3 className="text-sm font-medium text-gray-700 mb-3">对话记录</h3>
-            )}
-            {conversations.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 text-sm">
-                暂无对话记录
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {conversations.map((conversation) => {
-                  const firstQuestion = getFirstQuestion(conversation);
-                  const messageCount = conversation.messages?.length || 0;
-                  const isCurrent = currentConversationId === conversation.id;
-                  return (
-                    <div
-                      key={conversation.id}
-                      className={`flex items-start gap-3 p-3 rounded-lg transition-colors group cursor-pointer ${
-                        isCurrent
-                          ? "bg-blue-50 border border-blue-200"
-                          : "hover:bg-gray-50 border border-transparent"
-                      }`}
-                      onClick={() => handleConversationClick(conversation)}
-                    >
-                      <MessageSquare className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                        isCurrent ? "text-blue-600" : "text-gray-400"
-                      }`} />
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm truncate ${
-                          isCurrent ? "text-blue-900 font-medium" : "text-gray-900"
-                        }`}>{firstQuestion}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {messageCount} 条消息 · {formatDaysAgo(conversation.updatedAt)}
-                        </p>
-                      </div>
-                      {onDeleteConversation && (
-                        <button
-                          onClick={(e) => handleDeleteClick(e, conversation.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100 rounded transition-all flex-shrink-0"
-                          title="删除对话"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {/* 对话详情弹窗 */}
-      {showDetailModal && selectedConversation && (
-        <ConversationDetailModal
-          conversation={selectedConversation}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedConversation(null);
-          }}
-        />
-      )}
+      {/* Field Mapping Config Modal */}
 
-      {/* 字段映射配置弹窗 */}
       {showFieldMappingModal && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6 z-50">
-          <div className="bg-white rounded-lg border border-gray-200 w-full max-w-3xl max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">修改配置</h3>
-              <button onClick={() => {
-                setShowFieldMappingModal(false);
-                setSelectedFeatureTypes([]);
-                setSelectedFeatureType('');
-                setCustomFeatureId('');
-                setCustomFeatureLabel('');
-                setShowCustomModuleForm(false);
-                setMessage(null);
-              }} className="text-gray-500 hover:text-gray-700">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-[800px] max-h-[80vh] flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">字段映射配置</h3>
+                <p className="text-sm text-gray-500 mt-1">配置各功能模块对应的AI角色和提示词</p>
+              </div>
+              <button
+                onClick={() => setShowFieldMappingModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <div className="p-6 space-y-6 overflow-y-auto flex-1">
-              {/* 消息提示 */}
+            
+            <div className="flex-1 overflow-y-auto p-6">
               {message && (
-                <div
-                  className={`p-4 rounded-lg flex items-center gap-2 ${
-                    message.type === 'success'
-                      ? 'bg-green-50 text-green-800 border border-green-200'
-                      : 'bg-red-50 text-red-800 border border-red-200'
-                  }`}
-                >
+                <div className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
+                  message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                }`}>
                   {message.type === 'success' ? (
                     <CheckCircle className="w-5 h-5" />
                   ) : (
                     <AlertCircle className="w-5 h-5" />
                   )}
-                  <span>{message.text}</span>
-                  <button
-                    onClick={() => setMessage(null)}
-                    className="ml-auto text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {message.text}
                 </div>
               )}
-              
-              <div>
-                <div className="text-sm text-gray-600 mb-2">技术独立页</div>
-                <div className="px-3 py-2 border rounded-md text-sm bg-blue-50 border-blue-500 text-gray-900">
-                  技术包装
-                </div>
-                <p className="text-xs text-gray-500 mt-1">字段映射管理仅关联技术包装页面</p>
-              </div>
-              <div>
-                <div className="text-sm text-gray-600 mb-2">选择AI模块</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { key: 'five-view-analysis', label: '五看', icon: <Eye className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'three-fix-analysis', label: '三定', icon: <Target className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'tech-matrix', label: '技术矩阵', icon: <Grid className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'propagation-strategy', label: '传播', icon: <Megaphone className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'exhibition-video', label: '展具与视频', icon: <Video className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'translation', label: '翻译', icon: <Languages className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'ppt-outline', label: '技术通稿', icon: <Presentation className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'script', label: '脚本', icon: <FileText className="w-6 h-6 mb-2 text-gray-600" /> },
-                  ].map(item => (
-                    <button
-                      key={item.key}
-                      onClick={() => { setSelectedFeatureType(item.key); setShowCustomModuleForm(false); }}
-                      className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${selectedFeatureType === item.key ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500'}`}
-                      title={item.label}
-                    >
-                      {item.icon}
-                      <span className="text-xs text-gray-700 text-center">{item.label}</span>
-                      <div
-                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(item.key); }}
-                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border cursor-pointer ${isFeatureChecked(item.key) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
-                        aria-label={isFeatureChecked(item.key) ? '取消选择' : '选择模块'}
-                      />
-                    </button>
-                  ))}
-                  {/* 显示已添加的自定义模块 */}
-                  {customModules.map((module) => (
-                    <button
-                      key={module.id}
-                      onClick={() => { setSelectedFeatureType(module.id); setShowCustomModuleForm(false); }}
-                      className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${selectedFeatureType === module.id ? 'bg-blue-50 border-blue-500' : 'bg-white border-purple-300 hover:bg-gray-50 hover:border-purple-500'}`}
-                      title={module.label}
-                    >
-                      <Settings className="w-6 h-6 mb-2 text-purple-600" />
-                      <span className="text-xs text-gray-700 text-center">{module.label}</span>
-                      <div
-                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(module.id); }}
-                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border cursor-pointer ${isFeatureChecked(module.id) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
-                        aria-label={isFeatureChecked(module.id) ? '取消选择' : '选择模块'}
-                      />
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => { setShowCustomModuleForm(true); setSelectedFeatureType(customFeatureId || ''); }}
-                    className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${showCustomModuleForm ? 'bg-blue-50 border-blue-500' : 'bg-white border-red-400 hover:bg-gray-50 hover:border-blue-500'}`}
-                    title="新增AI模块"
-                  >
-                    <span className="text-2xl text-red-500">+</span>
-                    <span className="mt-2 text-xs text-gray-700">新增AI模块</span>
-                    {customFeatureId && (
-                      <div
-                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(customFeatureId); setSelectedFeatureType(customFeatureId); }}
-                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border ${isFeatureChecked(customFeatureId) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
-                        aria-label={isFeatureChecked(customFeatureId) ? '取消选择' : '选择模块'}
-                      />
-                    )}
-                  </button>
-                </div>
-                {showCustomModuleForm && (
-                  <div className="mt-4 space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">模块标识</label>
-                        <input
-                          type="text"
-                          className="w-full border rounded-md px-3 py-2 text-sm"
-                          placeholder="如 custom-module"
-                          value={customFeatureId}
-                          onChange={(e) => setCustomFeatureId(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-600 mb-1">显示名称</label>
-                        <input
-                          type="text"
-                          className="w-full border rounded-md px-3 py-2 text-sm"
-                          placeholder="如 自定义模块"
-                          value={customFeatureLabel}
-                          onChange={(e) => setCustomFeatureLabel(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        <button
-                          onClick={() => {
-                            if (!customFeatureId.trim()) {
-                              setMessage({ type: 'error', text: '请输入模块标识' });
-                              return;
+
+              <div className="space-y-6">
+                {/* Default Modules */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <Grid className="w-4 h-4 text-blue-600" />
+                    标准功能模块
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {Object.entries(FEATURE_LABELS).map(([key, defaultLabel]) => {
+                      // 使用 featureLabelMap 中的标签，如果没有则使用默认标签
+                      const label = featureLabelMap[key] || defaultLabel;
+                      const isChecked = isFeatureChecked(key);
+                      const currentRoleId = featureToRoleMapping[key] || defaultFeatureToRoleMapping[key] || '';
+                      // 优先使用页面配置中的 agentRoles，如果没有则使用数据库中的角色
+                      const expertRoles = agentRoles && agentRoles.length > 0
+                        ? agentRoles.filter(r => 
+                            r.id === 'tech-fundamentalist' || 
+                            r.id === 'scene-alchemist' || 
+                            r.id === 'market-sniper' || 
+                            r.id === 'content-director'
+                          )
+                        : roles.filter(r => 
+                            r.id === 'tech-fundamentalist' || 
+                            r.id === 'scene-alchemist' || 
+                            r.id === 'market-sniper' || 
+                            r.id === 'content-director'
+                          );
+                      
+                      return (
+                        <div
+                          key={key}
+                          className={`
+                            relative p-4 rounded-xl border-2 transition-all duration-200
+                            ${isChecked
+                              ? 'border-blue-500 bg-blue-50/50 shadow-sm'
+                              : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                             }
-                            if (customModules.some(m => m.id === customFeatureId.trim())) {
-                              setMessage({ type: 'error', text: '该模块标识已存在' });
-                              return;
-                            }
-                            const newModule = {
-                              id: customFeatureId.trim(),
-                              label: customFeatureLabel.trim() || customFeatureId.trim()
-                            };
-                            const updatedModules = [...customModules, newModule];
-                            setCustomModules(updatedModules);
-                            saveCustomModulesToStorage(updatedModules);
-                            setSelectedFeatureTypes(prev => prev.includes(newModule.id) ? prev : [...prev, newModule.id]);
-                            setCustomFeatureId('');
-                            setCustomFeatureLabel('');
-                            setMessage(null);
-                          }}
-                          className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+                          `}
                         >
-                          添加模块
+                          <div 
+                            className="flex items-center cursor-pointer"
+                            onClick={() => toggleFeatureChecked(key)}
+                          >
+                            <div className={`
+                              w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors flex-shrink-0
+                              ${isChecked
+                                ? 'border-blue-500 bg-blue-500'
+                                : 'border-gray-300'
+                              }
+                            `}>
+                              {isChecked && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                            </div>
+                            <span className={`font-medium flex-1 ${isChecked ? 'text-blue-900' : 'text-gray-700'}`}>
+                              {label}
+                            </span>
+                          </div>
+                          
+                          {isChecked && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <label className="block text-xs font-medium text-gray-600 mb-2">
+                                关联专家角色
+                              </label>
+                              <select
+                                value={currentRoleId}
+                                onChange={(e) => handleRoleChange(key, e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                              >
+                                <option value="">请选择专家角色</option>
+                                {expertRoles.map((role) => (
+                                  <option key={role.id} value={role.id}>
+                                    {role.name} - {role.description}
+                                  </option>
+                                ))}
+                              </select>
+                              {currentRoleId && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                  当前配置: {expertRoles.find(r => r.id === currentRoleId)?.name || '未知角色'}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Modules */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-purple-600" />
+                      自定义功能模块
+                    </h4>
+                    <button
+                      onClick={() => setShowCustomModuleForm(true)}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline flex items-center gap-1"
+                    >
+                      <span className="text-lg leading-none">+</span> 添加模块
+                    </button>
+                  </div>
+
+                  {showCustomModuleForm && (
+                    <div className="mb-4 p-4 bg-gray-50 rounded-xl border border-gray-100 animate-in slide-in-from-top-2">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1.5">模块ID (英文)</label>
+                          <input
+                            type="text"
+                            value={customFeatureId}
+                            onChange={(e) => setCustomFeatureId(e.target.value)}
+                            placeholder="e.g., swot-analysis"
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-500 mb-1.5">模块名称</label>
+                          <input
+                            type="text"
+                            value={customFeatureLabel}
+                            onChange={(e) => setCustomFeatureLabel(e.target.value)}
+                            placeholder="e.g., SWOT分析"
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setShowCustomModuleForm(false)}
+                          className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          取消
+                        </button>
+                        <button
+                          onClick={handleAddCustomModule}
+                          disabled={!customFeatureId || !customFeatureLabel}
+                          className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-sm transition-colors"
+                        >
+                          确认添加
                         </button>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {customModules.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {customModules.map((module) => {
+                        const isChecked = isFeatureChecked(module.id);
+                        const currentRoleId = featureToRoleMapping[module.id] || '';
+                        // 优先使用页面配置中的 agentRoles，如果没有则使用数据库中的角色
+                        const expertRoles = agentRoles && agentRoles.length > 0
+                          ? agentRoles.filter(r => 
+                              r.id === 'tech-fundamentalist' || 
+                              r.id === 'scene-alchemist' || 
+                              r.id === 'market-sniper' || 
+                              r.id === 'content-director'
+                            )
+                          : roles.filter(r => 
+                              r.id === 'tech-fundamentalist' || 
+                              r.id === 'scene-alchemist' || 
+                              r.id === 'market-sniper' || 
+                              r.id === 'content-director'
+                            );
+                        
+                        return (
+                          <div
+                            key={module.id}
+                            className={`
+                              relative p-4 rounded-xl border-2 transition-all duration-200 group
+                              ${isChecked
+                                ? 'border-purple-500 bg-purple-50/50 shadow-sm'
+                                : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                              }
+                            `}
+                          >
+                            <div 
+                              className="flex items-center justify-between cursor-pointer"
+                              onClick={() => toggleFeatureChecked(module.id)}
+                            >
+                              <div className="flex items-center flex-1">
+                                <div className={`
+                                  w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors flex-shrink-0
+                                  ${isChecked
+                                    ? 'border-purple-500 bg-purple-500'
+                                    : 'border-gray-300'
+                                  }
+                                `}>
+                                  {isChecked && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                                <span className={`font-medium ${isChecked ? 'text-purple-900' : 'text-gray-700'}`}>
+                                  {module.label}
+                                </span>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCustomModule(module.id);
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all ml-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            
+                            {isChecked && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <label className="block text-xs font-medium text-gray-600 mb-2">
+                                  关联专家角色
+                                </label>
+                                <select
+                                  value={currentRoleId}
+                                  onChange={(e) => handleRoleChange(module.id, e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                >
+                                  <option value="">请选择专家角色</option>
+                                  {expertRoles.map((role) => (
+                                    <option key={role.id} value={role.id}>
+                                      {role.name} - {role.description}
+                                    </option>
+                                  ))}
+                                </select>
+                                {currentRoleId && (
+                                  <p className="mt-1 text-xs text-gray-500">
+                                    当前配置: {expertRoles.find(r => r.id === currentRoleId)?.name || '未知角色'}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <Settings className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">暂无自定义模块</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
-              <button 
-                onClick={() => {
-                  setShowFieldMappingModal(false);
-                  setSelectedFeatureTypes([]);
-                  setSelectedFeatureType('');
-                  setCustomFeatureId('');
-                  setCustomFeatureLabel('');
-                  setShowCustomModuleForm(false);
-                  setMessage(null);
-                }} 
-                className="px-3 py-2 rounded-md border text-sm"
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-xl flex justify-end gap-3">
+              <button
+                onClick={() => setShowFieldMappingModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleSaveFieldMapping}
-                className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm shadow-blue-200 transition-colors"
               >
-                保存修改
+                保存配置
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Conversation Detail Modal */}
+      {selectedConversation && (
+        <ConversationDetailModal
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedConversation(null);
+          }}
+          conversation={selectedConversation}
+        />
       )}
     </div>
   );
 };
 
 export default StudioSidebar;
-

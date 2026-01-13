@@ -63,11 +63,32 @@ interface ApiErrorPayload {
 | `UNAUTHORIZED` | 未授权 | 401 |
 | `FORBIDDEN` | 禁止访问 | 403 |
 | `NOT_FOUND` | 资源不存在 | 404 |
+| `TABLE_NOT_FOUND` | 表不存在（废弃API） | 500 |
+| `DEPRECATED_API` | API已废弃，请使用新API | 500 |
 | `DIFY_CHAT_ERROR` | Dify 聊天服务调用失败 | 500 |
 | `DIFY_WORKFLOW_ERROR` | Dify 工作流服务调用失败 | 500 |
 | `AI_SEARCH_FAILED` | AI 搜索执行失败 | 500 |
 | `WORKFLOW_EXECUTION_FAILED` | 工作流执行失败 | 500 |
 | `INTERNAL_ERROR` | 服务器内部错误 | 500 |
+
+### 废弃API错误响应
+
+当调用已废弃的API时，返回以下错误：
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "DEPRECATED_API",
+    "message": "此API已废弃，请使用 workflow_executions API",
+    "details": {
+      "deprecated_endpoint": "/api/tech-packaging/:id",
+      "alternative_endpoint": "/api/workflow-executions/:id",
+      "data_location": "outputs.tech_package"
+    }
+  }
+}
+```
 
 ## 分页响应格式
 

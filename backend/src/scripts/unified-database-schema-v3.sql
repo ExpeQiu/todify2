@@ -1,12 +1,17 @@
--- Todify3 统一数据库架构 v3.0
--- 创建日期: 2025-01-XX
+-- Todify4 统一数据库架构 v4.0 (清理版)
+-- 创建日期: 2025-01-13
 -- 说明: 优化架构，整合所有表定义，增强约束和性能，支持SQLite和PostgreSQL
--- 优化点:
--- 1. 统一字段类型定义，增强数据完整性约束
--- 2. 添加缺失的表（projects, source_information, public_knowledge等）
+-- 
+-- 版本变更 (v3.0 -> v4.0):
+-- 1. 移除13个未使用的表定义（采用JSON存储策略）
+-- 2. 统一字段类型定义，增强数据完整性约束
 -- 3. 优化时间戳字段处理
 -- 4. 增强CHECK约束
 -- 5. 改进外键约束定义
+--
+-- 架构决策:
+-- - AI生成内容（技术包装、策略、通稿、演讲稿）存储在 workflow_executions.outputs (JSON格式)
+-- - 不需要独立的表，除非未来需要内容管理功能（搜索、版本控制、审批流程）
 
 -- ==============================================
 -- 第一层：基础数据层
@@ -170,128 +175,37 @@ CREATE TABLE IF NOT EXISTS knowledge_point_favorites (
     UNIQUE(user_id, knowledge_point_id)
 );
 
--- 技术包装材料表
-CREATE TABLE IF NOT EXISTS tech_packaging_materials (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tech_point_id INTEGER NOT NULL,
-    project_id INTEGER, -- 关联项目ID（可选）
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    material_type TEXT NOT NULL CHECK (material_type IN ('general', 'marketing', 'technical', 'presentation')),
-    target_audience TEXT NOT NULL CHECK (target_audience IN ('general', 'technical', 'marketing', 'executive', 'industry', 'academic', 'media', 'investors')),
-    language TEXT NOT NULL DEFAULT 'zh',
-    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'published')),
-    generation_params TEXT, -- JSON格式存储生成参数
-    dify_task_id TEXT,
-    created_by TEXT,
-    reviewed_by TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
-);
-
--- 技术推广策略表
-CREATE TABLE IF NOT EXISTS tech_promotion_strategies (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER, -- 关联项目ID（可选）
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    strategy_type TEXT NOT NULL CHECK (strategy_type IN ('comprehensive', 'marketing', 'pr', 'social_media', 'event')),
-    target_market TEXT,
-    timeline TEXT, -- JSON格式存储时间线
-    budget_range TEXT,
-    kpi_metrics TEXT, -- JSON格式存储KPI指标
-    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'executing', 'completed')),
-    generation_params TEXT, -- JSON格式存储生成参数
-    dify_task_id TEXT,
-    created_by TEXT,
-    reviewed_by TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
-);
-
--- 技术通稿表
-CREATE TABLE IF NOT EXISTS tech_press_releases (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER, -- 关联项目ID（可选）
-    title TEXT NOT NULL,
-    subtitle TEXT,
-    content TEXT NOT NULL,
-    summary TEXT,
-    release_type TEXT NOT NULL CHECK (release_type IN ('general', 'product_launch', 'technology_breakthrough', 'partnership', 'award')),
-    target_media TEXT, -- JSON数组格式
-    publication_date DATE,
-    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'published')),
-    seo_keywords TEXT, -- JSON数组格式
-    generation_params TEXT, -- JSON格式存储生成参数
-    dify_task_id TEXT,
-    created_by TEXT,
-    reviewed_by TEXT,
-    published_by TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
-);
-
--- 技术演讲稿表
-CREATE TABLE IF NOT EXISTS tech_speeches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    speech_type TEXT NOT NULL CHECK (speech_type IN ('conference', 'seminar', 'workshop', 'keynote', 'panel')),
-    duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
-    target_audience TEXT NOT NULL CHECK (target_audience IN ('general', 'technical', 'marketing', 'executive', 'industry', 'academic', 'media', 'investors')),
-    event_name TEXT,
-    event_date DATE,
-    speaker_notes TEXT,
-    slides_outline TEXT, -- JSON格式存储幻灯片大纲
-    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'approved', 'delivered')),
-    generation_params TEXT, -- JSON格式存储生成参数
-    dify_task_id TEXT,
-    created_by TEXT,
-    reviewed_by TEXT,
-    delivered_by TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- 推广策略与技术点关联表
-CREATE TABLE IF NOT EXISTS promotion_tech_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    promotion_id INTEGER NOT NULL,
-    tech_point_id INTEGER NOT NULL,
-    weight REAL NOT NULL DEFAULT 1.0 CHECK (weight >= 0 AND weight <= 1),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (promotion_id) REFERENCES tech_promotion_strategies(id) ON DELETE CASCADE,
-    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE,
-    UNIQUE(promotion_id, tech_point_id)
-);
-
--- 通稿与技术点关联表
-CREATE TABLE IF NOT EXISTS press_tech_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    press_release_id INTEGER NOT NULL,
-    tech_point_id INTEGER NOT NULL,
-    weight REAL NOT NULL DEFAULT 1.0 CHECK (weight >= 0 AND weight <= 1),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (press_release_id) REFERENCES tech_press_releases(id) ON DELETE CASCADE,
-    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE,
-    UNIQUE(press_release_id, tech_point_id)
-);
-
--- 演讲稿与技术点关联表
-CREATE TABLE IF NOT EXISTS speech_tech_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    speech_id INTEGER NOT NULL,
-    tech_point_id INTEGER NOT NULL,
-    weight REAL NOT NULL DEFAULT 1.0 CHECK (weight >= 0 AND weight <= 1),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (speech_id) REFERENCES tech_speeches(id) ON DELETE CASCADE,
-    FOREIGN KEY (tech_point_id) REFERENCES tech_points(id) ON DELETE CASCADE,
-    UNIQUE(speech_id, tech_point_id)
-);
+-- ==============================================
+-- 注意: 以下内容生成表已移除（采用JSON存储策略）
+-- ==============================================
+-- 
+-- 架构决策: AI生成的内容（技术包装、推广策略、通稿、演讲稿）
+-- 采用轻量级JSON存储策略，存储在 workflow_executions.outputs 字段中。
+-- 
+-- 移除的表:
+-- - tech_packaging_materials (技术包装材料)
+-- - tech_promotion_strategies (技术推广策略)
+-- - tech_press_releases (技术通稿)
+-- - tech_speeches (技术演讲稿)
+-- - promotion_tech_points (推广策略与技术点关联)
+-- - press_tech_points (通稿与技术点关联)
+-- - speech_tech_points (演讲稿与技术点关联)
+-- - tech_packaging_conversations (技术包装关联对话)
+-- - tech_packaging_sources (技术包装关联来源)
+-- - tech_promotion_conversations (推广策略关联对话)
+-- - tech_promotion_sources (推广策略关联来源)
+-- - tech_press_conversations (通稿关联对话)
+-- - tech_press_sources (通稿关联来源)
+--
+-- 原因:
+-- 1. 这些内容采用"临时生成、立即使用"的业务模式
+-- 2. 不需要独立的搜索、筛选、版本控制功能
+-- 3. 存储在 workflow_executions.outputs 中更灵活、更轻量
+--
+-- 未来扩展:
+-- 如果未来需要内容管理功能（搜索、版本控制、审批流程），
+-- 可以重新创建这些表并从 workflow_executions.outputs 迁移数据。
+-- ==============================================
 
 -- ==============================================
 -- 第四层：工作流与对话层
@@ -840,78 +754,19 @@ CREATE TABLE IF NOT EXISTS public_knowledge_files (
 -- ==============================================
 -- 生成内容关联上下文表
 -- ==============================================
-
--- 技术包装材料关联对话表
-CREATE TABLE IF NOT EXISTS tech_packaging_conversations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    packaging_id INTEGER NOT NULL,
-    conversation_id TEXT NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (packaging_id) REFERENCES tech_packaging_materials(id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
-    UNIQUE(packaging_id, conversation_id)
-);
-
--- 技术包装材料关联来源信息表
-CREATE TABLE IF NOT EXISTS tech_packaging_sources (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    packaging_id INTEGER NOT NULL,
-    source_id INTEGER NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (packaging_id) REFERENCES tech_packaging_materials(id) ON DELETE CASCADE,
-    FOREIGN KEY (source_id) REFERENCES source_information(id) ON DELETE CASCADE,
-    UNIQUE(packaging_id, source_id)
-);
-
--- 技术推广策略关联对话表
-CREATE TABLE IF NOT EXISTS tech_promotion_conversations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    promotion_id INTEGER NOT NULL,
-    conversation_id TEXT NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (promotion_id) REFERENCES tech_promotion_strategies(id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
-    UNIQUE(promotion_id, conversation_id)
-);
-
--- 技术推广策略关联来源信息表
-CREATE TABLE IF NOT EXISTS tech_promotion_sources (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    promotion_id INTEGER NOT NULL,
-    source_id INTEGER NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (promotion_id) REFERENCES tech_promotion_strategies(id) ON DELETE CASCADE,
-    FOREIGN KEY (source_id) REFERENCES source_information(id) ON DELETE CASCADE,
-    UNIQUE(promotion_id, source_id)
-);
-
--- 技术通稿关联对话表
-CREATE TABLE IF NOT EXISTS tech_press_conversations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    press_release_id INTEGER NOT NULL,
-    conversation_id TEXT NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (press_release_id) REFERENCES tech_press_releases(id) ON DELETE CASCADE,
-    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE,
-    UNIQUE(press_release_id, conversation_id)
-);
-
--- 技术通稿关联来源信息表
-CREATE TABLE IF NOT EXISTS tech_press_sources (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    press_release_id INTEGER NOT NULL,
-    source_id INTEGER NOT NULL,
-    notes TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (press_release_id) REFERENCES tech_press_releases(id) ON DELETE CASCADE,
-    FOREIGN KEY (source_id) REFERENCES source_information(id) ON DELETE CASCADE,
-    UNIQUE(press_release_id, source_id)
-);
+--
+-- 注意: 以下关联表已移除，因为对应的主表已采用JSON存储策略
+-- 关联信息也存储在 workflow_executions.outputs 中
+--
+-- 移除的表:
+-- - tech_packaging_conversations
+-- - tech_packaging_sources
+-- - tech_promotion_conversations
+-- - tech_promotion_sources
+-- - tech_press_conversations
+-- - tech_press_sources
+--
+-- ==============================================
 
 -- ==============================================
 -- 系统表

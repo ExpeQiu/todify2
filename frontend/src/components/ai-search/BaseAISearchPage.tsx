@@ -79,6 +79,27 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   const [project, setProject] = useState<Project | null>(null);
   const triggerStatusTimerRef = useRef<number | null>(null);
   const workflowSelectionRef = useRef<Record<string, string>>({});
+  const triggeringFeatureIdRef = useRef<string | null>(null);
+  
+  // 工具调用事件状态
+  const [activeToolCall, setActiveToolCall] = useState<{
+    toolName: string;
+    toolId?: string;
+    data?: any;
+  } | null>(null);
+  const [toolCallOutput, setToolCallOutput] = useState<any>(null);
+  const sseEventSourceRef = useRef<EventSource | null>(null);
+  
+  // 工具输出修改记录（用于在下次对话时传递给主 Agent）
+  const toolOutputModificationsRef = useRef<Map<string, string>>(new Map());
+  
+  // 工具名称到功能类型的映射（用于匹配工具按钮）
+  const toolToFeatureTypeMapping: Record<string, string> = {
+    'Consult_Tech': 'five-view-analysis',
+    'Consult_Scene': 'tech-matrix',
+    'Consult_Market': 'propagation-strategy',
+    'Consult_Content': 'script'
+  };
   
   // 使用 ref 来追踪 currentConversation，避免 loadConversations 循环依赖导致无限请求
   const currentConversationRef = useRef(currentConversation);
@@ -89,6 +110,11 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   useEffect(() => {
     currentConversationRef.current = currentConversation;
   }, [currentConversation]);
+  
+  // 同步 triggeringFeatureId 到 ref
+  useEffect(() => {
+    triggeringFeatureIdRef.current = triggeringFeatureId;
+  }, [triggeringFeatureId]);
   
   // 同步 sources 到 ref
   useEffect(() => {
@@ -520,12 +546,17 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
           // 排除 ai-dialog，检查是否匹配当前页面的 pageType
           if (f.featureType && f.featureType !== 'ai-dialog') {
             const featurePageType = (f as any).pageType;
-            // 如果 featureObject 有 pageType，必须匹配当前页面；如果没有 pageType，则不显示（避免显示不相关的工具）
-            if (featurePageType && pageKeys.includes(featurePageType)) {
+            // 如果 featureObject 有 pageType，必须匹配当前页面
+            // 如果没有 pageType，也显示（向后兼容，但优先级较低）
+            if (!featurePageType || pageKeys.includes(featurePageType)) {
               setIds.add(f.featureType);
               // 如果多个工作流配置了同一个工具，优先使用有 label 的配置
-              if ((f as any).label && !labels[f.featureType]) {
-                labels[f.featureType] = (f as any).label as string;
+              // 有 pageType 的配置优先级更高
+              if ((f as any).label) {
+                // 如果已有标签但新标签有 pageType 匹配，则更新
+                if (!labels[f.featureType] || (featurePageType && pageKeys.includes(featurePageType))) {
+                  labels[f.featureType] = (f as any).label as string;
+                }
               }
             }
           }
@@ -553,12 +584,27 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
       console.log('[BaseAISearchPage] 从字段映射配置找到的工具数量:', setIds.size, '工具列表:', Array.from(setIds));
       
       // 如果字段映射配置中有工具，优先使用字段映射配置
+      // 但也要合并默认配置，确保所有默认工具都能显示
+      const defaultToolIds = config.enabledToolIds || [];
+      let finalToolIds: string[];
+      
       if (setIds.size > 0) {
-        const toolIds = Array.from(setIds);
-        setEnabledToolIds(prev => areArraysEqual(prev, toolIds) ? prev : toolIds);
-        setDynamicLabelMap(prev => areObjectsEqual(prev, labels) ? prev : labels);
-        // 缓存工具ID
-        cachedToolIdsRef.current[config.pageType] = toolIds;
+        // 合并字段映射配置的工具和默认工具（去重）
+        const mergedSet = new Set([...Array.from(setIds), ...defaultToolIds]);
+        finalToolIds = Array.from(mergedSet);
+        console.log('[BaseAISearchPage] 合并字段映射配置和默认配置，最终工具数量:', finalToolIds.length);
+      } else {
+        // 如果字段映射配置中没有工具，使用默认配置
+        finalToolIds = defaultToolIds;
+      }
+      
+      setEnabledToolIds(prev => areArraysEqual(prev, finalToolIds) ? prev : finalToolIds);
+      setDynamicLabelMap(prev => areObjectsEqual(prev, labels) ? prev : labels);
+      // 缓存工具ID
+      cachedToolIdsRef.current[config.pageType] = finalToolIds;
+      
+      // 如果字段映射配置中有工具，直接返回（不再检查数据库配置）
+      if (setIds.size > 0) {
         return;
       }
 
@@ -566,20 +612,18 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
       const dbConfig = await pageToolConfigService.getByPageType(config.pageType);
       if (dbConfig && dbConfig.enabledToolIds && dbConfig.enabledToolIds.length > 0) {
         console.log('[BaseAISearchPage] 字段映射配置为空，从数据库配置加载工具:', dbConfig.enabledToolIds);
-        setEnabledToolIds(prev => areArraysEqual(prev, dbConfig.enabledToolIds) ? prev : dbConfig.enabledToolIds);
+        // 合并数据库配置和默认配置
+        const mergedSet = new Set([...dbConfig.enabledToolIds, ...defaultToolIds]);
+        const mergedToolIds = Array.from(mergedSet);
+        setEnabledToolIds(prev => areArraysEqual(prev, mergedToolIds) ? prev : mergedToolIds);
         setDynamicLabelMap(prev => areObjectsEqual(prev, dbConfig.featureLabelMap || {}) ? prev : (dbConfig.featureLabelMap || {}));
         // 缓存工具ID
-        cachedToolIdsRef.current[config.pageType] = dbConfig.enabledToolIds;
+        cachedToolIdsRef.current[config.pageType] = mergedToolIds;
         return;
       }
 
-      // 3. 如果都没有，回退到使用配置中的默认工具列表
-      console.log('[BaseAISearchPage] 未找到字段映射配置和数据库配置，使用默认配置:', config.enabledToolIds);
-      const defaultToolIds = config.enabledToolIds || [];
-      setEnabledToolIds(prev => areArraysEqual(prev, defaultToolIds) ? prev : defaultToolIds);
-      setDynamicLabelMap(prev => areObjectsEqual(prev, {}) ? prev : {});
-      // 缓存默认工具ID
-      cachedToolIdsRef.current[config.pageType] = defaultToolIds;
+      // 3. 如果都没有，使用配置中的默认工具列表（已经在上面设置了）
+      console.log('[BaseAISearchPage] 使用默认配置:', finalToolIds);
     } catch (error) {
       console.error('[BaseAISearchPage] 加载工具配置失败:', error);
       // 出错时也回退到使用配置中的默认工具列表（只有在没有缓存时才设置）
@@ -1583,7 +1627,10 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
       });
       await loadOutputs();
 
-      updateTriggerStatus(`已完成 ${label}`, 2000);
+      // 注意：不在这里清除 triggeringFeatureId
+      // 因为工具的实际执行是异步的，需要通过 SSE 事件来清除
+      // 如果 API 调用失败，才在这里清除
+      updateTriggerStatus(`已启动 ${label}，等待执行完成…`, 2000);
     } catch (error: any) {
       console.error("触发子Agent失败:", error);
       const message =
@@ -1594,7 +1641,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
       reportError(message, error?.response?.data?.details || error?.message);
       const shortMessage = message.length > 60 ? `${message.slice(0, 60)}…` : message;
       updateTriggerStatus(`执行 ${label} 失败：${shortMessage}`, 4000);
-    } finally {
+      // API 调用失败时，立即清除状态
       setTriggeringFeatureId(null);
     }
   };
@@ -1632,10 +1679,122 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
     };
   }, []);
 
+  // 建立 SSE 连接监听工具调用事件
+  useEffect(() => {
+    if (!currentConversation?.id) {
+      // 如果没有对话，关闭现有连接
+      if (sseEventSourceRef.current) {
+        sseEventSourceRef.current.close();
+        sseEventSourceRef.current = null;
+      }
+      setActiveToolCall(null);
+      setToolCallOutput(null);
+      return;
+    }
+
+    const conversationId = currentConversation.id;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    const eventSourceUrl = `${apiBaseUrl}/api/v1/ai-search/tool-events/${conversationId}`;
+
+    // 关闭现有连接
+    if (sseEventSourceRef.current) {
+      sseEventSourceRef.current.close();
+    }
+
+    // 建立新的 SSE 连接
+    const eventSource = new EventSource(eventSourceUrl);
+    sseEventSourceRef.current = eventSource;
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'connected') {
+          console.log('[ToolCallEvent] SSE 连接已建立', { conversationId });
+          return;
+        }
+
+        // 处理工具调用事件
+        if (data.type === 'tool_start') {
+          setActiveToolCall({
+            toolName: data.toolName,
+            toolId: data.toolId,
+            data: data.data
+          });
+          setToolCallOutput(null);
+          // 自动展开右侧面板
+          if (!showStudioSidebar) {
+            setShowStudioSidebar(true);
+          }
+          // 如果工具名称匹配当前触发中的功能，保持 triggeringFeatureId
+          // 工具名称可能是 Consult_Market（主Agent调用）或 propagation-strategy（直接触发）
+          const matchingFeatureType = toolToFeatureTypeMapping[data.toolName] || data.toolName;
+          const currentTriggeringId = triggeringFeatureIdRef.current;
+          if (currentTriggeringId && currentTriggeringId === matchingFeatureType) {
+            // 保持状态，等待完成事件
+          } else if (!currentTriggeringId && toolToFeatureTypeMapping[data.toolName]) {
+            // 主Agent调用的工具，设置对应的 featureType
+            setTriggeringFeatureId(matchingFeatureType);
+          }
+        } else if (data.type === 'tool_progress') {
+          setToolCallOutput(data.data);
+        } else if (data.type === 'tool_complete') {
+          setToolCallOutput(data.data);
+          // 工具完成后，清除 triggeringFeatureId
+          const matchingFeatureType = toolToFeatureTypeMapping[data.toolName] || data.toolName;
+          const currentTriggeringId = triggeringFeatureIdRef.current;
+          if (currentTriggeringId === matchingFeatureType) {
+            setTriggeringFeatureId(null);
+            updateTriggerStatus(null);
+          }
+          // 保持 activeToolCall 以便展示结果
+        } else if (data.type === 'tool_error') {
+          setToolCallOutput({ error: data.error });
+          // 错误时清除 triggeringFeatureId
+          const matchingFeatureType = toolToFeatureTypeMapping[data.toolName] || data.toolName;
+          const currentTriggeringId = triggeringFeatureIdRef.current;
+          if (currentTriggeringId === matchingFeatureType) {
+            setTriggeringFeatureId(null);
+            updateTriggerStatus(`工具执行失败: ${data.error}`, 4000);
+          }
+          // 保持 activeToolCall 以便展示错误信息
+        }
+      } catch (error) {
+        console.error('[ToolCallEvent] 解析事件数据失败', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('[ToolCallEvent] SSE 连接错误', error);
+      // 连接错误时，尝试重新连接（延迟重试）
+      setTimeout(() => {
+        if (sseEventSourceRef.current === eventSource && currentConversation?.id === conversationId) {
+          eventSource.close();
+          // 触发重新连接（通过 useEffect 依赖）
+        }
+      }, 5000);
+    };
+
+    // 清理函数
+    return () => {
+      if (sseEventSourceRef.current === eventSource) {
+        eventSource.close();
+        sseEventSourceRef.current = null;
+      }
+    };
+  }, [currentConversation?.id, showStudioSidebar]);
+
   const handleFieldMappingConfigSave = (config: FieldMappingConfigType) => {
     // setFieldMappingConfig(config);
     console.log('保存字段映射配置:', config);
   };
+
+  // 处理工具输出修改
+  const handleToolOutputModified = useCallback((toolName: string, modifiedContent: string) => {
+    // 保存修改内容到 ref，用于在下次对话时传递给主 Agent
+    toolOutputModificationsRef.current.set(toolName, modifiedContent);
+    console.log('[ToolOutputModified] 工具输出已修改', { toolName, contentLength: modifiedContent.length });
+  }, []);
 
   // 总结当前对话并保存为来源，用于跳转到其他页面
   const summarizeAndSaveConversationForNavigation = useCallback(async (targetPageType: 'tech-strategy' | 'tech-article'): Promise<string | null> => {
@@ -1787,6 +1946,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
           pageType={config.pageType as any}
           onShowSourceSidebar={() => setShowSourceSidebar(true)}
           onShowConversationList={() => setShowStudioSidebar(true)}
+          toolOutputModifications={toolOutputModificationsRef.current}
         />
 
         {showStudioSidebar && (
@@ -1804,6 +1964,10 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
             onClose={() => setShowStudioSidebar(false)}
             currentConversationId={currentConversation?.id}
             onSelectConversation={handleSelectConversation}
+            agentRoles={config.agentRoles}
+            activeToolCall={activeToolCall}
+            toolCallOutput={toolCallOutput}
+            onToolOutputModified={handleToolOutputModified}
           />
         )}
       </div>

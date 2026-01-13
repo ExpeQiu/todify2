@@ -1168,7 +1168,7 @@ const SourceManagementPage: React.FC = () => {
                     errorMessage = detailsMsg;
                   }
                   // 显示完整的 details（开发环境）
-                  if (process.env.NODE_ENV === 'development') {
+                  if (import.meta.env.DEV) {
                     errorDetails = `\n\n错误详情:\n${JSON.stringify(error.details, null, 2)}`;
                   }
                 }

@@ -56,9 +56,17 @@ export class ProjectModel {
    * 根据ID获取项目
    */
   async findById(id: number): Promise<Project | null> {
-    const sql = 'SELECT * FROM projects WHERE id = ?';
-    const result = await this.db.query(sql, [id]);
-    return result.length > 0 ? this.parseRow(result[0]) as Project : null;
+    try {
+      const sql = 'SELECT * FROM projects WHERE id = ?';
+      const result = await this.db.query(sql, [id]);
+      if (!result || result.length === 0) {
+        return null;
+      }
+      return this.parseRow(result[0]) as Project;
+    } catch (error) {
+      console.error('findById error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -211,18 +219,30 @@ export class ProjectModel {
    * 获取项目的来源数量
    */
   async getSourceCount(projectId: number): Promise<number> {
-    const sql = 'SELECT COUNT(*) as count FROM project_sources WHERE project_id = ?';
-    const result = await this.db.query(sql, [projectId]);
-    return result[0].count || 0;
+    try {
+      const sql = 'SELECT COUNT(*) as count FROM project_sources WHERE project_id = ?';
+      const result = await this.db.query(sql, [projectId]);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('getSourceCount error:', error);
+      // 如果表不存在或其他错误，返回 0
+      return 0;
+    }
   }
 
   /**
    * 获取项目的技术点数量
    */
   async getTechPointCount(projectId: number): Promise<number> {
-    const sql = 'SELECT COUNT(*) as count FROM project_tech_points WHERE project_id = ?';
-    const result = await this.db.query(sql, [projectId]);
-    return result[0].count || 0;
+    try {
+      const sql = 'SELECT COUNT(*) as count FROM project_tech_points WHERE project_id = ?';
+      const result = await this.db.query(sql, [projectId]);
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('getTechPointCount error:', error);
+      // 如果表不存在或其他错误，返回 0
+      return 0;
+    }
   }
 
   /**
@@ -479,30 +499,57 @@ export class ProjectModel {
   }
 
   /**
-   * 获取项目关联的技术包装材料
+   * ⚠️ 已废弃: 获取项目关联的技术包装材料
+   * 
+   * tech_packaging_materials 表已移除，数据存储在 workflow_executions.outputs 中。
+   * 请从 workflow_executions 表中查询 outputs 字段获取技术包装材料数据。
+   * 
+   * @deprecated 此方法已废弃，请使用 workflow_executions 表
    */
   async getPackagingMaterials(projectId: number): Promise<TechPackagingMaterial[]> {
-    const sql = 'SELECT * FROM tech_packaging_materials WHERE project_id = ?';
-    const result = await this.db.query(sql, [projectId]);
-    return result.map((row: any) => this.parsePackagingMaterial(row));
+    // 表已移除，返回空数组
+    // 如需获取数据，请查询 workflow_executions 表的 outputs 字段
+    console.warn('getPackagingMaterials: tech_packaging_materials 表已移除，请使用 workflow_executions.outputs');
+    return [];
+    // const sql = 'SELECT * FROM tech_packaging_materials WHERE project_id = ?';
+    // const result = await this.db.query(sql, [projectId]);
+    // return result.map((row: any) => this.parsePackagingMaterial(row));
   }
 
   /**
-   * 获取项目关联的技术推广策略
+   * ⚠️ 已废弃: 获取项目关联的技术推广策略
+   * 
+   * tech_promotion_strategies 表已移除，数据存储在 workflow_executions.outputs 中。
+   * 请从 workflow_executions 表中查询 outputs 字段获取技术推广策略数据。
+   * 
+   * @deprecated 此方法已废弃，请使用 workflow_executions 表
    */
   async getPromotionStrategies(projectId: number): Promise<TechPromotionStrategy[]> {
-    const sql = 'SELECT * FROM tech_promotion_strategies WHERE project_id = ?';
-    const result = await this.db.query(sql, [projectId]);
-    return result.map((row: any) => this.parsePromotionStrategy(row));
+    // 表已移除，返回空数组
+    // 如需获取数据，请查询 workflow_executions 表的 outputs 字段
+    console.warn('getPromotionStrategies: tech_promotion_strategies 表已移除，请使用 workflow_executions.outputs');
+    return [];
+    // const sql = 'SELECT * FROM tech_promotion_strategies WHERE project_id = ?';
+    // const result = await this.db.query(sql, [projectId]);
+    // return result.map((row: any) => this.parsePromotionStrategy(row));
   }
 
   /**
-   * 获取项目关联的技术通稿
+   * ⚠️ 已废弃: 获取项目关联的技术通稿
+   * 
+   * tech_press_releases 表已移除，数据存储在 workflow_executions.outputs 中。
+   * 请从 workflow_executions 表中查询 outputs 字段获取技术通稿数据。
+   * 
+   * @deprecated 此方法已废弃，请使用 workflow_executions 表
    */
   async getPressReleases(projectId: number): Promise<TechPressRelease[]> {
-    const sql = 'SELECT * FROM tech_press_releases WHERE project_id = ?';
-    const result = await this.db.query(sql, [projectId]);
-    return result.map((row: any) => this.parsePressRelease(row));
+    // 表已移除，返回空数组
+    // 如需获取数据，请查询 workflow_executions 表的 outputs 字段
+    console.warn('getPressReleases: tech_press_releases 表已移除，请使用 workflow_executions.outputs');
+    return [];
+    // const sql = 'SELECT * FROM tech_press_releases WHERE project_id = ?';
+    // const result = await this.db.query(sql, [projectId]);
+    // return result.map((row: any) => this.parsePressRelease(row));
   }
 
   /**
@@ -688,15 +735,28 @@ export class ProjectModel {
     
     const parsed = { ...row };
     
-    // 转换日期字段
-    if (parsed.created_at && typeof parsed.created_at === 'string') {
-      parsed.created_at = new Date(parsed.created_at);
+    // 转换日期字段为 ISO 字符串格式（确保 JSON 序列化正常）
+    if (parsed.created_at) {
+      if (typeof parsed.created_at === 'string') {
+        // 如果已经是字符串，保持原样（SQLite 返回的可能是字符串）
+        parsed.created_at = parsed.created_at;
+      } else if (parsed.created_at instanceof Date) {
+        parsed.created_at = parsed.created_at.toISOString();
+      }
     }
-    if (parsed.updated_at && typeof parsed.updated_at === 'string') {
-      parsed.updated_at = new Date(parsed.updated_at);
+    if (parsed.updated_at) {
+      if (typeof parsed.updated_at === 'string') {
+        parsed.updated_at = parsed.updated_at;
+      } else if (parsed.updated_at instanceof Date) {
+        parsed.updated_at = parsed.updated_at.toISOString();
+      }
     }
-    if (parsed.last_opened_at && typeof parsed.last_opened_at === 'string') {
-      parsed.last_opened_at = new Date(parsed.last_opened_at);
+    if (parsed.last_opened_at) {
+      if (typeof parsed.last_opened_at === 'string') {
+        parsed.last_opened_at = parsed.last_opened_at;
+      } else if (parsed.last_opened_at instanceof Date) {
+        parsed.last_opened_at = parsed.last_opened_at.toISOString();
+      }
     }
     
     return parsed;

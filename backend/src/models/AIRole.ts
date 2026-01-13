@@ -398,51 +398,65 @@ export class AIRoleModel {
    * 获取所有AI角色
    */
   async getAll(): Promise<AIRoleConfig[]> {
-    await this.ensureConnection();
-    await this.initializeTable();
+    try {
+      await this.ensureConnection();
+      await this.initializeTable();
 
-    const sql = 'SELECT * FROM ai_roles ORDER BY updated_at DESC';
-    const result = await this.db.query(sql);
-    const rows = Array.isArray(result) ? result : result.rows || [];
+      const sql = 'SELECT * FROM ai_roles ORDER BY updated_at DESC';
+      const result = await this.db.query(sql);
+      const rows = Array.isArray(result) ? result : result.rows || [];
 
-    // 安全转换，跳过有问题的记录
-    const roles: AIRoleConfig[] = [];
-    for (const row of rows) {
-      try {
-        const role = this.toAIRoleConfig(row as AIRole);
-        roles.push(role);
-      } catch (error) {
-        console.error(`转换AI角色失败 (ID: ${(row as any).id}):`, error);
-        // 继续处理其他记录，不中断整个流程
+      // 安全转换，跳过有问题的记录
+      const roles: AIRoleConfig[] = [];
+      for (const row of rows) {
+        try {
+          const role = this.toAIRoleConfig(row as AIRole);
+          roles.push(role);
+        } catch (error) {
+          const roleId = (row as any)?.id || 'unknown';
+          console.error(`转换AI角色失败 (ID: ${roleId}):`, error);
+          // 继续处理其他记录，不中断整个流程
+        }
       }
-    }
 
-    return roles;
+      return roles;
+    } catch (error) {
+      console.error('获取所有AI角色失败:', error);
+      // 返回空数组而不是抛出错误，避免前端崩溃
+      return [];
+    }
   }
 
   /**
    * 获取启用的AI角色
    */
   async getEnabled(): Promise<AIRoleConfig[]> {
-    await this.ensureConnection();
+    try {
+      await this.ensureConnection();
 
-    const sql = 'SELECT * FROM ai_roles WHERE enabled = 1 ORDER BY updated_at DESC';
-    const result = await this.db.query(sql);
-    const rows = Array.isArray(result) ? result : result.rows || [];
+      const sql = 'SELECT * FROM ai_roles WHERE enabled = 1 ORDER BY updated_at DESC';
+      const result = await this.db.query(sql);
+      const rows = Array.isArray(result) ? result : result.rows || [];
 
-    // 安全转换，跳过有问题的记录
-    const roles: AIRoleConfig[] = [];
-    for (const row of rows) {
-      try {
-        const role = this.toAIRoleConfig(row as AIRole);
-        roles.push(role);
-      } catch (error) {
-        console.error(`转换AI角色失败 (ID: ${(row as any).id}):`, error);
-        // 继续处理其他记录
+      // 安全转换，跳过有问题的记录
+      const roles: AIRoleConfig[] = [];
+      for (const row of rows) {
+        try {
+          const role = this.toAIRoleConfig(row as AIRole);
+          roles.push(role);
+        } catch (error) {
+          const roleId = (row as any)?.id || 'unknown';
+          console.error(`转换AI角色失败 (ID: ${roleId}):`, error);
+          // 继续处理其他记录
+        }
       }
-    }
 
-    return roles;
+      return roles;
+    } catch (error) {
+      console.error('获取启用的AI角色失败:', error);
+      // 返回空数组而不是抛出错误，避免前端崩溃
+      return [];
+    }
   }
 
   /**

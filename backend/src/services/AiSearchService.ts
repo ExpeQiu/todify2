@@ -616,15 +616,39 @@ export class FieldMappingService {
         `SELECT workflow_id, config, created_at, updated_at FROM ai_search_field_mappings ORDER BY updated_at DESC`
       ) as any[];
 
-      return rows.map(row => ({
-        workflowId: row.workflow_id,
-        config: JSON.parse(row.config),
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
+      return rows.map(row => {
+        try {
+          // 如果config已经是对象，直接使用；否则解析JSON字符串
+          const config = typeof row.config === 'string' ? JSON.parse(row.config) : row.config;
+          return {
+            workflowId: row.workflow_id,
+            config,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          };
+        } catch (parseError) {
+          logger.error('解析字段映射配置JSON失败', {
+            workflowId: row.workflow_id,
+            error: parseError,
+            configPreview: typeof row.config === 'string' ? row.config.substring(0, 100) : row.config,
+          });
+          // 返回一个默认配置，避免整个请求失败
+          return {
+            workflowId: row.workflow_id,
+            config: {
+              workflowId: row.workflow_id,
+              inputMappings: [],
+              outputMappings: [],
+              featureObjects: [],
+            } as FieldMappingConfigType,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          };
+        }
+      });
     } catch (error) {
       logger.error('获取所有字段映射配置失败', { error });
-      return [];
+      throw error; // 重新抛出错误，让上层处理
     }
   }
 

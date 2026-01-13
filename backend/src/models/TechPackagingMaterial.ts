@@ -1,3 +1,19 @@
+/**
+ * ⚠️ 警告: 此模型已废弃
+ * 
+ * tech_packaging_materials 表已从数据库中移除。
+ * 技术包装材料现在采用JSON存储策略，数据存储在 workflow_executions.outputs 字段中。
+ * 
+ * 原因:
+ * - 这些内容采用"临时生成、立即使用"的业务模式
+ * - 不需要独立的搜索、筛选、版本控制功能
+ * - 存储在 workflow_executions.outputs 中更灵活、更轻量
+ * 
+ * 如需使用技术包装材料数据，请从 workflow_executions 表中查询 outputs 字段。
+ * 
+ * @deprecated 此模型已废弃，请使用 workflow_executions 表
+ */
+
 import { DatabaseManager } from '../config/database';
 import { 
   TechPackagingMaterial, 
@@ -7,6 +23,9 @@ import {
   PaginatedResult
 } from '../types/database';
 
+/**
+ * @deprecated 此模型已废弃，tech_packaging_materials 表已移除
+ */
 export class TechPackagingMaterialModel {
   private db: DatabaseManager;
 

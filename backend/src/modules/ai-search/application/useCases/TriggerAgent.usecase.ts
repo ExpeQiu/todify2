@@ -3,6 +3,7 @@ import { AiSearchService, FieldMappingService } from '@/services/AiSearchService
 import { FeatureObjectMapping } from '@/types/aiSearch';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
+import { aiRoleModel } from '@/models';
 
 import { TriggerAgentDTO } from '../dto/TriggerAgent.dto';
 import {
@@ -31,7 +32,44 @@ export class TriggerAgentUseCase {
       }
 
       const requestedWorkflowId = dto.workflowId;
-      const workflowId = requestedWorkflowId || await resolveWorkflowId();
+      
+      // 尝试从字段映射配置中推断 pageType（通过查找包含该 featureType 的配置）
+      // 这样可以更准确地解析工作流ID
+      let inferredPageType: string | undefined;
+      if (requestedWorkflowId) {
+        try {
+          const tempConfig = await this.fieldMappingService.getFieldMappingConfig(requestedWorkflowId);
+          if (tempConfig?.featureObjects) {
+            const matchingFeature = tempConfig.featureObjects.find(
+              (f: any) => f.featureType === dto.featureType
+            );
+            if (matchingFeature?.pageType) {
+              inferredPageType = matchingFeature.pageType;
+            }
+          }
+        } catch (error) {
+          // 忽略错误，继续使用默认逻辑
+        }
+      }
+      
+      // 如果没有推断出 pageType，尝试从所有字段映射配置中查找
+      if (!inferredPageType) {
+        try {
+          const allConfigs = await this.fieldMappingService.getAllFieldMappingConfigs();
+          for (const configItem of allConfigs) {
+            const fos = Array.isArray(configItem.config?.featureObjects) ? configItem.config.featureObjects : [];
+            const matchingFeature = fos.find((f: any) => f.featureType === dto.featureType);
+            if (matchingFeature?.pageType) {
+              inferredPageType = matchingFeature.pageType;
+              break;
+            }
+          }
+        } catch (error) {
+          // 忽略错误
+        }
+      }
+      
+      const workflowId = requestedWorkflowId || await resolveWorkflowId(inferredPageType);
       if (!workflowId) {
         return failure({
           code: 'WORKFLOW_NOT_FOUND',
@@ -53,7 +91,22 @@ export class TriggerAgentUseCase {
         });
       }
 
+      // 查找功能对象配置，优先匹配有 pageType 的配置
+      // 如果没有 pageType 的配置，则匹配所有
       const featureConfig = baseMappingConfig.featureObjects?.find(
+        (f: FeatureObjectMapping) => {
+          // 首先匹配 featureType
+          if (f.featureType !== dto.featureType) {
+            return false;
+          }
+          // 如果推断出了 pageType，优先匹配有相同 pageType 的配置
+          if (inferredPageType && (f as any).pageType) {
+            return (f as any).pageType === inferredPageType;
+          }
+          // 如果没有 pageType，匹配所有
+          return true;
+        }
+      ) || baseMappingConfig.featureObjects?.find(
         (f: FeatureObjectMapping) => f.featureType === dto.featureType
       );
 
@@ -132,14 +185,60 @@ export class TriggerAgentUseCase {
       const workflowInput = mapWorkflowInput(conversationData, effectiveInputMappings);
 
       // 判断 targetWorkflowId 是 AI 角色 ID 还是工作流 ID
-      // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头，工作流 ID 以 'wf_' 开头
-      const isRoleId = targetWorkflowId.startsWith('role_') || targetWorkflowId.startsWith('ai-role-');
+      // AI 角色 ID 可能以 'role_'、'ai-role-'、'independent-page-'、'smart-workflow-'、'tech-'、'scene-'、'market-'、'content-' 等开头
+      // 工作流 ID 以 'wf_' 开头
+      // 更准确的方法：检查数据库中是否存在该ID的AI角色
+      const isWorkflowId = targetWorkflowId.startsWith('wf_');
+      let isRoleId = false;
+      
+      if (!isWorkflowId) {
+        // 先通过前缀快速判断
+        const roleIdPrefixes = [
+          'role_',
+          'ai-role-',
+          'independent-page-',
+          'smart-workflow-',
+          'tech-',
+          'scene-',
+          'market-',
+          'content-',
+          'project-resources-',
+        ];
+        isRoleId = roleIdPrefixes.some(prefix => targetWorkflowId.startsWith(prefix));
+        
+        // 如果前缀匹配，进一步验证数据库中是否存在该角色
+        if (isRoleId) {
+          try {
+            const role = await aiRoleModel.getById(targetWorkflowId);
+            isRoleId = !!role; // 如果角色存在，确认为角色ID
+            if (!role) {
+              logger.warn('前缀匹配但数据库中不存在该角色，尝试作为工作流处理', { targetWorkflowId });
+            }
+          } catch (error) {
+            logger.warn('检查角色ID时出错，使用前缀判断结果', { targetWorkflowId, error });
+          }
+        }
+      }
       
       let workflowResult;
       if (isRoleId) {
         // 直接调用 AI 角色
         logger.info('检测到 AI 角色 ID，直接调用角色', { roleId: targetWorkflowId, featureType: dto.featureType });
         workflowResult = await agentWorkflowService.executeRole(targetWorkflowId, workflowInput);
+        
+        // 检查执行结果
+        if (!workflowResult.success) {
+          logger.error('AI角色执行失败', {
+            roleId: targetWorkflowId,
+            featureType: dto.featureType,
+            error: workflowResult.message,
+          });
+          return failure({
+            code: 'ROLE_EXECUTION_FAILED',
+            message: workflowResult.message || 'AI角色执行失败',
+            details: workflowResult,
+          });
+        }
       } else {
         // 通过工作流调用
         logger.info('检测到工作流 ID，通过工作流调用', { workflowId: targetWorkflowId, featureType: dto.featureType });
@@ -147,6 +246,20 @@ export class TriggerAgentUseCase {
           targetWorkflowId,
           { input: workflowInput }
         );
+        
+        // 检查执行结果
+        if (!workflowResult.success) {
+          logger.error('工作流执行失败', {
+            workflowId: targetWorkflowId,
+            featureType: dto.featureType,
+            error: workflowResult.message,
+          });
+          return failure({
+            code: 'WORKFLOW_EXECUTION_FAILED',
+            message: workflowResult.message || '工作流执行失败',
+            details: workflowResult,
+          });
+        }
       }
 
       const extractedOutput = extractWorkflowOutput(workflowResult, effectiveOutputMappings);

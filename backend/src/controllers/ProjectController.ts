@@ -62,9 +62,13 @@ export class ProjectController {
       });
     } catch (error) {
       console.error('Get project error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error('Error details:', { errorMessage, errorStack });
       res.status(500).json({
         success: false,
-        message: '获取项目失败'
+        message: '获取项目失败',
+        error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
     }
   }

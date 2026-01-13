@@ -10,6 +10,13 @@ export interface ToolItemConfig {
   iconName: string; // 图标名称，用于动态导入
 }
 
+export interface AgentRoleConfig {
+  id: string;
+  name: string;
+  description: string;
+  toolIds: string[];
+}
+
 export interface PageConfig {
   pageType: PageType;
   pageTitle: string;
@@ -18,6 +25,7 @@ export interface PageConfig {
   workflowSelectionKey: string;
   featureLabelMap: Record<string, string>;
   enabledToolIds?: string[]; // 启用的工具ID列表，如果未指定则使用所有工具
+  agentRoles?: AgentRoleConfig[]; // 角色配置，用于工具分组
 }
 
 // 技术包装页面配置
@@ -36,6 +44,7 @@ export const techPackageConfig: PageConfig = {
     translation: "翻译",
     "ppt-outline": "技术讲稿",
     script: "脚本",
+    "user-scene": "用户场景", // 自定义模块
   },
   // 技术包装页面保留所有工具
   enabledToolIds: [
@@ -47,7 +56,34 @@ export const techPackageConfig: PageConfig = {
     'translation',
     'ppt-outline',
     'script',
+    'user-scene', // 自定义模块
   ],
+  agentRoles: [
+    {
+      id: 'tech-fundamentalist',
+      name: '技术原教旨',
+      description: '深度解析技术原理与核心价值',
+      toolIds: ['five-view-analysis', 'three-fix-analysis']
+    },
+    {
+      id: 'scene-alchemist',
+      name: '场景炼金术',
+      description: '挖掘用户场景与技术结合点',
+      toolIds: ['tech-matrix', 'user-scene']
+    },
+    {
+      id: 'market-sniper',
+      name: '市场狙击手',
+      description: '制定精准的市场传播策略',
+      toolIds: ['propagation-strategy']
+    },
+    {
+      id: 'content-director',
+      name: '内容大导演',
+      description: '生成多样化的内容输出',
+      toolIds: ['ppt-outline', 'script', 'exhibition-video', 'translation']
+    }
+  ]
 };
 
 // 发布会稿页面配置
@@ -141,8 +177,17 @@ export const aiQaConfig: PageConfig = {
     "ppt-outline": "技术讲稿",
     script: "脚本",
   },
-  // AI问答页面不需要工具箱，只保留对话功能
-  enabledToolIds: [],
+  // AI问答页面保留所有工具，可根据需要定制
+  enabledToolIds: [
+    'five-view-analysis',
+    'three-fix-analysis',
+    'tech-matrix',
+    'propagation-strategy',
+    'exhibition-video',
+    'translation',
+    'ppt-outline',
+    'script',
+  ],
 };
 
 // 根据页面类型获取配置
