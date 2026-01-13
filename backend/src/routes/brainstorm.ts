@@ -21,6 +21,7 @@ router.post('/sessions', async (req, res) => {
       topic: req.body.topic,
       description: req.body.description,
       creatorId: req.body.creatorId,
+      projectId: req.body.projectId ? parseInt(req.body.projectId, 10) : undefined,
       config: req.body.config,
       participantRoleIds: req.body.participantRoleIds || [],
     };
@@ -62,6 +63,7 @@ router.get('/sessions', async (req, res) => {
   try {
     const options = {
       creatorId: req.query.creatorId as string | undefined,
+      projectId: req.query.projectId ? parseInt(req.query.projectId as string, 10) : undefined,
       status: req.query.status as string | undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
       offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,

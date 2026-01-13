@@ -46,6 +46,7 @@ export class BrainstormService {
    */
   async listSessions(options: {
     creatorId?: string;
+    projectId?: number;
     status?: string;
     limit?: number;
     offset?: number;

@@ -28,11 +28,11 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingSources, setLoadingSources] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [userInput, setUserInput] = useState('');
   const [sendingUserMessage, setSendingUserMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 加载来源信息（使用项目ID查询）
   const loadSources = useCallback(async () => {
@@ -52,11 +52,110 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
     }
   }, [projectId]);
 
+  const loadSessions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const projectIdNum = projectId ? parseInt(projectId, 10) : undefined;
+      const data = await brainstormService.listSessions({
+        projectId: projectIdNum,
+      });
+      setSessions(data);
+      
+      // 如果有选中的会话，更新它（只有当会话真的改变时才更新）
+      setSelectedSession(prev => {
+        if (!prev) return prev;
+        const updated = data.find(s => s.id === prev.id);
+        if (updated && JSON.stringify(updated) !== JSON.stringify(prev)) {
+          return updated;
+        }
+        return prev;
+      });
+    } catch (error) {
+      console.error('加载会话列表失败:', error);
+      toast.error('加载会话列表失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+
+  const loadMessages = useCallback(async (sessionId: string) => {
+    try {
+      setLoadingMessages(true);
+      const data = await brainstormService.getMessages(sessionId);
+      setMessages(data);
+    } catch (error) {
+      console.error('加载消息失败:', error);
+      toast.error('加载消息失败');
+      // 发生错误时停止轮询，避免无限重试
+      stopPolling();
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, []);
+
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
+  const startPolling = useCallback((sessionId: string) => {
+    // 先停止之前的轮询
+    stopPolling();
+    
+    let consecutiveErrors = 0;
+    const MAX_CONSECUTIVE_ERRORS = 3;
+    
+    // 如果会话是活跃状态，每3秒轮询一次
+    const interval = setInterval(async () => {
+      try {
+        const status = await brainstormService.getSessionStatus(sessionId);
+        consecutiveErrors = 0; // 重置错误计数
+        
+        if (status.isActive || status.status === 'active') {
+          await loadMessages(sessionId);
+          // 同时更新会话状态
+          const updated = await brainstormService.getSession(sessionId);
+          setSelectedSession(prev => {
+            // 只有当会话真的改变时才更新
+            if (prev && prev.id === updated.id && JSON.stringify(prev) === JSON.stringify(updated)) {
+              return prev;
+            }
+            return updated;
+          });
+        } else {
+          // 讨论已结束，停止轮询
+          stopPolling();
+          await loadMessages(sessionId);
+          const updated = await brainstormService.getSession(sessionId);
+          setSelectedSession(prev => {
+            if (prev && prev.id === updated.id && JSON.stringify(prev) === JSON.stringify(updated)) {
+              return prev;
+            }
+            return updated;
+          });
+        }
+      } catch (error) {
+        console.error('轮询失败:', error);
+        consecutiveErrors++;
+        // 如果连续错误过多，停止轮询
+        if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+          console.error(`连续 ${consecutiveErrors} 次轮询错误，停止轮询`);
+          stopPolling();
+          toast.error('轮询失败次数过多，已停止自动刷新');
+        }
+      }
+    }, 3000);
+
+    pollingIntervalRef.current = interval;
+  }, [loadMessages, stopPolling]);
+
   // 加载会话列表
   useEffect(() => {
     loadSessions();
     loadSources();
-  }, [loadSources]);
+  }, [loadSources, loadSessions]);
 
   // 当选中会话变化时，加载消息
   useEffect(() => {
@@ -70,73 +169,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
     return () => {
       stopPolling();
     };
-  }, [selectedSession?.id]);
-
-  const loadSessions = async () => {
-    try {
-      setLoading(true);
-      const data = await brainstormService.listSessions();
-      setSessions(data);
-      
-      // 如果有选中的会话，更新它
-      if (selectedSession) {
-        const updated = data.find(s => s.id === selectedSession.id);
-        if (updated) {
-          setSelectedSession(updated);
-        }
-      }
-    } catch (error) {
-      console.error('加载会话列表失败:', error);
-      toast.error('加载会话列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadMessages = async (sessionId: string) => {
-    try {
-      setLoadingMessages(true);
-      const data = await brainstormService.getMessages(sessionId);
-      setMessages(data);
-    } catch (error) {
-      console.error('加载消息失败:', error);
-      toast.error('加载消息失败');
-    } finally {
-      setLoadingMessages(false);
-    }
-  };
-
-  const startPolling = (sessionId: string) => {
-    // 如果会话是活跃状态，每3秒轮询一次
-    const interval = setInterval(async () => {
-      try {
-        const status = await brainstormService.getSessionStatus(sessionId);
-        if (status.isActive || status.status === 'active') {
-          await loadMessages(sessionId);
-          // 同时更新会话状态
-          const updated = await brainstormService.getSession(sessionId);
-          setSelectedSession(updated);
-        } else {
-          // 讨论已结束，停止轮询
-          stopPolling();
-          await loadMessages(sessionId);
-          const updated = await brainstormService.getSession(sessionId);
-          setSelectedSession(updated);
-        }
-      } catch (error) {
-        console.error('轮询失败:', error);
-      }
-    }, 3000);
-
-    setPollingInterval(interval);
-  };
-
-  const stopPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
-    }
-  };
+  }, [selectedSession?.id, loadMessages, startPolling, stopPolling]);
 
   const handleCreateSession = async (data: CreateBrainstormSessionDTO) => {
     try {

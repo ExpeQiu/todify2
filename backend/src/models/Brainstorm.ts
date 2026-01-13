@@ -103,6 +103,7 @@ export interface BrainstormSessionDTO {
   topic: string;
   description?: string;
   creatorId?: string;
+  projectId?: number;
   status: 'draft' | 'active' | 'completed' | 'stopped';
   config: BrainstormSessionConfig;
   summary?: string;
@@ -122,6 +123,7 @@ export interface CreateBrainstormSessionDTO {
   topic: string;
   description?: string;
   creatorId?: string;
+  projectId?: number;
   config?: Partial<BrainstormSessionConfig>;
   participantRoleIds: string[]; // AI角色ID列表
 }
@@ -327,6 +329,7 @@ export class BrainstormSessionModel {
         topic TEXT NOT NULL,
         description TEXT,
         creator_id TEXT,
+        project_id INTEGER,
         status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'completed', 'stopped')),
         config TEXT,
         summary TEXT,
@@ -365,6 +368,7 @@ export class BrainstormSessionModel {
       CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_status ON brainstorm_sessions(status);
       CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_created_at ON brainstorm_sessions(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_creator_id ON brainstorm_sessions(creator_id);
+      CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_project_id ON brainstorm_sessions(project_id);
       CREATE INDEX IF NOT EXISTS idx_brainstorm_participants_session_id ON brainstorm_participants(session_id);
       CREATE INDEX IF NOT EXISTS idx_brainstorm_participants_ai_role_id ON brainstorm_participants(ai_role_id);
       CREATE INDEX IF NOT EXISTS idx_brainstorm_participants_sort_order ON brainstorm_participants(sort_order);
@@ -399,8 +403,55 @@ export class BrainstormSessionModel {
           }
         }
       }
+
+      // 迁移：添加 project_id 字段（如果不存在）
+      await this.migrateAddProjectId();
     } catch (error: any) {
       console.warn('初始化头脑风暴表时出现警告:', error.message);
+    }
+  }
+
+  /**
+   * 迁移：添加 project_id 字段
+   */
+  private async migrateAddProjectId(): Promise<void> {
+    try {
+      const dbType = this.db.getType();
+      
+      // 检查字段是否已存在
+      let columnExists = false;
+      if (dbType === 'sqlite') {
+        const tableInfo = await this.db.query('PRAGMA table_info(brainstorm_sessions)');
+        const columns = Array.isArray(tableInfo) ? tableInfo : [tableInfo];
+        columnExists = columns.some((col: any) => col.name === 'project_id');
+      } else {
+        const checkResult = await this.db.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.columns 
+            WHERE table_schema = 'public' 
+            AND table_name = 'brainstorm_sessions' 
+            AND column_name = 'project_id'
+          )
+        `);
+        columnExists = checkResult[0]?.exists === true;
+      }
+
+      if (!columnExists) {
+        if (dbType === 'sqlite') {
+          await this.db.query('ALTER TABLE brainstorm_sessions ADD COLUMN project_id INTEGER');
+        } else {
+          await this.db.query('ALTER TABLE brainstorm_sessions ADD COLUMN IF NOT EXISTS project_id INTEGER');
+        }
+        
+        // 创建索引
+        await this.db.query('CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_project_id ON brainstorm_sessions(project_id)');
+        console.log('✅ 已添加 project_id 字段到 brainstorm_sessions 表');
+      }
+    } catch (error: any) {
+      // 忽略字段已存在的错误
+      if (!error.message?.includes('duplicate column') && !error.message?.includes('already exists')) {
+        console.warn('添加 project_id 字段时出现警告:', error.message);
+      }
     }
   }
 
@@ -455,8 +506,8 @@ export class BrainstormSessionModel {
     
     const sql = `
       INSERT INTO brainstorm_sessions 
-      (id, title, topic, description, creator_id, status, config, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?)
+      (id, title, topic, description, creator_id, project_id, status, config, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?)
     `;
     
     await this.db.query(sql, [
@@ -465,6 +516,7 @@ export class BrainstormSessionModel {
       data.topic,
       data.description || null,
       data.creatorId || null,
+      data.projectId || null,
       JSON.stringify(config),
       now,
       now,
@@ -506,6 +558,7 @@ export class BrainstormSessionModel {
    */
   async list(options: {
     creatorId?: string;
+    projectId?: number;
     status?: string;
     limit?: number;
     offset?: number;
@@ -516,6 +569,11 @@ export class BrainstormSessionModel {
     if (options.creatorId) {
       sql += ' AND creator_id = ?';
       params.push(options.creatorId);
+    }
+
+    if (options.projectId !== undefined) {
+      sql += ' AND project_id = ?';
+      params.push(options.projectId);
     }
 
     if (options.status) {
@@ -666,6 +724,7 @@ export class BrainstormSessionModel {
       topic: row.topic,
       description: row.description,
       creatorId: row.creator_id,
+      projectId: row.project_id ? parseInt(row.project_id, 10) : undefined,
       status: row.status,
       config,
       summary: row.summary,

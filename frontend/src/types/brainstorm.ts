@@ -3,6 +3,54 @@
  */
 
 /**
+ * 共识检测配置
+ */
+export interface ConsensusDetectionConfig {
+  enabled: boolean;
+  method: 'semantic' | 'voting' | 'hybrid';
+  threshold: number;
+  minAgreementRatio: number;
+  recentRounds: number;
+  analyzerRoleId?: string;
+}
+
+/**
+ * 反思循环配置
+ */
+export interface ReflectionLoopConfig {
+  enabled: boolean;
+  maxIterations: number;
+  qualityThreshold: number;
+  evaluatorRoleId?: string;
+  reflectorRoleId?: string;
+  reflectionFrequency: number;
+}
+
+/**
+ * 结构化上下文配置
+ */
+export interface StructuredContextConfig {
+  enabled: boolean;
+  summaryFrequency: number;
+  summarizerRoleId?: string;
+  extractKeyPoints: boolean;
+  detectDisagreements: boolean;
+  maxContextTokens: number;
+}
+
+/**
+ * 辩论模式配置
+ */
+export interface DebateConfig {
+  enabled: boolean;
+  proRoleIds: string[];
+  conRoleIds: string[];
+  judgeRoleId?: string;
+  rounds: number;
+  judgeAfterRounds?: number;
+}
+
+/**
  * 会话配置
  */
 export interface BrainstormSessionConfig {
@@ -10,8 +58,9 @@ export interface BrainstormSessionConfig {
     manualStop: boolean;
     maxRounds: number | null;
     consensusDetection: boolean;
+    consensusConfig?: ConsensusDetectionConfig;
   };
-  discussionMode: 'parallel' | 'round-robin';
+  discussionMode: 'parallel' | 'round-robin' | 'debate';
   moderatorConfig?: {
     enabled: boolean;
     moderatorRoleId?: string; // 主持人角色ID
@@ -20,6 +69,9 @@ export interface BrainstormSessionConfig {
     enabled: boolean;
     provider: 'same-as-agents' | 'custom';
   };
+  reflectionLoop?: ReflectionLoopConfig;
+  structuredContext?: StructuredContextConfig;
+  debateConfig?: DebateConfig;
 }
 
 /**
@@ -31,6 +83,7 @@ export interface BrainstormSession {
   topic: string;
   description?: string;
   creatorId?: string;
+  projectId?: number;
   status: 'draft' | 'active' | 'completed' | 'stopped';
   config: BrainstormSessionConfig;
   summary?: string;
@@ -92,6 +145,7 @@ export interface CreateBrainstormSessionDTO {
   topic: string;
   description?: string;
   creatorId?: string;
+  projectId?: number;
   config?: Partial<BrainstormSessionConfig>;
   participantRoleIds: string[];
 }

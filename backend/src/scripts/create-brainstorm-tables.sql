@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS brainstorm_sessions (
     topic TEXT NOT NULL,
     description TEXT,
     creator_id TEXT,
+    project_id INTEGER, -- 关联的项目ID
     status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'completed', 'stopped')),
     config TEXT, -- JSON格式存储配置（终止条件等）
     summary TEXT, -- AI生成的讨论总结
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS brainstorm_messages (
 CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_status ON brainstorm_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_created_at ON brainstorm_sessions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_creator_id ON brainstorm_sessions(creator_id);
+CREATE INDEX IF NOT EXISTS idx_brainstorm_sessions_project_id ON brainstorm_sessions(project_id);
 
 CREATE INDEX IF NOT EXISTS idx_brainstorm_participants_session_id ON brainstorm_participants(session_id);
 CREATE INDEX IF NOT EXISTS idx_brainstorm_participants_ai_role_id ON brainstorm_participants(ai_role_id);

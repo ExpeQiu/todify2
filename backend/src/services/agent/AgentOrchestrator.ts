@@ -109,7 +109,16 @@ export class AgentOrchestrator {
       // 2. 生成或使用 conversationId
       const finalConversationId = conversationId || this.generateConversationId();
 
-      // 3. 渲染 System Prompt
+      // 3. 检查 prompt 配置
+      if (!config.prompt) {
+        throw new Error(`Agent prompt配置不存在: ${roleId}`);
+      }
+
+      if (!config.prompt.systemPrompt) {
+        throw new Error(`Agent systemPrompt配置不存在: ${roleId}`);
+      }
+
+      // 4. 渲染 System Prompt
       const promptStartTime = Date.now();
       const systemPrompt = this.promptManager.renderPrompt(
         config.prompt.systemPrompt,
@@ -140,7 +149,12 @@ export class AgentOrchestrator {
         status: 'success'
       });
 
-      // 5. 构建完整消息列表
+      // 5. 检查 contextStrategy 配置
+      if (!config.contextStrategy) {
+        throw new Error(`Agent contextStrategy配置不存在: ${roleId}`);
+      }
+
+      // 6. 构建完整消息列表
       const messages: ChatMessage[] = [];
       
       // 根据策略决定是否包含 system prompt

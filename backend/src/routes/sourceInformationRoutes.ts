@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { SourceInformationService } from '../services/sourceInformationService';
 import { CreateSourceInformationDTO, UpdateSourceInformationDTO } from '../types/database';
+import { ProjectModel } from '../models/Project';
+import { db } from '../config/database';
 
 const router = Router();
 const sourceInformationService = new SourceInformationService();
@@ -336,10 +338,13 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 // 更新来源信息
 router.put('/:id', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  const data: UpdateSourceInformationDTO = req.body;
+  
+  console.log(`[更新来源信息] 请求 ID: ${id}`);
+  console.log(`[更新来源信息] 请求数据:`, JSON.stringify(data, null, 2));
+  
   try {
-    const id = parseInt(req.params.id);
-    const data: UpdateSourceInformationDTO = req.body;
-    
     if (isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -347,26 +352,83 @@ router.put('/:id', async (req: Request, res: Response) => {
       });
     }
 
+    // 验证 project_id 是否存在（如果提供了）
+    if (data.project_id !== undefined && data.project_id !== null) {
+      console.log(`[更新来源信息] 验证项目ID: ${data.project_id}`);
+      const projectModel = new ProjectModel(db);
+      const project = await projectModel.findById(data.project_id);
+      if (!project) {
+        console.error(`[更新来源信息] 项目ID ${data.project_id} 不存在`);
+        return res.status(400).json({
+          success: false,
+          message: `项目ID ${data.project_id} 不存在`,
+          error: {
+            code: 'INVALID_PROJECT_ID',
+            message: `项目ID ${data.project_id} 不存在`
+          }
+        });
+      }
+      console.log(`[更新来源信息] 项目验证通过: ${project.name}`);
+    }
+
+    console.log(`[更新来源信息] 开始更新数据库...`);
     const sourceInformation = await sourceInformationService.updateSourceInformation(id, data);
     
     if (!sourceInformation) {
+      console.error(`[更新来源信息] 更新后未找到来源信息 id=${id}`);
       return res.status(404).json({
         success: false,
         message: '来源信息不存在'
       });
     }
     
+    console.log(`[更新来源信息] 更新成功 id=${id}`);
     res.json({
       success: true,
       data: sourceInformation,
       message: '来源信息更新成功'
     });
-  } catch (error) {
-    console.error('更新来源信息失败:', error);
+  } catch (error: any) {
+    console.error('[更新来源信息] 更新失败:', error);
+    console.error('[更新来源信息] 错误详情:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code,
+      errno: error?.errno,
+      sqlState: error?.sqlState,
+      sqlMessage: error?.sqlMessage
+    });
+    console.error('[更新来源信息] 请求参数:', { id, data });
+    
+    // 检查是否是外键约束错误
+    const errorMessage = error?.message || '未知错误';
+    let userMessage = '更新来源信息失败';
+    
+    if (errorMessage.includes('FOREIGN KEY constraint failed') || 
+        errorMessage.includes('foreign key constraint') ||
+        errorMessage.includes('FOREIGN KEY constraint')) {
+      userMessage = '项目ID不存在或无效，请检查项目关联';
+    } else if (errorMessage.includes('no such column')) {
+      userMessage = '数据库字段不存在，请联系管理员';
+    } else if (errorMessage.includes('UNIQUE constraint failed')) {
+      userMessage = '数据唯一性约束冲突';
+    } else if (errorMessage.includes('SQLITE_CONSTRAINT')) {
+      userMessage = '数据库约束错误，请检查数据有效性';
+    }
+    
     res.status(500).json({
       success: false,
-      message: '更新来源信息失败',
-      error: error instanceof Error ? error.message : '未知错误'
+      message: userMessage,
+      error: {
+        code: error?.code || 'DATABASE_ERROR',
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? {
+          errno: error?.errno,
+          sqlState: error?.sqlState,
+          sqlMessage: error?.sqlMessage,
+          stack: error?.stack?.split('\n').slice(0, 5).join('\n') // 只返回前5行堆栈
+        } : undefined
+      }
     });
   }
 });

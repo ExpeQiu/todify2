@@ -41,7 +41,13 @@ export class OpenAIProvider implements ILLMProvider {
     }
 
     // 支持 stream 参数
-    if (config.stream !== undefined) {
+    // 注意：如果 stream=true，API 会返回 SSE 流，需要特殊处理
+    // 当前实现仅支持非流式响应（stream=false 或未设置）
+    if (config.stream !== undefined && config.stream === true) {
+      // 流式响应需要特殊处理，当前暂不支持，强制设置为 false
+      // TODO: 实现流式响应处理逻辑
+      requestBody.stream = false;
+    } else if (config.stream !== undefined) {
       requestBody.stream = config.stream;
     }
 
@@ -107,6 +113,7 @@ export class OpenAIProvider implements ILLMProvider {
         model: 'gpt-3.5-turbo',
         temperature: 0.7,
         maxTokens: 10,
+        stream: false, // 测试连接时禁用流式响应
       };
 
       await this.chat([testMessage], testConfig);

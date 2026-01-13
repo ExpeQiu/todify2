@@ -622,9 +622,12 @@ router.post('/:id/test', async (req, res) => {
       const llmConfig = role.agentConfig.llm;
       
       // 创建 LLM Provider
+      // custom provider 使用 OpenAI 兼容的 API 格式，所以也使用 OpenAIProvider
       let llmProvider;
       switch (llmConfig.provider) {
         case 'openai':
+        case 'custom':
+        case 'azure-openai':
           llmProvider = new OpenAIProvider(llmConfig.apiKey, llmConfig.apiBaseUrl);
           break;
         default:

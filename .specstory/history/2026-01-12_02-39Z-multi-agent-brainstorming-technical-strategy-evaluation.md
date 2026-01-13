@@ -6899,7 +6899,6 @@ _**User**_
 
 _**Agent (model composer-1, mode Agent)**_
 
-
 开始实施 P0 优化：先实现结构化上下文和评审-反思循环。查看相关代码结构：
 
 
@@ -12285,7 +12284,6 @@ Status: **completed**
 
 ---
 
-
 开始实施 P0 优化：先扩展配置模型，添加结构化上下文和评审-反思循环。
 
 
@@ -12312,7 +12310,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 扩展配置模型，添加反思循环和结构化上下文支持：
 
@@ -12359,7 +12356,6 @@ Status: **completed**
 
 ---
 
-
 创建结构化上下文管理器：
 
 
@@ -12374,7 +12370,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 创建评审-反思循环管理器：
 
@@ -12391,7 +12386,6 @@ Status: **completed**
 
 ---
 
-
 更新 `BrainstormOrchestrator`，集成结构化上下文和评审-反思循环：
 
 
@@ -12404,7 +12398,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 更新 `BrainstormOrchestrator`，集成结构化上下文和评审-反思循环：
 
@@ -12438,7 +12431,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 更新 `executeRound`，集成结构化上下文和评审-反思循环：
 
@@ -12462,7 +12454,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 更新 `buildQueriesForParticipants`，使用结构化上下文，并添加反思循环逻辑：
 
@@ -12516,7 +12507,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 添加反思循环执行方法：
 
@@ -12580,7 +12570,6 @@ Status: **completed**
 
 ---
 
-
 编写技术实施总结文档：
 
 
@@ -12609,7 +12598,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 ## 完成总结
 
@@ -12684,7 +12672,6 @@ P2：增加辩论模式（提升讨论深度）
 ---
 
 _**Agent (model composer-1, mode Agent)**_
-
 
 开始实施 P1 和 P2。先查看相关代码结构：
 
@@ -19771,7 +19758,6 @@ Status: **completed**
 
 ---
 
-
 实现 P1 共识检测：先创建共识检测管理器。
 
 
@@ -19786,7 +19772,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 更新配置模型，添加共识检测配置：
 
@@ -19832,7 +19817,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 集成共识检测到 BrainstormOrchestrator：
 
@@ -19905,7 +19889,6 @@ Status: **completed**
 
 ---
 
-
 实现 P2 辩论模式：创建辩论模式管理器。
 
 
@@ -19920,7 +19903,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 将辩论模式集成到 BrainstormOrchestrator：
 
@@ -20023,7 +20005,6 @@ Status: **completed**
 
 ---
 
-
 更新实施文档，添加 P1 和 P2 的说明：
 
 
@@ -20076,7 +20057,6 @@ Status: **completed**
 </tool-use>
 
 ---
-
 
 ## 完成总结
 
@@ -20184,7 +20164,6 @@ _**User**_
 
 _**Agent (model composer-1, mode Agent)**_
 
-
 创建 HTML 格式的头脑风暴 Agent 机制图，展示系统架构和工作流程。
 
 
@@ -20207,7 +20186,6 @@ _**Agent (model composer-1, mode Agent)**_
 </tool-use>
 
 ---
-
 
 已创建 HTML 格式的头脑风暴 Agent 机制图。文件位置：`guide/brainstorm-agent-mechanism.html`
 
@@ -20247,6 +20225,5011 @@ _**Agent (model composer-1, mode Agent)**_
 3. 图表展示了从创建会话到最终输出的完整流程
 
 图表展示了多 Agent 头脑风暴系统的架构和工作机制，便于理解系统设计。
+
+---
+
+_**User**_
+
+是否需对应调整 DOM Path: div#root > div.App > div.h-.creen flex flex-col bg-gray-50 overflow-hidden > div.flex-1 overflow-hidden > div.flex flex-col h-full bg-gray-50 > div.fixed in.et-0 z-50 flex item.-center ju.tify-center bg-black bg-opacity-50
+Position: top=0px, left=0px, width=1330px, height=967px
+React Component: BrainstormSetupModal
+HTML Element: <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" data-cursor-element-id="cursor-el-806">创建头脑风暴会话 会话标题 * 讨论话题 * 话题描述（可选） 手动输入 技术点 对话记录 选择参与专家 * 内容加工专家 全流程内容加工：从知识提取到通稿生成 知识提取员 负责从多源输入中提取结构化技术点 技术包装师 将晦涩的技术点转化为营销语言 策略策划师 制定技术推广策略 通稿撰写员 汇总信息撰写最终新闻通稿 技术转译（五看）助手 用于进行"五看"（看行业、看市场、看客户、看竞争、看自己）分</div> 的配置信息？
+
+---
+
+_**Agent (model composer-1, mode Agent)**_
+
+
+检查 `BrainstormSetupModal` 组件，确认是否需要添加新的配置选项（结构化上下文、评审-反思循环、共识检测、辩论模式）。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="semantic_search_full">
+<details>
+<summary>Tool use: **semantic_search_full**</summary>
+
+
+Parameters:
+
+```json
+{
+  "query": "BrainstormSetupModal组件如何创建会话？配置项有哪些？",
+  "includePattern": "frontend/src/components/brainstorm",
+  "topK": 10,
+  "explanation": ""
+}
+```
+Result:
+
+```json
+{
+  "codeResults": [
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \nconst handleSubmit = async  =&gt; {\n    e.preventDefault();\n\n    if (!title.trim()) {\n      alert('请输入会话标题');\n      return;\n    }\n\n    if (!topic.trim()) {\n      alert('请输入讨论话题');\n      return;\n    }\n\n    if (selectedRoleIds.length === 0) {\n      alert('请至少选择一个专家角色');\n      return;\n    }\n\n    const config: Partial&lt;BrainstormSessionConfig&gt; = {\n      stopConditions: {\n        manualStop: true,\n        maxRounds: maxRounds === '' ? null : Number(maxRounds),\n        consensusDetection,\n      },\n      discussionMode,\n      moderatorConfig: moderatorEnabled &amp;&amp; moderatorRoleId ? {\n        enabled: true,\n        moderatorRoleId,\n      } : undefined,\n      summaryConfig: {\n        enabled: true,\n        provider: 'same-as-agents',\n      },\n    };\n\n    const data: CreateBrainstormSessionDTO = {\n      title: title.trim(),\n      topic: topic.trim(),\n      description: description.trim() || undefined,\n      config,\n      participantRoleIds: selectedRoleIds,\n    };\n\n    try {\n      setLoading(true);\n      await onSubmit(data);\n      handleClose();\n    } catch (error) {\n      console.error('创建会话失败:', error);\n      alert(error instanceof Error ? error.message : '创建会话失败');\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const handleClose = () =&gt; {\n    setTitle('');\n    setTopic('');\n    setDescription('');\n    setDescriptionSource('manual');\n    setSelectedConversationId('');\n    setSelectedTechPointId(null);\n    setConversations([]);\n    setTechPoints([]);\n    setSelectedRoleIds([]);\n    setMaxRounds(5);\n    setConsensusDetection(false);\n    setDiscussionMode('parallel');\n    setModeratorEnabled(false);\n    setModeratorRoleId('');\n    onClose();\n  };\n\n  return (\n    &lt;div className=\"fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            },
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 3
+              },
+              "endPosition": {
+                "line": 194,
+                "column": 9
+              }
+            },
+            {
+              "startPosition": {
+                "line": 194,
+                "column": 9
+              },
+              "endPosition": {
+                "line": 194,
+                "column": 30
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": "const handleSubmit = async  =&gt; {",
+            "lineNumber": 194
+          },
+          {
+            "text": "    e.preventDefault();",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "    if (!title.trim()) {",
+            "lineNumber": 197
+          },
+          {
+            "text": "      alert('请输入会话标题');",
+            "lineNumber": 198
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 199
+          },
+          {
+            "text": "    }",
+            "lineNumber": 200
+          },
+          {
+            "lineNumber": 201
+          },
+          {
+            "text": "    if (!topic.trim()) {",
+            "lineNumber": 202
+          },
+          {
+            "text": "      alert('请输入讨论话题');",
+            "lineNumber": 203
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 204
+          },
+          {
+            "text": "    }",
+            "lineNumber": 205
+          },
+          {
+            "lineNumber": 206
+          },
+          {
+            "text": "    if (selectedRoleIds.length === 0) {",
+            "lineNumber": 207
+          },
+          {
+            "text": "      alert('请至少选择一个专家角色');",
+            "lineNumber": 208
+          },
+          {
+            "text": "      return;",
+            "lineNumber": 209
+          },
+          {
+            "text": "    }",
+            "lineNumber": 210
+          },
+          {
+            "lineNumber": 211
+          },
+          {
+            "text": "    const config: Partial&lt;BrainstormSessionConfig&gt; = {",
+            "lineNumber": 212
+          },
+          {
+            "text": "      stopConditions: {",
+            "lineNumber": 213
+          },
+          {
+            "text": "        manualStop: true,",
+            "lineNumber": 214
+          },
+          {
+            "text": "        maxRounds: maxRounds === '' ? null : Number(maxRounds),",
+            "lineNumber": 215
+          },
+          {
+            "text": "        consensusDetection,",
+            "lineNumber": 216
+          },
+          {
+            "text": "      },",
+            "lineNumber": 217
+          },
+          {
+            "text": "      discussionMode,",
+            "lineNumber": 218
+          },
+          {
+            "text": "      moderatorConfig: moderatorEnabled &amp;&amp; moderatorRoleId ? {",
+            "lineNumber": 219
+          },
+          {
+            "text": "        enabled: true,",
+            "lineNumber": 220
+          },
+          {
+            "text": "        moderatorRoleId,",
+            "lineNumber": 221
+          },
+          {
+            "text": "      } : undefined,",
+            "lineNumber": 222
+          },
+          {
+            "text": "      summaryConfig: {",
+            "lineNumber": 223
+          },
+          {
+            "text": "        enabled: true,",
+            "lineNumber": 224
+          },
+          {
+            "text": "        provider: 'same-as-agents',",
+            "lineNumber": 225
+          },
+          {
+            "text": "      },",
+            "lineNumber": 226
+          },
+          {
+            "text": "    };",
+            "lineNumber": 227
+          },
+          {
+            "lineNumber": 228
+          },
+          {
+            "text": "    const data: CreateBrainstormSessionDTO = {",
+            "lineNumber": 229
+          },
+          {
+            "text": "      title: title.trim(),",
+            "lineNumber": 230
+          },
+          {
+            "text": "      topic: topic.trim(),",
+            "lineNumber": 231
+          },
+          {
+            "text": "      description: description.trim() || undefined,",
+            "lineNumber": 232
+          },
+          {
+            "text": "      config,",
+            "lineNumber": 233
+          },
+          {
+            "text": "      participantRoleIds: selectedRoleIds,",
+            "lineNumber": 234
+          },
+          {
+            "text": "    };",
+            "lineNumber": 235
+          },
+          {
+            "lineNumber": 236
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 237
+          },
+          {
+            "text": "      setLoading(true);",
+            "lineNumber": 238
+          },
+          {
+            "text": "      await onSubmit(data);",
+            "lineNumber": 239
+          },
+          {
+            "text": "      handleClose();",
+            "lineNumber": 240
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 241
+          },
+          {
+            "text": "      console.error('创建会话失败:', error);",
+            "lineNumber": 242
+          },
+          {
+            "text": "      alert(error instanceof Error ? error.message : '创建会话失败');",
+            "lineNumber": 243
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 244
+          },
+          {
+            "text": "      setLoading(false);",
+            "lineNumber": 245
+          },
+          {
+            "text": "    }",
+            "lineNumber": 246
+          },
+          {
+            "text": "  };",
+            "lineNumber": 247
+          },
+          {
+            "lineNumber": 248
+          },
+          {
+            "text": "  const handleClose = () =&gt; {",
+            "lineNumber": 249
+          },
+          {
+            "text": "    setTitle('');",
+            "lineNumber": 250
+          },
+          {
+            "text": "    setTopic('');",
+            "lineNumber": 251
+          },
+          {
+            "text": "    setDescription('');",
+            "lineNumber": 252
+          },
+          {
+            "text": "    setDescriptionSource('manual');",
+            "lineNumber": 253
+          },
+          {
+            "text": "    setSelectedConversationId('');",
+            "lineNumber": 254
+          },
+          {
+            "text": "    setSelectedTechPointId(null);",
+            "lineNumber": 255
+          },
+          {
+            "text": "    setConversations([]);",
+            "lineNumber": 256
+          },
+          {
+            "text": "    setTechPoints([]);",
+            "lineNumber": 257
+          },
+          {
+            "text": "    setSelectedRoleIds([]);",
+            "lineNumber": 258
+          },
+          {
+            "text": "    setMaxRounds(5);",
+            "lineNumber": 259
+          },
+          {
+            "text": "    setConsensusDetection(false);",
+            "lineNumber": 260
+          },
+          {
+            "text": "    setDiscussionMode('parallel');",
+            "lineNumber": 261
+          },
+          {
+            "text": "    setModeratorEnabled(false);",
+            "lineNumber": 262
+          },
+          {
+            "text": "    setModeratorRoleId('');",
+            "lineNumber": 263
+          },
+          {
+            "text": "    onClose();",
+            "lineNumber": 264
+          },
+          {
+            "text": "  };",
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "  return (",
+            "lineNumber": 267
+          },
+          {
+            "text": "    &lt;div className=\"fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50",
+            "lineNumber": 268
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.6298981308937073
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 17,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ({\n  isOpen,\n  onClose,\n  onSubmit,\n  initialData,\n  projectId,\n}) =&gt; {\n  const [title, setTitle] = useState(initialData?.title || '');\n  const [topic, setTopic] = useState(initialData?.topic || '');\n  const [description, setDescription] = useState(initialData?.description || '');\n  const [selectedRoleIds, setSelectedRoleIds] = useState&lt;string[]&gt;(\n    initialData?.participantRoleIds || []\n  );\n  const [maxRounds, setMaxRounds] = useState&lt;number | ''&gt;(\n    initialData?.config?.stopConditions?.maxRounds ?? 5\n  );\n  const [consensusDetection, setConsensusDetection] = useState(\n    initialData?.config?.stopConditions?.consensusDetection ?? false\n  );\n  const [discussionMode, setDiscussionMode] = useState&lt;'parallel' | 'round-robin'&gt;(\n    initialData?.config?.discussionMode ?? 'parallel'\n  );\n  const [moderatorEnabled, setModeratorEnabled] = useState(\n    initialData?.config?.moderatorConfig?.enabled ?? false\n  );\n  const [moderatorRoleId, setModeratorRoleId] = useState(\n    initialData?.config?.moderatorConfig?.moderatorRoleId ?? ''\n  );\n  const [loading, setLoading] = useState(false);\n  const [availableRoles, setAvailableRoles] = useState&lt;AIRoleConfig[]&gt;([]);\n  const [descriptionSource, setDescriptionSource] = useState&lt;'manual' | 'tech-point' | 'conversation'&gt;('manual');\n  const [conversations, setConversations] = useState&lt;Conversation[]&gt;([]);\n  const [techPoints, setTechPoints] = useState&lt;TechPoint[]&gt;([]);\n  const [loadingConversations, setLoadingConversations] = useState(false);\n  const [loadingTechPoints, setLoadingTechPoints] = useState(false);\n  const [selectedConversationId, setSelectedConversationId] = useState&lt;string&gt;('');\n  const [selectedTechPointId, setSelectedTechPointId] = useState&lt;number | null&gt;(null);\n\n  useEffect(() =&gt; {\n    if (isOpen) {\n      loadRoles();\n    }\n  }, [isOpen, projectId]);\n\n  useEffect(() =&gt; {\n    if (!isOpen) return;\n  }\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ({",
+            "lineNumber": 20
+          },
+          {
+            "text": "  isOpen,",
+            "lineNumber": 21
+          },
+          {
+            "text": "  onClose,",
+            "lineNumber": 22
+          },
+          {
+            "text": "  onSubmit,",
+            "lineNumber": 23
+          },
+          {
+            "text": "  initialData,",
+            "lineNumber": 24
+          },
+          {
+            "text": "  projectId,",
+            "lineNumber": 25
+          },
+          {
+            "text": "}) =&gt; {",
+            "lineNumber": 26
+          },
+          {
+            "text": "  const [title, setTitle] = useState(initialData?.title || '');",
+            "lineNumber": 27
+          },
+          {
+            "text": "  const [topic, setTopic] = useState(initialData?.topic || '');",
+            "lineNumber": 28
+          },
+          {
+            "text": "  const [description, setDescription] = useState(initialData?.description || '');",
+            "lineNumber": 29
+          },
+          {
+            "text": "  const [selectedRoleIds, setSelectedRoleIds] = useState&lt;string[]&gt;(",
+            "lineNumber": 30
+          },
+          {
+            "text": "    initialData?.participantRoleIds || []",
+            "lineNumber": 31
+          },
+          {
+            "text": "  );",
+            "lineNumber": 32
+          },
+          {
+            "text": "  const [maxRounds, setMaxRounds] = useState&lt;number | ''&gt;(",
+            "lineNumber": 33
+          },
+          {
+            "text": "    initialData?.config?.stopConditions?.maxRounds ?? 5",
+            "lineNumber": 34
+          },
+          {
+            "text": "  );",
+            "lineNumber": 35
+          },
+          {
+            "text": "  const [consensusDetection, setConsensusDetection] = useState(",
+            "lineNumber": 36
+          },
+          {
+            "text": "    initialData?.config?.stopConditions?.consensusDetection ?? false",
+            "lineNumber": 37
+          },
+          {
+            "text": "  );",
+            "lineNumber": 38
+          },
+          {
+            "text": "  const [discussionMode, setDiscussionMode] = useState&lt;'parallel' | 'round-robin'&gt;(",
+            "lineNumber": 39
+          },
+          {
+            "text": "    initialData?.config?.discussionMode ?? 'parallel'",
+            "lineNumber": 40
+          },
+          {
+            "text": "  );",
+            "lineNumber": 41
+          },
+          {
+            "text": "  const [moderatorEnabled, setModeratorEnabled] = useState(",
+            "lineNumber": 42
+          },
+          {
+            "text": "    initialData?.config?.moderatorConfig?.enabled ?? false",
+            "lineNumber": 43
+          },
+          {
+            "text": "  );",
+            "lineNumber": 44
+          },
+          {
+            "text": "  const [moderatorRoleId, setModeratorRoleId] = useState(",
+            "lineNumber": 45
+          },
+          {
+            "text": "    initialData?.config?.moderatorConfig?.moderatorRoleId ?? ''",
+            "lineNumber": 46
+          },
+          {
+            "text": "  );",
+            "lineNumber": 47
+          },
+          {
+            "text": "  const [loading, setLoading] = useState(false);",
+            "lineNumber": 48
+          },
+          {
+            "text": "  const [availableRoles, setAvailableRoles] = useState&lt;AIRoleConfig[]&gt;([]);",
+            "lineNumber": 49
+          },
+          {
+            "text": "  const [descriptionSource, setDescriptionSource] = useState&lt;'manual' | 'tech-point' | 'conversation'&gt;('manual');",
+            "lineNumber": 50
+          },
+          {
+            "text": "  const [conversations, setConversations] = useState&lt;Conversation[]&gt;([]);",
+            "lineNumber": 51
+          },
+          {
+            "text": "  const [techPoints, setTechPoints] = useState&lt;TechPoint[]&gt;([]);",
+            "lineNumber": 52
+          },
+          {
+            "text": "  const [loadingConversations, setLoadingConversations] = useState(false);",
+            "lineNumber": 53
+          },
+          {
+            "text": "  const [loadingTechPoints, setLoadingTechPoints] = useState(false);",
+            "lineNumber": 54
+          },
+          {
+            "text": "  const [selectedConversationId, setSelectedConversationId] = useState&lt;string&gt;('');",
+            "lineNumber": 55
+          },
+          {
+            "text": "  const [selectedTechPointId, setSelectedTechPointId] = useState&lt;number | null&gt;(null);",
+            "lineNumber": 56
+          },
+          {
+            "lineNumber": 57
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 58
+          },
+          {
+            "text": "    if (isOpen) {",
+            "lineNumber": 59
+          },
+          {
+            "text": "      loadRoles();",
+            "lineNumber": 60
+          },
+          {
+            "text": "    }",
+            "lineNumber": 61
+          },
+          {
+            "text": "  }, [isOpen, projectId]);",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 64
+          },
+          {
+            "text": "    if (!isOpen) return;",
+            "lineNumber": 65
+          },
+          {
+            "text": "  }",
+            "lineNumber": 78
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.5573384165763855
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "column": 51
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "import { X, Loader2, MessageSquare, Lightbulb } from 'lucide-react';\nimport { ExpertSelector } from './ExpertSelector';\nimport { CreateBrainstormSessionDTO, BrainstormSessionConfig } from '@/types/brainstorm';\nimport aiRoleService from '@/services/aiRoleService';\nimport { AIRoleConfig } from '@/types/aiRole';\nimport { aiSearchService } from '@/services/aiSearchService';\nimport { Conversation } from '@/types/aiSearch';\nimport api from '@/services/api';\nimport { TechPoint } from '@/types/techPoint';\n\ninterface BrainstormSetupModalProps {\n  isOpen: boolean;\n  onClose: () =&gt; void;\n  onSubmit: (data: CreateBrainstormSessionDTO) =&gt; Promise&lt;void&gt;;\n  initialData?: Partial&lt;CreateBrainstormSessionDTO&gt;;\n  projectId?: number;\n}\n\nexport const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ({\n  isOpen,\n  onClose,\n  onSubmit,\n  initialData,\n  projectId,\n})\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { X, Loader2, MessageSquare, Lightbulb } from 'lucide-react';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { ExpertSelector } from './ExpertSelector';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { CreateBrainstormSessionDTO, BrainstormSessionConfig } from '@/types/brainstorm';",
+            "lineNumber": 4
+          },
+          {
+            "text": "import aiRoleService from '@/services/aiRoleService';",
+            "lineNumber": 5
+          },
+          {
+            "text": "import { AIRoleConfig } from '@/types/aiRole';",
+            "lineNumber": 6
+          },
+          {
+            "text": "import { aiSearchService } from '@/services/aiSearchService';",
+            "lineNumber": 7
+          },
+          {
+            "text": "import { Conversation } from '@/types/aiSearch';",
+            "lineNumber": 8
+          },
+          {
+            "text": "import api from '@/services/api';",
+            "lineNumber": 9
+          },
+          {
+            "text": "import { TechPoint } from '@/types/techPoint';",
+            "lineNumber": 10
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "interface BrainstormSetupModalProps {",
+            "lineNumber": 12,
+            "isSignature": true
+          },
+          {
+            "text": "  isOpen: boolean;",
+            "lineNumber": 13
+          },
+          {
+            "text": "  onClose: () =&gt; void;",
+            "lineNumber": 14
+          },
+          {
+            "text": "  onSubmit: (data: CreateBrainstormSessionDTO) =&gt; Promise&lt;void&gt;;",
+            "lineNumber": 15
+          },
+          {
+            "text": "  initialData?: Partial&lt;CreateBrainstormSessionDTO&gt;;",
+            "lineNumber": 16
+          },
+          {
+            "text": "  projectId?: number;",
+            "lineNumber": 17,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 18,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 19
+          },
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ({",
+            "lineNumber": 20
+          },
+          {
+            "text": "  isOpen,",
+            "lineNumber": 21
+          },
+          {
+            "text": "  onClose,",
+            "lineNumber": 22
+          },
+          {
+            "text": "  onSubmit,",
+            "lineNumber": 23
+          },
+          {
+            "text": "  initialData,",
+            "lineNumber": 24
+          },
+          {
+            "text": "  projectId,",
+            "lineNumber": 25
+          },
+          {
+            "text": "})",
+            "lineNumber": 26
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.5497187376022339
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n  return (\n    &lt;div className=\"fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\"&gt;\n      &lt;div className=\"bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col\"&gt;\n        {/* 头部 */}\n        &lt;div className=\"flex items-center justify-between p-6 border-b border-gray-200\"&gt;\n          &lt;h2 className=\"text-xl font-semibold text-gray-900\"&gt;创建头脑风暴会话&lt;/h2&gt;\n          &lt;button\n            onClick={handleClose}\n            className=\"text-gray-400 hover:text-gray-600 transition-colors\"\n          &gt;\n            &lt;X className=\"w-5 h-5\" /&gt;\n          &lt;/button&gt;\n        &lt;/div&gt;\n\n        {/* 内容 */}\n        &lt;form onSubmit={handleSubmit} className=\"flex-1 overflow-y-auto p-6 space-y-6\"&gt;\n          {/* 会话标题 */}\n          &lt;div&gt;\n            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;\n              会话标题 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;input\n              type=\"text\"\n              value={title}\n              onChange={(e) =&gt; setTitle(e.target.value)}\n              placeholder=\"例如：产品功能设计讨论\"\n              className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"\n              required\n            /&gt;\n          &lt;/div&gt;\n\n          {/* 讨论话题 */}\n          &lt;div&gt;\n            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;\n              讨论话题 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;input\n              type=\"text\"\n              value={topic}\n              onChange={(e) =&gt; setTopic(e.target.value)}\n              placeholder=\"例如：如何提升用户体验\"\n              className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"\n              required\n            /&gt;\n          &lt;/div&gt;\n\n          {/* 话题描述 */}\n          &lt;div&gt;\n            &lt;div className=\"flex items-center justify-between mb-2\"&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 265
+          },
+          {
+            "lineNumber": 266
+          },
+          {
+            "text": "  return (",
+            "lineNumber": 267
+          },
+          {
+            "text": "    &lt;div className=\"fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\"&gt;",
+            "lineNumber": 268
+          },
+          {
+            "text": "      &lt;div className=\"bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col\"&gt;",
+            "lineNumber": 269
+          },
+          {
+            "text": "        {/* 头部 */}",
+            "lineNumber": 270
+          },
+          {
+            "text": "        &lt;div className=\"flex items-center justify-between p-6 border-b border-gray-200\"&gt;",
+            "lineNumber": 271
+          },
+          {
+            "text": "          &lt;h2 className=\"text-xl font-semibold text-gray-900\"&gt;创建头脑风暴会话&lt;/h2&gt;",
+            "lineNumber": 272
+          },
+          {
+            "text": "          &lt;button",
+            "lineNumber": 273
+          },
+          {
+            "text": "            onClick={handleClose}",
+            "lineNumber": 274
+          },
+          {
+            "text": "            className=\"text-gray-400 hover:text-gray-600 transition-colors\"",
+            "lineNumber": 275
+          },
+          {
+            "text": "          &gt;",
+            "lineNumber": 276
+          },
+          {
+            "text": "            &lt;X className=\"w-5 h-5\" /&gt;",
+            "lineNumber": 277
+          },
+          {
+            "text": "          &lt;/button&gt;",
+            "lineNumber": 278
+          },
+          {
+            "text": "        &lt;/div&gt;",
+            "lineNumber": 279
+          },
+          {
+            "lineNumber": 280
+          },
+          {
+            "text": "        {/* 内容 */}",
+            "lineNumber": 281
+          },
+          {
+            "text": "        &lt;form onSubmit={handleSubmit} className=\"flex-1 overflow-y-auto p-6 space-y-6\"&gt;",
+            "lineNumber": 282
+          },
+          {
+            "text": "          {/* 会话标题 */}",
+            "lineNumber": 283
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 284
+          },
+          {
+            "text": "            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 285
+          },
+          {
+            "text": "              会话标题 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 286
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 287
+          },
+          {
+            "text": "            &lt;input",
+            "lineNumber": 288
+          },
+          {
+            "text": "              type=\"text\"",
+            "lineNumber": 289
+          },
+          {
+            "text": "              value={title}",
+            "lineNumber": 290
+          },
+          {
+            "text": "              onChange={(e) =&gt; setTitle(e.target.value)}",
+            "lineNumber": 291
+          },
+          {
+            "text": "              placeholder=\"例如：产品功能设计讨论\"",
+            "lineNumber": 292
+          },
+          {
+            "text": "              className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 293
+          },
+          {
+            "text": "              required",
+            "lineNumber": 294
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 295
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 296
+          },
+          {
+            "lineNumber": 297
+          },
+          {
+            "text": "          {/* 讨论话题 */}",
+            "lineNumber": 298
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 299
+          },
+          {
+            "text": "            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 300
+          },
+          {
+            "text": "              讨论话题 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 301
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 302
+          },
+          {
+            "text": "            &lt;input",
+            "lineNumber": 303
+          },
+          {
+            "text": "              type=\"text\"",
+            "lineNumber": 304
+          },
+          {
+            "text": "              value={topic}",
+            "lineNumber": 305
+          },
+          {
+            "text": "              onChange={(e) =&gt; setTopic(e.target.value)}",
+            "lineNumber": 306
+          },
+          {
+            "text": "              placeholder=\"例如：如何提升用户体验\"",
+            "lineNumber": 307
+          },
+          {
+            "text": "              className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 308
+          },
+          {
+            "text": "              required",
+            "lineNumber": 309
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 310
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 311
+          },
+          {
+            "lineNumber": 312
+          },
+          {
+            "text": "          {/* 话题描述 */}",
+            "lineNumber": 313
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 314
+          },
+          {
+            "text": "            &lt;div className=\"flex items-center justify-between mb-2\"&gt;",
+            "lineNumber": 315
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.4985570013523102
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 2
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n        {/* 底部按钮 */}\n        &lt;div className=\"flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50\"&gt;\n          &lt;button\n            type=\"button\"\n            onClick={handleClose}\n            className=\"px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors\"\n          &gt;\n            取消\n          &lt;/button&gt;\n          &lt;button\n            type=\"submit\"\n            onClick={handleSubmit}\n            disabled={loading}\n            className=\"px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed\"\n          &gt;\n            {loading ? '创建中...' : '创建会话'}\n          &lt;/button&gt;\n        &lt;/div&gt;\n      &lt;/div&gt;\n    &lt;/div&gt;\n  );\n};",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 640
+          },
+          {
+            "lineNumber": 641
+          },
+          {
+            "text": "        {/* 底部按钮 */}",
+            "lineNumber": 642
+          },
+          {
+            "text": "        &lt;div className=\"flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50\"&gt;",
+            "lineNumber": 643
+          },
+          {
+            "text": "          &lt;button",
+            "lineNumber": 644
+          },
+          {
+            "text": "            type=\"button\"",
+            "lineNumber": 645
+          },
+          {
+            "text": "            onClick={handleClose}",
+            "lineNumber": 646
+          },
+          {
+            "text": "            className=\"px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors\"",
+            "lineNumber": 647
+          },
+          {
+            "text": "          &gt;",
+            "lineNumber": 648
+          },
+          {
+            "text": "            取消",
+            "lineNumber": 649
+          },
+          {
+            "text": "          &lt;/button&gt;",
+            "lineNumber": 650
+          },
+          {
+            "text": "          &lt;button",
+            "lineNumber": 651
+          },
+          {
+            "text": "            type=\"submit\"",
+            "lineNumber": 652
+          },
+          {
+            "text": "            onClick={handleSubmit}",
+            "lineNumber": 653
+          },
+          {
+            "text": "            disabled={loading}",
+            "lineNumber": 654
+          },
+          {
+            "text": "            className=\"px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed\"",
+            "lineNumber": 655
+          },
+          {
+            "text": "          &gt;",
+            "lineNumber": 656
+          },
+          {
+            "text": "            {loading ? '创建中...' : '创建会话'}",
+            "lineNumber": 657
+          },
+          {
+            "text": "          &lt;/button&gt;",
+            "lineNumber": 658
+          },
+          {
+            "text": "        &lt;/div&gt;",
+            "lineNumber": 659
+          },
+          {
+            "text": "      &lt;/div&gt;",
+            "lineNumber": 660
+          },
+          {
+            "text": "    &lt;/div&gt;",
+            "lineNumber": 661
+          },
+          {
+            "text": "  );",
+            "lineNumber": 662
+          },
+          {
+            "text": "};",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.4377134442329407
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n          {/* 终止条件配置 */}\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;终止条件配置&lt;/h3&gt;\n            \n            &lt;div className=\"space-y-4\"&gt;\n              {/* 最大轮次 */}\n              &lt;div&gt;\n                &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;\n                  最大轮次（留空表示无限制）\n                &lt;/label&gt;\n                &lt;input\n                  type=\"number\"\n                  value={maxRounds}\n                  onChange={(e) =&gt; setMaxRounds(e.target.value === '' ? '' : Number(e.target.value))}\n                  min=\"1\"\n                  placeholder=\"例如：5\"\n                  className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                /&gt;\n                &lt;p className=\"mt-1 text-xs text-gray-500\"&gt;\n                  每个专家每轮发言一次，达到指定轮次后自动结束讨论\n                &lt;/p&gt;\n              &lt;/div&gt;\n\n              {/* 共识检测 */}\n              &lt;div className=\"flex items-center space-x-2\"&gt;\n                &lt;input\n                  type=\"checkbox\"\n                  id=\"consensusDetection\"\n                  checked={consensusDetection}\n                  onChange={(e) =&gt; setConsensusDetection(e.target.checked)}\n                  className=\"w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500\"\n                /&gt;\n                &lt;label htmlFor=\"consensusDetection\" className=\"text-sm text-gray-700\"&gt;\n                  启用共识检测（检测到共识后自动结束）\n                &lt;/label&gt;\n              &lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/div&gt;\n        &lt;/form&gt;\n\n        {/* 底部按钮 */}\n        &lt;div className=\"flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50\"&gt;\n          &lt;button\n            type=\"button\"\n            onClick={handleClose}\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 600
+          },
+          {
+            "lineNumber": 601
+          },
+          {
+            "text": "          {/* 终止条件配置 */}",
+            "lineNumber": 602
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 603
+          },
+          {
+            "text": "            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;终止条件配置&lt;/h3&gt;",
+            "lineNumber": 604
+          },
+          {
+            "text": "            ",
+            "lineNumber": 605
+          },
+          {
+            "text": "            &lt;div className=\"space-y-4\"&gt;",
+            "lineNumber": 606
+          },
+          {
+            "text": "              {/* 最大轮次 */}",
+            "lineNumber": 607
+          },
+          {
+            "text": "              &lt;div&gt;",
+            "lineNumber": 608
+          },
+          {
+            "text": "                &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 609
+          },
+          {
+            "text": "                  最大轮次（留空表示无限制）",
+            "lineNumber": 610
+          },
+          {
+            "text": "                &lt;/label&gt;",
+            "lineNumber": 611
+          },
+          {
+            "text": "                &lt;input",
+            "lineNumber": 612
+          },
+          {
+            "text": "                  type=\"number\"",
+            "lineNumber": 613
+          },
+          {
+            "text": "                  value={maxRounds}",
+            "lineNumber": 614
+          },
+          {
+            "text": "                  onChange={(e) =&gt; setMaxRounds(e.target.value === '' ? '' : Number(e.target.value))}",
+            "lineNumber": 615
+          },
+          {
+            "text": "                  min=\"1\"",
+            "lineNumber": 616
+          },
+          {
+            "text": "                  placeholder=\"例如：5\"",
+            "lineNumber": 617
+          },
+          {
+            "text": "                  className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 618
+          },
+          {
+            "text": "                /&gt;",
+            "lineNumber": 619
+          },
+          {
+            "text": "                &lt;p className=\"mt-1 text-xs text-gray-500\"&gt;",
+            "lineNumber": 620
+          },
+          {
+            "text": "                  每个专家每轮发言一次，达到指定轮次后自动结束讨论",
+            "lineNumber": 621
+          },
+          {
+            "text": "                &lt;/p&gt;",
+            "lineNumber": 622
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 623
+          },
+          {
+            "lineNumber": 624
+          },
+          {
+            "text": "              {/* 共识检测 */}",
+            "lineNumber": 625
+          },
+          {
+            "text": "              &lt;div className=\"flex items-center space-x-2\"&gt;",
+            "lineNumber": 626
+          },
+          {
+            "text": "                &lt;input",
+            "lineNumber": 627
+          },
+          {
+            "text": "                  type=\"checkbox\"",
+            "lineNumber": 628
+          },
+          {
+            "text": "                  id=\"consensusDetection\"",
+            "lineNumber": 629
+          },
+          {
+            "text": "                  checked={consensusDetection}",
+            "lineNumber": 630
+          },
+          {
+            "text": "                  onChange={(e) =&gt; setConsensusDetection(e.target.checked)}",
+            "lineNumber": 631
+          },
+          {
+            "text": "                  className=\"w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500\"",
+            "lineNumber": 632
+          },
+          {
+            "text": "                /&gt;",
+            "lineNumber": 633
+          },
+          {
+            "text": "                &lt;label htmlFor=\"consensusDetection\" className=\"text-sm text-gray-700\"&gt;",
+            "lineNumber": 634
+          },
+          {
+            "text": "                  启用共识检测（检测到共识后自动结束）",
+            "lineNumber": 635
+          },
+          {
+            "text": "                &lt;/label&gt;",
+            "lineNumber": 636
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 637
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 638
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 639
+          },
+          {
+            "text": "        &lt;/form&gt;",
+            "lineNumber": 640
+          },
+          {
+            "lineNumber": 641
+          },
+          {
+            "text": "        {/* 底部按钮 */}",
+            "lineNumber": 642
+          },
+          {
+            "text": "        &lt;div className=\"flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50\"&gt;",
+            "lineNumber": 643
+          },
+          {
+            "text": "          &lt;button",
+            "lineNumber": 644
+          },
+          {
+            "text": "            type=\"button\"",
+            "lineNumber": 645
+          },
+          {
+            "text": "            onClick={handleClose}",
+            "lineNumber": 646
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.41696739196777344
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n          {/* 主持人配置 */}\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;div className=\"flex items-center space-x-2 mb-4\"&gt;\n              &lt;input\n                type=\"checkbox\"\n                id=\"moderatorEnabled\"\n                checked={moderatorEnabled}\n                onChange={(e) =&gt; {\n                  setModeratorEnabled(e.target.checked);\n                  if (!e.target.checked) {\n                    setModeratorRoleId('');\n                  }\n                }}\n                className=\"w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500\"\n              /&gt;\n              &lt;label htmlFor=\"moderatorEnabled\" className=\"text-sm font-medium text-gray-900\"&gt;\n                启用主持人模式\n              &lt;/label&gt;\n            &lt;/div&gt;\n            {moderatorEnabled &amp;&amp; (\n              &lt;div className=\"ml-6\"&gt;\n                &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;\n                  选择主持人角色\n                &lt;/label&gt;\n                &lt;select\n                  value={moderatorRoleId}\n                  onChange={(e) =&gt; setModeratorRoleId(e.target.value)}\n                  className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                &gt;\n                  &lt;option value=\"\"&gt;请选择主持人角色&lt;/option&gt;\n                  {availableRoles.map((role) =&gt; (\n                    &lt;option key={role.id} value={role.id}&gt;\n                      {role.name}\n                    &lt;/option&gt;\n                  ))}\n                &lt;/select&gt;\n                &lt;p className=\"mt-1 text-xs text-gray-500\"&gt;\n                  主持人将在每轮讨论开始时发言，协调讨论流程\n                &lt;/p&gt;\n              &lt;/div&gt;\n            )}\n          &lt;/div&gt;\n\n          {/* 终止条件配置 */}\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;终止条件配置&lt;/h3&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 557
+          },
+          {
+            "lineNumber": 558
+          },
+          {
+            "text": "          {/* 主持人配置 */}",
+            "lineNumber": 559
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 560
+          },
+          {
+            "text": "            &lt;div className=\"flex items-center space-x-2 mb-4\"&gt;",
+            "lineNumber": 561
+          },
+          {
+            "text": "              &lt;input",
+            "lineNumber": 562
+          },
+          {
+            "text": "                type=\"checkbox\"",
+            "lineNumber": 563
+          },
+          {
+            "text": "                id=\"moderatorEnabled\"",
+            "lineNumber": 564
+          },
+          {
+            "text": "                checked={moderatorEnabled}",
+            "lineNumber": 565
+          },
+          {
+            "text": "                onChange={(e) =&gt; {",
+            "lineNumber": 566
+          },
+          {
+            "text": "                  setModeratorEnabled(e.target.checked);",
+            "lineNumber": 567
+          },
+          {
+            "text": "                  if (!e.target.checked) {",
+            "lineNumber": 568
+          },
+          {
+            "text": "                    setModeratorRoleId('');",
+            "lineNumber": 569
+          },
+          {
+            "text": "                  }",
+            "lineNumber": 570
+          },
+          {
+            "text": "                }}",
+            "lineNumber": 571
+          },
+          {
+            "text": "                className=\"w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500\"",
+            "lineNumber": 572
+          },
+          {
+            "text": "              /&gt;",
+            "lineNumber": 573
+          },
+          {
+            "text": "              &lt;label htmlFor=\"moderatorEnabled\" className=\"text-sm font-medium text-gray-900\"&gt;",
+            "lineNumber": 574
+          },
+          {
+            "text": "                启用主持人模式",
+            "lineNumber": 575
+          },
+          {
+            "text": "              &lt;/label&gt;",
+            "lineNumber": 576
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 577
+          },
+          {
+            "text": "            {moderatorEnabled &amp;&amp; (",
+            "lineNumber": 578
+          },
+          {
+            "text": "              &lt;div className=\"ml-6\"&gt;",
+            "lineNumber": 579
+          },
+          {
+            "text": "                &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 580
+          },
+          {
+            "text": "                  选择主持人角色",
+            "lineNumber": 581
+          },
+          {
+            "text": "                &lt;/label&gt;",
+            "lineNumber": 582
+          },
+          {
+            "text": "                &lt;select",
+            "lineNumber": 583
+          },
+          {
+            "text": "                  value={moderatorRoleId}",
+            "lineNumber": 584
+          },
+          {
+            "text": "                  onChange={(e) =&gt; setModeratorRoleId(e.target.value)}",
+            "lineNumber": 585
+          },
+          {
+            "text": "                  className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 586
+          },
+          {
+            "text": "                &gt;",
+            "lineNumber": 587
+          },
+          {
+            "text": "                  &lt;option value=\"\"&gt;请选择主持人角色&lt;/option&gt;",
+            "lineNumber": 588
+          },
+          {
+            "text": "                  {availableRoles.map((role) =&gt; (",
+            "lineNumber": 589
+          },
+          {
+            "text": "                    &lt;option key={role.id} value={role.id}&gt;",
+            "lineNumber": 590
+          },
+          {
+            "text": "                      {role.name}",
+            "lineNumber": 591
+          },
+          {
+            "text": "                    &lt;/option&gt;",
+            "lineNumber": 592
+          },
+          {
+            "text": "                  ))}",
+            "lineNumber": 593
+          },
+          {
+            "text": "                &lt;/select&gt;",
+            "lineNumber": 594
+          },
+          {
+            "text": "                &lt;p className=\"mt-1 text-xs text-gray-500\"&gt;",
+            "lineNumber": 595
+          },
+          {
+            "text": "                  主持人将在每轮讨论开始时发言，协调讨论流程",
+            "lineNumber": 596
+          },
+          {
+            "text": "                &lt;/p&gt;",
+            "lineNumber": 597
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 598
+          },
+          {
+            "text": "            )}",
+            "lineNumber": 599
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 600
+          },
+          {
+            "lineNumber": 601
+          },
+          {
+            "text": "          {/* 终止条件配置 */}",
+            "lineNumber": 602
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 603
+          },
+          {
+            "text": "            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;终止条件配置&lt;/h3&gt;",
+            "lineNumber": 604
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.41275084018707275
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n [isOpen, projectId]);\n\n  useEffect(() =&gt; {\n    if (!isOpen) return;\n    \n    if (descriptionSource === 'conversation') {\n      loadConversations();\n      setSelectedTechPointId(null);\n    } else if (descriptionSource === 'tech-point') {\n      loadTechPoints();\n      setSelectedConversationId('');\n    } else {\n      setSelectedConversationId('');\n      setSelectedTechPointId(null);\n      setDescription('');\n    }\n  }, [descriptionSource, isOpen, projectId]);\n\n  const loadRoles = async () =&gt; {\n    try {\n      const roles = await aiRoleService.getAIRoles();\n      setAvailableRoles(roles.filter(role =&gt; role.enabled));\n    } catch (error) {\n      console.error('加载AI角色失败:', error);\n    }\n  };\n\n  const loadConversations = async () =&gt; {\n    try {\n      setLoadingConversations(true);\n      // 获取所有页面的对话记录\n      const allConversations = await aiSearchService.getConversationsAcrossPages([\n        'tech-package',\n        'tech-strategy',\n        'tech-article',\n        'press-release'\n      ]);\n      \n      // 如果有项目ID，过滤项目相关的对话\n      let filteredConversations = allConversations;\n      if (projectId) {\n        // 这里可以根据实际需求过滤，目前先显示所有对话\n        filteredConversations = allConversations;\n      }\n      \n      setConversations(filteredConversations);\n    } catch (error) {\n      console.error('加载对话记录失败:', error);\n    } finally {\n      setLoadingConversations(false);\n    }\n  };\n\n  const loadTechPoints = async () =&gt; {\n    try\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 58
+          },
+          {
+            "text": " [isOpen, projectId]);",
+            "lineNumber": 62
+          },
+          {
+            "lineNumber": 63
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 64
+          },
+          {
+            "text": "    if (!isOpen) return;",
+            "lineNumber": 65
+          },
+          {
+            "text": "    ",
+            "lineNumber": 66
+          },
+          {
+            "text": "    if (descriptionSource === 'conversation') {",
+            "lineNumber": 67
+          },
+          {
+            "text": "      loadConversations();",
+            "lineNumber": 68
+          },
+          {
+            "text": "      setSelectedTechPointId(null);",
+            "lineNumber": 69
+          },
+          {
+            "text": "    } else if (descriptionSource === 'tech-point') {",
+            "lineNumber": 70
+          },
+          {
+            "text": "      loadTechPoints();",
+            "lineNumber": 71
+          },
+          {
+            "text": "      setSelectedConversationId('');",
+            "lineNumber": 72
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 73
+          },
+          {
+            "text": "      setSelectedConversationId('');",
+            "lineNumber": 74
+          },
+          {
+            "text": "      setSelectedTechPointId(null);",
+            "lineNumber": 75
+          },
+          {
+            "text": "      setDescription('');",
+            "lineNumber": 76
+          },
+          {
+            "text": "    }",
+            "lineNumber": 77
+          },
+          {
+            "text": "  }, [descriptionSource, isOpen, projectId]);",
+            "lineNumber": 78
+          },
+          {
+            "lineNumber": 79
+          },
+          {
+            "text": "  const loadRoles = async () =&gt; {",
+            "lineNumber": 80
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 81
+          },
+          {
+            "text": "      const roles = await aiRoleService.getAIRoles();",
+            "lineNumber": 82
+          },
+          {
+            "text": "      setAvailableRoles(roles.filter(role =&gt; role.enabled));",
+            "lineNumber": 83
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 84
+          },
+          {
+            "text": "      console.error('加载AI角色失败:', error);",
+            "lineNumber": 85
+          },
+          {
+            "text": "    }",
+            "lineNumber": 86
+          },
+          {
+            "text": "  };",
+            "lineNumber": 87
+          },
+          {
+            "lineNumber": 88
+          },
+          {
+            "text": "  const loadConversations = async () =&gt; {",
+            "lineNumber": 89
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 90
+          },
+          {
+            "text": "      setLoadingConversations(true);",
+            "lineNumber": 91
+          },
+          {
+            "text": "      // 获取所有页面的对话记录",
+            "lineNumber": 92
+          },
+          {
+            "text": "      const allConversations = await aiSearchService.getConversationsAcrossPages([",
+            "lineNumber": 93
+          },
+          {
+            "text": "        'tech-package',",
+            "lineNumber": 94
+          },
+          {
+            "text": "        'tech-strategy',",
+            "lineNumber": 95
+          },
+          {
+            "text": "        'tech-article',",
+            "lineNumber": 96
+          },
+          {
+            "text": "        'press-release'",
+            "lineNumber": 97
+          },
+          {
+            "text": "      ]);",
+            "lineNumber": 98
+          },
+          {
+            "text": "      ",
+            "lineNumber": 99
+          },
+          {
+            "text": "      // 如果有项目ID，过滤项目相关的对话",
+            "lineNumber": 100
+          },
+          {
+            "text": "      let filteredConversations = allConversations;",
+            "lineNumber": 101
+          },
+          {
+            "text": "      if (projectId) {",
+            "lineNumber": 102
+          },
+          {
+            "text": "        // 这里可以根据实际需求过滤，目前先显示所有对话",
+            "lineNumber": 103
+          },
+          {
+            "text": "        filteredConversations = allConversations;",
+            "lineNumber": 104
+          },
+          {
+            "text": "      }",
+            "lineNumber": 105
+          },
+          {
+            "text": "      ",
+            "lineNumber": 106
+          },
+          {
+            "text": "      setConversations(filteredConversations);",
+            "lineNumber": 107
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 108
+          },
+          {
+            "text": "      console.error('加载对话记录失败:', error);",
+            "lineNumber": 109
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 110
+          },
+          {
+            "text": "      setLoadingConversations(false);",
+            "lineNumber": 111
+          },
+          {
+            "text": "    }",
+            "lineNumber": 112
+          },
+          {
+            "text": "  };",
+            "lineNumber": 113
+          },
+          {
+            "lineNumber": 114
+          },
+          {
+            "text": "  const loadTechPoints = async () =&gt; {",
+            "lineNumber": 115
+          },
+          {
+            "text": "    try",
+            "lineNumber": 116
+          },
+          {
+            "text": ";",
+            "lineNumber": 138
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.3949902057647705
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;讨论模式&lt;/h3&gt;\n            &lt;div className=\"space-y-3\"&gt;\n              &lt;div className=\"flex items-center space-x-3\"&gt;\n                &lt;input\n                  type=\"radio\"\n                  id=\"mode-parallel\"\n                  name=\"discussionMode\"\n                  value=\"parallel\"\n                  checked={discussionMode === 'parallel'}\n                  onChange={(e) =&gt; setDiscussionMode(e.target.value as 'parallel' | 'round-robin')}\n                  className=\"w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500\"\n                /&gt;\n                &lt;label htmlFor=\"mode-parallel\" className=\"text-sm text-gray-700\"&gt;\n                  &lt;div className=\"font-medium\"&gt;并行模式&lt;/div&gt;\n                  &lt;div className=\"text-xs text-gray-500\"&gt;所有专家同时发言，讨论更高效&lt;/div&gt;\n                &lt;/label&gt;\n              &lt;/div&gt;\n              &lt;div className=\"flex items-center space-x-3\"&gt;\n                &lt;input\n                  type=\"radio\"\n                  id=\"mode-round-robin\"\n                  name=\"discussionMode\"\n                  value=\"round-robin\"\n                  checked={discussionMode === 'round-robin'}\n                  onChange={(e) =&gt; setDiscussionMode(e.target.value as 'parallel' | 'round-robin')}\n                  className=\"w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500\"\n                /&gt;\n                &lt;label htmlFor=\"mode-round-robin\" className=\"text-sm text-gray-700\"&gt;\n                  &lt;div className=\"font-medium\"&gt;轮流发言模式&lt;/div&gt;\n                  &lt;div className=\"text-xs text-gray-500\"&gt;专家按顺序依次发言，讨论更有条理&lt;/div&gt;\n                &lt;/label&gt;\n              &lt;/div&gt;\n            &lt;/div&gt;\n          &lt;/div&gt;\n\n          {/* 主持人配置 */}\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;div className=\"flex items-center space-x-2 mb-4\"&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 522
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 523
+          },
+          {
+            "text": "            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;讨论模式&lt;/h3&gt;",
+            "lineNumber": 524
+          },
+          {
+            "text": "            &lt;div className=\"space-y-3\"&gt;",
+            "lineNumber": 525
+          },
+          {
+            "text": "              &lt;div className=\"flex items-center space-x-3\"&gt;",
+            "lineNumber": 526
+          },
+          {
+            "text": "                &lt;input",
+            "lineNumber": 527
+          },
+          {
+            "text": "                  type=\"radio\"",
+            "lineNumber": 528
+          },
+          {
+            "text": "                  id=\"mode-parallel\"",
+            "lineNumber": 529
+          },
+          {
+            "text": "                  name=\"discussionMode\"",
+            "lineNumber": 530
+          },
+          {
+            "text": "                  value=\"parallel\"",
+            "lineNumber": 531
+          },
+          {
+            "text": "                  checked={discussionMode === 'parallel'}",
+            "lineNumber": 532
+          },
+          {
+            "text": "                  onChange={(e) =&gt; setDiscussionMode(e.target.value as 'parallel' | 'round-robin')}",
+            "lineNumber": 533
+          },
+          {
+            "text": "                  className=\"w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500\"",
+            "lineNumber": 534
+          },
+          {
+            "text": "                /&gt;",
+            "lineNumber": 535
+          },
+          {
+            "text": "                &lt;label htmlFor=\"mode-parallel\" className=\"text-sm text-gray-700\"&gt;",
+            "lineNumber": 536
+          },
+          {
+            "text": "                  &lt;div className=\"font-medium\"&gt;并行模式&lt;/div&gt;",
+            "lineNumber": 537
+          },
+          {
+            "text": "                  &lt;div className=\"text-xs text-gray-500\"&gt;所有专家同时发言，讨论更高效&lt;/div&gt;",
+            "lineNumber": 538
+          },
+          {
+            "text": "                &lt;/label&gt;",
+            "lineNumber": 539
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 540
+          },
+          {
+            "text": "              &lt;div className=\"flex items-center space-x-3\"&gt;",
+            "lineNumber": 541
+          },
+          {
+            "text": "                &lt;input",
+            "lineNumber": 542
+          },
+          {
+            "text": "                  type=\"radio\"",
+            "lineNumber": 543
+          },
+          {
+            "text": "                  id=\"mode-round-robin\"",
+            "lineNumber": 544
+          },
+          {
+            "text": "                  name=\"discussionMode\"",
+            "lineNumber": 545
+          },
+          {
+            "text": "                  value=\"round-robin\"",
+            "lineNumber": 546
+          },
+          {
+            "text": "                  checked={discussionMode === 'round-robin'}",
+            "lineNumber": 547
+          },
+          {
+            "text": "                  onChange={(e) =&gt; setDiscussionMode(e.target.value as 'parallel' | 'round-robin')}",
+            "lineNumber": 548
+          },
+          {
+            "text": "                  className=\"w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500\"",
+            "lineNumber": 549
+          },
+          {
+            "text": "                /&gt;",
+            "lineNumber": 550
+          },
+          {
+            "text": "                &lt;label htmlFor=\"mode-round-robin\" className=\"text-sm text-gray-700\"&gt;",
+            "lineNumber": 551
+          },
+          {
+            "text": "                  &lt;div className=\"font-medium\"&gt;轮流发言模式&lt;/div&gt;",
+            "lineNumber": 552
+          },
+          {
+            "text": "                  &lt;div className=\"text-xs text-gray-500\"&gt;专家按顺序依次发言，讨论更有条理&lt;/div&gt;",
+            "lineNumber": 553
+          },
+          {
+            "text": "                &lt;/label&gt;",
+            "lineNumber": 554
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 555
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 556
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 557
+          },
+          {
+            "lineNumber": 558
+          },
+          {
+            "text": "          {/* 主持人配置 */}",
+            "lineNumber": 559
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 560
+          },
+          {
+            "text": "            &lt;div className=\"flex items-center space-x-2 mb-4\"&gt;",
+            "lineNumber": 561
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.37863004207611084
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n          &lt;div&gt;\n            &lt;div className=\"flex items-center justify-between mb-2\"&gt;\n              &lt;label className=\"block text-sm font-medium text-gray-700\"&gt;\n                话题描述（可选）\n              &lt;/label&gt;\n              &lt;select\n                value={descriptionSource}\n                onChange={(e) =&gt; setDescriptionSource(e.target.value as 'manual' | 'tech-point' | 'conversation')}\n                className=\"text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500\"\n              &gt;\n                &lt;option value=\"manual\"&gt;手动输入&lt;/option&gt;\n                &lt;option value=\"tech-point\"&gt;技术点&lt;/option&gt;\n                &lt;option value=\"conversation\"&gt;对话记录&lt;/option&gt;\n              &lt;/select&gt;\n            &lt;/div&gt;\n            \n            {descriptionSource === 'manual' ? (\n              &lt;textarea\n                value={description}\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 313
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 314
+          },
+          {
+            "text": "            &lt;div className=\"flex items-center justify-between mb-2\"&gt;",
+            "lineNumber": 315
+          },
+          {
+            "text": "              &lt;label className=\"block text-sm font-medium text-gray-700\"&gt;",
+            "lineNumber": 316
+          },
+          {
+            "text": "                话题描述（可选）",
+            "lineNumber": 317
+          },
+          {
+            "text": "              &lt;/label&gt;",
+            "lineNumber": 318
+          },
+          {
+            "text": "              &lt;select",
+            "lineNumber": 319
+          },
+          {
+            "text": "                value={descriptionSource}",
+            "lineNumber": 320
+          },
+          {
+            "text": "                onChange={(e) =&gt; setDescriptionSource(e.target.value as 'manual' | 'tech-point' | 'conversation')}",
+            "lineNumber": 321
+          },
+          {
+            "text": "                className=\"text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500\"",
+            "lineNumber": 322
+          },
+          {
+            "text": "              &gt;",
+            "lineNumber": 323
+          },
+          {
+            "text": "                &lt;option value=\"manual\"&gt;手动输入&lt;/option&gt;",
+            "lineNumber": 324
+          },
+          {
+            "text": "                &lt;option value=\"tech-point\"&gt;技术点&lt;/option&gt;",
+            "lineNumber": 325
+          },
+          {
+            "text": "                &lt;option value=\"conversation\"&gt;对话记录&lt;/option&gt;",
+            "lineNumber": 326
+          },
+          {
+            "text": "              &lt;/select&gt;",
+            "lineNumber": 327
+          },
+          {
+            "text": "            &lt;/div&gt;",
+            "lineNumber": 328
+          },
+          {
+            "text": "            ",
+            "lineNumber": 329
+          },
+          {
+            "text": "            {descriptionSource === 'manual' ? (",
+            "lineNumber": 330
+          },
+          {
+            "text": "              &lt;textarea",
+            "lineNumber": 331
+          },
+          {
+            "text": "                value={description}",
+            "lineNumber": 332
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.36744076013565063
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n  const loadTechPoints = async () =&gt; {\n    try {\n      setLoadingTechPoints(true);\n      \n      if (!projectId) {\n        console.warn('没有项目ID，无法加载技术点');\n        setTechPoints([]);\n        return;\n      }\n      \n      const response = await api.get(&#96;/projects/${projectId}/details&#96;);\n      \n      if (response.data?.success &amp;&amp; response.data?.data?.techPoints) {\n        setTechPoints(response.data.data.techPoints);\n      } else {\n        setTechPoints([]);\n      }\n    } catch (error) {\n      console.error('加载项目技术点失败:', error);\n      setTechPoints([]);\n    } finally {\n      setLoadingTechPoints(false);\n    }\n  };\n\n  const handleConversationSelect = async (conversationId: string) =&gt; {\n    setSelectedConversationId(conversationId);\n    if (conversationId) {\n      try {\n        const conversation = await aiSearchService.getConversation(conversationId);\n        if (conversation &amp;&amp; conversation.messages &amp;&amp; conversation.messages.length &gt; 0) {\n          // 提取对话的主要内容作为描述\n          const messages = conversation.messages;\n          const firstUserMessage = messages.find(m =&gt; m.role === 'user');\n          const lastAssistantMessage = [...messages].reverse().find(m =&gt; m.role === 'assistant');\n          \n          let desc = '';\n          if (firstUserMessage) {\n            desc += &#96;问题：${firstUserMessage.content}\\n\\n&#96;;\n          }\n          if (lastAssistantMessage) {\n            desc += &#96;回答：${lastAssistantMessage.content.substring(0, 500)}${lastAssistantMessage.content.length &gt; 500 ? '...' : ''}&#96;;\n          }\n          \n          setDescription(desc.trim());\n        }\n      } catch (error) {\n        console.error('获取对话详情失败:', error);\n      }\n    } else {\n      setDescription('');\n    }\n  };\n\n  const handleTechPointSelect = (techPointId: number) =&gt;\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 113
+          },
+          {
+            "lineNumber": 114
+          },
+          {
+            "text": "  const loadTechPoints = async () =&gt; {",
+            "lineNumber": 115
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 116
+          },
+          {
+            "text": "      setLoadingTechPoints(true);",
+            "lineNumber": 117
+          },
+          {
+            "text": "      ",
+            "lineNumber": 118
+          },
+          {
+            "text": "      if (!projectId) {",
+            "lineNumber": 119
+          },
+          {
+            "text": "        console.warn('没有项目ID，无法加载技术点');",
+            "lineNumber": 120
+          },
+          {
+            "text": "        setTechPoints([]);",
+            "lineNumber": 121
+          },
+          {
+            "text": "        return;",
+            "lineNumber": 122
+          },
+          {
+            "text": "      }",
+            "lineNumber": 123
+          },
+          {
+            "text": "      ",
+            "lineNumber": 124
+          },
+          {
+            "text": "      const response = await api.get(&#96;/projects/${projectId}/details&#96;);",
+            "lineNumber": 125
+          },
+          {
+            "text": "      ",
+            "lineNumber": 126
+          },
+          {
+            "text": "      if (response.data?.success &amp;&amp; response.data?.data?.techPoints) {",
+            "lineNumber": 127
+          },
+          {
+            "text": "        setTechPoints(response.data.data.techPoints);",
+            "lineNumber": 128
+          },
+          {
+            "text": "      } else {",
+            "lineNumber": 129
+          },
+          {
+            "text": "        setTechPoints([]);",
+            "lineNumber": 130
+          },
+          {
+            "text": "      }",
+            "lineNumber": 131
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 132
+          },
+          {
+            "text": "      console.error('加载项目技术点失败:', error);",
+            "lineNumber": 133
+          },
+          {
+            "text": "      setTechPoints([]);",
+            "lineNumber": 134
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 135
+          },
+          {
+            "text": "      setLoadingTechPoints(false);",
+            "lineNumber": 136
+          },
+          {
+            "text": "    }",
+            "lineNumber": 137
+          },
+          {
+            "text": "  };",
+            "lineNumber": 138
+          },
+          {
+            "lineNumber": 139
+          },
+          {
+            "text": "  const handleConversationSelect = async (conversationId: string) =&gt; {",
+            "lineNumber": 140
+          },
+          {
+            "text": "    setSelectedConversationId(conversationId);",
+            "lineNumber": 141
+          },
+          {
+            "text": "    if (conversationId) {",
+            "lineNumber": 142
+          },
+          {
+            "text": "      try {",
+            "lineNumber": 143
+          },
+          {
+            "text": "        const conversation = await aiSearchService.getConversation(conversationId);",
+            "lineNumber": 144
+          },
+          {
+            "text": "        if (conversation &amp;&amp; conversation.messages &amp;&amp; conversation.messages.length &gt; 0) {",
+            "lineNumber": 145
+          },
+          {
+            "text": "          // 提取对话的主要内容作为描述",
+            "lineNumber": 146
+          },
+          {
+            "text": "          const messages = conversation.messages;",
+            "lineNumber": 147
+          },
+          {
+            "text": "          const firstUserMessage = messages.find(m =&gt; m.role === 'user');",
+            "lineNumber": 148
+          },
+          {
+            "text": "          const lastAssistantMessage = [...messages].reverse().find(m =&gt; m.role === 'assistant');",
+            "lineNumber": 149
+          },
+          {
+            "text": "          ",
+            "lineNumber": 150
+          },
+          {
+            "text": "          let desc = '';",
+            "lineNumber": 151
+          },
+          {
+            "text": "          if (firstUserMessage) {",
+            "lineNumber": 152
+          },
+          {
+            "text": "            desc += &#96;问题：${firstUserMessage.content}\\n\\n&#96;;",
+            "lineNumber": 153
+          },
+          {
+            "text": "          }",
+            "lineNumber": 154
+          },
+          {
+            "text": "          if (lastAssistantMessage) {",
+            "lineNumber": 155
+          },
+          {
+            "text": "            desc += &#96;回答：${lastAssistantMessage.content.substring(0, 500)}${lastAssistantMessage.content.length &gt; 500 ? '...' : ''}&#96;;",
+            "lineNumber": 156
+          },
+          {
+            "text": "          }",
+            "lineNumber": 157
+          },
+          {
+            "text": "          ",
+            "lineNumber": 158
+          },
+          {
+            "text": "          setDescription(desc.trim());",
+            "lineNumber": 159
+          },
+          {
+            "text": "        }",
+            "lineNumber": 160
+          },
+          {
+            "text": "      } catch (error) {",
+            "lineNumber": 161
+          },
+          {
+            "text": "        console.error('获取对话详情失败:', error);",
+            "lineNumber": 162
+          },
+          {
+            "text": "      }",
+            "lineNumber": 163
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 164
+          },
+          {
+            "text": "      setDescription('');",
+            "lineNumber": 165
+          },
+          {
+            "text": "    }",
+            "lineNumber": 166
+          },
+          {
+            "text": "  };",
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "  const handleTechPointSelect = (techPointId: number) =&gt;",
+            "lineNumber": 169
+          },
+          {
+            "text": ";",
+            "lineNumber": 190
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.35776305198669434
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n\n  const handleTechPointSelect = (techPointId: number) =&gt; {\n    setSelectedTechPointId(techPointId);\n    if (techPointId) {\n      const techPoint = techPoints.find(tp =&gt; tp.id === techPointId);\n      if (techPoint) {\n        // 使用技术点的名称和描述作为话题描述\n        let desc = &#96;技术点：${techPoint.name}&#96;;\n        if (techPoint.description) {\n          desc += &#96;\\n\\n描述：${techPoint.description}&#96;;\n        }\n        if (techPoint.tech_principle) {\n          desc += &#96;\\n\\n技术原理：${techPoint.tech_principle}&#96;;\n        }\n        if (techPoint.tech_value) {\n          desc += &#96;\\n\\n价值：${techPoint.tech_value}&#96;;\n        }\n        setDescription(desc);\n      }\n    } else {\n      setDescription('');\n    }\n  };\n\n  if (!isOpen) return null;\n\n  const handleSubmit = async (e: React.FormEvent) =&gt; {\n    e.preventDefault();\n\n    if (!title.trim())\n;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 167
+          },
+          {
+            "lineNumber": 168
+          },
+          {
+            "text": "  const handleTechPointSelect = (techPointId: number) =&gt; {",
+            "lineNumber": 169
+          },
+          {
+            "text": "    setSelectedTechPointId(techPointId);",
+            "lineNumber": 170
+          },
+          {
+            "text": "    if (techPointId) {",
+            "lineNumber": 171
+          },
+          {
+            "text": "      const techPoint = techPoints.find(tp =&gt; tp.id === techPointId);",
+            "lineNumber": 172
+          },
+          {
+            "text": "      if (techPoint) {",
+            "lineNumber": 173
+          },
+          {
+            "text": "        // 使用技术点的名称和描述作为话题描述",
+            "lineNumber": 174
+          },
+          {
+            "text": "        let desc = &#96;技术点：${techPoint.name}&#96;;",
+            "lineNumber": 175
+          },
+          {
+            "text": "        if (techPoint.description) {",
+            "lineNumber": 176
+          },
+          {
+            "text": "          desc += &#96;\\n\\n描述：${techPoint.description}&#96;;",
+            "lineNumber": 177
+          },
+          {
+            "text": "        }",
+            "lineNumber": 178
+          },
+          {
+            "text": "        if (techPoint.tech_principle) {",
+            "lineNumber": 179
+          },
+          {
+            "text": "          desc += &#96;\\n\\n技术原理：${techPoint.tech_principle}&#96;;",
+            "lineNumber": 180
+          },
+          {
+            "text": "        }",
+            "lineNumber": 181
+          },
+          {
+            "text": "        if (techPoint.tech_value) {",
+            "lineNumber": 182
+          },
+          {
+            "text": "          desc += &#96;\\n\\n价值：${techPoint.tech_value}&#96;;",
+            "lineNumber": 183
+          },
+          {
+            "text": "        }",
+            "lineNumber": 184
+          },
+          {
+            "text": "        setDescription(desc);",
+            "lineNumber": 185
+          },
+          {
+            "text": "      }",
+            "lineNumber": 186
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 187
+          },
+          {
+            "text": "      setDescription('');",
+            "lineNumber": 188
+          },
+          {
+            "text": "    }",
+            "lineNumber": 189
+          },
+          {
+            "text": "  };",
+            "lineNumber": 190
+          },
+          {
+            "lineNumber": 191
+          },
+          {
+            "text": "  if (!isOpen) return null;",
+            "lineNumber": 192
+          },
+          {
+            "lineNumber": 193
+          },
+          {
+            "text": "  const handleSubmit = async (e: React.FormEvent) =&gt; {",
+            "lineNumber": 194
+          },
+          {
+            "text": "    e.preventDefault();",
+            "lineNumber": 195
+          },
+          {
+            "lineNumber": 196
+          },
+          {
+            "text": "    if (!title.trim())",
+            "lineNumber": 197
+          },
+          {
+            "text": ";",
+            "lineNumber": 247
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.3431060314178467
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n(techPoint) =&gt; {\n\n                          &lt;/div&gt;\n                          {selectedTechPointId === techPoint.id &amp;&amp; (\n                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;\n                              &lt;div className=\"w-2 h-2 bg-blue-500 rounded-full\"&gt;&lt;/div&gt;\n                            &lt;/div&gt;\n                          )}\n                        &lt;/div&gt;\n                      );\n                    })}\n                    &lt;/div&gt;\n                  &lt;/&gt;\n                )}\n              &lt;/div&gt;\n            )}\n            \n            {description &amp;&amp; descriptionSource !== 'manual' &amp;&amp; (\n              &lt;div className=\"mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200\"&gt;\n                &lt;p className=\"text-xs text-gray-600 font-medium mb-1\"&gt;已选内容预览：&lt;/p&gt;\n                &lt;p className=\"text-sm text-gray-700 whitespace-pre-wrap line-clamp-3\"&gt;\n                  {description}\n                &lt;/p&gt;\n              &lt;/div&gt;\n            )}\n          &lt;/div&gt;\n\n          {/* 选择专家 */}\n          &lt;div&gt;\n            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;\n              选择参与专家 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;\n            &lt;/label&gt;\n            &lt;ExpertSelector\n              selectedRoleIds={selectedRoleIds}\n              onChange={setSelectedRoleIds}\n            /&gt;\n          &lt;/div&gt;\n\n          {/* 讨论模式配置 */}\n          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;\n            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;讨论模式&lt;/h3&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            },
+            {
+              "startPosition": {
+                "line": 450,
+                "column": 22
+              },
+              "endPosition": {
+                "line": 450,
+                "column": 22
+              }
+            },
+            {
+              "startPosition": {
+                "line": 450,
+                "column": 37
+              },
+              "endPosition": {
+                "line": 451,
+                "column": 23
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": "(techPoint) =&gt; {",
+            "lineNumber": 450
+          },
+          {
+            "lineNumber": 485
+          },
+          {
+            "text": "                          &lt;/div&gt;",
+            "lineNumber": 486
+          },
+          {
+            "text": "                          {selectedTechPointId === techPoint.id &amp;&amp; (",
+            "lineNumber": 487
+          },
+          {
+            "text": "                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;",
+            "lineNumber": 488
+          },
+          {
+            "text": "                              &lt;div className=\"w-2 h-2 bg-blue-500 rounded-full\"&gt;&lt;/div&gt;",
+            "lineNumber": 489
+          },
+          {
+            "text": "                            &lt;/div&gt;",
+            "lineNumber": 490
+          },
+          {
+            "text": "                          )}",
+            "lineNumber": 491
+          },
+          {
+            "text": "                        &lt;/div&gt;",
+            "lineNumber": 492
+          },
+          {
+            "text": "                      );",
+            "lineNumber": 493
+          },
+          {
+            "text": "                    })}",
+            "lineNumber": 494
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 495
+          },
+          {
+            "text": "                  &lt;/&gt;",
+            "lineNumber": 496
+          },
+          {
+            "text": "                )}",
+            "lineNumber": 497
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 498
+          },
+          {
+            "text": "            )}",
+            "lineNumber": 499
+          },
+          {
+            "text": "            ",
+            "lineNumber": 500
+          },
+          {
+            "text": "            {description &amp;&amp; descriptionSource !== 'manual' &amp;&amp; (",
+            "lineNumber": 501
+          },
+          {
+            "text": "              &lt;div className=\"mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200\"&gt;",
+            "lineNumber": 502
+          },
+          {
+            "text": "                &lt;p className=\"text-xs text-gray-600 font-medium mb-1\"&gt;已选内容预览：&lt;/p&gt;",
+            "lineNumber": 503
+          },
+          {
+            "text": "                &lt;p className=\"text-sm text-gray-700 whitespace-pre-wrap line-clamp-3\"&gt;",
+            "lineNumber": 504
+          },
+          {
+            "text": "                  {description}",
+            "lineNumber": 505
+          },
+          {
+            "text": "                &lt;/p&gt;",
+            "lineNumber": 506
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 507
+          },
+          {
+            "text": "            )}",
+            "lineNumber": 508
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 509
+          },
+          {
+            "lineNumber": 510
+          },
+          {
+            "text": "          {/* 选择专家 */}",
+            "lineNumber": 511
+          },
+          {
+            "text": "          &lt;div&gt;",
+            "lineNumber": 512
+          },
+          {
+            "text": "            &lt;label className=\"block text-sm font-medium text-gray-700 mb-2\"&gt;",
+            "lineNumber": 513
+          },
+          {
+            "text": "              选择参与专家 &lt;span className=\"text-red-500\"&gt;*&lt;/span&gt;",
+            "lineNumber": 514
+          },
+          {
+            "text": "            &lt;/label&gt;",
+            "lineNumber": 515
+          },
+          {
+            "text": "            &lt;ExpertSelector",
+            "lineNumber": 516
+          },
+          {
+            "text": "              selectedRoleIds={selectedRoleIds}",
+            "lineNumber": 517
+          },
+          {
+            "text": "              onChange={setSelectedRoleIds}",
+            "lineNumber": 518
+          },
+          {
+            "text": "            /&gt;",
+            "lineNumber": 519
+          },
+          {
+            "text": "          &lt;/div&gt;",
+            "lineNumber": 520
+          },
+          {
+            "lineNumber": 521
+          },
+          {
+            "text": "          {/* 讨论模式配置 */}",
+            "lineNumber": 522
+          },
+          {
+            "text": "          &lt;div className=\"border-t border-gray-200 pt-4\"&gt;",
+            "lineNumber": 523
+          },
+          {
+            "text": "            &lt;h3 className=\"text-sm font-medium text-gray-900 mb-4\"&gt;讨论模式&lt;/h3&gt;",
+            "lineNumber": 524
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.33623290061950684
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n (\n              &lt;textarea\n                value={description}\n                onChange={(e) =&gt; setDescription(e.target.value)}\n                placeholder=\"详细描述讨论的背景、目标等信息...\"\n                rows={3}\n                className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"\n              /&gt;\n            ) : descriptionSource === 'conversation' ? (\n              &lt;div className=\"border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col\"&gt;\n                {loadingConversations ? (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    &lt;Loader2 className=\"w-4 h-4 animate-spin inline mr-2\" /&gt;\n                    加载对话记录中...\n                  &lt;/div&gt;\n                ) : conversations.length === 0 ? (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    暂无对话记录\n                  &lt;/div&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": " (",
+            "lineNumber": 330
+          },
+          {
+            "text": "              &lt;textarea",
+            "lineNumber": 331
+          },
+          {
+            "text": "                value={description}",
+            "lineNumber": 332
+          },
+          {
+            "text": "                onChange={(e) =&gt; setDescription(e.target.value)}",
+            "lineNumber": 333
+          },
+          {
+            "text": "                placeholder=\"详细描述讨论的背景、目标等信息...\"",
+            "lineNumber": 334
+          },
+          {
+            "text": "                rows={3}",
+            "lineNumber": 335
+          },
+          {
+            "text": "                className=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"",
+            "lineNumber": 336
+          },
+          {
+            "text": "              /&gt;",
+            "lineNumber": 337
+          },
+          {
+            "text": "            ) : descriptionSource === 'conversation' ? (",
+            "lineNumber": 338
+          },
+          {
+            "text": "              &lt;div className=\"border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col\"&gt;",
+            "lineNumber": 339
+          },
+          {
+            "text": "                {loadingConversations ? (",
+            "lineNumber": 340
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 341
+          },
+          {
+            "text": "                    &lt;Loader2 className=\"w-4 h-4 animate-spin inline mr-2\" /&gt;",
+            "lineNumber": 342
+          },
+          {
+            "text": "                    加载对话记录中...",
+            "lineNumber": 343
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 344
+          },
+          {
+            "text": "                ) : conversations.length === 0 ? (",
+            "lineNumber": 345
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 346
+          },
+          {
+            "text": "                    暂无对话记录",
+            "lineNumber": 347
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 348
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.3187974691390991
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n                  &lt;/&gt;\n                )}\n              &lt;/div&gt;\n            ) : (\n              &lt;div className=\"border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col\"&gt;\n                {loadingTechPoints ? (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    &lt;Loader2 className=\"w-4 h-4 animate-spin inline mr-2\" /&gt;\n                    加载技术点中...\n                  &lt;/div&gt;\n                ) : !projectId ? (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    请在项目中创建头脑风暴会话才能选择技术点\n                  &lt;/div&gt;\n                ) : techPoints.length === 0 ? (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    该项目暂无技术点\n                  &lt;/div&gt;\n                ) : (\n                  &lt;&gt;\n                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 417
+          },
+          {
+            "text": "                  &lt;/&gt;",
+            "lineNumber": 418
+          },
+          {
+            "text": "                )}",
+            "lineNumber": 419
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 420
+          },
+          {
+            "text": "            ) : (",
+            "lineNumber": 421
+          },
+          {
+            "text": "              &lt;div className=\"border border-gray-300 rounded-lg max-h-48 overflow-hidden flex flex-col\"&gt;",
+            "lineNumber": 422
+          },
+          {
+            "text": "                {loadingTechPoints ? (",
+            "lineNumber": 423
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 424
+          },
+          {
+            "text": "                    &lt;Loader2 className=\"w-4 h-4 animate-spin inline mr-2\" /&gt;",
+            "lineNumber": 425
+          },
+          {
+            "text": "                    加载技术点中...",
+            "lineNumber": 426
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 427
+          },
+          {
+            "text": "                ) : !projectId ? (",
+            "lineNumber": 428
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 429
+          },
+          {
+            "text": "                    请在项目中创建头脑风暴会话才能选择技术点",
+            "lineNumber": 430
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 431
+          },
+          {
+            "text": "                ) : techPoints.length === 0 ? (",
+            "lineNumber": 432
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 433
+          },
+          {
+            "text": "                    该项目暂无技术点",
+            "lineNumber": 434
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 435
+          },
+          {
+            "text": "                ) : (",
+            "lineNumber": 436
+          },
+          {
+            "text": "                  &lt;&gt;",
+            "lineNumber": 437
+          },
+          {
+            "text": "                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;",
+            "lineNumber": 438
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.3107886016368866
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n                ) : (\n                  &lt;&gt;\n                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;\n                      &lt;div className=\"flex items-center gap-2\"&gt;\n                        &lt;Lightbulb className=\"w-4 h-4 text-yellow-600\" /&gt;\n                        &lt;span className=\"text-xs font-semibold text-gray-900\"&gt;\n                          项目技术点\n                          &lt;span className=\"text-gray-500 font-normal ml-1\"&gt;\n                            ({techPoints.length})\n                          &lt;/span&gt;\n                        &lt;/span&gt;\n                      &lt;/div&gt;\n                    &lt;/div&gt;\n                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;\n                    {techPoints.map((techPoint) =&gt; {\n                      const techTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {\n                        'feature': { label: '功能', color: 'bg-blue-100 text-blue-700' },\n                        'platform': { label: '平台', color: 'bg-purple-100 text-purple-700' },\n                        'system': { label: '系统', color: 'bg-green-100 text-green-700' },\n                      };\n                      const techTypeInfo = techTypeLabels[techPoint.tech_type] || { label: '技术', color: 'bg-gray-100 text-gray-700' };\n                      \n                      \n                    }\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 435
+          },
+          {
+            "text": "                ) : (",
+            "lineNumber": 436
+          },
+          {
+            "text": "                  &lt;&gt;",
+            "lineNumber": 437
+          },
+          {
+            "text": "                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;",
+            "lineNumber": 438
+          },
+          {
+            "text": "                      &lt;div className=\"flex items-center gap-2\"&gt;",
+            "lineNumber": 439
+          },
+          {
+            "text": "                        &lt;Lightbulb className=\"w-4 h-4 text-yellow-600\" /&gt;",
+            "lineNumber": 440
+          },
+          {
+            "text": "                        &lt;span className=\"text-xs font-semibold text-gray-900\"&gt;",
+            "lineNumber": 441
+          },
+          {
+            "text": "                          项目技术点",
+            "lineNumber": 442
+          },
+          {
+            "text": "                          &lt;span className=\"text-gray-500 font-normal ml-1\"&gt;",
+            "lineNumber": 443
+          },
+          {
+            "text": "                            ({techPoints.length})",
+            "lineNumber": 444
+          },
+          {
+            "text": "                          &lt;/span&gt;",
+            "lineNumber": 445
+          },
+          {
+            "text": "                        &lt;/span&gt;",
+            "lineNumber": 446
+          },
+          {
+            "text": "                      &lt;/div&gt;",
+            "lineNumber": 447
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 448
+          },
+          {
+            "text": "                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;",
+            "lineNumber": 449
+          },
+          {
+            "text": "                    {techPoints.map((techPoint) =&gt; {",
+            "lineNumber": 450
+          },
+          {
+            "text": "                      const techTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {",
+            "lineNumber": 451
+          },
+          {
+            "text": "                        'feature': { label: '功能', color: 'bg-blue-100 text-blue-700' },",
+            "lineNumber": 452
+          },
+          {
+            "text": "                        'platform': { label: '平台', color: 'bg-purple-100 text-purple-700' },",
+            "lineNumber": 453
+          },
+          {
+            "text": "                        'system': { label: '系统', color: 'bg-green-100 text-green-700' },",
+            "lineNumber": 454
+          },
+          {
+            "text": "                      };",
+            "lineNumber": 455
+          },
+          {
+            "text": "                      const techTypeInfo = techTypeLabels[techPoint.tech_type] || { label: '技术', color: 'bg-gray-100 text-gray-700' };",
+            "lineNumber": 456
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 457
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 458
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 494
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.2848607301712036
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n(techPoint) =&gt; {\n\n                      \n                      return (\n                        &lt;div\n                          key={techPoint.id}\n                          onClick={() =&gt; handleTechPointSelect(techPoint.id)}\n                          className={&#96;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${\n                            selectedTechPointId === techPoint.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'\n                          }&#96;}\n                        &gt;\n                          &lt;Lightbulb className=\"w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5\" /&gt;\n                          &lt;div className=\"flex-1 min-w-0\"&gt;\n                            &lt;p className=\"text-sm text-gray-900 line-clamp-1 font-medium\"&gt;\n                              {techPoint.name}\n                            &lt;/p&gt;\n                            &lt;div className=\"flex items-center gap-2 mt-1\"&gt;\n                              &lt;span className={&#96;inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${techTypeInfo.color}&#96;}&gt;\n                                {techTypeInfo.label}\n                              &lt;/span&gt;\n                              {techPoint.category &amp;&amp; (\n                                &lt;span className=\"text-xs text-gray-500\"&gt;\n                                  {techPoint.category.name}\n                                &lt;/span&gt;\n                              )}\n                            &lt;/div&gt;\n                            {techPoint.description &amp;&amp; (\n                              &lt;p className=\"text-xs text-gray-500 mt-1 line-clamp-2\"&gt;\n                                {techPoint.description}\n                              &lt;/p&gt;\n                            )}\n                          &lt;/div&gt;\n                          {selectedTechPointId === techPoint.id &amp;&amp; (\n                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;\n                    }\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            },
+            {
+              "startPosition": {
+                "line": 450,
+                "column": 22
+              },
+              "endPosition": {
+                "line": 450,
+                "column": 22
+              }
+            },
+            {
+              "startPosition": {
+                "line": 450,
+                "column": 37
+              },
+              "endPosition": {
+                "line": 451,
+                "column": 23
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": "(techPoint) =&gt; {",
+            "lineNumber": 450
+          },
+          {
+            "lineNumber": 456
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 457
+          },
+          {
+            "text": "                      return (",
+            "lineNumber": 458
+          },
+          {
+            "text": "                        &lt;div",
+            "lineNumber": 459
+          },
+          {
+            "text": "                          key={techPoint.id}",
+            "lineNumber": 460
+          },
+          {
+            "text": "                          onClick={() =&gt; handleTechPointSelect(techPoint.id)}",
+            "lineNumber": 461
+          },
+          {
+            "text": "                          className={&#96;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${",
+            "lineNumber": 462
+          },
+          {
+            "text": "                            selectedTechPointId === techPoint.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'",
+            "lineNumber": 463
+          },
+          {
+            "text": "                          }&#96;}",
+            "lineNumber": 464
+          },
+          {
+            "text": "                        &gt;",
+            "lineNumber": 465
+          },
+          {
+            "text": "                          &lt;Lightbulb className=\"w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5\" /&gt;",
+            "lineNumber": 466
+          },
+          {
+            "text": "                          &lt;div className=\"flex-1 min-w-0\"&gt;",
+            "lineNumber": 467
+          },
+          {
+            "text": "                            &lt;p className=\"text-sm text-gray-900 line-clamp-1 font-medium\"&gt;",
+            "lineNumber": 468
+          },
+          {
+            "text": "                              {techPoint.name}",
+            "lineNumber": 469
+          },
+          {
+            "text": "                            &lt;/p&gt;",
+            "lineNumber": 470
+          },
+          {
+            "text": "                            &lt;div className=\"flex items-center gap-2 mt-1\"&gt;",
+            "lineNumber": 471
+          },
+          {
+            "text": "                              &lt;span className={&#96;inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${techTypeInfo.color}&#96;}&gt;",
+            "lineNumber": 472
+          },
+          {
+            "text": "                                {techTypeInfo.label}",
+            "lineNumber": 473
+          },
+          {
+            "text": "                              &lt;/span&gt;",
+            "lineNumber": 474
+          },
+          {
+            "text": "                              {techPoint.category &amp;&amp; (",
+            "lineNumber": 475
+          },
+          {
+            "text": "                                &lt;span className=\"text-xs text-gray-500\"&gt;",
+            "lineNumber": 476
+          },
+          {
+            "text": "                                  {techPoint.category.name}",
+            "lineNumber": 477
+          },
+          {
+            "text": "                                &lt;/span&gt;",
+            "lineNumber": 478
+          },
+          {
+            "text": "                              )}",
+            "lineNumber": 479
+          },
+          {
+            "text": "                            &lt;/div&gt;",
+            "lineNumber": 480
+          },
+          {
+            "text": "                            {techPoint.description &amp;&amp; (",
+            "lineNumber": 481
+          },
+          {
+            "text": "                              &lt;p className=\"text-xs text-gray-500 mt-1 line-clamp-2\"&gt;",
+            "lineNumber": 482
+          },
+          {
+            "text": "                                {techPoint.description}",
+            "lineNumber": 483
+          },
+          {
+            "text": "                              &lt;/p&gt;",
+            "lineNumber": 484
+          },
+          {
+            "text": "                            )}",
+            "lineNumber": 485
+          },
+          {
+            "text": "                          &lt;/div&gt;",
+            "lineNumber": 486
+          },
+          {
+            "text": "                          {selectedTechPointId === techPoint.id &amp;&amp; (",
+            "lineNumber": 487
+          },
+          {
+            "text": "                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;",
+            "lineNumber": 488
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 494
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.26521265506744385
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n(conv) =&gt; {\n\n                      \n                      return (\n                        &lt;div\n                          key={conv.id}\n                          onClick={() =&gt; handleConversationSelect(conv.id)}\n                          className={&#96;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${\n                            selectedConversationId === conv.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'\n                          }&#96;}\n                        &gt;\n                          &lt;MessageSquare className=\"w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5\" /&gt;\n                          &lt;div className=\"flex-1 min-w-0\"&gt;\n                            &lt;p className=\"text-sm text-gray-900 truncate font-medium\"&gt;\n                              {conv.title || '未命名对话'}\n                            &lt;/p&gt;\n                            &lt;div className=\"flex items-center gap-2 mt-1 flex-wrap\"&gt;\n                              &lt;span className={&#96;inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${pageTypeInfo.color}&#96;}&gt;\n                                {pageTypeInfo.label}\n                              &lt;/span&gt;\n                              &lt;span className=\"text-xs text-gray-500\"&gt;\n                                {conv.messages?.length || 0} 条消息\n                              &lt;/span&gt;\n                              &lt;span className=\"text-xs text-gray-400\"&gt;\n                                {formatDate(conv.updatedAt)}\n                              &lt;/span&gt;\n                            &lt;/div&gt;\n                          &lt;/div&gt;\n                          {selectedConversationId === conv.id &amp;&amp; (\n                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;\n                              &lt;div className=\"w-2 h-2 bg-blue-500 rounded-full\"&gt;&lt;/div&gt;\n                            &lt;/div&gt;\n                          )}\n                        &lt;/div&gt;\n                      );\n                    })}\n                    &lt;/div&gt;\n                  &lt;/&gt;\n                )}\n              &lt;/div&gt;\n            ) :\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            },
+            {
+              "startPosition": {
+                "line": 363,
+                "column": 22
+              },
+              "endPosition": {
+                "line": 363,
+                "column": 22
+              }
+            },
+            {
+              "startPosition": {
+                "line": 363,
+                "column": 40
+              },
+              "endPosition": {
+                "line": 364,
+                "column": 23
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": "(conv) =&gt; {",
+            "lineNumber": 363
+          },
+          {
+            "lineNumber": 382
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 383
+          },
+          {
+            "text": "                      return (",
+            "lineNumber": 384
+          },
+          {
+            "text": "                        &lt;div",
+            "lineNumber": 385
+          },
+          {
+            "text": "                          key={conv.id}",
+            "lineNumber": 386
+          },
+          {
+            "text": "                          onClick={() =&gt; handleConversationSelect(conv.id)}",
+            "lineNumber": 387
+          },
+          {
+            "text": "                          className={&#96;flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${",
+            "lineNumber": 388
+          },
+          {
+            "text": "                            selectedConversationId === conv.id ? 'bg-blue-50 border-2 border-blue-500' : 'border-2 border-transparent'",
+            "lineNumber": 389
+          },
+          {
+            "text": "                          }&#96;}",
+            "lineNumber": 390
+          },
+          {
+            "text": "                        &gt;",
+            "lineNumber": 391
+          },
+          {
+            "text": "                          &lt;MessageSquare className=\"w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5\" /&gt;",
+            "lineNumber": 392
+          },
+          {
+            "text": "                          &lt;div className=\"flex-1 min-w-0\"&gt;",
+            "lineNumber": 393
+          },
+          {
+            "text": "                            &lt;p className=\"text-sm text-gray-900 truncate font-medium\"&gt;",
+            "lineNumber": 394
+          },
+          {
+            "text": "                              {conv.title || '未命名对话'}",
+            "lineNumber": 395
+          },
+          {
+            "text": "                            &lt;/p&gt;",
+            "lineNumber": 396
+          },
+          {
+            "text": "                            &lt;div className=\"flex items-center gap-2 mt-1 flex-wrap\"&gt;",
+            "lineNumber": 397
+          },
+          {
+            "text": "                              &lt;span className={&#96;inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${pageTypeInfo.color}&#96;}&gt;",
+            "lineNumber": 398
+          },
+          {
+            "text": "                                {pageTypeInfo.label}",
+            "lineNumber": 399
+          },
+          {
+            "text": "                              &lt;/span&gt;",
+            "lineNumber": 400
+          },
+          {
+            "text": "                              &lt;span className=\"text-xs text-gray-500\"&gt;",
+            "lineNumber": 401
+          },
+          {
+            "text": "                                {conv.messages?.length || 0} 条消息",
+            "lineNumber": 402
+          },
+          {
+            "text": "                              &lt;/span&gt;",
+            "lineNumber": 403
+          },
+          {
+            "text": "                              &lt;span className=\"text-xs text-gray-400\"&gt;",
+            "lineNumber": 404
+          },
+          {
+            "text": "                                {formatDate(conv.updatedAt)}",
+            "lineNumber": 405
+          },
+          {
+            "text": "                              &lt;/span&gt;",
+            "lineNumber": 406
+          },
+          {
+            "text": "                            &lt;/div&gt;",
+            "lineNumber": 407
+          },
+          {
+            "text": "                          &lt;/div&gt;",
+            "lineNumber": 408
+          },
+          {
+            "text": "                          {selectedConversationId === conv.id &amp;&amp; (",
+            "lineNumber": 409
+          },
+          {
+            "text": "                            &lt;div className=\"flex-shrink-0 mt-1\"&gt;",
+            "lineNumber": 410
+          },
+          {
+            "text": "                              &lt;div className=\"w-2 h-2 bg-blue-500 rounded-full\"&gt;&lt;/div&gt;",
+            "lineNumber": 411
+          },
+          {
+            "text": "                            &lt;/div&gt;",
+            "lineNumber": 412
+          },
+          {
+            "text": "                          )}",
+            "lineNumber": 413
+          },
+          {
+            "text": "                        &lt;/div&gt;",
+            "lineNumber": 414
+          },
+          {
+            "text": "                      );",
+            "lineNumber": 415
+          },
+          {
+            "text": "                    })}",
+            "lineNumber": 416
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 417
+          },
+          {
+            "text": "                  &lt;/&gt;",
+            "lineNumber": 418
+          },
+          {
+            "text": "                )}",
+            "lineNumber": 419
+          },
+          {
+            "text": "              &lt;/div&gt;",
+            "lineNumber": 420
+          },
+          {
+            "text": "            ) :",
+            "lineNumber": 421
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.26101160049438477
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n\n                    &lt;/div&gt;\n                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;\n                    {conversations.map((conv) =&gt; {\n                      const pageTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {\n                        'tech-package': { label: '技术包装', color: 'bg-orange-100 text-orange-700' },\n                        'tech-strategy': { label: '技术策略', color: 'bg-green-100 text-green-700' },\n                        'tech-article': { label: '技术通稿', color: 'bg-indigo-100 text-indigo-700' },\n                        'press-release': { label: '新闻稿', color: 'bg-pink-100 text-pink-700' },\n                      };\n                      const pageTypeInfo = pageTypeLabels[conv.pageType || ''] || { label: '对话', color: 'bg-gray-100 text-gray-700' };\n                      \n                      // 格式化日期为更简洁的格式\n                      const formatDate = (date: Date) =&gt; {\n                        const now = new Date();\n                        const diff = now.getTime() - new Date(date).getTime();\n                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));\n                        \n                        if (days === 0) return '今天';\n                        if (days === 1) return '昨天';\n                        if (days &lt; 7) return &#96;${days}天前&#96;;\n                        return new Date(date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });\n                      };\n                      \n                      \n                    }\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "lineNumber": 360
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 361
+          },
+          {
+            "text": "                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;",
+            "lineNumber": 362
+          },
+          {
+            "text": "                    {conversations.map((conv) =&gt; {",
+            "lineNumber": 363
+          },
+          {
+            "text": "                      const pageTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {",
+            "lineNumber": 364
+          },
+          {
+            "text": "                        'tech-package': { label: '技术包装', color: 'bg-orange-100 text-orange-700' },",
+            "lineNumber": 365
+          },
+          {
+            "text": "                        'tech-strategy': { label: '技术策略', color: 'bg-green-100 text-green-700' },",
+            "lineNumber": 366
+          },
+          {
+            "text": "                        'tech-article': { label: '技术通稿', color: 'bg-indigo-100 text-indigo-700' },",
+            "lineNumber": 367
+          },
+          {
+            "text": "                        'press-release': { label: '新闻稿', color: 'bg-pink-100 text-pink-700' },",
+            "lineNumber": 368
+          },
+          {
+            "text": "                      };",
+            "lineNumber": 369
+          },
+          {
+            "text": "                      const pageTypeInfo = pageTypeLabels[conv.pageType || ''] || { label: '对话', color: 'bg-gray-100 text-gray-700' };",
+            "lineNumber": 370
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 371
+          },
+          {
+            "text": "                      // 格式化日期为更简洁的格式",
+            "lineNumber": 372
+          },
+          {
+            "text": "                      const formatDate = (date: Date) =&gt; {",
+            "lineNumber": 373
+          },
+          {
+            "text": "                        const now = new Date();",
+            "lineNumber": 374
+          },
+          {
+            "text": "                        const diff = now.getTime() - new Date(date).getTime();",
+            "lineNumber": 375
+          },
+          {
+            "text": "                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));",
+            "lineNumber": 376
+          },
+          {
+            "text": "                        ",
+            "lineNumber": 377
+          },
+          {
+            "text": "                        if (days === 0) return '今天';",
+            "lineNumber": 378
+          },
+          {
+            "text": "                        if (days === 1) return '昨天';",
+            "lineNumber": 379
+          },
+          {
+            "text": "                        if (days &lt; 7) return &#96;${days}天前&#96;;",
+            "lineNumber": 380
+          },
+          {
+            "text": "                        return new Date(date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });",
+            "lineNumber": 381
+          },
+          {
+            "text": "                      };",
+            "lineNumber": 382
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 383
+          },
+          {
+            "text": "                      ",
+            "lineNumber": 384
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 416
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.23938420414924622
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSetupModal.tsx",
+        "range": {
+          "startPosition": {
+            "line": 19
+          },
+          "endPosition": {
+            "line": 662,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = \n (\n                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;\n                    暂无对话记录\n                  &lt;/div&gt;\n                ) : (\n                  &lt;&gt;\n                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;\n                      &lt;div className=\"flex items-center gap-2\"&gt;\n                        &lt;MessageSquare className=\"w-4 h-4 text-purple-600\" /&gt;\n                        &lt;span className=\"text-xs font-semibold text-gray-900\"&gt;\n                          对话记录\n                          &lt;span className=\"text-gray-500 font-normal ml-1\"&gt;\n                            ({conversations.length})\n                          &lt;/span&gt;\n                        &lt;/span&gt;\n                      &lt;/div&gt;\n                    &lt;/div&gt;\n                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;\n                    {conversations.map((conv) =&gt; {\n                      const pageTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {\n                        \n,\n                      };\n                    }\n;",
+        "signatures": {
+          "ranges": [
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 1
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 8
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 8
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 14
+              }
+            },
+            {
+              "startPosition": {
+                "line": 20,
+                "column": 14
+              },
+              "endPosition": {
+                "line": 20,
+                "column": 74
+              }
+            }
+          ]
+        },
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSetupModal: React.FC&lt;BrainstormSetupModalProps&gt; = ",
+            "lineNumber": 20
+          },
+          {
+            "text": " (",
+            "lineNumber": 345
+          },
+          {
+            "text": "                  &lt;div className=\"p-4 text-center text-sm text-gray-500\"&gt;",
+            "lineNumber": 346
+          },
+          {
+            "text": "                    暂无对话记录",
+            "lineNumber": 347
+          },
+          {
+            "text": "                  &lt;/div&gt;",
+            "lineNumber": 348
+          },
+          {
+            "text": "                ) : (",
+            "lineNumber": 349
+          },
+          {
+            "text": "                  &lt;&gt;",
+            "lineNumber": 350
+          },
+          {
+            "text": "                    &lt;div className=\"bg-gray-50 px-3 py-2 border-b border-gray-200\"&gt;",
+            "lineNumber": 351
+          },
+          {
+            "text": "                      &lt;div className=\"flex items-center gap-2\"&gt;",
+            "lineNumber": 352
+          },
+          {
+            "text": "                        &lt;MessageSquare className=\"w-4 h-4 text-purple-600\" /&gt;",
+            "lineNumber": 353
+          },
+          {
+            "text": "                        &lt;span className=\"text-xs font-semibold text-gray-900\"&gt;",
+            "lineNumber": 354
+          },
+          {
+            "text": "                          对话记录",
+            "lineNumber": 355
+          },
+          {
+            "text": "                          &lt;span className=\"text-gray-500 font-normal ml-1\"&gt;",
+            "lineNumber": 356
+          },
+          {
+            "text": "                            ({conversations.length})",
+            "lineNumber": 357
+          },
+          {
+            "text": "                          &lt;/span&gt;",
+            "lineNumber": 358
+          },
+          {
+            "text": "                        &lt;/span&gt;",
+            "lineNumber": 359
+          },
+          {
+            "text": "                      &lt;/div&gt;",
+            "lineNumber": 360
+          },
+          {
+            "text": "                    &lt;/div&gt;",
+            "lineNumber": 361
+          },
+          {
+            "text": "                    &lt;div className=\"flex-1 overflow-y-auto p-2 space-y-1\"&gt;",
+            "lineNumber": 362
+          },
+          {
+            "text": "                    {conversations.map((conv) =&gt; {",
+            "lineNumber": 363
+          },
+          {
+            "text": "                      const pageTypeLabels: Record&lt;string, { label: string; color: string }&gt; = {",
+            "lineNumber": 364
+          },
+          {
+            "text": "                        ",
+            "lineNumber": 365
+          },
+          {
+            "text": ",",
+            "lineNumber": 368
+          },
+          {
+            "text": "                      };",
+            "lineNumber": 369
+          },
+          {
+            "text": "                    }",
+            "lineNumber": 416
+          },
+          {
+            "text": ";",
+            "lineNumber": 663
+          }
+        ]
+      },
+      "score": 0.23171210289001465
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/ExpertSelector.tsx",
+        "range": {
+          "startPosition": {
+            "line": 9,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 143,
+            "column": 1
+          }
+        },
+        "contents": "export const ExpertSelector: React.FC&lt;ExpertSelectorProps&gt; = ({\n  selectedRoleIds,\n  onChange,\n  disabled = false,\n}) =&gt; {\n  const [roles, setRoles] = useState&lt;AIRoleConfig[]&gt;([]);\n  const [loading, setLoading] = useState(true);\n  const [searchTerm, setSearchTerm] = useState('');\n\n  useEffect(() =&gt; {\n    loadRoles();\n  }, []);\n\n  const loadRoles = async () =&gt; {\n    try {\n      setLoading(true);\n      const roles = await aiRoleService.getAIRoles();\n      // 只显示已启用的角色\n      const enabledRoles = roles.filter(role =&gt; role.enabled);\n      setRoles(enabledRoles);\n    } catch (error) {\n      console.error('加载AI角色失败:', error);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const filteredRoles = roles.filter(role =&gt;\n    role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||\n    role.description?.toLowerCase().includes(searchTerm.toLowerCase())\n  );\n\n  const toggleRole = (roleId: string) =&gt; {\n    if (disabled) return;\n    \n    if (selectedRoleIds.includes(roleId)) {\n      onChange(selectedRoleIds.filter(id =&gt; id !== roleId));\n    } else {\n      onChange([...selectedRoleIds, roleId]);\n    }\n  };\n\n  if (loading) {\n    return (\n      &lt;div className=\"flex items-center justify-center p-8\"&gt;\n        &lt;div className=\"animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900\"&gt;&lt;/div&gt;\n      &lt;/div&gt;\n    );\n  }\n\n  return (\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export const ExpertSelector: React.FC&lt;ExpertSelectorProps&gt; = ({",
+            "lineNumber": 12
+          },
+          {
+            "text": "  selectedRoleIds,",
+            "lineNumber": 13
+          },
+          {
+            "text": "  onChange,",
+            "lineNumber": 14
+          },
+          {
+            "text": "  disabled = false,",
+            "lineNumber": 15
+          },
+          {
+            "text": "}) =&gt; {",
+            "lineNumber": 16
+          },
+          {
+            "text": "  const [roles, setRoles] = useState&lt;AIRoleConfig[]&gt;([]);",
+            "lineNumber": 17
+          },
+          {
+            "text": "  const [loading, setLoading] = useState(true);",
+            "lineNumber": 18
+          },
+          {
+            "text": "  const [searchTerm, setSearchTerm] = useState('');",
+            "lineNumber": 19
+          },
+          {
+            "lineNumber": 20
+          },
+          {
+            "text": "  useEffect(() =&gt; {",
+            "lineNumber": 21
+          },
+          {
+            "text": "    loadRoles();",
+            "lineNumber": 22
+          },
+          {
+            "text": "  }, []);",
+            "lineNumber": 23
+          },
+          {
+            "lineNumber": 24
+          },
+          {
+            "text": "  const loadRoles = async () =&gt; {",
+            "lineNumber": 25
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 26
+          },
+          {
+            "text": "      setLoading(true);",
+            "lineNumber": 27
+          },
+          {
+            "text": "      const roles = await aiRoleService.getAIRoles();",
+            "lineNumber": 28
+          },
+          {
+            "text": "      // 只显示已启用的角色",
+            "lineNumber": 29
+          },
+          {
+            "text": "      const enabledRoles = roles.filter(role =&gt; role.enabled);",
+            "lineNumber": 30
+          },
+          {
+            "text": "      setRoles(enabledRoles);",
+            "lineNumber": 31
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 32
+          },
+          {
+            "text": "      console.error('加载AI角色失败:', error);",
+            "lineNumber": 33
+          },
+          {
+            "text": "    } finally {",
+            "lineNumber": 34
+          },
+          {
+            "text": "      setLoading(false);",
+            "lineNumber": 35
+          },
+          {
+            "text": "    }",
+            "lineNumber": 36
+          },
+          {
+            "text": "  };",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "  const filteredRoles = roles.filter(role =&gt;",
+            "lineNumber": 39
+          },
+          {
+            "text": "    role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||",
+            "lineNumber": 40
+          },
+          {
+            "text": "    role.description?.toLowerCase().includes(searchTerm.toLowerCase())",
+            "lineNumber": 41
+          },
+          {
+            "text": "  );",
+            "lineNumber": 42
+          },
+          {
+            "lineNumber": 43
+          },
+          {
+            "text": "  const toggleRole = (roleId: string) =&gt; {",
+            "lineNumber": 44
+          },
+          {
+            "text": "    if (disabled) return;",
+            "lineNumber": 45
+          },
+          {
+            "text": "    ",
+            "lineNumber": 46
+          },
+          {
+            "text": "    if (selectedRoleIds.includes(roleId)) {",
+            "lineNumber": 47
+          },
+          {
+            "text": "      onChange(selectedRoleIds.filter(id =&gt; id !== roleId));",
+            "lineNumber": 48
+          },
+          {
+            "text": "    } else {",
+            "lineNumber": 49
+          },
+          {
+            "text": "      onChange([...selectedRoleIds, roleId]);",
+            "lineNumber": 50
+          },
+          {
+            "text": "    }",
+            "lineNumber": 51
+          },
+          {
+            "text": "  };",
+            "lineNumber": 52
+          },
+          {
+            "lineNumber": 53
+          },
+          {
+            "text": "  if (loading) {",
+            "lineNumber": 54
+          },
+          {
+            "text": "    return (",
+            "lineNumber": 55
+          },
+          {
+            "text": "      &lt;div className=\"flex items-center justify-center p-8\"&gt;",
+            "lineNumber": 56
+          },
+          {
+            "text": "        &lt;div className=\"animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900\"&gt;&lt;/div&gt;",
+            "lineNumber": 57
+          },
+          {
+            "text": "      &lt;/div&gt;",
+            "lineNumber": 58
+          },
+          {
+            "text": "    );",
+            "lineNumber": 59
+          },
+          {
+            "text": "  }",
+            "lineNumber": 60
+          },
+          {
+            "lineNumber": 61
+          },
+          {
+            "text": "  return (",
+            "lineNumber": 62
+          },
+          {
+            "text": ";",
+            "lineNumber": 144
+          }
+        ]
+      },
+      "score": 0.21589696407318115
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSummary.tsx",
+        "range": {
+          "startPosition": {
+            "line": 7,
+            "column": 1
+          },
+          "endPosition": {
+            "line": 106,
+            "column": 1
+          }
+        },
+        "contents": "export const BrainstormSummary: React.FC&lt;BrainstormSummaryProps&gt; = ({\n  summary,\n  sessionTitle = '讨论总结',\n}) =&gt; {\n  const [copied, setCopied] = useState(false);\n\n  const handleCopy = async () =&gt; {\n    try {\n      await navigator.clipboard.writeText(summary);\n      setCopied(true);\n      toast.success('已复制到剪贴板');\n      setTimeout(() =&gt; setCopied(false), 2000);\n    } catch (error) {\n      toast.error('复制失败');\n    }\n  };\n\n  const handleExport = (format: 'txt' | 'md' = 'txt') =&gt; {\n    let content = summary;\n    let mimeType = 'text/plain;charset=utf-8';\n    let extension = 'txt';\n    let filename = &#96;${sessionTitle}_总结_${new Date().toISOString().split('T')[0]}&#96;;\n\n    if (format === 'md') {\n      content = &#96;# ${sessionTitle} - 讨论总结\\n\\n${summary}&#96;;\n      mimeType = 'text/markdown;charset=utf-8';\n      extension = 'md';\n    }\n\n    const blob = new Blob([content], { type: mimeType });\n    const url = URL.createObjectURL(blob);\n    const link = document.createElement('a');\n    link.href = url;\n    link.download = &#96;${filename}.${extension}&#96;;\n    document.body.appendChild(link);\n    link.click();\n    document.body.removeChild(link);\n    URL.revokeObjectURL(url);\n    toast.success('导出成功');\n  };\n\n  return\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "export const BrainstormSummary: React.FC&lt;BrainstormSummaryProps&gt; = ({",
+            "lineNumber": 10
+          },
+          {
+            "text": "  summary,",
+            "lineNumber": 11
+          },
+          {
+            "text": "  sessionTitle = '讨论总结',",
+            "lineNumber": 12
+          },
+          {
+            "text": "}) =&gt; {",
+            "lineNumber": 13
+          },
+          {
+            "text": "  const [copied, setCopied] = useState(false);",
+            "lineNumber": 14
+          },
+          {
+            "lineNumber": 15
+          },
+          {
+            "text": "  const handleCopy = async () =&gt; {",
+            "lineNumber": 16
+          },
+          {
+            "text": "    try {",
+            "lineNumber": 17
+          },
+          {
+            "text": "      await navigator.clipboard.writeText(summary);",
+            "lineNumber": 18
+          },
+          {
+            "text": "      setCopied(true);",
+            "lineNumber": 19
+          },
+          {
+            "text": "      toast.success('已复制到剪贴板');",
+            "lineNumber": 20
+          },
+          {
+            "text": "      setTimeout(() =&gt; setCopied(false), 2000);",
+            "lineNumber": 21
+          },
+          {
+            "text": "    } catch (error) {",
+            "lineNumber": 22
+          },
+          {
+            "text": "      toast.error('复制失败');",
+            "lineNumber": 23
+          },
+          {
+            "text": "    }",
+            "lineNumber": 24
+          },
+          {
+            "text": "  };",
+            "lineNumber": 25
+          },
+          {
+            "lineNumber": 26
+          },
+          {
+            "text": "  const handleExport = (format: 'txt' | 'md' = 'txt') =&gt; {",
+            "lineNumber": 27
+          },
+          {
+            "text": "    let content = summary;",
+            "lineNumber": 28
+          },
+          {
+            "text": "    let mimeType = 'text/plain;charset=utf-8';",
+            "lineNumber": 29
+          },
+          {
+            "text": "    let extension = 'txt';",
+            "lineNumber": 30
+          },
+          {
+            "text": "    let filename = &#96;${sessionTitle}_总结_${new Date().toISOString().split('T')[0]}&#96;;",
+            "lineNumber": 31
+          },
+          {
+            "lineNumber": 32
+          },
+          {
+            "text": "    if (format === 'md') {",
+            "lineNumber": 33
+          },
+          {
+            "text": "      content = &#96;# ${sessionTitle} - 讨论总结\\n\\n${summary}&#96;;",
+            "lineNumber": 34
+          },
+          {
+            "text": "      mimeType = 'text/markdown;charset=utf-8';",
+            "lineNumber": 35
+          },
+          {
+            "text": "      extension = 'md';",
+            "lineNumber": 36
+          },
+          {
+            "text": "    }",
+            "lineNumber": 37
+          },
+          {
+            "lineNumber": 38
+          },
+          {
+            "text": "    const blob = new Blob([content], { type: mimeType });",
+            "lineNumber": 39
+          },
+          {
+            "text": "    const url = URL.createObjectURL(blob);",
+            "lineNumber": 40
+          },
+          {
+            "text": "    const link = document.createElement('a');",
+            "lineNumber": 41
+          },
+          {
+            "text": "    link.href = url;",
+            "lineNumber": 42
+          },
+          {
+            "text": "    link.download = &#96;${filename}.${extension}&#96;;",
+            "lineNumber": 43
+          },
+          {
+            "text": "    document.body.appendChild(link);",
+            "lineNumber": 44
+          },
+          {
+            "text": "    link.click();",
+            "lineNumber": 45
+          },
+          {
+            "text": "    document.body.removeChild(link);",
+            "lineNumber": 46
+          },
+          {
+            "text": "    URL.revokeObjectURL(url);",
+            "lineNumber": 47
+          },
+          {
+            "text": "    toast.success('导出成功');",
+            "lineNumber": 48
+          },
+          {
+            "text": "  };",
+            "lineNumber": 49
+          },
+          {
+            "lineNumber": 50
+          },
+          {
+            "text": "  return",
+            "lineNumber": 51
+          },
+          {
+            "text": ";",
+            "lineNumber": 107
+          }
+        ]
+      },
+      "score": 0.19776499271392822
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormSummary.tsx",
+        "range": {
+          "startPosition": {},
+          "endPosition": {
+            "line": 106,
+            "column": 1
+          }
+        },
+        "contents": "import React, { useState } from 'react';\nimport { Copy, Check, Download, FileText } from 'lucide-react';\nimport { toast } from 'sonner';\n\ninterface BrainstormSummaryProps {\n  summary: string;\n  sessionTitle?: string;\n}\n\nexport const BrainstormSummary: React.FC&lt;BrainstormSummaryProps&gt; = ({\n  summary,\n  sessionTitle = '讨论总结',\n})\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import React, { useState } from 'react';",
+            "lineNumber": 1
+          },
+          {
+            "text": "import { Copy, Check, Download, FileText } from 'lucide-react';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { toast } from 'sonner';",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "interface BrainstormSummaryProps {",
+            "lineNumber": 5,
+            "isSignature": true
+          },
+          {
+            "text": "  summary: string;",
+            "lineNumber": 6
+          },
+          {
+            "text": "  sessionTitle?: string;",
+            "lineNumber": 7,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 8,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 9
+          },
+          {
+            "text": "export const BrainstormSummary: React.FC&lt;BrainstormSummaryProps&gt; = ({",
+            "lineNumber": 10
+          },
+          {
+            "text": "  summary,",
+            "lineNumber": 11
+          },
+          {
+            "text": "  sessionTitle = '讨论总结',",
+            "lineNumber": 12
+          },
+          {
+            "text": "})",
+            "lineNumber": 13
+          },
+          {
+            "text": ";",
+            "lineNumber": 107
+          }
+        ]
+      },
+      "score": 0.19354814291000366
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/ExpertSelector.tsx",
+        "range": {
+          "startPosition": {
+            "column": 51
+          },
+          "endPosition": {
+            "line": 143,
+            "column": 1
+          }
+        },
+        "contents": "import { Search, Check, X } from 'lucide-react';\nimport aiRoleService from '@/services/aiRoleService';\nimport { AIRoleConfig } from '@/types/aiRole';\n\ninterface ExpertSelectorProps {\n  selectedRoleIds: string[];\n  onChange: (roleIds: string[]) =&gt; void;\n  disabled?: boolean;\n}\n\nexport const ExpertSelector: React.FC&lt;ExpertSelectorProps&gt; = ({\n  selectedRoleIds,\n  onChange,\n  disabled = false,\n})\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { Search, Check, X } from 'lucide-react';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import aiRoleService from '@/services/aiRoleService';",
+            "lineNumber": 3
+          },
+          {
+            "text": "import { AIRoleConfig } from '@/types/aiRole';",
+            "lineNumber": 4
+          },
+          {
+            "lineNumber": 5
+          },
+          {
+            "text": "interface ExpertSelectorProps {",
+            "lineNumber": 6,
+            "isSignature": true
+          },
+          {
+            "text": "  selectedRoleIds: string[];",
+            "lineNumber": 7
+          },
+          {
+            "text": "  onChange: (roleIds: string[]) =&gt; void;",
+            "lineNumber": 8
+          },
+          {
+            "text": "  disabled?: boolean;",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 10,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 11
+          },
+          {
+            "text": "export const ExpertSelector: React.FC&lt;ExpertSelectorProps&gt; = ({",
+            "lineNumber": 12
+          },
+          {
+            "text": "  selectedRoleIds,",
+            "lineNumber": 13
+          },
+          {
+            "text": "  onChange,",
+            "lineNumber": 14
+          },
+          {
+            "text": "  disabled = false,",
+            "lineNumber": 15
+          },
+          {
+            "text": "})",
+            "lineNumber": 16
+          },
+          {
+            "text": ";",
+            "lineNumber": 144
+          }
+        ]
+      },
+      "score": 0.1858859658241272
+    },
+    {
+      "codeBlock": {
+        "relativeWorkspacePath": "./frontend/src/components/brainstorm/BrainstormMessageList.tsx",
+        "range": {
+          "startPosition": {
+            "column": 49
+          },
+          "endPosition": {
+            "line": 153,
+            "column": 1
+          }
+        },
+        "contents": "import { BrainstormMessage, BrainstormParticipant } from '@/types/brainstorm';\nimport { Bot, User } from 'lucide-react';\n\ninterface BrainstormMessageListProps {\n  messages: BrainstormMessage[];\n  participants?: BrainstormParticipant[];\n  autoScroll?: boolean;\n}\n\nexport const BrainstormMessageList: React.FC&lt;BrainstormMessageListProps&gt; = ({\n  messages,\n  participants = [],\n  autoScroll = true,\n})\n;",
+        "signatures": {},
+        "detailedLines": [
+          {
+            "text": "import { BrainstormMessage, BrainstormParticipant } from '@/types/brainstorm';",
+            "lineNumber": 2
+          },
+          {
+            "text": "import { Bot, User } from 'lucide-react';",
+            "lineNumber": 3
+          },
+          {
+            "lineNumber": 4
+          },
+          {
+            "text": "interface BrainstormMessageListProps {",
+            "lineNumber": 5,
+            "isSignature": true
+          },
+          {
+            "text": "  messages: BrainstormMessage[];",
+            "lineNumber": 6
+          },
+          {
+            "text": "  participants?: BrainstormParticipant[];",
+            "lineNumber": 7
+          },
+          {
+            "text": "  autoScroll?: boolean;",
+            "lineNumber": 8,
+            "isSignature": true
+          },
+          {
+            "text": "}",
+            "lineNumber": 9,
+            "isSignature": true
+          },
+          {
+            "lineNumber": 10
+          },
+          {
+            "text": "export const BrainstormMessageList: React.FC&lt;BrainstormMessageListProps&gt; = ({",
+            "lineNumber": 11
+          },
+          {
+            "text": "  messages,",
+            "lineNumber": 12
+          },
+          {
+            "text": "  participants = [],",
+            "lineNumber": 13
+          },
+          {
+            "text": "  autoScroll = true,",
+            "lineNumber": 14
+          },
+          {
+            "text": "})",
+            "lineNumber": 15
+          },
+          {
+            "text": ";",
+            "lineNumber": 154
+          }
+        ]
+      },
+      "score": 0.12266860157251358
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+
+更新 `BrainstormSetupModal`，添加新功能的配置选项。
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: /Volumes/Lexar/git/03T/todify4/frontend/src/types/brainstorm.ts</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "frontend/src/components/brainstorm/BrainstormSetupModal.tsx"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: /Volumes/Lexar/git/03T/todify4/frontend/src/components/brainstorm/BrainstormSetupModal.tsx</summary>
+
+Status: **loading**
+
+</details>
+
+</tool-use>
 
 ---
 

@@ -298,14 +298,59 @@ export class SourceInformationModel {
   }
 
   /**
+   * 确保 project_id 字段存在
+   */
+  private async ensureProjectIdColumn(): Promise<void> {
+    try {
+      const tableInfo = await this.db.query(`PRAGMA table_info(source_information)`);
+      const columns = Array.isArray(tableInfo) ? tableInfo : [tableInfo];
+      const hasProjectId = columns.some((col: any) => col.name === 'project_id');
+      
+      if (!hasProjectId) {
+        console.log('检测到 source_information 表缺少 project_id 字段，正在添加...');
+        await this.db.query(`ALTER TABLE source_information ADD COLUMN project_id INTEGER`);
+        await this.db.query(`CREATE INDEX IF NOT EXISTS idx_source_information_project_id ON source_information(project_id)`);
+        console.log('成功添加 project_id 字段');
+      }
+    } catch (error: any) {
+      // 如果字段已存在或其他错误，记录但不中断
+      if (!error?.message?.includes('duplicate column') && 
+          !error?.message?.includes('already exists')) {
+        console.warn('检查/添加 project_id 字段时出现警告:', error?.message);
+      }
+    }
+  }
+
+  /**
    * 更新来源信息
    */
   async update(id: number, data: UpdateSourceInformationDTO): Promise<SourceInformation | null> {
     const fields: string[] = [];
     const values: any[] = [];
 
+    // 验证ID
+    if (!id || isNaN(id)) {
+      throw new Error(`无效的来源信息ID: ${id}`);
+    }
+
+    // 如果需要更新 project_id，先确保字段存在
+    if (data.project_id !== undefined) {
+      await this.ensureProjectIdColumn();
+    }
+
+    // 构建更新字段
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
+        // 验证字段名（防止SQL注入）
+        const validFields = [
+          'title', 'type', 'url', 'description', 'page_type', 
+          'conversation_id', 'project_id', 'metadata', 'status', 'created_by'
+        ];
+        if (!validFields.includes(key)) {
+          console.warn(`忽略无效字段: ${key}`);
+          return;
+        }
+
         if (key === 'metadata') {
           fields.push(`${key} = ?`);
           values.push(JSON.stringify(value));
@@ -317,6 +362,7 @@ export class SourceInformationModel {
     });
 
     if (fields.length === 0) {
+      console.log(`没有字段需要更新，返回现有记录 id=${id}`);
       return this.findById(id);
     }
 
@@ -328,8 +374,46 @@ export class SourceInformationModel {
       WHERE id = ?
     `;
 
-    await this.db.query(sql, values);
-    return this.findById(id);
+    try {
+      console.log(`更新来源信息 id=${id}, SQL: ${sql}, Values:`, values);
+      await this.db.query(sql, values);
+      const updated = await this.findById(id);
+      if (!updated) {
+        throw new Error(`更新后无法找到来源信息 id=${id}`);
+      }
+      return updated;
+    } catch (error: any) {
+      console.error(`更新来源信息失败 id=${id}:`, error);
+      console.error(`SQL: ${sql}`);
+      console.error(`Values:`, values);
+      console.error(`Error details:`, {
+        message: error?.message,
+        code: error?.code,
+        errno: error?.errno,
+        stack: error?.stack
+      });
+      
+      // 如果是字段不存在的错误，尝试添加字段后重试
+      if (error?.message?.includes('no such column: project_id')) {
+        console.log('检测到 project_id 字段不存在，尝试添加后重试...');
+        try {
+          await this.ensureProjectIdColumn();
+          // 重试更新
+          await this.db.query(sql, values);
+          const updated = await this.findById(id);
+          if (!updated) {
+            throw new Error(`更新后无法找到来源信息 id=${id}`);
+          }
+          console.log(`重试更新成功 id=${id}`);
+          return updated;
+        } catch (retryError: any) {
+          console.error(`重试更新失败:`, retryError);
+          throw retryError;
+        }
+      }
+      
+      throw error;
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, MessageSquare, Lightbulb } from 'lucide-react';
+import { X, Loader2, MessageSquare, Lightbulb, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import { ExpertSelector } from './ExpertSelector';
 import { CreateBrainstormSessionDTO, BrainstormSessionConfig } from '@/types/brainstorm';
 import aiRoleService from '@/services/aiRoleService';
@@ -36,7 +36,7 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
   const [consensusDetection, setConsensusDetection] = useState(
     initialData?.config?.stopConditions?.consensusDetection ?? false
   );
-  const [discussionMode, setDiscussionMode] = useState<'parallel' | 'round-robin'>(
+  const [discussionMode, setDiscussionMode] = useState<'parallel' | 'round-robin' | 'debate'>(
     initialData?.config?.discussionMode ?? 'parallel'
   );
   const [moderatorEnabled, setModeratorEnabled] = useState(
@@ -54,6 +54,62 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
   const [loadingTechPoints, setLoadingTechPoints] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string>('');
   const [selectedTechPointId, setSelectedTechPointId] = useState<number | null>(null);
+  
+  // 高级配置状态
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
+  
+  // 结构化上下文配置
+  const [structuredContextEnabled, setStructuredContextEnabled] = useState(
+    initialData?.config?.structuredContext?.enabled ?? true
+  );
+  const [summaryFrequency, setSummaryFrequency] = useState(
+    initialData?.config?.structuredContext?.summaryFrequency ?? 3
+  );
+  const [extractKeyPoints, setExtractKeyPoints] = useState(
+    initialData?.config?.structuredContext?.extractKeyPoints ?? true
+  );
+  const [detectDisagreements, setDetectDisagreements] = useState(
+    initialData?.config?.structuredContext?.detectDisagreements ?? true
+  );
+  
+  // 评审-反思循环配置
+  const [reflectionLoopEnabled, setReflectionLoopEnabled] = useState(
+    initialData?.config?.reflectionLoop?.enabled ?? false
+  );
+  const [maxIterations, setMaxIterations] = useState(
+    initialData?.config?.reflectionLoop?.maxIterations ?? 3
+  );
+  const [qualityThreshold, setQualityThreshold] = useState(
+    initialData?.config?.reflectionLoop?.qualityThreshold ?? 0.7
+  );
+  const [reflectionFrequency, setReflectionFrequency] = useState(
+    initialData?.config?.reflectionLoop?.reflectionFrequency ?? 3
+  );
+  
+  // 共识检测详细配置
+  const [consensusMethod, setConsensusMethod] = useState<'semantic' | 'voting' | 'hybrid'>(
+    initialData?.config?.stopConditions?.consensusConfig?.method ?? 'hybrid'
+  );
+  const [consensusThreshold, setConsensusThreshold] = useState(
+    initialData?.config?.stopConditions?.consensusConfig?.threshold ?? 0.7
+  );
+  const [minAgreementRatio, setMinAgreementRatio] = useState(
+    initialData?.config?.stopConditions?.consensusConfig?.minAgreementRatio ?? 0.7
+  );
+  
+  // 辩论模式配置
+  const [debateEnabled, setDebateEnabled] = useState(
+    initialData?.config?.debateConfig?.enabled ?? false
+  );
+  const [proRoleIds, setProRoleIds] = useState<string[]>(
+    initialData?.config?.debateConfig?.proRoleIds ?? []
+  );
+  const [conRoleIds, setConRoleIds] = useState<string[]>(
+    initialData?.config?.debateConfig?.conRoleIds ?? []
+  );
+  const [judgeRoleId, setJudgeRoleId] = useState(
+    initialData?.config?.debateConfig?.judgeRoleId ?? ''
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -204,7 +260,13 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
       return;
     }
 
-    if (selectedRoleIds.length === 0) {
+    // 验证：辩论模式需要正反方都有Agent
+    if (discussionMode === 'debate' && debateEnabled) {
+      if (proRoleIds.length === 0 || conRoleIds.length === 0) {
+        alert('辩论模式需要至少选择一个正方Agent和一个反方Agent');
+        return;
+      }
+    } else if (selectedRoleIds.length === 0) {
       alert('请至少选择一个专家角色');
       return;
     }
@@ -214,6 +276,13 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
         manualStop: true,
         maxRounds: maxRounds === '' ? null : Number(maxRounds),
         consensusDetection,
+        consensusConfig: consensusDetection ? {
+          enabled: true,
+          method: consensusMethod,
+          threshold: consensusThreshold,
+          minAgreementRatio,
+          recentRounds: 3,
+        } : undefined,
       },
       discussionMode,
       moderatorConfig: moderatorEnabled && moderatorRoleId ? {
@@ -224,14 +293,42 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
         enabled: true,
         provider: 'same-as-agents',
       },
+      structuredContext: structuredContextEnabled ? {
+        enabled: true,
+        summaryFrequency,
+        extractKeyPoints,
+        detectDisagreements,
+        maxContextTokens: 8000,
+      } : undefined,
+      reflectionLoop: reflectionLoopEnabled ? {
+        enabled: true,
+        maxIterations,
+        qualityThreshold,
+        reflectionFrequency,
+      } : undefined,
+      debateConfig: discussionMode === 'debate' && debateEnabled ? {
+        enabled: true,
+        proRoleIds,
+        conRoleIds,
+        judgeRoleId: judgeRoleId || undefined,
+        rounds: 5,
+        judgeAfterRounds: 1,
+      } : undefined,
     };
+
+    // 辩论模式下，participantRoleIds应该包含所有选中的Agent（正反方+裁判）
+    let finalParticipantRoleIds = selectedRoleIds;
+    if (discussionMode === 'debate' && debateEnabled) {
+      finalParticipantRoleIds = [...new Set([...proRoleIds, ...conRoleIds, ...(judgeRoleId ? [judgeRoleId] : [])])];
+    }
 
     const data: CreateBrainstormSessionDTO = {
       title: title.trim(),
       topic: topic.trim(),
       description: description.trim() || undefined,
+      projectId: projectId,
       config,
-      participantRoleIds: selectedRoleIds,
+      participantRoleIds: finalParticipantRoleIds,
     };
 
     try {
@@ -261,6 +358,22 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
     setDiscussionMode('parallel');
     setModeratorEnabled(false);
     setModeratorRoleId('');
+    setShowAdvancedConfig(false);
+    setStructuredContextEnabled(true);
+    setSummaryFrequency(3);
+    setExtractKeyPoints(true);
+    setDetectDisagreements(true);
+    setReflectionLoopEnabled(false);
+    setMaxIterations(3);
+    setQualityThreshold(0.7);
+    setReflectionFrequency(3);
+    setConsensusMethod('hybrid');
+    setConsensusThreshold(0.7);
+    setMinAgreementRatio(0.7);
+    setDebateEnabled(false);
+    setProRoleIds([]);
+    setConRoleIds([]);
+    setJudgeRoleId('');
     onClose();
   };
 
@@ -545,7 +658,12 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
                   name="discussionMode"
                   value="round-robin"
                   checked={discussionMode === 'round-robin'}
-                  onChange={(e) => setDiscussionMode(e.target.value as 'parallel' | 'round-robin')}
+                  onChange={(e) => {
+                    setDiscussionMode(e.target.value as 'parallel' | 'round-robin' | 'debate');
+                    if (e.target.value !== 'debate') {
+                      setDebateEnabled(false);
+                    }
+                  }}
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <label htmlFor="mode-round-robin" className="text-sm text-gray-700">
@@ -553,7 +671,131 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
                   <div className="text-xs text-gray-500">专家按顺序依次发言，讨论更有条理</div>
                 </label>
               </div>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="radio"
+                  id="mode-debate"
+                  name="discussionMode"
+                  value="debate"
+                  checked={discussionMode === 'debate'}
+                  onChange={(e) => {
+                    setDiscussionMode(e.target.value as 'parallel' | 'round-robin' | 'debate');
+                    if (e.target.value === 'debate') {
+                      setDebateEnabled(true);
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor="mode-debate" className="text-sm text-gray-700">
+                  <div className="font-medium">辩论模式</div>
+                  <div className="text-xs text-gray-500">正反方交替发言，裁判评判，深度辩论</div>
+                </label>
+              </div>
             </div>
+            
+            {/* 辩论模式配置 */}
+            {discussionMode === 'debate' && (
+              <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="debateEnabled"
+                    checked={debateEnabled}
+                    onChange={(e) => setDebateEnabled(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="debateEnabled" className="text-sm font-medium text-gray-900">
+                    启用辩论模式
+                  </label>
+                </div>
+                {debateEnabled && (
+                  <div className="space-y-4 ml-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        正方Agent（支持多选）
+                      </label>
+                      <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
+                        {availableRoles.map((role) => {
+                          const isInCon = conRoleIds.includes(role.id);
+                          return (
+                            <label key={role.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded ${isInCon ? 'opacity-50' : ''}`}>
+                              <input
+                                type="checkbox"
+                                checked={proRoleIds.includes(role.id)}
+                                disabled={isInCon}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setProRoleIds([...proRoleIds, role.id]);
+                                  } else {
+                                    setProRoleIds(proRoleIds.filter(id => id !== role.id));
+                                  }
+                                }}
+                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 disabled:opacity-50"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {role.name}
+                                {isInCon && <span className="text-xs text-gray-400 ml-1">(已在反方)</span>}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        反方Agent（支持多选）
+                      </label>
+                      <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
+                        {availableRoles.map((role) => {
+                          const isInPro = proRoleIds.includes(role.id);
+                          return (
+                            <label key={role.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded ${isInPro ? 'opacity-50' : ''}`}>
+                              <input
+                                type="checkbox"
+                                checked={conRoleIds.includes(role.id)}
+                                disabled={isInPro}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setConRoleIds([...conRoleIds, role.id]);
+                                  } else {
+                                    setConRoleIds(conRoleIds.filter(id => id !== role.id));
+                                  }
+                                }}
+                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 disabled:opacity-50"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {role.name}
+                                {isInPro && <span className="text-xs text-gray-400 ml-1">(已在正方)</span>}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        裁判Agent（可选）
+                      </label>
+                      <select
+                        value={judgeRoleId}
+                        onChange={(e) => setJudgeRoleId(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="">不设置裁判</option>
+                        {availableRoles.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-gray-500">
+                        裁判将在每轮辩论后进行评判，给出评分和改进建议
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 主持人配置 */}
@@ -623,19 +865,201 @@ export const BrainstormSetupModal: React.FC<BrainstormSetupModalProps> = ({
               </div>
 
               {/* 共识检测 */}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="consensusDetection"
-                  checked={consensusDetection}
-                  onChange={(e) => setConsensusDetection(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="consensusDetection" className="text-sm text-gray-700">
-                  启用共识检测（检测到共识后自动结束）
-                </label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="consensusDetection"
+                    checked={consensusDetection}
+                    onChange={(e) => setConsensusDetection(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="consensusDetection" className="text-sm text-gray-700">
+                    启用共识检测（检测到共识后自动结束）
+                  </label>
+                </div>
+                {consensusDetection && (
+                  <div className="ml-6 space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        检测方法
+                      </label>
+                      <select
+                        value={consensusMethod}
+                        onChange={(e) => setConsensusMethod(e.target.value as 'semantic' | 'voting' | 'hybrid')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="semantic">语义分析</option>
+                        <option value="voting">投票机制</option>
+                        <option value="hybrid">混合模式（推荐）</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        共识阈值: {consensusThreshold.toFixed(1)}
+                      </label>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1"
+                        step="0.1"
+                        value={consensusThreshold}
+                        onChange={(e) => setConsensusThreshold(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        最小同意比例: {minAgreementRatio.toFixed(1)}
+                      </label>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="1"
+                        step="0.1"
+                        value={minAgreementRatio}
+                        onChange={(e) => setMinAgreementRatio(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+          
+          {/* 高级配置 */}
+          <div className="border-t border-gray-200 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+              className="flex items-center space-x-2 text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span>高级配置</span>
+              {showAdvancedConfig ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            
+            {showAdvancedConfig && (
+              <div className="mt-4 space-y-6">
+                {/* 结构化上下文配置 */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <input
+                      type="checkbox"
+                      id="structuredContextEnabled"
+                      checked={structuredContextEnabled}
+                      onChange={(e) => setStructuredContextEnabled(e.target.checked)}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <label htmlFor="structuredContextEnabled" className="text-sm font-medium text-gray-900">
+                      启用结构化上下文（推荐，可减少Token消耗50-70%）
+                    </label>
+                  </div>
+                  {structuredContextEnabled && (
+                    <div className="ml-6 space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          摘要频率：每 {summaryFrequency} 轮生成一次
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={summaryFrequency}
+                          onChange={(e) => setSummaryFrequency(Number(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="extractKeyPoints"
+                          checked={extractKeyPoints}
+                          onChange={(e) => setExtractKeyPoints(e.target.checked)}
+                          className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        />
+                        <label htmlFor="extractKeyPoints" className="text-sm text-gray-700">
+                          提取关键观点
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="detectDisagreements"
+                          checked={detectDisagreements}
+                          onChange={(e) => setDetectDisagreements(e.target.checked)}
+                          className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        />
+                        <label htmlFor="detectDisagreements" className="text-sm text-gray-700">
+                          检测分歧点
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* 评审-反思循环配置 */}
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <input
+                      type="checkbox"
+                      id="reflectionLoopEnabled"
+                      checked={reflectionLoopEnabled}
+                      onChange={(e) => setReflectionLoopEnabled(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <label htmlFor="reflectionLoopEnabled" className="text-sm font-medium text-gray-900">
+                      启用评审-反思循环（可提升质量20-30%）
+                    </label>
+                  </div>
+                  {reflectionLoopEnabled && (
+                    <div className="ml-6 space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          最大迭代次数
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={maxIterations}
+                          onChange={(e) => setMaxIterations(Number(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          质量阈值: {qualityThreshold.toFixed(1)}
+                        </label>
+                        <input
+                          type="range"
+                          min="0.5"
+                          max="1"
+                          step="0.05"
+                          value={qualityThreshold}
+                          onChange={(e) => setQualityThreshold(Number(e.target.value))}
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          反思频率：每 {reflectionFrequency} 轮进行一次
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={reflectionFrequency}
+                          onChange={(e) => setReflectionFrequency(Number(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </form>
 

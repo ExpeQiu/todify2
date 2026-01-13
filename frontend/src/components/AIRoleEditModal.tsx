@@ -1102,6 +1102,22 @@ const DirectAgentConfigSection: React.FC<{
               className="w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="stream-enabled"
+              checked={formData.agentConfig?.llm?.stream || false}
+              onChange={(e) => updateFormField('agentConfig.llm.stream', e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="stream-enabled" className="text-base font-medium text-gray-700">
+              启用流式响应（Stream）
+            </label>
+            <span className="text-sm text-gray-500 ml-2">
+              （注意：当前后端暂不支持流式响应处理，会自动转换为非流式）
+            </span>
+          </div>
         </div>
       )}
 

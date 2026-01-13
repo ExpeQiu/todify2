@@ -30,6 +30,39 @@ interface Project {
   description?: string;
 }
 
+// 根据类别判断来源类型（内部信息 vs 外部来源）
+const getSourceTypeByCategory = (category?: SourceCategory): "内部信息" | "外部来源" => {
+  // 内容信息类别：AI问答总结、技术点、公共知识库等
+  const contentInfoCategories: SourceCategory[] = [
+    "technical-translation",  // 技术转译
+    "ai-qa-summary",          // AI问答总结
+    "tech-package-qa",        // 技术包装问答
+    "tech-strategy-qa",       // 技术策略问答
+    "tech-article-qa",        // 技术通稿问答
+  ];
+  
+  // 外部来源类别：上传文件、web搜索等
+  const externalSourceCategories: SourceCategory[] = [
+    "internet-search",        // 互联网搜索
+    "web-search",            // Web搜索
+    "external",              // 外部来源
+  ];
+  
+  if (!category) {
+    return "外部来源"; // 默认
+  }
+  
+  if (contentInfoCategories.includes(category)) {
+    return "内部信息";
+  }
+  
+  if (externalSourceCategories.includes(category)) {
+    return "外部来源";
+  }
+  
+  return "外部来源"; // 默认
+};
+
 // 获取来源类别的显示信息
 const getCategoryInfo = (category?: SourceCategory) => {
   switch (category) {
@@ -249,136 +282,308 @@ const EditSourceModalForManagement: React.FC<EditSourceModalForManagementProps> 
   const [selectedProjectId, setSelectedProjectId] = useState<number | "">(
     source.project_id || ""
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; url?: string }>({});
 
   useEffect(() => {
     setTitle(source.title);
     setDescription(source.description || "");
     setUrl(source.url || "");
     setSelectedProjectId(source.project_id || "");
+    setErrors({});
   }, [source]);
+
+  const validateUrl = (urlValue: string): boolean => {
+    if (!urlValue.trim()) return true; // URL是可选的
+    try {
+      new URL(urlValue);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: { title?: string; url?: string } = {};
+
+    // 验证标题
     if (!title.trim()) {
-      alert("请输入标题");
+      newErrors.title = "标题不能为空";
+    }
+
+    // 验证URL
+    if (source.type === "external" && url.trim() && !validateUrl(url.trim())) {
+      newErrors.url = "请输入有效的URL地址（如：https://example.com）";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    await onSave(
-      {
-        title: title.trim(),
-        description: description.trim() || undefined,
-        url: url.trim() || undefined,
-      },
-      selectedProjectId ? Number(selectedProjectId) : undefined
-    );
+    setIsSubmitting(true);
+    try {
+      await onSave(
+        {
+          title: title.trim(),
+          description: description.trim() || undefined,
+          url: url.trim() || undefined,
+        },
+        selectedProjectId ? Number(selectedProjectId) : undefined
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const categoryInfo = getCategoryInfo(source.category);
+  const CategoryIcon = categoryInfo.icon;
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh]">
-        <div className="flex items-center gap-4 p-6 border-b border-gray-200">
+        {/* 头部 */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${categoryInfo.color}`}>
+              <CategoryIcon className={`w-5 h-5 ${categoryInfo.iconColor}`} />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">编辑来源</h2>
+              <p className="text-xs text-gray-500 mt-0.5">{categoryInfo.label}</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={isSubmitting}
           >
             <X className="w-5 h-5 text-gray-600" />
           </button>
-          <h2 className="text-xl font-semibold text-gray-900">编辑来源</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col p-6 overflow-y-auto">
-          {/* 项目选择 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              关联项目
-            </label>
-            <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : "")}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">未关联项目</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              修改项目关联后，来源将移动到对应项目分组
-            </p>
-          </div>
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-y-auto">
+          <div className="p-6 space-y-5">
+            {/* 来源类型和类别信息 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  来源类型
+                </label>
+                {(() => {
+                  const sourceType = getSourceTypeByCategory(source.category);
+                  const isContentInfo = sourceType === "内部信息";
+                  return (
+                    <div className={`px-4 py-2.5 border rounded-lg text-sm flex items-center gap-2 ${
+                      isContentInfo 
+                        ? "bg-blue-50 border-blue-200 text-blue-700" 
+                        : "bg-gray-50 border-gray-200 text-gray-700"
+                    }`}>
+                      {isContentInfo ? (
+                        <>
+                          <Brain className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium">内部信息</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 text-gray-500" />
+                          <span className="font-medium">外部来源</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
 
-          {/* 来源类型 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              来源类型
-            </label>
-            <div className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
-              {source.type === "knowledge_base" ? "知识库" : "外部来源"}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  来源类别
+                </label>
+                <div className={`px-4 py-2.5 border rounded-lg text-sm flex items-center gap-2 ${categoryInfo.color} border-transparent`}>
+                  <CategoryIcon className={`w-4 h-4 ${categoryInfo.iconColor}`} />
+                  <span className="font-medium">{categoryInfo.label}</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* URL */}
-          {source.type === "external" && (
-            <div className="mb-4">
+            {/* 项目选择 */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                URL地址
+                关联项目
+                <span className="text-gray-400 font-normal ml-1">（可选）</span>
+              </label>
+              {projects.length === 0 ? (
+                <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+                  暂无可用项目
+                </div>
+              ) : (
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value ? Number(e.target.value) : "")}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+                  disabled={isSubmitting}
+                >
+                  <option value="">未关联项目</option>
+                  {projects
+                    .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"))
+                    .map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                        {project.description ? ` - ${project.description.substring(0, 30)}${project.description.length > 30 ? "..." : ""}` : ""}
+                      </option>
+                    ))}
+                </select>
+              )}
+              {selectedProject && selectedProject.description && (
+                <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                  {selectedProject.description}
+                </p>
+              )}
+              {projects.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                  修改项目关联后，来源将移动到对应项目分组
+                </p>
+              )}
+            </div>
+
+            {/* URL */}
+            {source.type === "external" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  URL地址
+                  <span className="text-gray-400 font-normal ml-1">（可选）</span>
+                </label>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    if (errors.url) setErrors({ ...errors, url: undefined });
+                  }}
+                  placeholder="https://example.com/document.pdf"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    errors.url
+                      ? "border-red-300 focus:border-red-500"
+                      : "border-gray-300 focus:border-blue-500"
+                  }`}
+                  disabled={isSubmitting}
+                />
+                {errors.url && (
+                  <p className="text-xs text-red-600 mt-1.5 ml-1">{errors.url}</p>
+                )}
+                {!errors.url && url && (
+                  <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                    点击链接在新标签页中打开
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* 标题 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                标题 <span className="text-red-500">*</span>
               </label>
               <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                type="text"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title) setErrors({ ...errors, title: undefined });
+                }}
+                placeholder="输入来源标题"
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  errors.title
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300 focus:border-blue-500"
+                }`}
+                required
+                disabled={isSubmitting}
               />
+              {errors.title && (
+                <p className="text-xs text-red-600 mt-1.5 ml-1">{errors.title}</p>
+              )}
+              {!errors.title && (
+                <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                  标题用于标识和搜索来源
+                </p>
+              )}
             </div>
-          )}
 
-          {/* 标题 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              标题 *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="输入来源标题"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+            {/* 描述 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                描述
+                <span className="text-gray-400 font-normal ml-1">（可选）</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="输入来源描述，支持多行文本..."
+                rows={6}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors"
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-gray-500 mt-1.5 ml-1">
+                详细描述有助于更好地理解和使用该来源
+              </p>
+            </div>
 
-          {/* 描述 */}
-          <div className="mb-4 flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              描述
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="输入来源描述"
-              rows={10}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            />
+            {/* 元信息 */}
+            {(source.created_at || source.created_by) && (
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-xs text-gray-500 mb-2">元信息</p>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {source.created_at && (
+                    <div>
+                      <span className="text-gray-500">创建时间：</span>
+                      <span className="text-gray-700">
+                        {new Date(source.created_at).toLocaleString("zh-CN", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {source.created_by && (
+                    <div>
+                      <span className="text-gray-500">创建人：</span>
+                      <span className="text-gray-700">{source.created_by}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 按钮 */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              disabled={isSubmitting}
             >
               取消
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled={isSubmitting}
             >
-              保存
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  保存中...
+                </>
+              ) : (
+                "保存"
+              )}
             </button>
           </div>
         </form>
@@ -403,13 +608,22 @@ const SourceManagementPage: React.FC = () => {
   // 加载项目列表
   const loadProjects = async () => {
     try {
-      const response = await api.get("/projects");
+      const response = await api.get("/projects", {
+        params: {
+          page: 1,
+          pageSize: 1000,
+          status: "active",
+        },
+      });
       if (response.data.success) {
-        const projectList = response.data.data || [];
+        // 处理分页响应格式：{ data: { data: [...], total: ... } }
+        const responseData = response.data.data as any;
+        const projectList = responseData?.data || responseData || [];
         setProjects(Array.isArray(projectList) ? projectList : []);
       }
     } catch (error) {
       console.error("加载项目列表失败:", error);
+      setProjects([]);
     }
   };
 
@@ -473,6 +687,13 @@ const SourceManagementPage: React.FC = () => {
 
     return true;
   });
+
+  // 获取项目名称
+  const getProjectName = (projectId?: number) => {
+    if (!projectId) return "-";
+    const project = projects.find((p) => p.id === projectId);
+    return project?.name || `项目 #${projectId}`;
+  };
 
   // 按项目分组来源
   const groupedSources = filteredSources.reduce((acc, source) => {
@@ -539,13 +760,6 @@ const SourceManagementPage: React.FC = () => {
       console.error("删除来源失败:", error);
       alert("删除来源失败");
     }
-  };
-
-  // 获取项目名称
-  const getProjectName = (projectId?: number) => {
-    if (!projectId) return "-";
-    const project = projects.find((p) => p.id === projectId);
-    return project?.name || `项目 #${projectId}`;
   };
 
   return (
@@ -893,21 +1107,77 @@ const SourceManagementPage: React.FC = () => {
           onSave={async (updatedSource, projectId) => {
             // 更新来源信息
             try {
-              const response = await api.put(`/source-information/${editingSource.id}`, {
+              // 优先使用 id，如果没有则使用 source_id
+              const updateUrl = editingSource.id 
+                ? `/source-information/${editingSource.id}`
+                : `/source-information/source-id/${editingSource.source_id}`;
+              
+              // 构建更新数据，确保 project_id 正确处理 null 值
+              const updateData: any = {
                 title: updatedSource.title,
-                description: updatedSource.description,
-                url: updatedSource.url,
-                project_id: projectId || null,
-              });
+              };
+              
+              // 可选字段只在有值或明确为 null 时添加
+              if (updatedSource.description !== undefined) {
+                updateData.description = updatedSource.description || null;
+              }
+              if (updatedSource.url !== undefined) {
+                updateData.url = updatedSource.url || null;
+              }
+              // project_id 处理：如果传入了 projectId（包括 0），则使用；如果为 undefined，则不更新
+              if (projectId !== undefined) {
+                updateData.project_id = projectId || null;
+              }
+              
+              console.log("更新来源数据:", { updateUrl, updateData });
+              
+              const response = await api.put(updateUrl, updateData);
+              
               if (response.data.success) {
                 setEditingSource(null);
                 loadSources();
               } else {
                 alert(response.data.message || "更新失败");
               }
-            } catch (error) {
+            } catch (error: any) {
               console.error("更新来源失败:", error);
-              alert("更新来源失败");
+              console.error("错误详情:", {
+                code: error?.code,
+                message: error?.message,
+                details: error?.details,
+                response: error?.response,
+              });
+              
+              // 提取错误信息（apiClient 会将错误转换为 ApiErrorPayload 格式）
+              let errorMessage = "更新来源失败";
+              let errorDetails = "";
+              
+              // apiClient 错误格式：{ code, message, details }
+              if (error?.message) {
+                errorMessage = error.message;
+              }
+              
+              // details 可能包含后端返回的完整错误信息
+              if (error?.details) {
+                if (typeof error.details === 'string') {
+                  errorDetails = `\n\n错误详情: ${error.details}`;
+                } else if (typeof error.details === 'object') {
+                  // 如果 details 是对象，尝试提取 message 和 error
+                  const detailsMsg = error.details.message || error.details.error || '';
+                  if (detailsMsg) {
+                    errorMessage = detailsMsg;
+                  }
+                  // 显示完整的 details（开发环境）
+                  if (process.env.NODE_ENV === 'development') {
+                    errorDetails = `\n\n错误详情:\n${JSON.stringify(error.details, null, 2)}`;
+                  }
+                }
+              }
+              
+              // 显示详细的错误信息
+              const fullErrorMessage = `更新来源失败\n\n${errorMessage}${errorDetails}`;
+              console.error("完整错误信息:", fullErrorMessage);
+              alert(fullErrorMessage);
             }
           }}
         />

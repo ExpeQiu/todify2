@@ -32,12 +32,14 @@ export const brainstormService = {
    */
   async listSessions(options: {
     creatorId?: string;
+    projectId?: number;
     status?: string;
     limit?: number;
     offset?: number;
   } = {}): Promise<BrainstormSession[]> {
     const params = new URLSearchParams();
     if (options.creatorId) params.append("creatorId", options.creatorId);
+    if (options.projectId !== undefined) params.append("projectId", options.projectId.toString());
     if (options.status) params.append("status", options.status);
     if (options.limit) params.append("limit", options.limit.toString());
     if (options.offset) params.append("offset", options.offset.toString());
