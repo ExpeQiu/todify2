@@ -223,11 +223,44 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
         }
       }
 
+      // 确定要使用的workflowId：优先使用字段映射配置中的agentId，其次使用localStorage中的角色ID，最后使用传入的workflowId
+      let finalWorkflowId = workflowId || undefined;
+      
+      // 如果是技术包装页面，尝试从字段映射配置中获取ai-dialog的agentId
+      if (pageType === 'tech-package' && workflowId) {
+        try {
+          // 尝试从字段映射配置中获取ai-dialog的agentId
+          const mappingConfig = await aiSearchService.getFieldMappingConfig(workflowId);
+          if (mappingConfig?.featureObjects) {
+            // 查找ai-dialog featureType且pageType为tech-package的配置
+            const aiDialogConfig = mappingConfig.featureObjects.find(
+              (f: any) => f.featureType === 'ai-dialog' && f.pageType === 'tech-package'
+            );
+            if (aiDialogConfig?.agentId) {
+              finalWorkflowId = aiDialogConfig.agentId;
+              console.log('[DialogueContent] 使用字段映射配置中的agentId:', finalWorkflowId);
+            }
+          }
+        } catch (error) {
+          console.warn('[DialogueContent] 获取字段映射配置失败:', error);
+        }
+      }
+      
+      // 如果还没有确定workflowId，尝试使用localStorage中保存的角色ID
+      if (!finalWorkflowId) {
+        const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+        const storedRoleId = localStorage.getItem(storageKey);
+        if (storedRoleId) {
+          finalWorkflowId = storedRoleId;
+          console.log('[DialogueContent] 使用localStorage中的角色ID:', finalWorkflowId);
+        }
+      }
+
       const response = await aiSearchService.sendMessage(activeConversation.id, {
         content: submission.content,
         sources: newSources, // 只传递新增的来源
         contextWindowSize,
-        workflowId: workflowId || undefined,
+        workflowId: finalWorkflowId,
         fileList: fileList,
         knowledgeBaseNames: knowledgeBaseNames,
       });
