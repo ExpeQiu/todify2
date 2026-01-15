@@ -12,7 +12,8 @@
     "start": "node dist/index.js",
     "build": "tsc && tsc-alias",
     "prod": "npm run build && npm start",
-    "init:tech-qa-role": "ts-node -r tsconfig-paths/register src/scripts/init-tech-qa-role.ts"
+    "init:tech-qa-role": "ts-node -r tsconfig-paths/register src/scripts/init-tech-qa-role.ts",
+    "migrate:source-relations": "ts-node -r tsconfig-paths/register src/scripts/migrate-source-relations.ts"
   },
   "keywords": [],
   "author": "",

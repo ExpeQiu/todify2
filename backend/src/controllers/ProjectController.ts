@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { projectModel } from '../models';
+import { projectModel, sourceInformationModel } from '../models';
 import { CreateProjectDTO, UpdateProjectDTO, ProjectStatus, ProjectType } from '../types/database';
 import { ChatMessageService } from '../services/ChatMessageService';
 
@@ -506,6 +506,70 @@ export class ProjectController {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取项目对话记录失败'
+      });
+    }
+  }
+
+  /**
+   * 获取项目的完整上下文（聚合接口）
+   * 包括：来源信息（已分组）、知识点、对话记录（已分组）
+   */
+  async getFullContext(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: '无效的项目ID'
+        });
+      }
+
+      // 并行获取所有数据
+      const [sources, projectDetails, conversations] = await Promise.all([
+        sourceInformationModel.findByProjectId(id).catch(err => {
+          console.error('获取来源信息失败:', err);
+          return [];
+        }),
+        projectModel.getProjectDetails(id).catch(err => {
+          console.error('获取项目详情失败:', err);
+          return null;
+        }),
+        ChatMessageService.getConversationsByProjectId(id, 100, 0).catch(err => {
+          console.error('获取对话记录失败:', err);
+          return [];
+        })
+      ]);
+
+      // 按 app_type 分组对话
+      const groupedConversations = conversations.reduce((acc, conv) => {
+        const appType = conv.app_type || 'other';
+        if (!acc[appType]) {
+          acc[appType] = [];
+        }
+        acc[appType].push(conv);
+        return acc;
+      }, {} as Record<string, typeof conversations>);
+
+      // 构建响应数据
+      const responseData = {
+        sources: sources || [],
+        knowledgePoints: projectDetails?.knowledgePoints || [],
+        techPoints: projectDetails?.techPoints || [],
+        conversations: groupedConversations,
+        // 原始对话列表（用于兼容）
+        conversationsList: conversations
+      };
+
+      res.json({
+        success: true,
+        data: responseData,
+        message: '获取项目完整上下文成功'
+      });
+    } catch (error) {
+      console.error('Get project full context error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '获取项目完整上下文失败'
       });
     }
   }

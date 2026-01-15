@@ -12,6 +12,8 @@ import { aiSearchService } from '../../services/aiSearchService';
 import { publicKnowledgeService } from '../../services/publicKnowledgeService';
 import { bochaAPI } from '../../services/api';
 import api from '../../services/api';
+import { groupSourcesByCategory } from '../../services/resourceClassifier';
+import { useProjectResourceStore } from '../../stores/projectResourceStore';
 
 interface ResourceSidebarProps {
   project: Project;
@@ -49,6 +51,9 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isSavingResults, setIsSavingResults] = useState(false);
 
+  // 使用项目资源Store
+  const { getResources, invalidate } = useProjectResourceStore();
+
   useEffect(() => {
     loadData();
   }, [project.id]);
@@ -63,47 +68,45 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
     try {
       setLoading(true);
 
-      // 加载资源（只加载当前项目的资源）
-      const sourcesResult = await sourceService.loadSourceInformationByProjectId(project.id);
-      const sources = sourcesResult.success && sourcesResult.data ? sourcesResult.data : [];
+      // 使用Store获取资源（带缓存）
+      const projectResources = await getResources(project.id);
       
-      // 分类资源：文件、互联网信息、知识点
-      // 文件：URL 是文件路径（包含 /uploads/ 或文件扩展名）
-      const files = sources.filter(s => {
-        const urlStr = s.url?.trim() || '';
-        return urlStr.startsWith('/uploads/') || 
-               urlStr.startsWith('uploads/') || 
-               urlStr.startsWith('/api/ai-search/files/') ||
-               urlStr.startsWith('/api/v1/public-knowledge/files/') ||
-               /\.(pdf|doc|docx|txt|md|jpg|jpeg|png|gif|webp|ppt|pptx)$/i.test(urlStr);
-      });
+      // 使用统一的分类服务进行分类
+      const grouped = groupSourcesByCategory(projectResources.sources);
       
-      // 互联网信息：URL 是 HTTP/HTTPS 链接，且不是文件路径
-      const internetInfo = sources.filter(s => {
-        const urlStr = s.url?.trim() || '';
-        const isHttpUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://');
-        const isFileUrl = urlStr.startsWith('/uploads/') || 
-                         urlStr.startsWith('uploads/') ||
-                         urlStr.startsWith('/api/ai-search/files/') ||
-                         urlStr.startsWith('/api/v1/public-knowledge/files/');
-        // 通过 category 判断是否是互联网搜索或 web 搜索
-        const isInternetCategory = s.category === 'internet-search' || s.category === 'web-search';
-        return (isHttpUrl && !isFileUrl) || isInternetCategory;
+      // 文件来源
+      const files = grouped['file'];
+      
+      // 互联网信息：包括 web-search 分组
+      const internetInfo = grouped['web-search'];
+
+      // 设置资源
+      setResources({
+        files,
+        internetInfo,
+        knowledgePoints: projectResources.knowledgePoints || [],
       });
 
-      // 加载知识点（从项目详情中获取，这些是关联的知识点）
-      const detailsResponse = await api.get(`/projects/${project.id}/details`);
-      const knowledgePoints = detailsResponse.data?.success && detailsResponse.data?.data?.knowledgePoints
-        ? detailsResponse.data.data.knowledgePoints
-        : [];
-
-      setResources({ files, internetInfo, knowledgePoints });
-
-      // 加载对话记录
-      const convs = await ProjectConversationService.getProjectConversations(project.id);
-      setConversations(convs);
+      // 设置对话记录（从分组中提取）
+      const allConversations = projectResources.conversationsList || [];
+      setConversations(allConversations);
     } catch (error) {
       console.error('加载数据失败:', error);
+      // 降级到旧方法
+      try {
+        const sourcesResult = await sourceService.loadSourceInformationByProjectId(project.id);
+        const sources = sourcesResult.success && sourcesResult.data ? sourcesResult.data : [];
+        const grouped = groupSourcesByCategory(sources);
+        setResources({
+          files: grouped['file'],
+          internetInfo: grouped['web-search'],
+          knowledgePoints: [],
+        });
+        const convs = await ProjectConversationService.getProjectConversations(project.id);
+        setConversations(convs);
+      } catch (fallbackError) {
+        console.error('降级加载也失败:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
@@ -203,7 +206,8 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
         }
       }
 
-      // 刷新文件列表
+      // 使缓存失效并刷新
+      invalidate(project.id);
       await loadData();
       
       // 清空文件输入

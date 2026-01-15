@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, X, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
 import EditSourceModal from "./EditSourceModal";
 import KnowledgeBaseBrowser from "./KnowledgeBaseBrowser";
-import { SourceCategory } from "../../services/sourceService";
+import { SourceCategory } from "../../types/sourceCategory";
 import { Conversation } from "../../types/aiSearch";
+import { groupSourcesByCategory, getSourceCategoryConfig } from "../../services/resourceClassifier";
+import { SourceInformation } from "../../services/sourceService";
 
 export interface Source {
   id: string;
@@ -15,6 +17,7 @@ export interface Source {
   url?: string;
   description?: string;
   category?: SourceCategory;
+  metadata?: Record<string, any>;
 }
 
 interface SourceSidebarProps {
@@ -29,54 +32,16 @@ interface SourceSidebarProps {
   onClose?: () => void; // 关闭边栏的回调
 }
 
-// 获取来源类别的显示信息
-const getCategoryInfo = (category?: SourceCategory) => {
-  switch (category) {
-    case 'technical-translation':
-      return {
-        label: '技术转译',
-        icon: FileCode,
-        color: 'bg-blue-100 text-blue-700',
-        iconColor: 'text-blue-600',
-      };
-    case 'ai-qa-summary':
-      return {
-        label: 'AI问答总结',
-        icon: Brain,
-        color: 'bg-purple-100 text-purple-700',
-        iconColor: 'text-purple-600',
-      };
-    case 'tech-package-qa':
-      return {
-        label: '技术包装问答',
-        icon: Package,
-        color: 'bg-orange-100 text-orange-700',
-        iconColor: 'text-orange-600',
-      };
-    case 'tech-strategy-qa':
-      return {
-        label: '技术策略问答',
-        icon: Target,
-        color: 'bg-green-100 text-green-700',
-        iconColor: 'text-green-600',
-      };
-    case 'tech-article-qa':
-      return {
-        label: '技术通稿问答',
-        icon: Newspaper,
-        color: 'bg-indigo-100 text-indigo-700',
-        iconColor: 'text-indigo-600',
-      };
-    case 'external':
-    default:
-      return {
-        label: '外部来源',
-        icon: FileText,
-        color: 'bg-gray-100 text-gray-700',
-        iconColor: 'text-gray-600',
-      };
-  }
-};
+// 将 Source 转换为 SourceInformation 格式（用于分类服务）
+const sourceToSourceInformation = (source: Source): SourceInformation => ({
+  source_id: source.id,
+  title: source.title,
+  type: source.type,
+  url: source.url,
+  description: source.description,
+  category: source.category,
+  metadata: source.metadata,
+});
 
 const SourceSidebar: React.FC<SourceSidebarProps> = ({
   sources = [],
@@ -208,43 +173,26 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     navigate(url);
   };
 
-  // 按分组组织来源
+  // 按分组组织来源（使用统一的分类服务）
   const groupedSources = useMemo(() => {
-    // AI共创信息：对话总结相关的 category
-    const aiCreatedSources = sources.filter(s => 
-      s.category === 'ai-qa-summary' || 
-      s.category === 'tech-package-qa' || 
-      s.category === 'tech-strategy-qa' || 
-      s.category === 'tech-article-qa'
-    );
-
-    // 技术资源：技术转译
-    const techResources = sources.filter(s => 
-      s.category === 'technical-translation'
-    );
-
-    // 外部来源：其他所有来源
-    const externalSources = sources.filter(s => 
-      s.category !== 'ai-qa-summary' && 
-      s.category !== 'tech-package-qa' && 
-      s.category !== 'tech-strategy-qa' && 
-      s.category !== 'tech-article-qa' &&
-      s.category !== 'technical-translation'
-    );
-
-    // 调试日志
-    console.log('[SourceSidebar] 分组统计:', {
-      total: sources.length,
-      aiCreated: aiCreatedSources.length,
-      techResources: techResources.length,
-      external: externalSources.length,
-      categories: sources.map(s => ({ id: s.id, title: s.title, category: s.category }))
-    });
+    // 转换为 SourceInformation 格式以使用分类服务
+    const sourceInfoList = sources.map(sourceToSourceInformation);
+    const grouped = groupSourcesByCategory(sourceInfoList);
+    
+    // 转换回 Source 格式并按照需要重新组织
+    const aiCreated = grouped['ai-created'].map(si => sources.find(s => s.id === si.source_id)!).filter(Boolean);
+    const techResources = grouped['tech-resource'].map(si => sources.find(s => s.id === si.source_id)!).filter(Boolean);
+    const files = grouped['file'].map(si => sources.find(s => s.id === si.source_id)!).filter(Boolean);
+    const webSearch = grouped['web-search'].map(si => sources.find(s => s.id === si.source_id)!).filter(Boolean);
+    const external = grouped['external'].map(si => sources.find(s => s.id === si.source_id)!).filter(Boolean);
+    
+    // 外部来源包括 files、webSearch 和其他 external
+    const allExternal = [...files, ...webSearch, ...external];
 
     return {
-      aiCreated: aiCreatedSources,
-      techResources: techResources,
-      external: externalSources,
+      aiCreated,
+      techResources,
+      external: allExternal,
     };
   }, [sources]);
 
@@ -350,7 +298,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 {!collapsedGroups.has('aiCreated') && (
                   <div className="p-2 space-y-1">
                   {groupedSources.aiCreated.map((source) => {
-                    const categoryInfo = getCategoryInfo(source.category);
+                    const categoryInfo = getSourceCategoryConfig(sourceToSourceInformation(source));
                     const IconComponent = categoryInfo.icon;
                     
                     return (
@@ -426,7 +374,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 {!collapsedGroups.has('techResources') && groupedSources.techResources.length > 0 && (
                   <div className="p-2 space-y-1">
                     {groupedSources.techResources.map((source) => {
-                      const categoryInfo = getCategoryInfo(source.category);
+                      const categoryInfo = getSourceCategoryConfig(sourceToSourceInformation(source));
                       const IconComponent = categoryInfo.icon;
                       
                       return (
@@ -507,7 +455,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                 {!collapsedGroups.has('external') && (
                   <div className="p-2 space-y-1">
                   {groupedSources.external.map((source) => {
-                    const categoryInfo = getCategoryInfo(source.category);
+                    const categoryInfo = getSourceCategoryConfig(sourceToSourceInformation(source));
                     const IconComponent = categoryInfo.icon;
                     
                     return (

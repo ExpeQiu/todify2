@@ -165,12 +165,35 @@ export class SourceInformationModel {
 
   /**
    * 根据项目ID获取来源信息列表
-   * 支持三种方式：
-   * 1. 通过 project_id 字段查询（主要方式）
-   * 2. 通过关联表 project_source_informations 查询（补充方式）
-   * 3. 通过 page_type = 'project-{projectId}' 查询（兼容旧数据）
+   * 统一使用 project_id 字段查询
    */
   async findByProjectId(projectId: number): Promise<SourceInformation[]> {
+    const sql = `
+      SELECT * FROM source_information
+      WHERE project_id = ? AND status = 'active'
+      ORDER BY created_at DESC
+    `;
+    
+    try {
+      const result = await this.db.query(sql, [projectId]);
+      const rows = Array.isArray(result) ? result : [result];
+      return rows.map((row: any) => this.parseJsonFields(row)) as SourceInformation[];
+    } catch (error: any) {
+      // 如果 project_id 字段不存在，返回空数组（兼容旧数据库）
+      if (error?.message?.includes('no such column: project_id') || 
+          error?.message?.includes('column "project_id" does not exist')) {
+        console.warn('project_id 字段不存在，请运行数据迁移脚本');
+        return [];
+      }
+      throw error;
+    }
+  }
+  
+  /**
+   * 根据项目ID获取来源信息列表（旧方法，已废弃）
+   * @deprecated 请使用 findByProjectId，此方法仅用于兼容
+   */
+  async findByProjectIdLegacy(projectId: number): Promise<SourceInformation[]> {
     const pageType = `project-${projectId}`;
     const results: SourceInformation[] = [];
     const seenIds = new Set<number>();
@@ -193,9 +216,7 @@ export class SourceInformationModel {
           }
         }
       } catch (error: any) {
-        // 如果 project_id 字段不存在，忽略错误
-        if (!error?.message?.includes('no such column: project_id') && 
-            !error?.message?.includes('column "project_id" does not exist')) {
+        if (!error?.message?.includes('no such column: project_id')) {
           console.warn('查询 project_id 字段失败:', error?.message);
         }
       }
@@ -218,9 +239,7 @@ export class SourceInformationModel {
           }
         }
       } catch (error: any) {
-        // 如果关联表不存在，忽略错误
-        if (!error?.message?.includes('no such table: project_source_informations') &&
-            !error?.message?.includes('relation "project_source_informations" does not exist')) {
+        if (!error?.message?.includes('no such table: project_source_informations')) {
           console.warn('查询关联表失败:', error?.message);
         }
       }
@@ -254,8 +273,7 @@ export class SourceInformationModel {
       
       return results;
     } catch (error: any) {
-      console.error('查询项目来源信息失败:', error);
-      // 如果所有查询都失败，返回空数组而不是抛出错误
+      console.error('查询项目来源信息失败（旧方法）:', error);
       return [];
     }
   }

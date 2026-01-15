@@ -3,6 +3,7 @@ import { TechCategoryModel } from './TechCategory';
 import { TechPointModel } from './TechPoint';
 import { AIRoleModel } from './AIRole';
 import { ProjectModel } from './Project';
+import { SourceInformationModel } from './SourceInformation';
 // ⚠️ 已废弃: 以下模型对应的表已移除，数据存储在 workflow_executions.outputs 中
 import { TechPackagingMaterialModel } from './TechPackagingMaterial';
 import { TechPromotionStrategyModel } from './TechPromotionStrategy';
@@ -15,6 +16,7 @@ import { ExecutionTraceModel } from './ExecutionTrace';
 import { PerformanceMetricModel } from './PerformanceMetrics';
 import { PublicPageConfigModel } from './PublicPageConfig';
 import { PageToolConfigModel } from './PageToolConfig';
+import { SourceInformationModel } from './SourceInformation';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例
@@ -22,6 +24,7 @@ export const techCategoryModel = new TechCategoryModel(db);
 export const techPointModel = new TechPointModel(db);
 export const aiRoleModel = new AIRoleModel(db);
 export const projectModel = new ProjectModel(db);
+export const sourceInformationModel = new SourceInformationModel(db);
 // ⚠️ 已废弃: 以下模型实例已废弃，对应的表已移除
 // @deprecated 请使用 workflow_executions 表获取数据
 export const techPackagingMaterialModel = new TechPackagingMaterialModel(db);
@@ -44,6 +47,7 @@ export { TechCategoryModel } from './TechCategory';
 export { TechPointModel } from './TechPoint';
 export { AIRoleModel } from './AIRole';
 export { ProjectModel } from './Project';
+export { SourceInformationModel } from './SourceInformation';
 // ⚠️ 已废弃: 以下模型类已废弃，对应的表已移除
 // @deprecated 请使用 workflow_executions 表获取数据
 export { TechPackagingMaterialModel } from './TechPackagingMaterial';
