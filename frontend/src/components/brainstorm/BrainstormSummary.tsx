@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Copy, Check, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '@/styles/markdown.css';
 
 interface BrainstormSummaryProps {
   summary: string;
@@ -97,10 +100,10 @@ export const BrainstormSummary: React.FC<BrainstormSummaryProps> = ({
           </div>
         </div>
       </div>
-      <div className="prose max-w-none">
-        <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+      <div className="brainstorm-message-content">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {summary}
-        </div>
+        </ReactMarkdown>
       </div>
     </div>
   );

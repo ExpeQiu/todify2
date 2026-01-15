@@ -30,7 +30,7 @@ export default defineConfig({
       }
     }
   },
-  base: '/',
+  base: '/todify/',
   publicDir: 'public',
   resolve: {
     alias: {

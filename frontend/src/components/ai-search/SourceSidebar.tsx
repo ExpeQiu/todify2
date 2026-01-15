@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper, MessageSquare } from "lucide-react";
+import { Plus, FileText, X, FileCode, Brain, Package, Target, Newspaper, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";
@@ -96,6 +96,7 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
   const [showKnowledgeBrowser, setShowKnowledgeBrowser] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [isSelectAll, setIsSelectAll] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const handleAddSource = () => {
     setShowTextModal(true);
@@ -247,6 +248,28 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
     };
   }, [sources]);
 
+  // 计算每个分组的已选数量
+  const selectedCounts = useMemo(() => {
+    return {
+      aiCreated: groupedSources.aiCreated.filter(s => selectedSources.includes(s.id)).length,
+      techResources: groupedSources.techResources.filter(s => selectedSources.includes(s.id)).length,
+      external: groupedSources.external.filter(s => selectedSources.includes(s.id)).length,
+    };
+  }, [groupedSources, selectedSources]);
+
+  // 切换分组折叠状态
+  const toggleGroup = (groupName: string) => {
+    setCollapsedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupName)) {
+        newSet.delete(groupName);
+      } else {
+        newSet.add(groupName);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
       {/* 标题和操作按钮 */}
@@ -298,20 +321,34 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
             {/* AI共创信息分组 */}
             {groupedSources.aiCreated.length > 0 && (
               <div className="border-b border-gray-200">
-                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-purple-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      AI共创信息
-                      {groupedSources.aiCreated.length > 0 && (
+                <div 
+                  className="bg-gray-200 px-4 py-3 border-b border-gray-300 cursor-pointer hover:bg-gray-250 transition-colors"
+                  onClick={() => toggleGroup('aiCreated')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-purple-600" />
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        AI共创信息
                         <span className="text-gray-500 font-normal ml-1">
                           ({groupedSources.aiCreated.length})
                         </span>
-                      )}
-                    </h3>
+                        {selectedCounts.aiCreated > 0 && (
+                          <span className="text-blue-600 font-medium ml-1">
+                            已选 {selectedCounts.aiCreated}
+                          </span>
+                        )}
+                      </h3>
+                    </div>
+                    {collapsedGroups.has('aiCreated') ? (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    )}
                   </div>
                 </div>
-                <div className="p-2 space-y-1">
+                {!collapsedGroups.has('aiCreated') && (
+                  <div className="p-2 space-y-1">
                   {groupedSources.aiCreated.map((source) => {
                     const categoryInfo = getCategoryInfo(source.category);
                     const IconComponent = categoryInfo.icon;
@@ -352,27 +389,41 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* 技术资源分组 - 只要有 projectId 就显示 */}
             {projectId && (
               <div className="border-b border-gray-200">
-                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-blue-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      技术资源
-                      {groupedSources.techResources.length > 0 && (
+                <div 
+                  className="bg-gray-200 px-4 py-3 border-b border-gray-300 cursor-pointer hover:bg-gray-250 transition-colors"
+                  onClick={() => toggleGroup('techResources')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileCode className="w-4 h-4 text-blue-600" />
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        技术资源
                         <span className="text-gray-500 font-normal ml-1">
                           ({groupedSources.techResources.length})
                         </span>
-                      )}
-                    </h3>
+                        {selectedCounts.techResources > 0 && (
+                          <span className="text-blue-600 font-medium ml-1">
+                            已选 {selectedCounts.techResources}
+                          </span>
+                        )}
+                      </h3>
+                    </div>
+                    {collapsedGroups.has('techResources') ? (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    )}
                   </div>
                 </div>
-                {groupedSources.techResources.length > 0 ? (
+                {!collapsedGroups.has('techResources') && groupedSources.techResources.length > 0 && (
                   <div className="p-2 space-y-1">
                     {groupedSources.techResources.map((source) => {
                       const categoryInfo = getCategoryInfo(source.category);
@@ -415,7 +466,8 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                       );
                     })}
                   </div>
-                ) : (
+                )}
+                {!collapsedGroups.has('techResources') && groupedSources.techResources.length === 0 && (
                   <div className="px-4 pb-3">
                     <div className="text-xs text-gray-500 py-2 text-center">暂无技术资源</div>
                   </div>
@@ -426,20 +478,34 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
             {/* 外部来源分组 */}
             {groupedSources.external.length > 0 && (
               <div className="border-b border-gray-200">
-                <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-600" />
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      外部来源
-                      {groupedSources.external.length > 0 && (
+                <div 
+                  className="bg-gray-200 px-4 py-3 border-b border-gray-300 cursor-pointer hover:bg-gray-250 transition-colors"
+                  onClick={() => toggleGroup('external')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-600" />
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        外部来源
                         <span className="text-gray-500 font-normal ml-1">
                           ({groupedSources.external.length})
                         </span>
-                      )}
-                    </h3>
+                        {selectedCounts.external > 0 && (
+                          <span className="text-blue-600 font-medium ml-1">
+                            已选 {selectedCounts.external}
+                          </span>
+                        )}
+                      </h3>
+                    </div>
+                    {collapsedGroups.has('external') ? (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    )}
                   </div>
                 </div>
-                <div className="p-2 space-y-1">
+                {!collapsedGroups.has('external') && (
+                  <div className="p-2 space-y-1">
                   {groupedSources.external.map((source) => {
                     const categoryInfo = getCategoryInfo(source.category);
                     const IconComponent = categoryInfo.icon;
@@ -480,7 +546,8 @@ const SourceSidebar: React.FC<SourceSidebarProps> = ({
                       </div>
                     );
                   })}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

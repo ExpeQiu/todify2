@@ -359,6 +359,7 @@ export class BrainstormOrchestrator {
 
   /**
    * 并行执行模式：所有 Agent 同时发言
+   * 优化：每个 Agent 完成后立即保存消息，不等待其他 Agent
    */
   private async executeParallel(
     session: BrainstormSessionDTO,
@@ -371,13 +372,19 @@ export class BrainstormOrchestrator {
     // 构建每个参与者的查询（包含话题和历史讨论）
     const queries = await this.buildQueriesForParticipants(session, participants, historyMessages, roundNumber);
 
-    // 并行调用所有 Agent（带超时保护）
-    const AGENT_TIMEOUT = 300000; // 单个 Agent 5分钟超时
+    // 减少超时时间到2分钟，提高响应性
+    const AGENT_TIMEOUT = 120000; // 单个 Agent 2分钟超时
+    const messages: BrainstormMessageDTO[] = [];
+
+    // 并行调用所有 Agent，每个完成后立即保存消息
     const agentPromises = participants.map(async (participant, index) => {
       const query = queries[index];
       const conversationId = `${session.id}_${participant.id}`;
+      const startTime = Date.now();
 
       try {
+        console.log(`[Brainstorm] Agent ${participant.aiRoleId} 开始执行...`);
+        
         const result = await Promise.race([
           this.agentOrchestrator.executeAgent(
             participant.aiRoleId,
@@ -391,12 +398,15 @@ export class BrainstormOrchestrator {
             }
           ),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Agent 执行超时')), AGENT_TIMEOUT)
+            setTimeout(() => reject(new Error('Agent 执行超时（2分钟）')), AGENT_TIMEOUT)
           )
         ]);
 
-        // 保存消息（使用事务确保数据一致性）
-        return await brainstormMessageModel.create({
+        const duration = Date.now() - startTime;
+        console.log(`[Brainstorm] Agent ${participant.aiRoleId} 完成，耗时 ${duration}ms`);
+
+        // 立即保存消息，让前端能尽快看到结果
+        const message = await brainstormMessageModel.create({
           sessionId: session.id,
           participantId: participant.id,
           roundNumber,
@@ -407,12 +417,18 @@ export class BrainstormOrchestrator {
             totalTokens: result.usage.totalTokens,
             model: result.metadata?.model,
             finishReason: result.metadata?.finishReason,
+            duration,
           },
         });
+        
+        messages.push(message);
+        return message;
       } catch (error) {
-        console.error(`参与者 ${participant.id} 执行失败:`, error);
+        const duration = Date.now() - startTime;
+        console.error(`[Brainstorm] Agent ${participant.aiRoleId} 执行失败 (${duration}ms):`, error);
+        
         // 返回错误消息
-        return await brainstormMessageModel.create({
+        const errorMessage = await brainstormMessageModel.create({
           sessionId: session.id,
           participantId: participant.id,
           roundNumber,
@@ -420,28 +436,24 @@ export class BrainstormOrchestrator {
           metadata: {
             error: error instanceof Error ? error.message : '未知错误',
             timeout: error instanceof Error && error.message.includes('超时'),
+            duration,
           },
         });
+        
+        messages.push(errorMessage);
+        return errorMessage;
       }
     });
 
-    // 等待所有 Agent 完成（使用 allSettled 避免单个失败影响整体）
-    const results = await Promise.allSettled(agentPromises);
-    const messages: BrainstormMessageDTO[] = [];
-
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        messages.push(result.value);
-      } else {
-        console.error('Agent 执行失败:', result.reason);
-      }
-    }
-
+    // 等待所有 Agent 完成
+    await Promise.allSettled(agentPromises);
+    
     return messages;
   }
 
   /**
    * 轮流发言模式：Agent 按顺序依次发言
+   * 优化：减少超时时间，添加进度日志
    */
   private async executeRoundRobin(
     session: BrainstormSessionDTO,
@@ -456,9 +468,20 @@ export class BrainstormOrchestrator {
     // 获取历史消息（用于构建上下文）
     const historyMessages = await brainstormMessageModel.getBySessionId(session.id);
 
+    console.log(`[Brainstorm] 轮流发言模式开始，共 ${sortedParticipants.length} 位参与者`);
+
     // 依次执行每个参与者
     for (let i = 0; i < sortedParticipants.length; i++) {
+      // 检查会话是否仍然活跃
+      if (!this.activeSessions.get(session.id)) {
+        console.log(`[Brainstorm] 会话已停止，中断轮流发言`);
+        break;
+      }
+
       const participant = sortedParticipants[i];
+      const startTime = Date.now();
+      
+      console.log(`[Brainstorm] 第 ${i + 1}/${sortedParticipants.length} 位: ${participant.displayName || participant.aiRole?.name || participant.aiRoleId}`);
       
       // 构建查询，包含之前参与者的发言
       const queries = await this.buildQueriesForParticipants(
@@ -472,7 +495,8 @@ export class BrainstormOrchestrator {
       const conversationId = `${session.id}_${participant.id}`;
 
       try {
-        const AGENT_TIMEOUT = 300000; // 单个 Agent 5分钟超时
+        // 减少超时时间到2分钟
+        const AGENT_TIMEOUT = 120000;
         const result = await Promise.race([
           this.agentOrchestrator.executeAgent(
             participant.aiRoleId,
@@ -488,9 +512,12 @@ export class BrainstormOrchestrator {
             }
           ),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Agent 执行超时')), AGENT_TIMEOUT)
+            setTimeout(() => reject(new Error('Agent 执行超时（2分钟）')), AGENT_TIMEOUT)
           )
         ]);
+
+        const duration = Date.now() - startTime;
+        console.log(`[Brainstorm] Agent 完成，耗时 ${duration}ms`);
 
         // 保存消息
         const message = await brainstormMessageModel.create({
@@ -504,12 +531,17 @@ export class BrainstormOrchestrator {
             totalTokens: result.usage.totalTokens,
             model: result.metadata?.model,
             finishReason: result.metadata?.finishReason,
+            duration,
+            turnIndex: i,
+            totalTurns: sortedParticipants.length,
           },
         });
         
         messages.push(message);
       } catch (error) {
-        console.error(`参与者 ${participant.id} 执行失败:`, error);
+        const duration = Date.now() - startTime;
+        console.error(`[Brainstorm] Agent 执行失败 (${duration}ms):`, error);
+        
         // 返回错误消息
         const errorMessage = await brainstormMessageModel.create({
           sessionId: session.id,
@@ -519,12 +551,16 @@ export class BrainstormOrchestrator {
           metadata: {
             error: error instanceof Error ? error.message : '未知错误',
             timeout: error instanceof Error && error.message.includes('超时'),
+            duration,
+            turnIndex: i,
+            totalTurns: sortedParticipants.length,
           },
         });
         messages.push(errorMessage);
       }
     }
 
+    console.log(`[Brainstorm] 轮流发言模式完成，共产生 ${messages.length} 条消息`);
     return messages;
   }
 

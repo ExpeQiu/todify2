@@ -30,9 +30,12 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
   const [loadingSources, setLoadingSources] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [sendingUserMessage, setSendingUserMessage] = useState(false);
+  const [pollingStatus, setPollingStatus] = useState<'idle' | 'polling' | 'error'>('idle');
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageCountRef = useRef<number>(0);
 
   // 加载来源信息（使用项目ID查询）
   const loadSources = useCallback(async () => {
@@ -61,9 +64,12 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
       });
       setSessions(data);
       
-      // 如果有选中的会话，更新它（只有当会话真的改变时才更新）
+      // 如果有选中的会话，更新它；如果没有选中会话且有数据，自动选择第一个
       setSelectedSession(prev => {
-        if (!prev) return prev;
+        if (!prev) {
+          // 没有选中会话，自动选择第一个（如果有的话）
+          return data.length > 0 ? data[0] : null;
+        }
         const updated = data.find(s => s.id === prev.id);
         if (updated && JSON.stringify(updated) !== JSON.stringify(prev)) {
           return updated;
@@ -78,18 +84,49 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
     }
   }, [projectId]);
 
-  const loadMessages = useCallback(async (sessionId: string) => {
+  // 增量更新消息：只在消息真的变化时才更新状态，避免不必要的重渲染和滚动
+  const loadMessages = useCallback(async (sessionId: string, isInitialLoad = false) => {
     try {
-      setLoadingMessages(true);
+      if (isInitialLoad) {
+        setLoadingMessages(true);
+      }
       const data = await brainstormService.getMessages(sessionId);
-      setMessages(data);
+      
+      // 增量比较：检查消息是否真的变化了
+      setMessages(prevMessages => {
+        // 如果消息数量不同，说明有新消息
+        if (data.length !== prevMessages.length) {
+          lastMessageCountRef.current = data.length;
+          setLastUpdateTime(new Date());
+          return data;
+        }
+        
+        // 如果消息数量相同，检查最后一条消息的ID是否相同
+        if (data.length > 0 && prevMessages.length > 0) {
+          const lastNewMsg = data[data.length - 1];
+          const lastOldMsg = prevMessages[prevMessages.length - 1];
+          if (lastNewMsg.id !== lastOldMsg.id || lastNewMsg.content !== lastOldMsg.content) {
+            lastMessageCountRef.current = data.length;
+            setLastUpdateTime(new Date());
+            return data;
+          }
+        }
+        
+        // 消息没有变化，返回原数组（不触发重渲染）
+        return prevMessages;
+      });
     } catch (error) {
       console.error('加载消息失败:', error);
-      toast.error('加载消息失败');
+      if (isInitialLoad) {
+        toast.error('加载消息失败');
+      }
       // 发生错误时停止轮询，避免无限重试
       stopPolling();
+      setPollingStatus('error');
     } finally {
-      setLoadingMessages(false);
+      if (isInitialLoad) {
+        setLoadingMessages(false);
+      }
     }
   }, []);
 
@@ -103,23 +140,28 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
   const startPolling = useCallback((sessionId: string) => {
     // 先停止之前的轮询
     stopPolling();
+    setPollingStatus('polling');
     
     let consecutiveErrors = 0;
     const MAX_CONSECUTIVE_ERRORS = 3;
     
-    // 如果会话是活跃状态，每3秒轮询一次
+    // 如果会话是活跃状态，每5秒轮询一次（增加间隔减少频繁刷新）
     const interval = setInterval(async () => {
       try {
         const status = await brainstormService.getSessionStatus(sessionId);
         consecutiveErrors = 0; // 重置错误计数
         
         if (status.isActive || status.status === 'active') {
-          await loadMessages(sessionId);
-          // 同时更新会话状态
+          // 使用增量加载，不显示loading状态
+          await loadMessages(sessionId, false);
+          // 同时更新会话状态（只更新必要字段）
           const updated = await brainstormService.getSession(sessionId);
           setSelectedSession(prev => {
-            // 只有当会话真的改变时才更新
-            if (prev && prev.id === updated.id && JSON.stringify(prev) === JSON.stringify(updated)) {
+            if (!prev) return updated;
+            // 只比较关键字段，减少不必要的更新
+            if (prev.id === updated.id && 
+                prev.status === updated.status && 
+                prev.messageCount === updated.messageCount) {
               return prev;
             }
             return updated;
@@ -127,10 +169,12 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
         } else {
           // 讨论已结束，停止轮询
           stopPolling();
-          await loadMessages(sessionId);
+          setPollingStatus('idle');
+          await loadMessages(sessionId, false);
           const updated = await brainstormService.getSession(sessionId);
           setSelectedSession(prev => {
-            if (prev && prev.id === updated.id && JSON.stringify(prev) === JSON.stringify(updated)) {
+            if (!prev) return updated;
+            if (prev.id === updated.id && prev.status === updated.status) {
               return prev;
             }
             return updated;
@@ -139,6 +183,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
       } catch (error) {
         console.error('轮询失败:', error);
         consecutiveErrors++;
+        setPollingStatus('error');
         // 如果连续错误过多，停止轮询
         if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
           console.error(`连续 ${consecutiveErrors} 次轮询错误，停止轮询`);
@@ -146,7 +191,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
           toast.error('轮询失败次数过多，已停止自动刷新');
         }
       }
-    }, 3000);
+    }, 5000); // 增加轮询间隔到5秒
 
     pollingIntervalRef.current = interval;
   }, [loadMessages, stopPolling]);
@@ -160,7 +205,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
   // 当选中会话变化时，加载消息
   useEffect(() => {
     if (selectedSession) {
-      loadMessages(selectedSession.id);
+      loadMessages(selectedSession.id, true); // 初始加载显示loading
       startPolling(selectedSession.id);
     } else {
       stopPolling();
@@ -371,17 +416,39 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
                       </button>
                     )}
                     {selectedSession.status === 'active' && (
-                      <button
-                        onClick={handleStopSession}
-                        className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <Square className="w-4 h-4" />
-                        <span>停止讨论</span>
-                      </button>
+                      <>
+                        {/* 轮询状态指示 */}
+                        <div className="flex items-center space-x-2 text-sm">
+                          {pollingStatus === 'polling' && (
+                            <span className="flex items-center text-green-600">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
+                              实时同步中
+                            </span>
+                          )}
+                          {pollingStatus === 'error' && (
+                            <span className="flex items-center text-red-600">
+                              <span className="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+                              同步异常
+                            </span>
+                          )}
+                          {lastUpdateTime && (
+                            <span className="text-gray-400 text-xs">
+                              {lastUpdateTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={handleStopSession}
+                          className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          <Square className="w-4 h-4" />
+                          <span>停止讨论</span>
+                        </button>
+                      </>
                     )}
                     {(selectedSession.status === 'completed' || selectedSession.status === 'stopped') && (
                       <button
-                        onClick={() => loadMessages(selectedSession.id)}
+                        onClick={() => loadMessages(selectedSession.id, true)}
                         className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <RefreshCw className="w-4 h-4" />
@@ -425,7 +492,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
 
               {/* 消息内容区 */}
               <div className="flex-1 flex overflow-hidden">
-                {/* 消息列表 */}
+                {/* 消息列表和总结区域（可滚动） */}
                 <div className="flex-1 overflow-y-auto p-6">
                   {loadingMessages ? (
                     <div className="flex items-center justify-center h-full">
@@ -448,6 +515,16 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
                               <p className="text-sm mt-2">点击"开始讨论"按钮启动讨论</p>
                             )}
                           </div>
+                        </div>
+                      )}
+                      
+                      {/* 总结区域（在消息列表下方，可一起滚动） */}
+                      {selectedSession.summary && (
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <BrainstormSummary
+                            summary={selectedSession.summary}
+                            sessionTitle={selectedSession.title}
+                          />
                         </div>
                       )}
                     </>
@@ -545,16 +622,6 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
                   <p className="text-xs text-gray-500 mt-2">
                     按 Enter 发送，Shift+Enter 换行
                   </p>
-                </div>
-              )}
-
-              {/* 总结区域 */}
-              {selectedSession.summary && (
-                <div className="border-t border-gray-200 p-6 bg-gray-50">
-                  <BrainstormSummary
-                    summary={selectedSession.summary}
-                    sessionTitle={selectedSession.title}
-                  />
                 </div>
               )}
             </>

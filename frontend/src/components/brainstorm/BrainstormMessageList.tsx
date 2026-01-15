@@ -1,6 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { BrainstormMessage, BrainstormParticipant } from '@/types/brainstorm';
 import { Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '@/styles/markdown.css';
 
 interface BrainstormMessageListProps {
   messages: BrainstormMessage[];
@@ -14,19 +17,37 @@ export const BrainstormMessageList: React.FC<BrainstormMessageListProps> = ({
   autoScroll = true,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesByRound = new Map<number, BrainstormMessage[]>();
+  const prevMessageCountRef = useRef<number>(0);
+  const prevLastMessageIdRef = useRef<string | null>(null);
 
-  // 按轮次分组消息
-  messages.forEach((msg) => {
-    if (!messagesByRound.has(msg.roundNumber)) {
-      messagesByRound.set(msg.roundNumber, []);
-    }
-    messagesByRound.get(msg.roundNumber)!.push(msg);
-  });
+  // 使用 useMemo 缓存按轮次分组的结果，避免每次渲染都重新计算
+  const messagesByRound = useMemo(() => {
+    const map = new Map<number, BrainstormMessage[]>();
+    messages.forEach((msg) => {
+      if (!map.has(msg.roundNumber)) {
+        map.set(msg.roundNumber, []);
+      }
+      map.get(msg.roundNumber)!.push(msg);
+    });
+    return map;
+  }, [messages]);
 
+  // 只在有新消息时滚动，避免轮询导致的频繁滚动
   useEffect(() => {
-    if (autoScroll) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!autoScroll || messages.length === 0) return;
+    
+    const currentLastMessageId = messages[messages.length - 1]?.id || null;
+    const hasNewMessages = 
+      messages.length > prevMessageCountRef.current || 
+      currentLastMessageId !== prevLastMessageIdRef.current;
+    
+    if (hasNewMessages) {
+      // 延迟滚动，等待 DOM 更新
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
+      prevMessageCountRef.current = messages.length;
+      prevLastMessageIdRef.current = currentLastMessageId;
     }
   }, [messages, autoScroll]);
 
@@ -87,7 +108,7 @@ export const BrainstormMessageList: React.FC<BrainstormMessageListProps> = ({
                   return (
                     <div
                       key={message.id}
-                      className={`flex items-start space-x-3 p-4 rounded-lg ${
+                      className={`flex items-start space-x-2.5 p-3 rounded-lg ${
                         hasError ? 'bg-red-50 border border-red-200' : 
                         isUserMessage ? 'bg-green-50 border border-green-200' : 
                         'bg-white border border-gray-200'
@@ -96,18 +117,18 @@ export const BrainstormMessageList: React.FC<BrainstormMessageListProps> = ({
                       {/* 头像 */}
                       <div className="flex-shrink-0">
                         {isUserMessage ? (
-                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                            <User className="w-5 h-5 text-green-600" />
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <User className="w-4 h-4 text-green-600" />
                           </div>
                         ) : avatar ? (
                           <img
                             src={avatar}
                             alt={participantName}
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-8 h-8 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <Bot className="w-5 h-5 text-blue-600" />
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Bot className="w-4 h-4 text-blue-600" />
                           </div>
                         )}
                       </div>
@@ -115,7 +136,7 @@ export const BrainstormMessageList: React.FC<BrainstormMessageListProps> = ({
                       {/* 消息内容 */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className="font-medium text-gray-900">{participantName}</span>
+                          <span className="font-medium text-gray-900 text-sm">{participantName}</span>
                           <span className="text-xs text-gray-500">
                             {new Date(message.createdAt).toLocaleTimeString('zh-CN', {
                               hour: '2-digit',
@@ -124,19 +145,21 @@ export const BrainstormMessageList: React.FC<BrainstormMessageListProps> = ({
                           </span>
                         </div>
                         <div
-                          className={`text-gray-700 whitespace-pre-wrap ${
+                          className={`brainstorm-message-content ${
                             hasError ? 'text-red-700' : ''
                           }`}
                         >
-                          {message.content}
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
                         </div>
                         {message.metadata?.error && (
-                          <div className="mt-2 text-sm text-red-600">
+                          <div className="mt-1.5 text-xs text-red-600">
                             错误: {message.metadata.error}
                           </div>
                         )}
                         {message.metadata?.totalTokens && (
-                          <div className="mt-2 text-xs text-gray-400">
+                          <div className="mt-1.5 text-xs text-gray-400">
                             Token: {message.metadata.totalTokens}
                           </div>
                         )}

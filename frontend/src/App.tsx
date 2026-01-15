@@ -24,6 +24,7 @@ import ExecutionTracePage from "./pages/ExecutionTracePage";
 function App() {
   return (
     <Router
+      basename="/todify"
       future={{
         v7_startTransition: true,
         v7_relativeSplatPath: true,

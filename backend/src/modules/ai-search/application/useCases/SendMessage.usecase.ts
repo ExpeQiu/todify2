@@ -1,6 +1,7 @@
 import { agentWorkflowService } from '@/services/AgentWorkflowService';
 import { AiSearchService, FieldMappingService } from '@/services/AiSearchService';
 import { fileService } from '@/services/FileService';
+import { aiRoleModel } from '@/models';
 import { logger } from '@/shared/lib/logger';
 import { Result, failure, success } from '@/shared/lib/result';
 
@@ -101,8 +102,22 @@ export class SendMessageUseCase {
         }
 
         // 判断 finalWorkflowId 是 AI 角色 ID 还是工作流 ID
-        // AI 角色 ID 可能以 'role_' 或 'ai-role-' 开头
-        const isRoleId = finalWorkflowId.startsWith('role_') || finalWorkflowId.startsWith('ai-role-');
+        // 优先检查数据库中是否存在该角色，而不仅仅依赖前缀判断
+        let isRoleId = finalWorkflowId.startsWith('role_') || finalWorkflowId.startsWith('ai-role-');
+        
+        // 如果前缀判断不是角色，再查询数据库确认
+        if (!isRoleId) {
+          try {
+            const role = await aiRoleModel.getById(finalWorkflowId);
+            if (role && role.enabled) {
+              isRoleId = true;
+              logger.info('通过数据库查询确认为 AI 角色', { roleId: finalWorkflowId, roleName: role.name });
+            }
+          } catch (error) {
+            // 查询失败，保持原判断结果
+            logger.debug('查询角色失败，按工作流处理', { workflowId: finalWorkflowId, error });
+          }
+        }
         
         let workflowResult;
         if (isRoleId) {
@@ -340,6 +355,24 @@ export class SendMessageUseCase {
     return labelMap[featureType] || '子Agent分析';
   }
 
+  /**
+   * 获取来源分类的中文标签
+   */
+  private getSourceCategoryLabel(category?: string): string {
+    if (!category) return '外部来源';
+    
+    const labelMap: Record<string, string> = {
+      'ai-qa-summary': 'AI问答总结',
+      'tech-package-qa': '技术包装问答',
+      'tech-strategy-qa': '技术策略问答',
+      'tech-article-qa': '技术通稿问答',
+      'technical-translation': '技术转译',
+      'external': '外部来源',
+    };
+    
+    return labelMap[category] || '外部来源';
+  }
+
   private async buildConversationData(
     params: {
       conversation: any | null;
@@ -416,41 +449,84 @@ export class SendMessageUseCase {
                           !params.conversation.messages || 
                           params.conversation.messages.length === 0;
     
-    // 提取附加信息：外部来源的文本内容和文件的markdown内容
+    // 提取附加信息：所有来源的文本内容和文件的markdown内容
     let additionalContext = '';
     
     const textContents: string[] = [];
     
-    // 只在第一次对话时，提取外部来源的文本内容（description）
-    if (isFirstMessage) {
-      const externalTextSources = effectiveSources.filter((s: any) => 
-        s.type === 'external' && s.description && s.description.trim()
-      );
-      
-      externalTextSources.forEach((source: any) => {
-        if (source.description && source.description.trim()) {
-          const title = source.title || '附加信息';
-          textContents.push(`【${title}】\n${source.description.trim()}`);
-        }
-      });
-    }
+    // 提取所有来源的文本内容（移除 isFirstMessage 限制，让每次对话都能传递新增来源）
+    // 同时处理 external 和 knowledge_base 类型的来源
+    const textSources = effectiveSources.filter((s: any) => 
+      s.description && s.description.trim()
+    );
+    
+    // 按分类优先级排序：AI共创 > 技术资源 > 外部来源
+    const categoryPriority: Record<string, number> = {
+      'ai-qa-summary': 1,
+      'tech-package-qa': 1,
+      'tech-strategy-qa': 1,
+      'tech-article-qa': 1,
+      'technical-translation': 2,
+      'external': 3,
+    };
+    
+    const sortedSources = textSources.sort((a: any, b: any) => {
+      const priorityA = categoryPriority[a.category || 'external'] || 3;
+      const priorityB = categoryPriority[b.category || 'external'] || 3;
+      return priorityA - priorityB;
+    });
+    
+    sortedSources.forEach((source: any) => {
+      if (source.description && source.description.trim()) {
+        const categoryLabel = this.getSourceCategoryLabel(source.category);
+        const title = source.title || '附加信息';
+        textContents.push(`【${categoryLabel}：${title}】\n${source.description.trim()}`);
+      }
+    });
     
     // 文件的markdown内容总是添加（无论是否第一次对话）
     if (fileMarkdownContents.length > 0) {
       textContents.push(...fileMarkdownContents);
     }
     
-    if (textContents.length > 0) {
-      additionalContext = '\n\n=== 附加信息（文件内容） ===\n' + textContents.join('\n\n---\n\n');
-      logger.info('提取附加信息（外部来源和文件markdown）', {
+    // 限制总内容长度（8000字符），超长时智能截断
+    const MAX_CONTEXT_LENGTH = 8000;
+    let totalLength = 0;
+    const truncatedContents: string[] = [];
+    
+    for (const content of textContents) {
+      const contentLength = content.length;
+      if (totalLength + contentLength <= MAX_CONTEXT_LENGTH) {
+        truncatedContents.push(content);
+        totalLength += contentLength;
+      } else {
+        // 如果当前内容加上后超过限制，尝试截断当前内容
+        const remainingLength = MAX_CONTEXT_LENGTH - totalLength;
+        if (remainingLength > 100) { // 至少保留100字符才有意义
+          const truncated = content.substring(0, remainingLength - 20) + '\n...(内容已截断)';
+          truncatedContents.push(truncated);
+        }
+        break; // 不再添加更多内容
+      }
+    }
+    
+    if (truncatedContents.length > 0) {
+      additionalContext = '\n\n=== 附加信息（来源内容） ===\n' + truncatedContents.join('\n\n---\n\n');
+      if (totalLength >= MAX_CONTEXT_LENGTH) {
+        additionalContext += '\n\n⚠️ 注意：部分来源内容因长度限制已截断';
+      }
+      logger.info('提取附加信息（来源和文件markdown）', {
         isFirstMessage,
+        sourcesCount: sortedSources.length,
         filesCount: fileMarkdownContents.length,
-        totalTextLength: additionalContext.length,
+        totalSources: textSources.length,
+        totalTextLength: totalLength,
+        truncated: truncatedContents.length < textContents.length,
       });
     }
 
     // 将附加信息合并到 query 中
-    // 文件的markdown内容总是添加，外部来源的文本内容仅在第一次对话时添加
+    // 所有来源的文本内容和文件的markdown内容都会添加（每次对话都会传递新增来源）
     let finalQuery = params.content;
     if (additionalContext) {
       finalQuery = params.content + additionalContext;

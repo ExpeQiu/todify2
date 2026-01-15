@@ -1,0 +1,280 @@
+/**
+ * 初始化AI技术通用问答角色
+ * 创建一个专门用于技术通用问答的AI角色，强化对来源信息的解读
+ */
+
+import { DatabaseManager } from '../config/database';
+
+const db = new DatabaseManager();
+
+/**
+ * AI技术通用问答角色配置
+ */
+const TECH_QA_ROLE = {
+  id: 'tech-general-qa-assistant',
+  name: 'AI技术通用问答助手',
+  description: '专门用于技术通用问答的AI助手，强化对来源信息的解读，精准回答用户的技术问题',
+  avatar: '🤖',
+  systemPrompt: `你是一位专业的技术问答助手，擅长基于提供的来源信息进行精准、深入的技术问题解答。
+
+**核心能力：**
+1. **深度解读来源信息**：仔细阅读和分析所有提供的来源内容，理解技术细节、背景信息和上下文
+2. **精准回答问题**：基于来源信息准确回答用户问题，避免编造或推测
+3. **来源标注**：在回答中明确标注信息来源，让用户了解答案的依据
+
+**来源信息处理原则：**
+
+1. **来源分类识别**：
+   - **AI共创信息**（AI问答总结、技术包装问答、技术策略问答、技术通稿问答）：这些是经过AI处理的高质量信息，优先参考
+   - **技术资源**（技术转译）：这是经过专业转译的技术内容，具有较高的权威性
+   - **外部来源**：包括用户提供的文档、网页、文本等，需要仔细甄别和验证
+
+2. **信息解读流程**：
+   - 首先通读所有来源信息，理解整体技术背景
+   - 识别关键信息点：技术参数、原理说明、应用场景、优势特点等
+   - 建立信息关联：将不同来源的信息进行交叉验证和关联分析
+   - 提取核心要点：总结出与用户问题最相关的核心信息
+
+3. **回答构建策略**：
+   - **直接回答**：如果来源信息中有明确的答案，直接引用并标注来源
+   - **综合分析**：如果答案需要综合多个来源，进行整合分析后给出完整答案
+   - **部分回答**：如果来源信息只能部分回答用户问题，明确说明哪些部分可以回答，哪些需要补充信息
+   - **无法回答**：如果来源信息不足以回答问题，诚实告知，并建议用户提供更多相关信息
+
+4. **回答质量要求**：
+   - **准确性**：确保回答内容与来源信息一致，不添加来源中没有的信息
+   - **完整性**：尽可能全面地回答用户问题，不遗漏关键信息
+   - **可读性**：使用清晰、专业的语言，必要时用通俗语言解释技术概念
+   - **结构化**：对于复杂问题，使用列表、分点等方式组织答案
+
+5. **来源标注格式**：
+   - 在引用具体信息时，使用【来源：XXX】的格式标注
+   - 如果综合多个来源，标注为【综合来源：XXX、YYY】
+   - 对于技术参数、数据等关键信息，必须标注来源
+
+**回答示例格式：**
+
+当用户提问时，按以下结构组织回答：
+
+1. **直接回答**：首先给出核心答案
+2. **详细说明**：基于来源信息提供详细解释
+3. **来源标注**：明确标注信息来源
+4. **补充说明**（如需要）：提供相关背景或延伸信息
+
+**注意事项：**
+- 如果来源信息之间存在矛盾，需要指出并说明
+- 如果来源信息过时或不完整，需要提醒用户
+- 不要编造或推测来源信息中没有的内容
+- 保持客观、专业的回答风格
+
+请始终以用户问题为核心，充分利用来源信息，提供准确、完整、有价值的回答。`,
+  provider: 'direct-agent' as const,
+  agentConfig: {
+    llm: {
+      provider: 'openai' as const,
+      apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder-please-update',
+      apiBaseUrl: '',
+      model: 'gpt-4o',
+      temperature: 0.3,
+      maxTokens: 4000,
+    },
+    prompt: {
+      systemPrompt: `你是一位专业的技术问答助手，擅长基于提供的来源信息进行精准、深入的技术问题解答。
+
+**核心能力：**
+1. **深度解读来源信息**：仔细阅读和分析所有提供的来源内容，理解技术细节、背景信息和上下文
+2. **精准回答问题**：基于来源信息准确回答用户问题，避免编造或推测
+3. **来源标注**：在回答中明确标注信息来源，让用户了解答案的依据
+
+**来源信息处理原则：**
+
+1. **来源分类识别**：
+   - **AI共创信息**（AI问答总结、技术包装问答、技术策略问答、技术通稿问答）：这些是经过AI处理的高质量信息，优先参考
+   - **技术资源**（技术转译）：这是经过专业转译的技术内容，具有较高的权威性
+   - **外部来源**：包括用户提供的文档、网页、文本等，需要仔细甄别和验证
+
+2. **信息解读流程**：
+   - 首先通读所有来源信息，理解整体技术背景
+   - 识别关键信息点：技术参数、原理说明、应用场景、优势特点等
+   - 建立信息关联：将不同来源的信息进行交叉验证和关联分析
+   - 提取核心要点：总结出与用户问题最相关的核心信息
+
+3. **回答构建策略**：
+   - **直接回答**：如果来源信息中有明确的答案，直接引用并标注来源
+   - **综合分析**：如果答案需要综合多个来源，进行整合分析后给出完整答案
+   - **部分回答**：如果来源信息只能部分回答用户问题，明确说明哪些部分可以回答，哪些需要补充信息
+   - **无法回答**：如果来源信息不足以回答问题，诚实告知，并建议用户提供更多相关信息
+
+4. **回答质量要求**：
+   - **准确性**：确保回答内容与来源信息一致，不添加来源中没有的信息
+   - **完整性**：尽可能全面地回答用户问题，不遗漏关键信息
+   - **可读性**：使用清晰、专业的语言，必要时用通俗语言解释技术概念
+   - **结构化**：对于复杂问题，使用列表、分点等方式组织答案
+
+5. **来源标注格式**：
+   - 在引用具体信息时，使用【来源：XXX】的格式标注
+   - 如果综合多个来源，标注为【综合来源：XXX、YYY】
+   - 对于技术参数、数据等关键信息，必须标注来源
+
+**回答示例格式：**
+
+当用户提问时，按以下结构组织回答：
+
+1. **直接回答**：首先给出核心答案
+2. **详细说明**：基于来源信息提供详细解释
+3. **来源标注**：明确标注信息来源
+4. **补充说明**（如需要）：提供相关背景或延伸信息
+
+**注意事项：**
+- 如果来源信息之间存在矛盾，需要指出并说明
+- 如果来源信息过时或不完整，需要提醒用户
+- 不要编造或推测来源信息中没有的内容
+- 保持客观、专业的回答风格
+
+请始终以用户问题为核心，充分利用来源信息，提供准确、完整、有价值的回答。`,
+      variables: [],
+    },
+    contextStrategy: {
+      type: 'window' as const,
+      maxMessages: 30,
+      maxTokens: 8000,
+      includeSystemPrompt: true,
+    },
+  },
+  enabled: true,
+  source: 'independent-page' as const,
+};
+
+/**
+ * 初始化AI技术通用问答角色
+ */
+async function initTechQARole() {
+  try {
+    console.log('🚀 开始初始化AI技术通用问答角色...');
+    
+    // 确保数据库连接
+    await db.connect();
+    
+    // 检查ai_roles表是否存在
+    const checkTableSql = `
+      SELECT name FROM sqlite_master 
+      WHERE type='table' AND name='ai_roles'
+    `;
+    const tableExists = await db.query(checkTableSql);
+    
+    if (tableExists.length === 0) {
+      console.log('⚠️  ai_roles表不存在，请先运行数据库初始化脚本');
+      await db.close();
+      process.exit(1);
+    }
+    
+    // 检查角色是否已存在
+    const checkSql = 'SELECT id, name FROM ai_roles WHERE id = ?';
+    const existing = await db.query(checkSql, [TECH_QA_ROLE.id]);
+    
+    if (existing.length > 0) {
+      console.log(`⚠️  角色 ${TECH_QA_ROLE.name} (${TECH_QA_ROLE.id}) 已存在`);
+      console.log('🔄 更新角色配置...');
+      
+      // 更新角色
+      const updateSql = `
+        UPDATE ai_roles SET
+          name = ?,
+          description = ?,
+          avatar = ?,
+          system_prompt = ?,
+          dify_config = ?,
+          enabled = ?,
+          source = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `;
+      
+      const updateParams = [
+        TECH_QA_ROLE.name,
+        TECH_QA_ROLE.description,
+        TECH_QA_ROLE.avatar,
+        TECH_QA_ROLE.systemPrompt,
+        JSON.stringify({
+          provider: TECH_QA_ROLE.provider,
+          agentConfig: TECH_QA_ROLE.agentConfig,
+        }),
+        TECH_QA_ROLE.enabled ? 1 : 0,
+        TECH_QA_ROLE.source,
+        TECH_QA_ROLE.id,
+      ];
+      
+      await db.query(updateSql, updateParams);
+      console.log(`✅ 成功更新角色: ${TECH_QA_ROLE.name}`);
+    } else {
+      // 插入新角色
+      const insertSql = `
+        INSERT INTO ai_roles (
+          id, name, description, avatar, system_prompt, dify_config, enabled, source,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `;
+      
+      const insertParams = [
+        TECH_QA_ROLE.id,
+        TECH_QA_ROLE.name,
+        TECH_QA_ROLE.description,
+        TECH_QA_ROLE.avatar,
+        TECH_QA_ROLE.systemPrompt,
+        JSON.stringify({
+          provider: TECH_QA_ROLE.provider,
+          agentConfig: TECH_QA_ROLE.agentConfig,
+        }),
+        TECH_QA_ROLE.enabled ? 1 : 0,
+        TECH_QA_ROLE.source,
+      ];
+      
+      await db.query(insertSql, insertParams);
+      console.log(`✅ 成功创建角色: ${TECH_QA_ROLE.name}`);
+    }
+    
+    // 显示角色信息
+    const roleSql = `
+      SELECT id, name, description, enabled, source 
+      FROM ai_roles 
+      WHERE id = ?
+    `;
+    const role = await db.query(roleSql, [TECH_QA_ROLE.id]);
+    
+    console.log('\n📋 AI技术通用问答角色信息:');
+    console.table(role);
+    
+    // 检查API Key配置
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'sk-placeholder-please-update') {
+      console.log('\n⚠️  警告: OPENAI_API_KEY 未配置或使用占位符');
+      console.log('   请设置环境变量 OPENAI_API_KEY 或更新角色配置中的 API Key');
+    } else {
+      console.log('\n✅ OPENAI_API_KEY 已配置');
+    }
+    
+    console.log('\n🎉 AI技术通用问答角色初始化完成！');
+    
+    // 关闭数据库连接
+    await db.close();
+    
+  } catch (error) {
+    console.error('❌ 初始化失败:', error);
+    await db.close();
+    throw error;
+  }
+}
+
+// 如果是直接运行此脚本
+if (require.main === module) {
+  initTechQARole()
+    .then(() => {
+      console.log('\n✨ 脚本执行完成');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('\n❌ 脚本执行失败:', error);
+      process.exit(1);
+    });
+}
+
+export { initTechQARole };

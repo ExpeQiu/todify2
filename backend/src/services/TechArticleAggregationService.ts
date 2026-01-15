@@ -130,7 +130,7 @@ export class TechArticleAggregationService {
   }
 
   /**
-   * 收集来源数据
+   * 收集来源数据 - 优化版本，并行获取提升性能
    */
   private async collectSourceData(
     conversationIds: string[],
@@ -156,13 +156,13 @@ export class TechArticleAggregationService {
     const outputs: any[] = [];
     const references: SourceReference[] = [];
 
-    // 收集对话数据
-    for (const convId of conversationIds) {
+    // 并行获取所有对话数据
+    const conversationPromises = conversationIds.map(async (convId) => {
       try {
         const conversation = await this.aiSearchService.getConversation(convId);
         if (!conversation) {
           logger.warn('对话不存在，跳过', { conversationId: convId });
-          continue;
+          return null;
         }
 
         const pageType = conversation.page_type || 'unknown';
@@ -177,66 +177,84 @@ export class TechArticleAggregationService {
           ? firstUserMessage.content.substring(0, 200) + (firstUserMessage.content.length > 200 ? '...' : '')
           : '';
 
-        conversations.push({
-          id: convId,
-          pageType,
-          title: conversation.title,
-          messages,
-          summary,
-        });
-
-        references.push({
-          type: 'conversation',
-          id: convId,
-          pageType,
-          title: conversation.title,
-          summary,
-        });
+        return {
+          conversation: {
+            id: convId,
+            pageType,
+            title: conversation.title,
+            messages,
+            summary,
+          },
+          reference: {
+            type: 'conversation' as const,
+            id: convId,
+            pageType,
+            title: conversation.title,
+            summary,
+          },
+        };
       } catch (error) {
         logger.error('获取对话失败', { conversationId: convId, error });
+        return null;
       }
-    }
+    });
 
-    // 收集输出数据
-    for (const outputId of outputIds) {
+    // 等待所有对话获取完成
+    const conversationResults = await Promise.all(conversationPromises);
+    conversationResults.forEach((result) => {
+      if (result) {
+        conversations.push(result.conversation);
+        references.push(result.reference);
+      }
+    });
+
+    // 优化输出数据收集：一次性获取所有outputs后过滤
+    if (outputIds.length > 0) {
       try {
-        // 先获取所有输出，然后过滤
-        const outputList = await this.aiSearchService.getOutputs();
-        const output = outputList.find((o) => o.id === outputId);
-        if (!output) {
-          logger.warn('输出不存在，跳过', { outputId });
-          continue;
+        const allOutputs = await this.aiSearchService.getOutputs();
+        const outputIdSet = new Set(outputIds);
+        
+        for (const output of allOutputs) {
+          if (!outputIdSet.has(output.id)) continue;
+          
+          const pageType = output.page_type || 'unknown';
+          let content: any;
+          try {
+            content = typeof output.content === 'string' ? JSON.parse(output.content) : output.content;
+          } catch {
+            content = output.content;
+          }
+
+          // 生成摘要
+          const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+          const summary = contentStr.substring(0, 200) + (contentStr.length > 200 ? '...' : '');
+
+          outputs.push({
+            id: output.id,
+            pageType,
+            title: output.title,
+            content,
+            summary,
+          });
+
+          references.push({
+            type: 'output',
+            id: output.id,
+            pageType,
+            title: output.title,
+            summary,
+          });
         }
-
-        const pageType = output.page_type || 'unknown';
-        let content: any;
-        try {
-          content = typeof output.content === 'string' ? JSON.parse(output.content) : output.content;
-        } catch {
-          content = output.content;
-        }
-
-        // 生成摘要
-        const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
-        const summary = contentStr.substring(0, 200) + (contentStr.length > 200 ? '...' : '');
-
-        outputs.push({
-          id: outputId,
-          pageType,
-          title: output.title,
-          content,
-          summary,
-        });
-
-        references.push({
-          type: 'output',
-          id: outputId,
-          pageType,
-          title: output.title,
-          summary,
+        
+        // 检查是否有未找到的outputs
+        const foundIds = new Set(outputs.map(o => o.id));
+        outputIds.forEach(id => {
+          if (!foundIds.has(id)) {
+            logger.warn('输出不存在，跳过', { outputId: id });
+          }
         });
       } catch (error) {
-        logger.error('获取输出失败', { outputId, error });
+        logger.error('批量获取输出失败', { outputIds, error });
       }
     }
 

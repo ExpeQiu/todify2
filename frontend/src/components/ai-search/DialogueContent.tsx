@@ -124,12 +124,23 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     loadRoles();
   }, [showRoleSelector]);
 
+  // 获取角色配置的存储 key（每个 pageType 独立存储）
+  const getRoleStorageKey = (page?: string) => {
+    const effectivePageType = page || pageType;
+    // 独立AI搜索页面使用特殊 key（向后兼容）
+    if (effectivePageType === 'ai-search') {
+      return 'independent-page-ai-search-role-id';
+    }
+    // 其他页面类型各自使用独立的 key
+    return `dialogue-content-ai-role-id-${effectivePageType || 'default'}`;
+  };
+
   // 加载当前配置的角色名称
   useEffect(() => {
     const loadCurrentRole = async () => {
       try {
-        // 从 localStorage 获取 Role ID（根据 pageType 使用不同的 key）
-        const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+        // 从 localStorage 获取 Role ID（每个 pageType 使用独立的 key）
+        const storageKey = getRoleStorageKey();
         const storedRoleId = localStorage.getItem(storageKey);
         if (storedRoleId) {
           setCurrentRoleId(storedRoleId);
@@ -137,6 +148,10 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           if (role) {
             setCurrentRoleName(role.name);
           }
+        } else {
+          // 没有配置时清空显示
+          setCurrentRoleId(null);
+          setCurrentRoleName(null);
         }
       } catch (error) {
         console.error('加载当前AI角色配置失败:', error);
@@ -148,7 +163,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
   // 选择角色
   const handleSelectRole = async (role: AIRoleConfig) => {
     try {
-      const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+      const storageKey = getRoleStorageKey();
       localStorage.setItem(storageKey, role.id);
       setCurrentRoleId(role.id);
       setCurrentRoleName(role.name);
@@ -250,7 +265,7 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
       
       // 如果还没有确定workflowId，尝试使用localStorage中保存的角色ID
       if (!finalWorkflowId) {
-        const storageKey = pageType === 'ai-search' ? 'independent-page-ai-search-role-id' : 'dialogue-content-ai-role-id';
+        const storageKey = getRoleStorageKey();
         const storedRoleId = localStorage.getItem(storageKey);
         if (storedRoleId) {
           finalWorkflowId = storedRoleId;
