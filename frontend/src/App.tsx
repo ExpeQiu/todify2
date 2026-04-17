@@ -3,13 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import WorkflowPage from "./pages/WorkflowPage";
 import NodePage from "./pages/NodePage";
 import ConfigPage from "./pages/ConfigPage";
-import TechPointManagement from "./pages/TechPointManagement";
-import CarSeriesManagement from "./pages/CarSeriesManagement";
-import CarSeriesDetailPage from "./components/carSeries/CarSeriesDetailPage";
-import CarSeriesEditPage from "./pages/CarSeriesEditPage";
 import AIChatPage from "./pages/AIChatPage";
-import WorkflowStatsPage from "./pages/WorkflowStatsPage";
-import EnhancedWorkflowStatsPage from "./pages/EnhancedWorkflowStatsPage";
 import SearchHistoryPage from "./pages/SearchHistoryPage";
 import SearchHistoryDetailPage from "./pages/SearchHistoryDetailPage";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
@@ -21,10 +15,9 @@ import AIUnifiedManagementPage from "./pages/AIUnifiedManagementPage";
 import AddressPage from "./pages/AddressPage";
 import TemplateManagementPage from "./pages/TemplateManagementPage";
 import FieldMappingManagementPage from "./pages/FieldMappingManagementPage";
-import TechPackagePage from "./pages/TechPackagePage";
-import TechStrategyPage from "./pages/TechStrategyPage";
-import TechArticlePage from "./pages/TechArticlePage";
-import PressReleasePage from "./pages/PressReleasePage";
+
+import ContentOutputPage from "./pages/ContentOutputPage";
+import CocreatorWorkspacePage from "./pages/CocreatorWorkspacePage";
 
 function App() {
   return (
@@ -62,45 +55,9 @@ function App() {
           />
 
           <Route
-            path="/tech-points"
-            element={<TechPointManagement data-oid="m:0gwfg" />}
-            data-oid="g8262:b"
-          />
-
-          <Route
-            path="/car-series"
-            element={<CarSeriesManagement data-oid="gt6ik1i" />}
-            data-oid="0oxdg_2"
-          />
-
-          <Route
-            path="/car-series/:id"
-            element={<CarSeriesDetailPage data-oid="w0rd_p4" />}
-            data-oid="h-y4qhs"
-          />
-
-          <Route
-            path="/car-series/:id/edit"
-            element={<CarSeriesEditPage data-oid="78nbk2x" />}
-            data-oid="c59v1ao"
-          />
-
-          <Route
             path="/ai-chat"
             element={<AIChatPage data-oid="aichat001" />}
             data-oid="aichat002"
-          />
-
-          <Route
-            path="/workflow-stats"
-            element={<WorkflowStatsPage />}
-            data-oid="workflow-stats"
-          />
-
-          <Route
-            path="/enhanced-workflow-stats"
-            element={<EnhancedWorkflowStatsPage />}
-            data-oid="enhanced-workflow-stats"
           />
 
           <Route
@@ -148,25 +105,31 @@ function App() {
             element={<PublicChatPage />}
           />
 
-          {/* 标准独立页面路由 */}
+          {/* 标准独立页面路由（保留兼容，旧路由重定向到统一页面） */}
           <Route
             path="/tech-package"
-            element={<TechPackagePage />}
+            element={<ContentOutputPage />}
           />
 
           <Route
             path="/tech-strategy"
-            element={<TechStrategyPage />}
+            element={<ContentOutputPage />}
           />
 
           <Route
             path="/tech-article"
-            element={<TechArticlePage />}
+            element={<ContentOutputPage />}
           />
 
           <Route
             path="/press-release"
-            element={<PressReleasePage />}
+            element={<ContentOutputPage />}
+          />
+
+          {/* 内容输出统一路由 */}
+          <Route
+            path="/content/:type"
+            element={<ContentOutputPage />}
           />
 
           {/* 向后兼容的路由重定向 */}
@@ -183,6 +146,12 @@ function App() {
           <Route
             path="/field-mapping-management"
             element={<FieldMappingManagementPage />}
+          />
+
+          {/* 共创工作台 */}
+          <Route
+            path="/cocreator"
+            element={<CocreatorWorkspacePage />}
           />
 
           {/* 根据地址配置的动态路由（需要放在具体路由之后） */}
