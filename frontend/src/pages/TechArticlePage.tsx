@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Space, Spin, message, Radio, Select, Row, Col } from 'antd';
+import { Card, Button, Space, message, Radio, Row, Col } from 'antd';
 import { ThunderboltOutlined, MessageOutlined } from '@ant-design/icons';
 import SourceSelector from '../components/tech-article/SourceSelector';
 import MultiVersionArticleView from '../components/tech-article/MultiVersionArticleView';
@@ -11,9 +11,7 @@ import TopNavigation from '../components/TopNavigation';
 import { useSearchParams } from 'react-router-dom';
 import { projectService } from '../services/projectService';
 import { Project } from '../types/project';
-import articleTypeService, { ArticleType } from '../services/articleTypeService';
-
-const { Option } = Select;
+import articleTypeService from '../services/articleTypeService';
 
 type ViewMode = 'generate' | 'optimize';
 
@@ -25,10 +23,9 @@ const TechArticlePage: React.FC = () => {
     conversationIds: string[];
     outputIds: string[];
   }>({ conversationIds: [], outputIds: [] });
-  const [availableArticleTypes, setAvailableArticleTypes] = useState<ArticleType[]>([]);
   const [articleTypes, setArticleTypes] = useState<string[]>([]);
-  const [tone, setTone] = useState<string>('专业严谨');
-  const [targetAudience, setTargetAudience] = useState<string>('媒体记者');
+  const [tone] = useState<string>('专业严谨');
+  const [targetAudience] = useState<string>('媒体记者');
   const [generatedArticle, setGeneratedArticle] = useState<MultiVersionArticle | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [optimizeConversation, setOptimizeConversation] = useState<Conversation | null>(null);
@@ -40,7 +37,6 @@ const TechArticlePage: React.FC = () => {
       try {
         const response = await articleTypeService.getAll(true); // 只获取启用的类型
         if (response.success && response.data) {
-          setAvailableArticleTypes(response.data);
           // 默认选择所有启用的类型
           const enabledCodes = response.data.map(t => t.code);
           setArticleTypes(enabledCodes);
@@ -182,59 +178,9 @@ const TechArticlePage: React.FC = () => {
               <>
                 <Row gutter={16}>
                   <Col span={24}>
-                    <SourceSelector onSelectionChange={handleSelectionChange} />
+                    <SourceSelector projectId={projectId || undefined} onSelectionChange={handleSelectionChange} />
                   </Col>
                 </Row>
-
-                <Card size="small" title="生成配置">
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <strong>文章类型：</strong>
-                      <Select
-                        mode="multiple"
-                        value={articleTypes}
-                        onChange={(values) => setArticleTypes(values)}
-                        style={{ width: '100%', marginTop: 8 }}
-                        placeholder="请选择文章类型"
-                      >
-                        {availableArticleTypes.map((type) => (
-                          <Option key={type.id} value={type.code}>
-                            {type.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div>
-                      <strong>语气风格：</strong>
-                      <Select
-                        value={tone}
-                        onChange={setTone}
-                        style={{ width: '100%', marginTop: 8 }}
-                      >
-                        <Option value="专业严谨">专业严谨</Option>
-                        <Option value="通俗易懂">通俗易懂</Option>
-                        <Option value="创新前沿">创新前沿</Option>
-                        <Option value="权威可信">权威可信</Option>
-                        <Option value="亲和友好">亲和友好</Option>
-                      </Select>
-                    </div>
-                    <div>
-                      <strong>目标受众：</strong>
-                      <Select
-                        value={targetAudience}
-                        onChange={setTargetAudience}
-                        style={{ width: '100%', marginTop: 8 }}
-                      >
-                        <Option value="媒体记者">媒体记者</Option>
-                        <Option value="行业专家">行业专家</Option>
-                        <Option value="技术开发者">技术开发者</Option>
-                        <Option value="普通消费者">普通消费者</Option>
-                        <Option value="投资者">投资者</Option>
-                        <Option value="合作伙伴">合作伙伴</Option>
-                      </Select>
-                    </div>
-                  </Space>
-                </Card>
 
                 <Button
                   type="primary"

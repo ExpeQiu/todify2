@@ -19,12 +19,14 @@ interface ResourceSidebarProps {
   project: Project;
   onSelectResource?: (resource: SourceInformation | KnowledgePoint) => void;
   onSelectConversation?: (conversation: ConversationRecord) => void;
+  showResourceSections?: boolean;
 }
 
 const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
   project,
   onSelectResource,
-  onSelectConversation
+  onSelectConversation,
+  showResourceSections = true
 }) => {
   const navigate = useNavigate();
   const [resources, setResources] = useState<{
@@ -461,182 +463,186 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* 标题 */}
-      <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
-        <h2 className="text-sm font-semibold text-gray-900">技术资源</h2>
-      </div>
-
       <div className="flex-1 overflow-y-auto">
-        {/* 上传文件分组 */}
-        <div className="border-b border-gray-200">
-          <div className="px-4 py-3 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">
-                  已上传文件 {resources.files.length > 0 && <span className="text-gray-500 font-normal">({resources.files.length})</span>}
-                </span>
-              </div>
-              <button
-                onClick={handleUploadClick}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="上传文件"
-              >
-                <Plus className="w-4 h-4 text-gray-600" />
-              </button>
+        {showResourceSections && (
+          <>
+            {/* 标题 */}
+            <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
+              <h2 className="text-sm font-semibold text-gray-900">技术资源</h2>
             </div>
-          </div>
-          {resources.files.length > 0 ? (
-            <div className="px-4 pb-3 space-y-1">
-              {resources.files.map((file) => (
-                <div
-                  key={file.id}
-                  onClick={() => onSelectResource?.(file)}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
-                >
-                  <FileText className="w-3 h-3 text-blue-600 flex-shrink-0" />
-                  <span className="text-xs text-gray-700 truncate flex-1 group-hover:text-blue-600">
-                    {file.title || '未命名文件'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-4 pb-3">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={handleFileInputChange}
-                className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
-              />
-              <button
-                onClick={handleUploadClick}
-                disabled={uploading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>上传中...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4" />
-                    <span>上传文件</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
 
-        {/* 关联知识点分组 */}
-        <div className="border-b border-gray-200">
-          <div className="px-4 py-3 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Brain className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-medium text-gray-900">
-                  关联知识点 {resources.knowledgePoints.length > 0 && <span className="text-gray-500 font-normal">({resources.knowledgePoints.length})</span>}
-                </span>
-              </div>
-              <button
-                onClick={handleOpenPublicKnowledgeModal}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="添加知识点"
-              >
-                <Plus className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-          </div>
-          {resources.knowledgePoints.length > 0 ? (
-            <div className="px-4 pb-3 space-y-1">
-              {resources.knowledgePoints.map((kp) => (
-                <div
-                  key={kp.id}
-                  onClick={() => onSelectResource?.(kp as any)}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
-                >
-                  <Brain className="w-3 h-3 text-purple-600 flex-shrink-0" />
-                  <span className="text-xs text-gray-700 truncate flex-1 group-hover:text-blue-600">
-                    {kp.title || '未命名知识点'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-4 pb-3">
-              <button
-                onClick={handleOpenPublicKnowledgeModal}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                <Brain className="w-4 h-4" />
-                <span>选择公共知识库</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 互联网信息点分组 */}
-        <div className="border-b border-gray-200">
-          <div className="px-4 py-3 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-orange-600" />
-                <span className="text-sm font-medium text-gray-900">
-                  互联网信息点 {resources.internetInfo.length > 0 && <span className="text-gray-500 font-normal">({resources.internetInfo.length})</span>}
-                </span>
-              </div>
-              <button
-                onClick={handleOpenWebSearchModal}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                title="添加互联网信息"
-              >
-                <Plus className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-          </div>
-          {resources.internetInfo.length > 0 ? (
-            <div className="px-4 pb-3 space-y-1">
-              {resources.internetInfo.map((info) => (
-                <div
-                  key={info.id}
-                  onClick={() => onSelectResource?.(info)}
-                  className="flex items-start gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
-                >
-                  <Globe className="w-3 h-3 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-700 truncate group-hover:text-blue-600">
-                      {info.title || '未命名信息'}
-                    </div>
-                    {info.url && (
-                      <div className="text-xs text-gray-500 truncate mt-0.5">
-                        {info.url}
-                      </div>
-                    )}
-                    {info.created_at && (
-                      <div className="text-xs text-gray-400 mt-0.5">
-                        {formatDate(info.created_at)}
-                      </div>
-                    )}
+            {/* 上传文件分组 */}
+            <div className="border-b border-gray-200">
+              <div className="px-4 py-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900">
+                      已上传文件 {resources.files.length > 0 && <span className="text-gray-500 font-normal">({resources.files.length})</span>}
+                    </span>
                   </div>
+                  <button
+                    onClick={handleUploadClick}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="上传文件"
+                  >
+                    <Plus className="w-4 h-4 text-gray-600" />
+                  </button>
                 </div>
-              ))}
+              </div>
+              {resources.files.length > 0 ? (
+                <div className="px-4 pb-3 space-y-1">
+                  {resources.files.map((file) => (
+                    <div
+                      key={file.id}
+                      onClick={() => onSelectResource?.(file)}
+                      className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
+                    >
+                      <FileText className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                      <span className="text-xs text-gray-700 truncate flex-1 group-hover:text-blue-600">
+                        {file.title || '未命名文件'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 pb-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png,.gif,.webp"
+                  />
+                  <button
+                    onClick={handleUploadClick}
+                    disabled={uploading}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>上传中...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        <span>上传文件</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="px-4 pb-3">
-              <button
-                onClick={handleOpenWebSearchModal}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-orange-600 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-                <span>Web 检索信息</span>
-              </button>
+
+            {/* 关联知识点分组 */}
+            <div className="border-b border-gray-200">
+              <div className="px-4 py-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-medium text-gray-900">
+                      关联知识点 {resources.knowledgePoints.length > 0 && <span className="text-gray-500 font-normal">({resources.knowledgePoints.length})</span>}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleOpenPublicKnowledgeModal}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="添加知识点"
+                  >
+                    <Plus className="w-4 h-4 text-gray-600" />
+                  </button>
+                </div>
+              </div>
+              {resources.knowledgePoints.length > 0 ? (
+                <div className="px-4 pb-3 space-y-1">
+                  {resources.knowledgePoints.map((kp) => (
+                    <div
+                      key={kp.id}
+                      onClick={() => onSelectResource?.(kp as any)}
+                      className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
+                    >
+                      <Brain className="w-3 h-3 text-purple-600 flex-shrink-0" />
+                      <span className="text-xs text-gray-700 truncate flex-1 group-hover:text-blue-600">
+                        {kp.title || '未命名知识点'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 pb-3">
+                  <button
+                    onClick={handleOpenPublicKnowledgeModal}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-purple-600 border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                  >
+                    <Brain className="w-4 h-4" />
+                    <span>选择公共知识库</span>
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* 互联网信息点分组 */}
+            <div className="border-b border-gray-200">
+              <div className="px-4 py-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-gray-900">
+                      互联网信息点 {resources.internetInfo.length > 0 && <span className="text-gray-500 font-normal">({resources.internetInfo.length})</span>}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleOpenWebSearchModal}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="添加互联网信息"
+                  >
+                    <Plus className="w-4 h-4 text-gray-600" />
+                  </button>
+                </div>
+              </div>
+              {resources.internetInfo.length > 0 ? (
+                <div className="px-4 pb-3 space-y-1">
+                  {resources.internetInfo.map((info) => (
+                    <div
+                      key={info.id}
+                      onClick={() => onSelectResource?.(info)}
+                      className="flex items-start gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
+                    >
+                      <Globe className="w-3 h-3 text-orange-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-gray-700 truncate group-hover:text-blue-600">
+                          {info.title || '未命名信息'}
+                        </div>
+                        {info.url && (
+                          <div className="text-xs text-gray-500 truncate mt-0.5">
+                            {info.url}
+                          </div>
+                        )}
+                        {info.created_at && (
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            {formatDate(info.created_at)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 pb-3">
+                  <button
+                    onClick={handleOpenWebSearchModal}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-orange-600 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Web 检索信息</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* AI共创信息 */}
         <div>

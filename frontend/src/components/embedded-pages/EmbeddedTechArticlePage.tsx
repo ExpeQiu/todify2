@@ -3,7 +3,7 @@
  * 用于在项目资源页面中作为Tab内容显示
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, Button, Space, message, Radio, Select, Row, Col, Tooltip, Alert } from 'antd';
+import { Card, Button, Space, message, Radio, Row, Col, Tooltip, Alert } from 'antd';
 import { ThunderboltOutlined, MessageOutlined, ReloadOutlined, DownloadOutlined, ClearOutlined } from '@ant-design/icons';
 import SourceSelector from '../tech-article/SourceSelector';
 import MultiVersionArticleView from '../tech-article/MultiVersionArticleView';
@@ -11,9 +11,7 @@ import DialogueContent from '../ai-search/DialogueContent';
 import { aiSearchService } from '../../services/aiSearchService';
 import { Conversation } from '../../types/aiSearch';
 import { MultiVersionArticle } from '../../types/techArticle';
-import articleTypeService, { ArticleType } from '../../services/articleTypeService';
-
-const { Option } = Select;
+import articleTypeService from '../../services/articleTypeService';
 
 type ViewMode = 'generate' | 'optimize';
 
@@ -28,13 +26,6 @@ const PHASE_LABELS: Record<GenerationPhase, string> = {
   done: '生成完成',
 };
 
-// 默认文章类型（API 失败时的后备）
-const DEFAULT_ARTICLE_TYPES: ArticleType[] = [
-  { id: '1', code: 'media_release', name: '媒体通稿', enabled: 1, sort_order: 1 },
-  { id: '2', code: 'internal_memo', name: '内部通报', enabled: 1, sort_order: 2 },
-  { id: '3', code: 'social_media', name: '社交媒体', enabled: 1, sort_order: 3 },
-];
-
 interface EmbeddedTechArticlePageProps {
   projectId: string;
 }
@@ -45,10 +36,9 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
     conversationIds: string[];
     outputIds: string[];
   }>({ conversationIds: [], outputIds: [] });
-  const [availableArticleTypes, setAvailableArticleTypes] = useState<ArticleType[]>(DEFAULT_ARTICLE_TYPES);
   const [articleTypes, setArticleTypes] = useState<string[]>(['media_release', 'internal_memo', 'social_media']);
-  const [tone, setTone] = useState<string>('专业严谨');
-  const [targetAudience, setTargetAudience] = useState<string>('媒体记者');
+  const [tone] = useState<string>('专业严谨');
+  const [targetAudience] = useState<string>('媒体记者');
   const [generatedArticle, setGeneratedArticle] = useState<MultiVersionArticle | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationPhase, setGenerationPhase] = useState<GenerationPhase>('idle');
@@ -70,7 +60,6 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
       try {
         const response = await articleTypeService.getAll(true);
         if (response.success && response.data && response.data.length > 0) {
-          setAvailableArticleTypes(response.data);
           const enabledCodes = response.data.map(t => t.code);
           setArticleTypes(enabledCodes);
           articleTypesLoadedRef.current = true;
@@ -415,56 +404,6 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
                   <SourceSelector projectId={projectId} onSelectionChange={handleSelectionChange} />
                 </Col>
               </Row>
-
-              <Card size="small" title="生成配置">
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <div>
-                    <strong>文章类型：</strong>
-                    <Select
-                      mode="multiple"
-                      value={articleTypes}
-                      onChange={(values) => setArticleTypes(values)}
-                      style={{ width: '100%', marginTop: 8 }}
-                      placeholder="请选择文章类型"
-                    >
-                      {availableArticleTypes.map((type) => (
-                        <Option key={type.id} value={type.code}>
-                          {type.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div>
-                    <strong>语气风格：</strong>
-                    <Select
-                      value={tone}
-                      onChange={setTone}
-                      style={{ width: '100%', marginTop: 8 }}
-                    >
-                      <Option value="专业严谨">专业严谨</Option>
-                      <Option value="通俗易懂">通俗易懂</Option>
-                      <Option value="创新前沿">创新前沿</Option>
-                      <Option value="权威可信">权威可信</Option>
-                      <Option value="亲和友好">亲和友好</Option>
-                    </Select>
-                  </div>
-                  <div>
-                    <strong>目标受众：</strong>
-                    <Select
-                      value={targetAudience}
-                      onChange={setTargetAudience}
-                      style={{ width: '100%', marginTop: 8 }}
-                    >
-                      <Option value="媒体记者">媒体记者</Option>
-                      <Option value="行业专家">行业专家</Option>
-                      <Option value="技术开发者">技术开发者</Option>
-                      <Option value="普通消费者">普通消费者</Option>
-                      <Option value="投资者">投资者</Option>
-                      <Option value="合作伙伴">合作伙伴</Option>
-                    </Select>
-                  </div>
-                </Space>
-              </Card>
 
               <Button
                 type="primary"

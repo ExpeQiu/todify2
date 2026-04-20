@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Plus, X, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, X, MessageSquare, ChevronDown, ChevronUp, FileCode, FileText } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddSourceModal from "./AddSourceModal";
 import AddTextModal from "./AddTextModal";

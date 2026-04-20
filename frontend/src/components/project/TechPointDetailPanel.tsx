@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Package, Edit2, Sparkles } from 'lucide-react';
+import { X, Package } from 'lucide-react';
 import { BookOutlined, CarOutlined, CalendarOutlined, FileImageOutlined, FileOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Card, Descriptions, Tag, Space, Empty, Spin, Typography, Divider, Row, Col, Image, Modal, message } from 'antd';
+import { Card, Descriptions, Tag, Space, Empty, Spin, Typography, Divider, Row, Col, Image, Modal } from 'antd';
 import { TechPoint } from '../../types/techPoint';
 import { techPointService } from '../../services/techPointService';
 import { knowledgePointService } from '../../services/knowledgePointService';
 import type { KnowledgePoint } from '../../types/knowledgePoint';
-import TechPointEditModal from '../techPoint/TechPointEditModal';
-import sourceService from '../../services/sourceService';
-import { workflowAPI } from '../../services/api';
-import configService from '../../services/configService';
 import dayjs from 'dayjs';
 
 const { Text } = Typography;
@@ -41,14 +37,10 @@ interface ParsedDescription {
 
 const TechPointDetailPanel: React.FC<TechPointDetailPanelProps> = ({
   techPoint,
-  projectId,
-  onClose,
-  onSave
+  onClose
 }) => {
-  const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentTechPoint, setCurrentTechPoint] = useState<TechPoint>(techPoint);
   const [loading, setLoading] = useState(false);
-  const [aiMining, setAiMining] = useState(false);
   const [associatedContent, setAssociatedContent] = useState<AssociatedContent>({
     packagingMaterials: [],
     promotionStrategies: [],
@@ -295,178 +287,6 @@ const TechPointDetailPanel: React.FC<TechPointDetailPanelProps> = ({
     }
   };
 
-  const handleEditSuccess = async () => {
-    setEditModalVisible(false);
-    message.success('保存成功');
-    await fetchTechPointData();
-    onSave?.();
-  };
-
-  const handleEditCancel = () => {
-    setEditModalVisible(false);
-  };
-
-  // AI挖掘功能
-  const handleAIMining = async () => {
-    if (!projectId) {
-      message.warning('项目ID不存在，无法进行AI挖掘');
-      return;
-    }
-
-    setAiMining(true);
-    try {
-      // 1. 获取项目的AI共创信息
-      const sourcesResult = await sourceService.loadSourceInformationByProjectId(projectId);
-      const sources = sourcesResult.success && sourcesResult.data ? sourcesResult.data : [];
-
-      if (sources.length === 0) {
-        message.warning('当前项目暂无AI共创信息，无法进行挖掘');
-        setAiMining(false);
-        return;
-      }
-
-      // 2. 合并所有AI共创信息的内容
-      const aiContent = sources
-        .map(s => {
-          const title = s.title || '';
-          const description = s.description || '';
-          return `${title}\n${description}`;
-        })
-        .join('\n\n');
-
-      // 3. 构建AI提示词，要求挖掘技术点信息
-      const miningPrompt = `你是一个技术信息挖掘专家。请基于以下AI共创信息，挖掘并更新技术点的相关信息。
-
-当前技术点信息：
-- 名称：${currentTechPoint.name}
-- 描述：${currentTechPoint.description || '暂无描述'}
-- 技术类型：${currentTechPoint.tech_type}
-- 优先级：${currentTechPoint.priority}
-- 状态：${currentTechPoint.status}
-
-AI共创信息：
-${aiContent}
-
-请根据AI共创信息，挖掘以下信息并生成JSON格式：
-
-必需字段：
-1. description: 技术描述（更新或补充，1-2句话概括，不超过500字）
-2. technical_details: 技术细节（JSON对象，包含：
-   - tech_principle: 技术原理说明
-   - tech_value: 技术价值说明
-   - tech_boundary: 技术边界说明
-   - highlights: 技术亮点数组（最多5条，每条不超过200字）
-   - evidence_measured: 实测证据数组（最多5条，每条不超过200字）
-   - evidence_certified: 认证证据数组（最多5条，每条不超过200字）
-   - evidence_comparison: 对比证据数组（最多5条，每条不超过200字）
-）
-3. benefits: 技术优势（字符串数组，列出3-5个关键优势，每个不超过100字）
-4. applications: 应用场景（字符串数组，列出应用场景，每个不超过100字）
-5. keywords: 关键词（字符串数组，提取3-8个关键词）
-
-输出要求：
-- 只返回JSON格式，不要包含任何markdown代码块标记或其他文字说明
-- JSON必须是有效的，可以直接用JSON.parse()解析
-- 如果某些信息无法从AI共创信息中挖掘，保留原有值或使用空值
-- 所有数组字段必须是数组格式，即使为空也要使用[]
-- technical_details必须是对象格式，即使为空也要使用{}
-
-示例JSON格式：
-{
-  "description": "更新后的技术描述",
-  "technical_details": {
-    "tech_principle": "技术原理说明",
-    "tech_value": "技术价值说明",
-    "tech_boundary": "技术边界说明",
-    "highlights": ["亮点1", "亮点2", "亮点3"],
-    "evidence_measured": ["实测1", "实测2"],
-    "evidence_certified": ["认证1", "认证2"],
-    "evidence_comparison": ["对比1", "对比2"]
-  },
-  "benefits": ["优势1", "优势2", "优势3"],
-  "applications": ["场景1", "场景2"],
-  "keywords": ["关键词1", "关键词2", "关键词3"]
-}
-
-现在请分析AI共创信息并返回JSON：`;
-
-      // 4. 调用AI进行挖掘
-      const aiQAConfig = await configService.getDifyConfig('smart-workflow-ai-qa');
-      const result = await workflowAPI.aiSearch(
-        miningPrompt,
-        { context: [{ role: 'user', content: miningPrompt }] },
-        (aiQAConfig && aiQAConfig.enabled) ? aiQAConfig : undefined,
-        undefined
-      );
-
-      if (result.success && result.data) {
-        const aiResponse = result.data.answer || result.data.result || '';
-        
-        // 5. 解析AI返回的JSON
-        let minedData: any = null;
-        try {
-          const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || aiResponse.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            minedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-          } else {
-            minedData = JSON.parse(aiResponse);
-          }
-        } catch (parseError) {
-          console.error('解析AI返回的JSON失败:', parseError);
-          message.error('AI挖掘完成，但JSON解析失败，请重试');
-          setAiMining(false);
-          return;
-        }
-
-        // 6. 合并挖掘的数据到现有技术点
-        const updateData: any = {};
-        
-        if (minedData.description) {
-          updateData.description = minedData.description;
-        }
-        
-        if (minedData.technical_details) {
-          // 合并technical_details
-          const existingDetails = currentTechPoint.technical_details || {};
-          updateData.technical_details = {
-            ...existingDetails,
-            ...minedData.technical_details
-          };
-        }
-        
-        if (minedData.benefits && Array.isArray(minedData.benefits)) {
-          updateData.benefits = minedData.benefits;
-        }
-        
-        if (minedData.applications && Array.isArray(minedData.applications)) {
-          updateData.applications = minedData.applications;
-        }
-        
-        if (minedData.keywords && Array.isArray(minedData.keywords)) {
-          updateData.keywords = minedData.keywords;
-        }
-
-        // 7. 更新技术点
-        const updateResponse = await techPointService.updateTechPoint(currentTechPoint.id, updateData);
-        
-        if (updateResponse.success) {
-          message.success('AI挖掘完成，技术点信息已更新');
-          await fetchTechPointData();
-          onSave?.();
-        } else {
-          message.error(updateResponse.error || '更新技术点失败');
-        }
-      } else {
-        message.error(result.error || 'AI挖掘失败，请重试');
-      }
-    } catch (error) {
-      console.error('AI挖掘失败:', error);
-      message.error(`AI挖掘失败: ${error instanceof Error ? error.message : '未知错误'}`);
-    } finally {
-      setAiMining(false);
-    }
-  };
-
   const renderKnowledgePoints = () => {
     if (knowledgePoints && knowledgePoints.length > 0) {
       const groupedByTitle: Record<string, KnowledgePoint[]> = {};
@@ -643,23 +463,6 @@ ${aiContent}
           <h2 className="text-lg font-semibold text-gray-900">技术点详情</h2>
         </div>
         <div className="flex items-center gap-2">
-          {projectId && (
-            <button
-              onClick={handleAIMining}
-              disabled={aiMining}
-              className="px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <Sparkles className={`w-4 h-4 ${aiMining ? 'animate-spin' : ''}`} />
-              {aiMining ? '挖掘中...' : 'AI挖掘'}
-            </button>
-          )}
-          <button
-            onClick={() => setEditModalVisible(true)}
-            className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" />
-            编辑
-          </button>
           {onClose && (
             <button
               onClick={onClose}
@@ -965,15 +768,6 @@ ${aiContent}
           </div>
         )}
       </div>
-
-      {/* 编辑模态框 */}
-      <TechPointEditModal
-        visible={editModalVisible}
-        techPoint={currentTechPoint}
-        technology={null}
-        onCancel={handleEditCancel}
-        onSuccess={handleEditSuccess}
-      />
     </div>
   );
 };

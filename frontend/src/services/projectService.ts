@@ -9,6 +9,59 @@ import {
 
 const PROJECT_BASE_URL = '/projects';
 
+export interface ProjectIntelligenceMiningResult {
+  overview: {
+    project_summary: string;
+    core_focus: string[];
+    maturity_stage: string;
+  };
+  technical_insights: Array<{
+    topic: string;
+    finding: string;
+    value: string;
+    confidence: string;
+  }>;
+  resource_insights: Array<{
+    topic: string;
+    finding: string;
+    gap: string;
+    suggestion: string;
+  }>;
+  cocreation_insights: Array<{
+    app_type: string;
+    finding: string;
+    status: string;
+  }>;
+  opportunities: Array<{
+    title: string;
+    reason: string;
+    priority: string;
+  }>;
+  risks: Array<{
+    title: string;
+    impact: string;
+    mitigation: string;
+    priority: string;
+  }>;
+  next_actions: Array<{
+    action: string;
+    owner: string;
+    timeline: string;
+    expected_output: string;
+    priority: string;
+  }>;
+}
+
+export interface ProjectIntelligenceMiningResponse {
+  result: ProjectIntelligenceMiningResult;
+  contextStats: {
+    techPointCount: number;
+    resourceCount: number;
+    conversationCount: number;
+  };
+  generatedAt: string;
+}
+
 export const projectService = {
   // 获取项目列表
   async getProjects(params?: ProjectSearchParams): Promise<ApiResponse<PaginatedResponse<Project>>> {
@@ -122,6 +175,20 @@ export const projectService = {
       return {
         success: false,
         error: '更新最后打开时间失败'
+      };
+    }
+  },
+
+  // 项目多维度信息挖掘
+  async mineProjectIntelligence(id: number): Promise<ApiResponse<ProjectIntelligenceMiningResponse>> {
+    try {
+      const response = await api.post(`${PROJECT_BASE_URL}/${id}/intelligence-mining`);
+      return response.data;
+    } catch (error) {
+      console.error('项目信息挖掘失败:', error);
+      return {
+        success: false,
+        error: '项目信息挖掘失败'
       };
     }
   }

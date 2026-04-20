@@ -4,6 +4,7 @@ import { SearchOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { aiSearchService } from '../../services/aiSearchService';
 import { Conversation, OutputContent } from '../../types/aiSearch';
 import ProjectConversationService from '../../services/projectConversationService';
+import api from '../../services/api';
 
 const { Text, Paragraph } = Typography;
 
@@ -22,6 +23,7 @@ interface SourceItem {
   title: string;
   summary: string;
   createdAt: Date;
+  selectable?: boolean;
 }
 
 const PAGE_TYPE_LABELS: Record<string, string> = {
@@ -33,6 +35,17 @@ const PAGE_TYPE_LABELS: Record<string, string> = {
 // 全局缓存（跨组件实例共享）
 const globalCache: Record<string, { data: SourceItem[]; timestamp: number }> = {};
 const CACHE_DURATION = 60000; // 60秒缓存
+
+interface SourceInformationRecord {
+  source_id: string;
+  title: string;
+  description?: string;
+  url?: string;
+  page_type?: string;
+  conversation_id?: string;
+  metadata?: Record<string, any> | string;
+  created_at?: string;
+}
 
 export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSelectionChange }) => {
   const [loading, setLoading] = useState(false);
@@ -72,6 +85,9 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
     selectedIds.forEach((id) => {
       const source = sources.find((s) => s.id === id);
       if (source) {
+        if (source.selectable === false) {
+          return;
+        }
         if (source.type === 'conversation') {
           conversationIds.push(id);
         } else {
@@ -201,7 +217,7 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
       }
 
       // 转换为统一格式
-      const sourceItems: SourceItem[] = [];
+      let sourceItems: SourceItem[] = [];
 
       conversations.forEach((conv) => {
         const firstMessage = conv.messages?.[0];
@@ -235,6 +251,56 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
         });
       });
 
+      // 兜底：当对话/输出为空时，尝试从来源管理读取“技术通稿”专题数据
+      if (sourceItems.length === 0 && projectId) {
+        try {
+          console.info('[SourceSelector] 常规来源为空，尝试从来源管理加载技术通稿来源', { projectId });
+          const response = await api.get('/source-information', {
+            params: {
+              status: 'active',
+              page: 1,
+              pageSize: 1000,
+              projectId: Number(projectId),
+            },
+          });
+          const sourceInfoList: SourceInformationRecord[] = response.data?.data || [];
+          const topicSources = sourceInfoList.filter((item) => {
+            const metadata = typeof item.metadata === 'string'
+              ? (() => {
+                  try {
+                    return JSON.parse(item.metadata);
+                  } catch {
+                    return {};
+                  }
+                })()
+              : (item.metadata || {});
+            const category = metadata?.category || metadata?.sourceCategory;
+            return item.page_type === 'tech-article' || category === 'tech-article-qa';
+          });
+
+          sourceItems = topicSources.map((item) => {
+            const isConversationSource = !!item.conversation_id;
+            return {
+              id: isConversationSource ? (item.conversation_id as string) : item.source_id,
+              type: isConversationSource ? ('conversation' as const) : ('output' as const),
+              pageType: 'tech-article',
+              title: item.title || '未命名来源',
+              summary: item.description || item.url || '来源管理信息点',
+              createdAt: item.created_at ? new Date(item.created_at) : new Date(),
+              selectable: isConversationSource,
+            };
+          });
+
+          console.info('[SourceSelector] 来源管理兜底加载完成', {
+            total: sourceInfoList.length,
+            topicCount: topicSources.length,
+            usableCount: sourceItems.filter((item) => item.selectable !== false).length,
+          });
+        } catch (fallbackError) {
+          console.error('[SourceSelector] 来源管理兜底加载失败:', fallbackError);
+        }
+      }
+
       // 按时间排序
       sourceItems.sort((a, b) => {
         const timeA = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
@@ -262,6 +328,10 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
 
   const handleToggleSelection = useCallback((id: string) => {
     setSelectedIds((prev) => {
+      const source = filteredSources.find((s) => s.id === id);
+      if (source?.selectable === false) {
+        return prev;
+      }
       const newSelected = new Set(prev);
       if (newSelected.has(id)) {
         newSelected.delete(id);
@@ -273,11 +343,12 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
   }, []);
 
   const handleSelectAll = useCallback(() => {
+    const selectableIds = filteredSources.filter((s) => s.selectable !== false).map((s) => s.id);
     setSelectedIds((prev) => {
-      if (prev.size === filteredSources.length) {
+      if (prev.size === selectableIds.length) {
         return new Set();
       } else {
-        return new Set(filteredSources.map((s) => s.id));
+        return new Set(selectableIds);
       }
     });
   }, [filteredSources]);
@@ -288,7 +359,7 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
       extra={
         <Space>
           <Button size="small" onClick={handleSelectAll}>
-            {selectedIds.size === filteredSources.length ? '取消全选' : '全选'}
+            {selectedIds.size === filteredSources.filter((s) => s.selectable !== false).length ? '取消全选' : '全选'}
           </Button>
           <Text type="secondary">
             已选择 {selectedIds.size} 项
@@ -329,7 +400,8 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
                   style={{
                     marginBottom: 8,
                     border: isSelected ? '2px solid #1890ff' : '1px solid #d9d9d9',
-                    cursor: 'pointer',
+                    cursor: source.selectable === false ? 'not-allowed' : 'pointer',
+                    opacity: source.selectable === false ? 0.7 : 1,
                   }}
                   onClick={() => handleToggleSelection(source.id)}
                   hoverable
@@ -337,6 +409,7 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
                   <Space style={{ width: '100%' }} align="start">
                     <Checkbox
                       checked={isSelected}
+                      disabled={source.selectable === false}
                       onClick={(e) => e.stopPropagation()}
                       onChange={() => handleToggleSelection(source.id)}
                     />
@@ -346,6 +419,7 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
                           {source.type === 'conversation' ? '对话' : '输出'}
                         </Tag>
                         <Tag>{PAGE_TYPE_LABELS[source.pageType] || source.pageType}</Tag>
+                        {source.selectable === false && <Tag color="default">仅展示</Tag>}
                         {isSelected && <CheckCircleOutlined style={{ color: '#1890ff' }} />}
                       </Space>
                       <Text strong>{source.title}</Text>

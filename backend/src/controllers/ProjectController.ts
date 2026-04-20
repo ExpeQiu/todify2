@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { projectModel, sourceInformationModel } from '../models';
 import { CreateProjectDTO, UpdateProjectDTO, ProjectStatus, ProjectType } from '../types/database';
 import { ChatMessageService } from '../services/ChatMessageService';
+import difyClient from '../services/DifyClient';
 
 export class ProjectController {
   /**
@@ -571,6 +572,228 @@ export class ProjectController {
         success: false,
         message: error instanceof Error ? error.message : '获取项目完整上下文失败'
       });
+    }
+  }
+
+  /**
+   * 项目多维度信息挖掘
+   * 基于项目技术点、资源、AI共创记录进行结构化分析
+   */
+  async mineProjectIntelligence(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: '无效的项目ID'
+        });
+      }
+
+      const project = await projectModel.findById(id);
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message: '项目不存在'
+        });
+      }
+
+      console.log(`[ProjectIntelligenceMining] 开始挖掘项目 ${id} - ${project.name}`);
+
+      const [sources, projectDetails, conversations] = await Promise.all([
+        sourceInformationModel.findByProjectId(id).catch((err) => {
+          console.error('[ProjectIntelligenceMining] 获取来源信息失败:', err);
+          return [];
+        }),
+        projectModel.getProjectDetails(id).catch((err) => {
+          console.error('[ProjectIntelligenceMining] 获取项目详情失败:', err);
+          return null;
+        }),
+        ChatMessageService.getConversationsByProjectId(id, 12, 0).catch((err) => {
+          console.error('[ProjectIntelligenceMining] 获取对话列表失败:', err);
+          return [];
+        })
+      ]);
+
+      const conversationSnapshots = await Promise.all(
+        conversations.map(async (conv) => {
+          const messages = await ChatMessageService.getConversationMessages(conv.conversation_id, 6, 0).catch(() => []);
+          const normalizedMessages = messages
+            .slice(-6)
+            .map((msg: any) => ({
+              role: msg.message_type || 'unknown',
+              content: this.truncateText(String(msg.content || ''), 500),
+              created_at: msg.created_at
+            }));
+
+          return {
+            conversation_id: conv.conversation_id,
+            app_type: conv.app_type,
+            session_name: conv.session_name,
+            updated_at: conv.updated_at,
+            messages: normalizedMessages
+          };
+        })
+      );
+
+      const contextForAi = {
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description || ''
+        },
+        tech_points: (projectDetails?.techPoints || []).map((tp: any) => ({
+          id: tp.id,
+          name: tp.name,
+          description: this.truncateText(String(tp.description || ''), 500),
+          tech_type: tp.tech_type,
+          priority: tp.priority,
+          status: tp.status
+        })),
+        resources: (sources || []).map((source: any) => ({
+          id: source.id,
+          title: source.title,
+          type: source.type,
+          category: source.metadata?.category || source.category || 'unknown',
+          url: source.url,
+          description: this.truncateText(String(source.description || ''), 500),
+          created_at: source.created_at
+        })),
+        cocreation_conversations: conversationSnapshots
+      };
+
+      const miningPrompt = `你是资深技术情报分析专家。请基于给定项目上下文，输出“多维度结构化挖掘结果”。
+
+要求：
+1. 必须输出合法 JSON，不要输出 markdown。
+2. 只输出一个 JSON 对象，字段必须完整，缺失时返回空数组或空字符串。
+3. 结论要可执行、可落地，避免空话。
+
+返回 JSON 结构：
+{
+  "overview": {
+    "project_summary": "项目一句话摘要",
+    "core_focus": ["核心关注点1", "核心关注点2"],
+    "maturity_stage": "探索期/验证期/推进期/成熟期"
+  },
+  "technical_insights": [
+    {
+      "topic": "技术主题",
+      "finding": "关键发现",
+      "value": "业务价值",
+      "confidence": "高/中/低"
+    }
+  ],
+  "resource_insights": [
+    {
+      "topic": "资源主题",
+      "finding": "资源发现",
+      "gap": "缺口或不足",
+      "suggestion": "补强建议"
+    }
+  ],
+  "cocreation_insights": [
+    {
+      "app_type": "ai-search/tech-strategy/tech-package/tech-article",
+      "finding": "共创发现",
+      "status": "已明确/待验证/待落地"
+    }
+  ],
+  "opportunities": [
+    {
+      "title": "机会点",
+      "reason": "机会原因",
+      "priority": "高/中/低"
+    }
+  ],
+  "risks": [
+    {
+      "title": "风险点",
+      "impact": "影响说明",
+      "mitigation": "缓解措施",
+      "priority": "高/中/低"
+    }
+  ],
+  "next_actions": [
+    {
+      "action": "下一步动作",
+      "owner": "建议角色",
+      "timeline": "时间建议",
+      "expected_output": "预期产出",
+      "priority": "高/中/低"
+    }
+  ]
+}`;
+
+      const aiResponse = await difyClient.aiSearch(miningPrompt, {
+        project_name: project.name,
+        project_context: JSON.stringify(contextForAi)
+      });
+
+      const parsed = this.extractJsonObject(aiResponse.answer || '');
+      if (!parsed) {
+        console.error('[ProjectIntelligenceMining] AI 返回内容非 JSON:', aiResponse.answer);
+        return res.status(502).json({
+          success: false,
+          message: '信息挖掘结果解析失败，请重试'
+        });
+      }
+
+      console.log('[ProjectIntelligenceMining] 挖掘完成', {
+        projectId: id,
+        techPointCount: contextForAi.tech_points.length,
+        resourceCount: contextForAi.resources.length,
+        conversationCount: contextForAi.cocreation_conversations.length
+      });
+
+      res.json({
+        success: true,
+        data: {
+          result: parsed,
+          contextStats: {
+            techPointCount: contextForAi.tech_points.length,
+            resourceCount: contextForAi.resources.length,
+            conversationCount: contextForAi.cocreation_conversations.length
+          },
+          generatedAt: new Date().toISOString()
+        },
+        message: '信息挖掘完成'
+      });
+    } catch (error) {
+      console.error('[ProjectIntelligenceMining] 执行失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '信息挖掘失败'
+      });
+    }
+  }
+
+  private truncateText(input: string, maxLen: number): string {
+    if (!input) {
+      return '';
+    }
+    return input.length > maxLen ? `${input.slice(0, maxLen)}...` : input;
+  }
+
+  private extractJsonObject(rawText: string): any | null {
+    if (!rawText || typeof rawText !== 'string') {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawText);
+    } catch {
+      // 继续尝试从文本中提取 JSON
+    }
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch {
+      return null;
     }
   }
 }

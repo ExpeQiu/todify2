@@ -170,6 +170,37 @@ install_dependencies() {
     fi
 }
 
+# 修复前端依赖完整性（处理回退后 vite chunk 丢失）
+fix_frontend_dependencies() {
+    local dir=$1
+    echo "🔧 检查前端依赖完整性..."
+    cd "$dir"
+
+    # 清理 Vite 预构建缓存，避免使用损坏缓存
+    if [ -d "node_modules/.vite" ]; then
+        rm -rf node_modules/.vite
+    fi
+
+    # 验证 Vite 包是否可被 Node 正常加载
+    if ! node -e "import('vite').then(() => process.exit(0)).catch(() => process.exit(1))" >/dev/null 2>&1; then
+        echo "⚠️  检测到前端依赖不完整（Vite 模块异常），正在自动修复..."
+        rm -rf node_modules/vite
+        npm ci
+        if [ $? -ne 0 ]; then
+            echo "❌ 前端依赖修复失败（npm ci 执行失败）"
+            exit 1
+        fi
+
+        if ! node -e "import('vite').then(() => process.exit(0)).catch(() => process.exit(1))" >/dev/null 2>&1; then
+            echo "❌ 前端依赖修复后仍异常，请手动执行: cd frontend && npm ci"
+            exit 1
+        fi
+        echo "✅ 前端依赖修复完成"
+    else
+        echo "✅ 前端依赖完整"
+    fi
+}
+
 # 修复后端依赖（ARM64架构兼容性）
 fix_backend_dependencies() {
     local dir=$1
@@ -230,6 +261,9 @@ fi
 
 # 安装前端依赖
 install_dependencies "$SCRIPT_DIR/frontend" "前端"
+
+# 修复前端依赖完整性问题
+fix_frontend_dependencies "$SCRIPT_DIR/frontend"
 
 # 检查前端是否缺少 reactflow
 if [ ! -d "$SCRIPT_DIR/frontend/node_modules/reactflow" ]; then
@@ -328,17 +362,42 @@ fi
 # 启动前端服务
 echo "🎨 启动前端服务 (端口: $FRONTEND_PORT)..."
 cd "$SCRIPT_DIR/frontend"
-npm run dev > /tmp/frontend.log 2>&1 &
+FRONTEND_LOG="/tmp/frontend.log"
+touch "$FRONTEND_LOG"
+> "$FRONTEND_LOG"
+npm run dev -- --host 0.0.0.0 --port "$FRONTEND_PORT" > "$FRONTEND_LOG" 2>&1 &
 FRONTEND_PID=$!
 
 # 等待前端启动
 sleep 3
+
+# 检查前端进程是否还在运行
+if ! kill -0 $FRONTEND_PID 2>/dev/null; then
+    echo "❌ 前端服务启动失败，进程已退出"
+    echo "📋 查看前端日志 (最后 30 行):"
+    tail -30 "$FRONTEND_LOG" | sed 's/^/   /' || true
+    kill $BACKEND_PID 2>/dev/null
+    exit 1
+fi
+
+# 等待前端可访问（优先检测实际 base 路径 /todify/）
+if wait_for_service "http://localhost:$FRONTEND_PORT/todify/" "$FRONTEND_LOG" "$FRONTEND_PID" || \
+   wait_for_service "http://localhost:$FRONTEND_PORT/" "$FRONTEND_LOG" "$FRONTEND_PID"; then
+    echo "✅ 前端服务启动成功"
+else
+    echo "❌ 前端服务启动失败或超时"
+    echo "📋 查看前端日志 (最后 50 行):"
+    tail -50 "$FRONTEND_LOG" | sed 's/^/   /' || true
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
+    exit 1
+fi
 
 echo ""
 echo "=========================================="
 echo "🎉 Todify4 启动完成!"
 echo "=========================================="
 echo "📱 前端地址: http://localhost:$FRONTEND_PORT"
+echo "📱 前端地址(127): http://127.0.0.1:$FRONTEND_PORT"
 echo "🔧 后端地址: http://localhost:$BACKEND_PORT"
 echo ""
 echo "📋 核心功能:"
@@ -350,11 +409,11 @@ echo "   - AI角色管理"
 echo ""
 echo "📋 日志文件:"
 echo "   后端: $BACKEND_LOG"
-echo "   前端: /tmp/frontend.log"
+echo "   前端: $FRONTEND_LOG"
 echo ""
 echo "💡 提示: 使用以下命令查看实时日志:"
 echo "   tail -f $BACKEND_LOG"
-echo "   tail -f /tmp/frontend.log"
+echo "   tail -f $FRONTEND_LOG"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 echo "=========================================="
