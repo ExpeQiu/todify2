@@ -33,22 +33,22 @@ const FieldMappingManagementPage: React.FC = () => {
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [editingMappingForAgent, setEditingMappingForAgent] = useState<FieldMappingListItem | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddToolModal, setShowAddToolModal] = useState(false);
-  const [selectedFeatureType, setSelectedFeatureType] = useState<string>('ai-dialog');
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>('');
-  const [selectedRoleIdForMapping, setSelectedRoleIdForMapping] = useState<string>('');
-  // 字段映射管理只关联"技术包装"页面
-  const [selectedPageType, setSelectedPageType] = useState<'tech-package'>('tech-package');
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [featureCategoryOverrides, setFeatureCategoryOverrides] = useState<Record<string, string>>({});
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
   const [showCustomModuleForm, setShowCustomModuleForm] = useState(false);
   const [customFeatureId, setCustomFeatureId] = useState<string>('');
   const [customFeatureLabel, setCustomFeatureLabel] = useState<string>('');
-  const [selectedFeatureTypes, setSelectedFeatureTypes] = useState<string[]>([]);
   const [addToolSelectedTypes, setAddToolSelectedTypes] = useState<string[]>([]);
   const [customModules, setCustomModules] = useState<Array<{ id: string; label: string }>>([]);
 
   // localStorage key for custom modules
   const CUSTOM_MODULES_STORAGE_KEY = 'field-mapping-custom-modules';
+  const CATEGORY_OPTIONS_STORAGE_KEY = 'field-mapping-category-options';
+  const FEATURE_CATEGORY_OVERRIDES_STORAGE_KEY = 'field-mapping-feature-category-overrides';
+  const DEFAULT_CATEGORY_OPTIONS = ['技术挖掘', '场景挖掘', '策略洞察', '内容创意'];
 
   // 从localStorage加载自定义模块
   const loadCustomModulesFromStorage = (): Array<{ id: string; label: string }> => {
@@ -75,11 +75,63 @@ const FieldMappingManagementPage: React.FC = () => {
     }
   };
 
-  const toggleFeatureChecked = (key: string) => {
-    setSelectedFeatureTypes(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  const loadCategoryOptionsFromStorage = (): string[] => {
+    try {
+      const stored = localStorage.getItem(CATEGORY_OPTIONS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const categories = parsed
+            .map((item: unknown) => (typeof item === 'string' ? item.trim() : ''))
+            .filter((item: string) => item.length > 0);
+          if (categories.length > 0) {
+            return categories;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('加载分类选项失败:', error);
+    }
+    return DEFAULT_CATEGORY_OPTIONS;
   };
 
-  const isFeatureChecked = (key: string) => selectedFeatureTypes.includes(key);
+  const saveCategoryOptionsToStorage = (categories: string[]) => {
+    try {
+      localStorage.setItem(CATEGORY_OPTIONS_STORAGE_KEY, JSON.stringify(categories));
+    } catch (error) {
+      console.warn('保存分类选项失败:', error);
+    }
+  };
+
+  const loadFeatureCategoryOverridesFromStorage = (): Record<string, string> => {
+    try {
+      const stored = localStorage.getItem(FEATURE_CATEGORY_OVERRIDES_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          const cleanedEntries = Object.entries(parsed).filter(
+            ([featureType, category]) =>
+              typeof featureType === 'string' &&
+              featureType.length > 0 &&
+              typeof category === 'string' &&
+              category.trim().length > 0
+          );
+          return Object.fromEntries(cleanedEntries);
+        }
+      }
+    } catch (error) {
+      console.warn('加载分类映射失败:', error);
+    }
+    return {};
+  };
+
+  const saveFeatureCategoryOverridesToStorage = (overrides: Record<string, string>) => {
+    try {
+      localStorage.setItem(FEATURE_CATEGORY_OVERRIDES_STORAGE_KEY, JSON.stringify(overrides));
+    } catch (error) {
+      console.warn('保存分类映射失败:', error);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -88,6 +140,8 @@ const FieldMappingManagementPage: React.FC = () => {
     if (savedModules.length > 0) {
       setCustomModules(savedModules);
     }
+    setCategoryOptions(loadCategoryOptionsFromStorage());
+    setFeatureCategoryOverrides(loadFeatureCategoryOverridesFromStorage());
   }, []);
 
   const FEATURE_LABELS: Record<string, string> = {
@@ -120,6 +174,108 @@ const FieldMappingManagementPage: React.FC = () => {
     'tech-article': '技术通稿',
     'press-release': '发布稿',
   };
+
+  const ROLE_CATEGORY_LABELS: Record<string, string> = {
+    'tech-fundamentalist': '技术挖掘',
+    'scene-alchemist': '场景挖掘',
+    'market-sniper': '策略洞察',
+    'content-director': '内容创意',
+  };
+
+  const FEATURE_CATEGORY_LABELS: Record<string, string> = {
+    'five-view-analysis': '技术挖掘',
+    'three-fix-analysis': '技术挖掘',
+    'tech-matrix': '场景挖掘',
+    'user-scene': '场景挖掘',
+    'propagation-strategy': '策略洞察',
+    'exhibition-video': '内容创意',
+    'translation': '内容创意',
+    'ppt-outline': '内容创意',
+    'script': '内容创意',
+  };
+
+  const getCategoryLabel = (mapping: FieldMappingListItem): string => {
+    const overrideCategory = featureCategoryOverrides[mapping.featureType || ''];
+    if (overrideCategory) {
+      return overrideCategory;
+    }
+    const roleCategory = ROLE_CATEGORY_LABELS[mapping.workflowId];
+    if (roleCategory) {
+      return roleCategory;
+    }
+    return FEATURE_CATEGORY_LABELS[mapping.featureType || ''] || '未分类';
+  };
+
+  useEffect(() => {
+    if (categoryOptions.length > 0) {
+      saveCategoryOptionsToStorage(categoryOptions);
+    }
+  }, [categoryOptions]);
+
+  useEffect(() => {
+    saveFeatureCategoryOverridesToStorage(featureCategoryOverrides);
+  }, [featureCategoryOverrides]);
+
+  const handleAddCategory = () => {
+    const categoryName = newCategoryName.trim();
+    if (!categoryName) {
+      setMessage({ type: 'error', text: '分类名称不能为空' });
+      return;
+    }
+    if (categoryOptions.some((item) => item === categoryName)) {
+      setMessage({ type: 'error', text: '分类已存在，请勿重复添加' });
+      return;
+    }
+    setCategoryOptions((prev) => [...prev, categoryName]);
+    setNewCategoryName('');
+    setMessage({ type: 'success', text: `已添加分类：${categoryName}` });
+  };
+
+  const handleDeleteCategory = (categoryName: string) => {
+    if (!confirm(`确定删除分类“${categoryName}”吗？`)) {
+      return;
+    }
+    setCategoryOptions((prev) => prev.filter((item) => item !== categoryName));
+    setFeatureCategoryOverrides((prev) => {
+      const next: Record<string, string> = {};
+      Object.entries(prev).forEach(([featureType, category]) => {
+        if (category !== categoryName) {
+          next[featureType] = category;
+        }
+      });
+      return next;
+    });
+    setMessage({ type: 'success', text: `已删除分类：${categoryName}` });
+  };
+
+  const handleFeatureCategoryChange = (featureType: string, category: string) => {
+    setFeatureCategoryOverrides((prev) => {
+      const next = { ...prev };
+      if (!category) {
+        delete next[featureType];
+      } else {
+        next[featureType] = category;
+      }
+      return next;
+    });
+  };
+
+  const uniqueTools = Array.from(
+    filteredMappings.reduce((map, mapping) => {
+      const featureType = mapping.featureType || '';
+      if (!featureType) {
+        return map;
+      }
+      if (!map.has(featureType)) {
+        map.set(featureType, {
+          featureType,
+          featureLabel: mapping.featureLabel || featureType,
+        });
+      }
+      return map;
+    }, new Map<string, { featureType: string; featureLabel: string }>())
+      .values()
+  );
 
   const loadData = async () => {
     try {
@@ -279,102 +435,6 @@ const FieldMappingManagementPage: React.FC = () => {
     setFilteredMappings(filtered);
   }, [mappings]);
 
-  // 当弹窗打开时，加载当前已配置的信息
-  useEffect(() => {
-    if (!showCreateModal && !showAddToolModal) {
-      // 弹窗关闭时，重置表单状态（但保留自定义模块）
-      setSelectedFeatureTypes([]);
-      setAddToolSelectedTypes([]);
-      setSelectedFeatureType('');
-      setCustomFeatureId('');
-      setCustomFeatureLabel('');
-      setShowCustomModuleForm(false);
-      // 不重置customModules，因为它们应该持久化显示
-      setSelectedRoleIdForMapping('');
-      return;
-    }
-    
-    // 当弹窗打开时，加载自定义模块
-    if (showCreateModal || showAddToolModal) {
-      const savedModules = loadCustomModulesFromStorage();
-      if (savedModules.length > 0) {
-        setCustomModules(savedModules);
-      }
-    }
-
-    // 弹窗打开时，从localStorage加载自定义模块
-    const savedModules = loadCustomModulesFromStorage();
-    if (savedModules.length > 0) {
-      setCustomModules(savedModules);
-    }
-
-    // 如果 roles 还没加载，不执行
-    if (roles.length === 0) {
-      console.log('[FieldMappingManagementPage] 等待AI角色加载...');
-      return;
-    }
-
-    const loadExistingConfig = async () => {
-      try {
-        // 字段映射管理只关联技术包装页面
-        const targetPageType = 'tech-package';
-
-        // 加载所有映射配置
-        const mappingsData = await aiSearchService.getAllFieldMappingConfigs();
-        console.log('[FieldMappingManagementPage] 加载的映射配置数量:', mappingsData.length, 'targetPageType:', targetPageType);
-        
-        console.log('[FieldMappingManagementPage] 查找 pageType:', targetPageType);
-        
-        // 查找技术包装页面对应的第一个工作流配置
-        for (const mapping of mappingsData) {
-          const featureObjects = Array.isArray(mapping.config?.featureObjects) 
-            ? mapping.config.featureObjects 
-            : [];
-          
-          const hasMatchingPageType = featureObjects.some((f: any) => 
-            f.pageType === targetPageType
-          );
-          
-          if (hasMatchingPageType) {
-            console.log('[FieldMappingManagementPage] 找到匹配的配置:', mapping.workflowId);
-            setSelectedWorkflowId(mapping.workflowId);
-            // 尝试将workflowId匹配到AI角色
-            const matchingRole = roles.find((r: any) => r.id === mapping.workflowId);
-            if (matchingRole && matchingRole.enabled) {
-              setSelectedRoleIdForMapping(mapping.workflowId);
-            }
-            // 如果找不到匹配的角色，保持workflowId不变，但selectedRoleIdForMapping为空，用户需要手动选择
-            
-            // 加载技术包装页面已配置的 AI 模块
-            const configuredFeatures = featureObjects
-              .filter((f: any) => f.pageType === targetPageType)
-              .map((f: any) => f.featureType);
-            
-            console.log('[FieldMappingManagementPage] 已配置的 AI 模块:', configuredFeatures);
-            
-            if (configuredFeatures.length > 0) {
-              setSelectedFeatureTypes(configuredFeatures);
-            }
-            return; // 找到配置后直接返回
-          }
-        }
-        
-        // 如果没有找到配置，但有AI角色，使用第一个启用的AI角色作为默认值
-        const enabledRoles = roles.filter((r: any) => r.enabled);
-        if (enabledRoles.length > 0) {
-          console.log('[FieldMappingManagementPage] 使用默认AI角色:', enabledRoles[0].id);
-          setSelectedRoleIdForMapping(enabledRoles[0].id);
-          setSelectedWorkflowId(enabledRoles[0].id);
-        }
-      } catch (error) {
-        console.error('[FieldMappingManagementPage] 加载配置信息失败:', error);
-      }
-    };
-
-    loadExistingConfig();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showCreateModal, roles]);
-  
   // 当"添加工具"弹窗打开时，加载已配置的模块信息
   useEffect(() => {
     if (!showAddToolModal) {
@@ -574,22 +634,21 @@ const FieldMappingManagementPage: React.FC = () => {
               </div>
               <button
                 onClick={() => {
+                  setShowAddCategoryModal(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                添加分类
+              </button>
+              <button
+                onClick={() => {
                   setShowAddToolModal(true);
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                添加工具
-              </button>
-              <button
-                onClick={() => {
-                  // 打开弹窗，useEffect 会处理加载已配置信息
-                  setShowCreateModal(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                修改配置
+                添加工具包
               </button>
             </div>
           </div>
@@ -636,9 +695,8 @@ const FieldMappingManagementPage: React.FC = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">独立页面</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI模块</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">输入映射数</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">输出映射数</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">工具名称</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">对应分类</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">输出更新时间</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
@@ -658,12 +716,7 @@ const FieldMappingManagementPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {mapping.config.inputMappings?.length || 0}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {mapping.config.outputMappings?.length || 0}
+                            {getCategoryLabel(mapping)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -704,206 +757,89 @@ const FieldMappingManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {showCreateModal && (
+      {showAddCategoryModal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-6">
-          <div className="bg-white rounded-lg border border-gray-200 w-full max-w-3xl">
+          <div className="bg-white rounded-lg border border-gray-200 w-full max-w-2xl">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">修改配置</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-500 hover:text-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900">添加分类</h3>
+              <button onClick={() => setShowAddCategoryModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-4">
               <div>
-                <div className="text-sm text-gray-600 mb-2">技术独立页</div>
-                <div className="px-3 py-2 border rounded-md text-sm bg-blue-50 border-blue-500 text-gray-900">
-                  技术包装
+                <div className="text-sm font-medium text-gray-700 mb-2">分类管理</div>
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="输入新分类名称"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    className="px-3 py-2 text-sm text-white bg-purple-600 rounded-lg hover:bg-purple-700"
+                  >
+                    添加
+                  </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">字段映射管理仅关联技术包装页面</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {categoryOptions.map((category) => (
+                    <div key={category} className="px-3 py-2 rounded-md border border-gray-200 bg-gray-50 text-sm text-gray-800 flex items-center justify-between">
+                      <span>{category}</span>
+                      <button
+                        onClick={() => handleDeleteCategory(category)}
+                        className="text-gray-400 hover:text-red-600"
+                        title="删除分类"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-600 mb-2">选择AI模块</div>
-                <p className="text-xs text-gray-500 mb-3">选择要关联到技术包装页面的AI模块，这些模块将在前端工具箱中显示</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { key: 'five-view-analysis', label: '五看', icon: <Eye className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'three-fix-analysis', label: '三定', icon: <Target className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'tech-matrix', label: '技术矩阵', icon: <Grid3x3 className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'propagation-strategy', label: '传播', icon: <Megaphone className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'exhibition-video', label: '展具与视频', icon: <VideoIcon className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'translation', label: '翻译', icon: <Languages className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'ppt-outline', label: '技术通稿', icon: <Presentation className="w-6 h-6 mb-2 text-gray-600" /> },
-                    { key: 'script', label: '脚本', icon: <FileText className="w-6 h-6 mb-2 text-gray-600" /> },
-                  ].map(item => (
-                    <button
-                      key={item.key}
-                      onClick={() => { setSelectedFeatureType(item.key); }}
-                      className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${selectedFeatureType === item.key ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-300 hover:bg-gray-50 hover:border-blue-500'}`}
-                      title={item.label}
-                    >
-                      {item.icon}
-                      <span className="text-xs text-gray-700 text-center">{item.label}</span>
-                      <div
-                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(item.key); }}
-                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border cursor-pointer ${isFeatureChecked(item.key) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
-                        aria-label={isFeatureChecked(item.key) ? '取消选择' : '选择模块'}
-                      />
-                    </button>
-                  ))}
-                  {/* 显示已添加的自定义模块（从localStorage加载） */}
-                  {customModules.map((module) => (
-                    <button
-                      key={module.id}
-                      onClick={() => { setSelectedFeatureType(module.id); }}
-                      className={`relative flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${selectedFeatureType === module.id ? 'bg-blue-50 border-blue-500' : 'bg-white border-purple-300 hover:bg-gray-50 hover:border-purple-500'}`}
-                      title={module.label}
-                    >
-                      <Settings className="w-6 h-6 mb-2 text-purple-600" />
-                      <span className="text-xs text-gray-700 text-center">{module.label}</span>
-                      <div
-                        onClick={(e) => { e.stopPropagation(); toggleFeatureChecked(module.id); }}
-                        className={`absolute left-3 bottom-3 w-4 h-4 rounded-full border cursor-pointer ${isFeatureChecked(module.id) ? 'border-red-500 bg-red-500' : 'border-red-500 bg-white'}`}
-                        aria-label={isFeatureChecked(module.id) ? '取消选择' : '选择模块'}
-                      />
-                    </button>
-                  ))}
-                </div>
+              <div className="border-t border-gray-200 pt-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">工具分类映射</div>
+                {uniqueTools.length === 0 ? (
+                  <p className="text-sm text-gray-500">暂无可配置工具</p>
+                ) : (
+                  <div className="space-y-2">
+                    {uniqueTools.map((tool) => (
+                      <div key={tool.featureType} className="flex items-center gap-3">
+                        <div className="w-44 text-sm text-gray-700">{tool.featureLabel}</div>
+                        <select
+                          value={featureCategoryOverrides[tool.featureType] || ''}
+                          onChange={(e) => handleFeatureCategoryChange(tool.featureType, e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                        >
+                          <option value="">自动分类（默认规则）</option>
+                          {categoryOptions.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-3">支持自定义新增分类，并为每个工具单独指定“对应分类”。</p>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
-              <button onClick={() => setShowCreateModal(false)} className="px-3 py-2 rounded-md border text-sm">取消</button>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
               <button
-                onClick={async () => {
-                  try {
-                    // 字段映射管理只关联技术包装页面
-                    const selectedPageType = 'tech-package';
-
-                    // 获取要绑定的功能类型（排除 ai-dialog）
-                    // selectedFeatureTypes 已经包含了所有选中的模块（包括自定义模块）
-                    const featuresToBind = selectedFeatureTypes.length > 0 
-                      ? selectedFeatureTypes.filter(ft => ft !== 'ai-dialog')
-                      : (selectedFeatureType && selectedFeatureType !== 'ai-dialog' ? [selectedFeatureType] : []);
-                    
-                    if (featuresToBind.length === 0) {
-                      setMessage({ type: 'error', text: '请选择至少一个AI模块（点击⭕️勾选，AI对话框除外）' });
-                      return;
-                    }
-
-                    // 如果没有选择AI角色，使用第一个可用的AI角色
-                    const enabledRoles = roles.filter((r: any) => r.enabled);
-                    const roleIdToUse = selectedRoleIdForMapping || (enabledRoles.length > 0 ? enabledRoles[0].id : '');
-                    const workflowIdToUse = roleIdToUse; // 使用AI角色ID作为workflowId
-                    if (!workflowIdToUse) {
-                      setMessage({ type: 'error', text: '没有可用的AI角色，请先创建AI角色' });
-                      return;
-                    }
-
-                    console.log('[FieldMappingManagementPage] 修改配置:', {
-                      roleId: roleIdToUse,
-                      workflowId: workflowIdToUse,
-                      pageType: selectedPageType,
-                      features: featuresToBind,
-                      association: `为 ${PAGE_LABELS[selectedPageType]} 页面关联 ${featuresToBind.length} 个AI模块，影响前端工具箱显示`,
-                    });
-
-                    const existing = await aiSearchService.getFieldMappingConfig(workflowIdToUse);
-                    const normalizedPageType = selectedPageType;
-                    let nextConfig: FieldMappingConfig;
-                    
-                    if (existing) {
-                      const fo = Array.isArray(existing.featureObjects) ? existing.featureObjects.slice() : [];
-                      
-                      // 修改逻辑：只修改当前 pageType 的配置，完全保留其他 pageType 的配置
-                      // 1. 保留所有其他 pageType 的配置（确保其他页面配置不受影响）
-                      const otherPageTypeFeatures = fo.filter((f: any) => {
-                        // 保留没有 pageType 的配置（向后兼容）
-                        if (!f.pageType) {
-                          return true;
-                        }
-                        // 保留所有不是当前 pageType 的配置
-                        return f.pageType !== normalizedPageType;
-                      });
-                      
-                      // 2. 为当前 pageType 创建新的配置（基于用户选择）
-                      // 使用Map来确保每个featureType只保留一个配置（去重）
-                      const newFeaturesMap = new Map<string, any>();
-                      
-                      for (const ft of featuresToBind) {
-                        // 检查是否已存在相同 featureType 和 pageType 的配置，如果有，保留原有的配置信息
-                        const existingFeature = fo.find((f: any) => 
-                          f.featureType === ft && f.pageType === normalizedPageType
-                        );
-                        
-                        // 查找自定义模块的标签（从localStorage中的自定义模块列表）
-                        const customModule = customModules.find(m => m.id === ft);
-                        const moduleLabel = customModule?.label || existingFeature?.label || FEATURE_LABELS[ft] || undefined;
-                        
-                        // 修改配置：实现AI模块与独立页面的关联，影响前端工具箱显示
-                        newFeaturesMap.set(ft, {
-                          featureType: ft as any,
-                          workflowId: workflowIdToUse,
-                          inputMappings: [], // 简化：不涉及字段映射配置
-                          outputMappings: [], // 简化：不涉及字段映射配置
-                          pageType: normalizedPageType, // 关联到技术包装页面
-                          label: moduleLabel,
-                          agentId: existingFeature?.agentId, // 保留agentId配置
-                        });
-                      }
-                      
-                      // 将Map转换为数组
-                      const newFeatures = Array.from(newFeaturesMap.values());
-                      
-                      // 3. 合并：其他 pageType 的配置 + 当前 pageType 的新配置
-                      nextConfig = { 
-                        ...existing, 
-                        featureObjects: [...otherPageTypeFeatures, ...newFeatures]
-                      };
-                    } else {
-                      // 如果没有现有配置，创建新配置
-                      const featureObjects = featuresToBind.map(ft => {
-                        // 查找自定义模块的标签（从localStorage中的自定义模块列表）
-                        const customModule = customModules.find(m => m.id === ft);
-                        const moduleLabel = customModule?.label || FEATURE_LABELS[ft] || undefined;
-                        
-                        return {
-                          featureType: ft as any,
-                          workflowId: workflowIdToUse,
-                          inputMappings: [],
-                          outputMappings: [],
-                          pageType: normalizedPageType, // 关联到技术包装页面
-                          label: moduleLabel,
-                        };
-                      });
-                      
-                      nextConfig = {
-                        workflowId: workflowIdToUse,
-                        inputMappings: [],
-                        outputMappings: [],
-                        featureObjects,
-                      } as any;
-                    }
-
-                    console.log('[FieldMappingManagementPage] 保存配置:', nextConfig);
-                    await aiSearchService.saveFieldMappingConfig(workflowIdToUse, nextConfig);
-                    
-                    setMessage({ type: 'success', text: `配置修改成功：已为 ${PAGE_LABELS[normalizedPageType]} 页面关联 ${featuresToBind.length} 个AI模块，前端工具箱将显示这些模块。请刷新页面查看效果。` });
-                    setShowCreateModal(false);
-                    // 重置表单状态（但保留自定义模块，因为它们应该持久化显示）
-                    setSelectedFeatureTypes([]);
-                    setSelectedFeatureType('');
-                    // 不重置customModules，因为它们应该持久化显示
-                    
-                    // 重新加载数据
-                    await loadData();
-                  } catch (error: any) {
-                    console.error('[FieldMappingManagementPage] 创建配置失败:', error);
-                    const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error?.message || '创建配置失败，请稍后重试';
-                    setMessage({ type: 'error', text: errorMessage });
-                  }
-                }}
-                className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+                onClick={() => setShowAddCategoryModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                保存修改
+                关闭
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddCategoryModal(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                完成
               </button>
             </div>
           </div>
@@ -1132,8 +1068,13 @@ const FieldMappingManagementPage: React.FC = () => {
                     );
                     
                     if (customModulesToAdd.length === 0 && featuresToAdd.length > 0) {
-                      // 如果选中的都是标准模块，提示用户使用"修改配置"来关联页面
-                      setMessage({ type: 'info', text: '标准模块已存在。如需关联到页面，请使用"修改配置"功能' });
+                      // 如果选中的都是标准模块，直接提示即可
+                      setMessage({ type: 'success', text: '标准模块已存在，无需重复添加' });
+                      setShowAddToolModal(false);
+                      setAddToolSelectedTypes([]);
+                      setCustomFeatureId('');
+                      setCustomFeatureLabel('');
+                      setShowCustomModuleForm(false);
                       return;
                     }
                     
@@ -1145,7 +1086,7 @@ const FieldMappingManagementPage: React.FC = () => {
                     // 添加工具功能：只确认自定义模块已添加到列表
                     // 实际添加操作在"新增AI模块"时已经完成（保存到localStorage）
                     // 这里只是确认操作，不涉及字段映射配置的保存
-                    setMessage({ type: 'success', text: `成功添加 ${customModulesToAdd.length} 个自定义AI模块。如需在工具箱中显示，请使用"修改配置"功能关联到技术包装页面` });
+                    setMessage({ type: 'success', text: `成功添加 ${customModulesToAdd.length} 个自定义AI模块` });
                     setShowAddToolModal(false);
                     setAddToolSelectedTypes([]);
                     setCustomFeatureId('');

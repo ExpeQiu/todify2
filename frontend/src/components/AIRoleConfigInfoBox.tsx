@@ -459,9 +459,10 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
     navigate('/field-mapping-management');
   };
 
-  const configuredCount = nodeStatuses.filter(s => s.configured).length;
-  const totalCount = nodeStatuses.length;
-  const unconfiguredNodes = nodeStatuses.filter(s => !s.configured);
+  const visibleNodeStatuses = nodeStatuses.filter(s => s.source !== 'field-mapping');
+  const configuredCount = visibleNodeStatuses.filter(s => s.configured).length;
+  const totalCount = visibleNodeStatuses.length;
+  const unconfiguredNodes = visibleNodeStatuses.filter(s => !s.configured);
 
   if (loading) {
     return (
@@ -560,83 +561,6 @@ const AIRoleConfigInfoBox: React.FC<AIRoleConfigInfoBoxProps> = ({ roles, onRefr
                       >
                           <Bot className="w-3 h-3" />
                           选择AI角色
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* 字段映射功能对象 - 保持原样 */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              字段映射功能对象
-            </h4>
-            <div className="space-y-2">
-              {nodeStatuses
-                .filter(s => s.source === 'field-mapping')
-                .map((status, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      status.configured
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`p-1.5 rounded ${
-                        status.configured ? 'bg-green-100' : 'bg-gray-100'
-                      }`}>
-                        {status.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-900">
-                          {status.nodeName}
-                        </div>
-                        {status.configured && status.roleName ? (
-                          <div className="text-xs text-gray-600 mt-0.5">
-                            已配置: {status.roleName}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-gray-600 mt-0.5">
-                            在字段映射配置中设置agentId
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {status.configured && (
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      )}
-                      {!status.configured && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCreateAndAssignRole(status.nodeType);
-                          }}
-                          disabled={creatingRole === status.nodeType}
-                          className="px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-md transition-colors flex items-center gap-1 disabled:opacity-50"
-                          title={PRESET_ROLES[status.nodeType] ? "使用预设配置创建并自动分配角色" : "创建通用角色并自动分配"}
-                        >
-                          {creatingRole === status.nodeType ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <PlusCircle className="w-3 h-3" />
-                          )}
-                          {creatingRole === status.nodeType ? '创建中...' : '一键生成'}
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenSelector(status);
-                        }}
-                        className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center gap-1"
-                      >
-                        <Bot className="w-3 h-3" />
-                        选择角色
                       </button>
                     </div>
                   </div>

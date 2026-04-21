@@ -4,21 +4,14 @@ import { ApiResponse, PaginatedResponse } from '../types/techPoint';
 
 /**
  * 技术点同步服务
- * 用于与 TPD2 项目进行技术点信息同步
- * 
- * 后续实现功能：
- * 1. 从 TPD2 同步技术点数据
- * 2. 增量同步（只同步更新的数据）
- * 3. 双向同步（支持从 TPD2 到 todify3 和反向）
- * 4. 同步冲突处理
- * 5. 同步日志记录
+ * 用于从 tech-hub 拉取技术点并覆盖/更新本地数据
  */
 export const techPointSyncService = {
   /**
-   * 从 TPD2 同步技术点数据
+   * 从 tech-hub 同步技术点数据（单向拉取）
    * @param options 同步选项
    */
-  async syncFromTPD2(options?: {
+  async syncFromTechHub(options?: {
     fullSync?: boolean; // 是否全量同步
     lastSyncTime?: string; // 上次同步时间，用于增量同步
     apiBaseUrl?: string; // 自定义 API 基础 URL
@@ -61,51 +54,15 @@ export const techPointSyncService = {
   },
 
   /**
-   * 同步技术点到 TPD2
-   * @param techPointIds 要同步的技术点ID列表，如果不提供则同步所有
-   * @param apiConfig API 配置
+   * 兼容旧调用：保留方法名，内部转发到 tech-hub 单向拉取。
    */
-  async syncToTPD2(
-    techPointIds?: number[],
-    apiConfig?: {
-      apiBaseUrl?: string;
-      apiKey?: string;
-    }
-  ): Promise<ApiResponse<{
-    synced: number;
-    created?: number;
-    updated?: number;
-    errors: number;
-  }>> {
-    try {
-      const response = await api.post('/tech-points/sync/to-tpd2', {
-        techPointIds,
-        apiBaseUrl: apiConfig?.apiBaseUrl,
-        apiKey: apiConfig?.apiKey,
-      });
-      
-      // 后端返回的格式是 { success, message, data: { total, created, updated, errors } }
-      if (response.data && response.data.data) {
-        const stats = response.data.data;
-        return {
-          success: response.data.success ?? true,
-          data: {
-            synced: stats.total || (stats.created || 0) + (stats.updated || 0),
-            created: stats.created || 0,
-            updated: stats.updated || 0,
-            errors: stats.errors || 0,
-          },
-          message: response.data.message,
-        };
-      }
-      return response.data;
-    } catch (error) {
-      console.error('同步技术点到 TPD2 失败:', error);
-      return {
-        success: false,
-        error: '同步技术点到 TPD2 失败'
-      };
-    }
+  async syncFromTPD2(options?: {
+    fullSync?: boolean;
+    lastSyncTime?: string;
+    apiBaseUrl?: string;
+    apiKey?: string;
+  }) {
+    return this.syncFromTechHub(options);
   },
 
   /**
@@ -113,7 +70,7 @@ export const techPointSyncService = {
    */
   async getSyncStatus(): Promise<ApiResponse<{
     lastSyncTime: string | null;
-    lastSyncType: 'from_tpd2' | 'to_tpd2' | null;
+    lastSyncType: 'from_tech_hub' | null;
     syncInProgress: boolean;
     syncProgress?: {
       total: number;
@@ -144,7 +101,7 @@ export const techPointSyncService = {
     endDate?: string;
   }): Promise<ApiResponse<PaginatedResponse<{
     id: number;
-    syncType: 'from_tpd2' | 'to_tpd2';
+    syncType: 'from_tech_hub';
     status: 'success' | 'failed' | 'partial';
     syncedCount: number;
     errorCount: number;

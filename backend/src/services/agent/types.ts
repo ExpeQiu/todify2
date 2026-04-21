@@ -21,7 +21,7 @@ export enum AgentErrorCode {
 /**
  * Agent错误接口
  */
-export interface AgentError {
+export interface AgentErrorPayload {
   code: AgentErrorCode;
   message: string;
   details?: any;
@@ -79,7 +79,7 @@ export class AgentError extends Error {
   /**
    * 转换为JSON格式（便于序列化）
    */
-  toJSON(): AgentError {
+  toJSON(): AgentErrorPayload {
     return {
       code: this.code,
       message: this.message,

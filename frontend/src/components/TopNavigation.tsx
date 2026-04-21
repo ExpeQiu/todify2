@@ -26,7 +26,7 @@ interface NavigationItem {
 
 // 主要功能的固定顺序和映射
 const MAIN_NAV_ORDER = [
-  { name: '项目管理', icon: Home, path: '/', address: null },
+  { name: '首页', icon: Home, path: '/', address: null },
   // 技术包装、技术策略、技术通稿已移至项目资源页面的Tab中，不再显示在顶部导航
 ];
 

@@ -472,7 +472,7 @@ export class ToolExecutor {
         // - scene-alchemist (场景炼金术师) - Direct Agent  
         // - market-sniper (市场狙击手) - Direct Agent
         // - content-director (内容大导演) - Direct Agent
-        targetAgentId = roleId || implementation?.agentId;
+        targetAgentId = roleId ?? implementation?.agentId ?? null;
         
         if (!targetAgentId) {
           console.warn(`专家工具 ${toolConfig.name} 未找到对应的角色ID`, { 
@@ -688,7 +688,7 @@ export class ToolExecutor {
           userId: 'expert-tool',
         });
 
-        if (chatResult.success && chatResult.value) {
+        if (chatResult.success) {
           const chatData = chatResult.value.raw as any;
           return {
             success: true,
@@ -714,7 +714,7 @@ export class ToolExecutor {
           userId: 'expert-tool',
         });
 
-        if (workflowResult.success && workflowResult.value) {
+        if (workflowResult.success) {
           const workflowData = workflowResult.value.raw as any;
           return {
             success: true,

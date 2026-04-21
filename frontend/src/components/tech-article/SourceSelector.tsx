@@ -10,6 +10,7 @@ const { Text, Paragraph } = Typography;
 
 interface SourceSelectorProps {
   projectId?: string;
+  initialConversationIds?: string[];
   onSelectionChange: (selected: {
     conversationIds: string[];
     outputIds: string[];
@@ -47,7 +48,7 @@ interface SourceInformationRecord {
   created_at?: string;
 }
 
-export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSelectionChange }) => {
+export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, initialConversationIds = [], onSelectionChange }) => {
   const [loading, setLoading] = useState(false);
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [filteredSources, setFilteredSources] = useState<SourceItem[]>([]);
@@ -118,6 +119,19 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
   useEffect(() => {
     setFilteredSources(filteredSourcesMemo);
   }, [filteredSourcesMemo]);
+
+  useEffect(() => {
+    if (!initialConversationIds.length || !sources.length) {
+      return;
+    }
+    const validIds = initialConversationIds.filter((id) =>
+      sources.some((source) => source.type === 'conversation' && source.id === id)
+    );
+    if (validIds.length === 0) {
+      return;
+    }
+    setSelectedIds((prev) => new Set([...Array.from(prev), ...validIds]));
+  }, [initialConversationIds, sources]);
 
   const loadSources = useCallback(async () => {
     // 防止并发加载
@@ -251,10 +265,10 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
         });
       });
 
-      // 兜底：当对话/输出为空时，尝试从来源管理读取“技术通稿”专题数据
+      // 兜底：当对话/输出为空时，直接读取项目来源信息（与项目管理页保持一致）
       if (sourceItems.length === 0 && projectId) {
         try {
-          console.info('[SourceSelector] 常规来源为空，尝试从来源管理加载技术通稿来源', { projectId });
+          console.info('[SourceSelector] 常规来源为空，尝试从来源管理加载项目来源', { projectId });
           const response = await api.get('/source-information', {
             params: {
               status: 'active',
@@ -264,26 +278,17 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
             },
           });
           const sourceInfoList: SourceInformationRecord[] = response.data?.data || [];
-          const topicSources = sourceInfoList.filter((item) => {
-            const metadata = typeof item.metadata === 'string'
-              ? (() => {
-                  try {
-                    return JSON.parse(item.metadata);
-                  } catch {
-                    return {};
-                  }
-                })()
-              : (item.metadata || {});
-            const category = metadata?.category || metadata?.sourceCategory;
-            return item.page_type === 'tech-article' || category === 'tech-article-qa';
-          });
-
-          sourceItems = topicSources.map((item) => {
-            const isConversationSource = !!item.conversation_id;
+          sourceItems = sourceInfoList.map((item) => {
+            const inferredConversationId =
+              item.conversation_id ||
+              (typeof item.source_id === 'string' && item.source_id.startsWith('conversation_')
+                ? item.source_id.replace(/^conversation_/, '')
+                : undefined);
+            const isConversationSource = !!inferredConversationId;
             return {
-              id: isConversationSource ? (item.conversation_id as string) : item.source_id,
+              id: isConversationSource ? (inferredConversationId as string) : item.source_id,
               type: isConversationSource ? ('conversation' as const) : ('output' as const),
-              pageType: 'tech-article',
+              pageType: item.page_type || 'unknown',
               title: item.title || '未命名来源',
               summary: item.description || item.url || '来源管理信息点',
               createdAt: item.created_at ? new Date(item.created_at) : new Date(),
@@ -293,7 +298,6 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({ projectId, onSel
 
           console.info('[SourceSelector] 来源管理兜底加载完成', {
             total: sourceInfoList.length,
-            topicCount: topicSources.length,
             usableCount: sourceItems.filter((item) => item.selectable !== false).length,
           });
         } catch (fallbackError) {

@@ -33,6 +33,11 @@ export function isInternetUrl(url: string): boolean {
 export function classifySource(source: SourceInformation): SourceGroup {
   const category = source.category || parseCategoryFromMetadata(source.metadata);
   
+  // 优先通过 type 字段判断，避免知识库文件因 URL 后缀被误判为普通文件
+  if (source.type === 'knowledge_base') {
+    return 'tech-resource';
+  }
+
   // 如果已有明确的 category，直接判断
   if (category) {
     if (AI_CREATED_CATEGORIES.includes(category as SourceCategory)) {
@@ -57,11 +62,6 @@ export function classifySource(source: SourceInformation): SourceGroup {
     if (isInternetUrl(source.url)) {
       return 'web-search';
     }
-  }
-  
-  // 通过 type 字段判断
-  if (source.type === 'knowledge_base') {
-    return 'tech-resource';
   }
   
   // 默认返回外部来源

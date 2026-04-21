@@ -15,6 +15,7 @@ services:
       # 应用配置
       - NODE_ENV=production
       - PORT=8113
+      - JWT_SECRET=${JWT_SECRET:-local-dev-jwt-secret-change-me}
       # 数据库配置（使用 SQLite）
       - DB_TYPE=${DB_TYPE:-sqlite}
       - SQLITE_DB_PATH=${SQLITE_DB_PATH:-./data/todify4.db}
@@ -63,7 +64,7 @@ services:
     networks:
       - todify4-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -83,7 +84,7 @@ services:
     networks:
       - todify4-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 3s
       retries: 3

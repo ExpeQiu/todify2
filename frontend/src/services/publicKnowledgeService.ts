@@ -198,6 +198,22 @@ class PublicKnowledgeService {
       throw error;
     }
   }
+
+  /**
+   * 获取文件转换后的Markdown内容
+   */
+  async getFileMarkdown(id: number): Promise<ApiResponse<{ fileId: number; markdownContent: string }>> {
+    try {
+      const response = await api.get<ApiResponse<{ fileId: number; markdownContent: string }>>(`/public-knowledge/files/${id}/markdown`);
+      return response.data;
+    } catch (error: any) {
+      console.error('获取文件Markdown内容失败:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || '获取文件Markdown内容失败',
+      };
+    }
+  }
 }
 
 export const publicKnowledgeService = new PublicKnowledgeService();

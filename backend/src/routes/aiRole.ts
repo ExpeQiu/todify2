@@ -593,7 +593,7 @@ router.post('/:id/chat', upload.array('files', 10), async (req, res) => {
       false,
       null,
       agentError.message,
-      AgentErrorHandler.formatForFrontend(agentError)
+      JSON.stringify(AgentErrorHandler.formatForFrontend(agentError))
     ));
   }
 });

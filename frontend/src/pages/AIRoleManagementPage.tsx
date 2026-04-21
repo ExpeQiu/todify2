@@ -1222,61 +1222,6 @@ const AIRoleManagementPage: React.FC = () => {
 
         {mainTab === 'role-management' && (
           <div className="space-y-6">
-            {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">总角色数</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{roles.length}</p>
-                  </div>
-                  <Bot className="w-8 h-8 text-blue-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">已启用</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                      {roles.filter(r => r.enabled).length}
-                    </p>
-                  </div>
-                  <CheckCircle className="w-8 h-8 text-green-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-gray-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">已禁用</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                      {roles.filter(r => !r.enabled).length}
-                    </p>
-                  </div>
-                  <XCircle className="w-8 h-8 text-gray-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-purple-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Dify驱动</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                      {roles.filter(r => r.provider === 'dify' || !r.provider).length}
-                    </p>
-                  </div>
-                  <Workflow className="w-8 h-8 text-purple-500" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-indigo-500">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">自编工作流</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{publishedWorkflows.length}</p>
-                  </div>
-                  <Workflow className="w-8 h-8 text-indigo-500" />
-                </div>
-              </div>
-            </div>
-
             {/* 搜索和筛选栏 */}
             <SearchAndFilterBar
               searchQuery={searchQuery}

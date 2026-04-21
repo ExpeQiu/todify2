@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal,
-  Radio,
   Space,
   Button,
   message,
@@ -18,9 +17,9 @@ import {
   Table,
   Popconfirm,
 } from 'antd';
-import { SyncOutlined, ArrowRightOutlined, ArrowLeftOutlined, SettingOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { SyncOutlined, SettingOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { techPointSyncService } from '../../services/techPointSyncService';
-import { tpdApiConfigService, TPDAPIConfig } from '../../services/tpdApiConfigService';
+import { techHubApiConfigService, TechHubAPIConfig } from '../../services/techHubApiConfigService';
 
 const { Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -31,14 +30,11 @@ interface TechPointSyncModalProps {
   onSuccess?: () => void;
 }
 
-type SyncDirection = 'from_tpd2' | 'to_tpd2';
-
 const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
   visible,
   onCancel,
   onSuccess,
 }) => {
-  const [syncDirection, setSyncDirection] = useState<SyncDirection>('from_tpd2');
   const [syncing, setSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{
     total: number;
@@ -52,7 +48,7 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
     errors: number;
   } | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [apiConfigs, setApiConfigs] = useState<TPDAPIConfig[]>([]);
+  const [apiConfigs, setApiConfigs] = useState<TechHubAPIConfig[]>([]);
   const [selectedApiConfigId, setSelectedApiConfigId] = useState<string>('');
   const [showConfigModal, setShowConfigModal] = useState(false);
 
@@ -65,7 +61,7 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
 
   const loadApiConfigs = async () => {
     try {
-      const configs = await tpdApiConfigService.getConfigs();
+      const configs = await techHubApiConfigService.getConfigs();
       setApiConfigs(configs);
       
       // 自动选择默认启用的配置
@@ -82,7 +78,6 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
   useEffect(() => {
     if (!visible) {
       // 重置状态
-      setSyncDirection('from_tpd2');
       setSyncing(false);
       setSyncProgress(null);
       setSyncResult(null);
@@ -110,29 +105,15 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
     setSyncProgress({ total: 0, completed: 0, failed: 0 });
 
     try {
-      let result;
-      if (syncDirection === 'from_tpd2') {
-        // 从 TPD2 同步到当前项目
-        result = await techPointSyncService.syncFromTPD2({
-          fullSync: true,
-          apiBaseUrl: selectedConfig.apiBaseUrl,
-          apiKey: selectedConfig.apiKey,
-        });
-      } else {
-        // 从当前项目同步到 TPD2
-        result = await techPointSyncService.syncToTPD2(undefined, {
-          apiBaseUrl: selectedConfig.apiBaseUrl,
-          apiKey: selectedConfig.apiKey,
-        });
-      }
+      const result = await techPointSyncService.syncFromTechHub({
+        fullSync: true,
+        apiBaseUrl: selectedConfig.apiBaseUrl,
+        apiKey: selectedConfig.apiKey,
+      });
 
       if (result.success && result.data) {
         setSyncResult(result.data);
-        message.success(
-          syncDirection === 'from_tpd2'
-            ? '从 TPD2 同步成功'
-            : '同步到 TPD2 成功'
-        );
+        message.success('从 tech-hub 同步成功');
         // 触发成功回调
         if (onSuccess) {
           setTimeout(() => {
@@ -232,38 +213,14 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
         <Divider style={{ margin: '8px 0' }} />
 
         <div>
-          <Text strong>选择同步方向：</Text>
-          <Radio.Group
-            value={syncDirection}
-            onChange={(e) => setSyncDirection(e.target.value)}
-            style={{ marginTop: 12, width: '100%' }}
-            disabled={syncing}
-          >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Radio value="from_tpd2" style={{ width: '100%', padding: '12px' }}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                  <Space>
-                    <ArrowRightOutlined />
-                    <Text strong>从 TPD2 同步到当前项目</Text>
-                  </Space>
-                  <Text type="secondary" style={{ fontSize: 12, marginLeft: 24 }}>
-                    将 TPD2 项目中的技术点数据同步到当前项目，覆盖或创建本地技术点
-                  </Text>
-                </Space>
-              </Radio>
-              <Radio value="to_tpd2" style={{ width: '100%', padding: '12px' }}>
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                  <Space>
-                    <ArrowLeftOutlined />
-                    <Text strong>从当前项目同步到 TPD2</Text>
-                  </Space>
-                  <Text type="secondary" style={{ fontSize: 12, marginLeft: 24 }}>
-                    将当前项目中的技术点数据同步到 TPD2 项目，覆盖或创建 TPD2 中的技术点
-                  </Text>
-                </Space>
-              </Radio>
-            </Space>
-          </Radio.Group>
+          <Text strong>同步模式：</Text>
+          <Alert
+            style={{ marginTop: 12 }}
+            type="info"
+            showIcon
+            message="单向拉取同步（tech-hub -> 当前项目）"
+            description="同步时仅从 tech-hub 拉取技术点数据，并覆盖/更新本地技术点，不会向外部系统回写。"
+          />
         </div>
 
         {syncing && syncProgress && (
@@ -375,7 +332,7 @@ const TechPointSyncModal: React.FC<TechPointSyncModalProps> = ({
 
 // API 配置管理组件
 interface ApiConfigManagerProps {
-  configs: TPDAPIConfig[];
+  configs: TechHubAPIConfig[];
   onConfigChange: () => void;
   onSelectConfig: (configId: string) => void;
 }
@@ -386,7 +343,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
   onSelectConfig,
 }) => {
   const [form] = Form.useForm();
-  const [editingConfig, setEditingConfig] = useState<TPDAPIConfig | null>(null);
+  const [editingConfig, setEditingConfig] = useState<TechHubAPIConfig | null>(null);
   const [testingConfigId, setTestingConfigId] = useState<string | null>(null);
 
   const handleAdd = () => {
@@ -400,7 +357,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
     form.resetFields();
   };
 
-  const handleEdit = (config: TPDAPIConfig) => {
+  const handleEdit = (config: TechHubAPIConfig) => {
     setEditingConfig(config);
     form.setFieldsValue(config);
   };
@@ -411,11 +368,11 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
       
       if (editingConfig?.id && editingConfig.id !== '') {
         // 更新现有配置
-        await tpdApiConfigService.updateConfig(editingConfig.id, values);
+        await techHubApiConfigService.updateConfig(editingConfig.id, values);
         message.success('配置更新成功');
       } else {
         // 添加新配置
-        await tpdApiConfigService.addConfig(values);
+        await techHubApiConfigService.addConfig(values);
         message.success('配置添加成功');
       }
       
@@ -430,7 +387,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
 
   const handleDelete = async (id: string) => {
     try {
-      await tpdApiConfigService.deleteConfig(id);
+      await techHubApiConfigService.deleteConfig(id);
       message.success('配置删除成功');
       onConfigChange();
     } catch (error) {
@@ -439,10 +396,10 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
     }
   };
 
-  const handleTest = async (config: TPDAPIConfig) => {
+  const handleTest = async (config: TechHubAPIConfig) => {
     setTestingConfigId(config.id);
     try {
-      const result = await tpdApiConfigService.testConnection(config);
+      const result = await techHubApiConfigService.testConnection(config);
       if (result.success) {
         message.success(result.message);
       } else {
@@ -455,9 +412,9 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
     }
   };
 
-  const handleToggleEnabled = async (config: TPDAPIConfig) => {
+  const handleToggleEnabled = async (config: TechHubAPIConfig) => {
     try {
-      await tpdApiConfigService.updateConfig(config.id, {
+      await techHubApiConfigService.updateConfig(config.id, {
         enabled: !config.enabled,
       });
       message.success(`配置已${config.enabled ? '禁用' : '启用'}`);
@@ -487,7 +444,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
     {
       title: '状态',
       key: 'enabled',
-      render: (_: any, record: TPDAPIConfig) => (
+      render: (_: any, record: TechHubAPIConfig) => (
         <Switch
           checked={record.enabled}
           onChange={() => handleToggleEnabled(record)}
@@ -498,7 +455,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
     {
       title: '操作',
       key: 'action',
-      render: (_: any, record: TPDAPIConfig) => (
+      render: (_: any, record: TechHubAPIConfig) => (
         <Space>
           <Button
             type="link"
@@ -586,7 +543,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
               label="配置名称"
               rules={[{ required: true, message: '请输入配置名称' }]}
             >
-              <Input placeholder="例如：TPD2 生产环境" />
+              <Input placeholder="例如：tech-hub 生产环境" />
             </Form.Item>
             <Form.Item
               name="description"

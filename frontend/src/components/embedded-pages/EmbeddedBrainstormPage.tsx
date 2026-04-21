@@ -3,6 +3,7 @@
  * 用于在项目资源页面中作为Tab内容显示
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Play, Square, RefreshCw, FileText, Users, MessageSquare, Loader2, Send, Download } from 'lucide-react';
 import { brainstormService } from '@/services/brainstormService';
 import { BrainstormSession, BrainstormMessage, CreateBrainstormSessionDTO } from '@/types/brainstorm';
@@ -19,6 +20,7 @@ interface EmbeddedBrainstormPageProps {
 }
 
 const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ projectId }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sessions, setSessions] = useState<BrainstormSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<BrainstormSession | null>(null);
   const [messages, setMessages] = useState<BrainstormMessage[]>([]);
@@ -32,6 +34,7 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
   const [sendingUserMessage, setSendingUserMessage] = useState(false);
   const [pollingStatus, setPollingStatus] = useState<'idle' | 'polling' | 'error'>('idle');
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+  const handledSourceParamsRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -202,6 +205,27 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
     loadSources();
   }, [loadSources, loadSessions]);
 
+  useEffect(() => {
+    const sourceIds = searchParams.getAll('sourceId');
+    if (sourceIds.length === 0) {
+      handledSourceParamsRef.current = false;
+      return;
+    }
+    if (handledSourceParamsRef.current || sources.length === 0) {
+      return;
+    }
+
+    const validIds = sourceIds.filter((id) => sources.some((s) => s.id === id));
+    if (validIds.length > 0) {
+      setSelectedSourceIds((prev) => Array.from(new Set([...prev, ...validIds])));
+    }
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete('sourceId');
+    setSearchParams(nextSearchParams, { replace: true });
+    handledSourceParamsRef.current = true;
+  }, [searchParams, setSearchParams, sources]);
+
   // 当选中会话变化时，加载消息
   useEffect(() => {
     if (selectedSession) {
@@ -325,66 +349,67 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
     return texts[status as keyof typeof texts] || status;
   };
 
+  const renderSessionListPanel = () => (
+    <>
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+        <h2 className="text-sm font-semibold text-gray-900">会话列表</h2>
+        <button
+          onClick={() => setIsSetupModalOpen(true)}
+          className="flex items-center space-x-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-3 h-3" />
+          <span>新建</span>
+        </button>
+      </div>
+      <div className="max-h-[32vh] overflow-y-auto border-b border-gray-200">
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          </div>
+        ) : sessions.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-sm">还没有会话</p>
+            <p className="text-xs mt-2">点击"新建"创建第一个会话</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {sessions.map((session) => (
+              <div
+                key={session.id}
+                onClick={() => setSelectedSession(session)}
+                className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  selectedSession?.id === session.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                }`}
+              >
+                <div className="flex items-start justify-between mb-1">
+                  <h3 className="font-medium text-gray-900 text-sm line-clamp-1">{session.title}</h3>
+                  <span className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${getStatusBadge(session.status)}`}>
+                    {getStatusText(session.status)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 line-clamp-2 mb-1">{session.topic}</p>
+                <div className="flex items-center space-x-3 text-xs text-gray-500">
+                  <span className="flex items-center space-x-1">
+                    <Users className="w-3 h-3" />
+                    <span>{session.participants?.length || 0}</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <MessageSquare className="w-3 h-3" />
+                    <span>{session.messageCount || 0}</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
       <div className="flex-1 flex overflow-hidden">
-        {/* 左侧：会话列表标题栏 - 左上角 */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-            <h2 className="text-sm font-semibold text-gray-900">会话列表</h2>
-            <button
-              onClick={() => setIsSetupModalOpen(true)}
-              className="flex items-center space-x-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-              <span>新建</span>
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {loading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-              </div>
-            ) : sessions.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-sm">还没有会话</p>
-                <p className="text-xs mt-2">点击"新建"创建第一个会话</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {sessions.map((session) => (
-                  <div
-                    key={session.id}
-                    onClick={() => setSelectedSession(session)}
-                    className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedSession?.id === session.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-medium text-gray-900 text-sm line-clamp-1">{session.title}</h3>
-                      <span className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${getStatusBadge(session.status)}`}>
-                        {getStatusText(session.status)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-1">{session.topic}</p>
-                    <div className="flex items-center space-x-3 text-xs text-gray-500">
-                      <span className="flex items-center space-x-1">
-                        <Users className="w-3 h-3" />
-                        <span>{session.participants?.length || 0}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <MessageSquare className="w-3 h-3" />
-                        <span>{session.messageCount || 0}</span>
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        
         {/* 内容区 */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {selectedSession ? (
@@ -533,14 +558,17 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
 
                 {/* 右侧栏：上半部分专家列表，下半部分会话列表 */}
                 <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+                  {/* 会话列表（移动到右侧，位于专家列表上方） */}
+                  {renderSessionListPanel()}
+
                   {/* 上半部分：专家列表 */}
                   {selectedSession.participants && selectedSession.participants.length > 0 && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-1 min-h-0">
                       <div className="p-4 border-b border-gray-200">
                         <h3 className="text-sm font-semibold text-gray-900">参与专家</h3>
                         <p className="text-xs text-gray-500 mt-1">{selectedSession.participants.length} 位专家</p>
                       </div>
-                      <div className="overflow-y-auto p-4" style={{ maxHeight: '40vh' }}>
+                      <div className="overflow-y-auto p-4">
                         <div className="space-y-3">
                           {selectedSession.participants.map((participant) => {
                             const role = participant.aiRole;
@@ -628,10 +656,15 @@ const EmbeddedBrainstormPage: React.FC<EmbeddedBrainstormPageProps> = ({ project
           ) : (
             <>
               {/* 未选中会话时的消息区域 */}
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <p>请选择一个会话或创建新会话</p>
+              <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex items-center justify-center text-gray-500">
+                  <div className="text-center">
+                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p>请选择一个会话或创建新会话</p>
+                  </div>
+                </div>
+                <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+                  {renderSessionListPanel()}
                 </div>
               </div>
             </>

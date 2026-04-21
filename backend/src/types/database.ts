@@ -235,8 +235,8 @@ export interface TechPoint extends BaseEntity {
   keywords?: string[];
   source_url?: string;
   created_by?: string;
-  // TPD2 同步相关字段
-  tpd_id?: string; // TPD2 项目的原始 ID，用于同步锚点
+  // tech-hub 同步相关字段（历史列名保留为 tpd_id）
+  tpd_id?: string; // 外部源原始 ID，用于同步锚点
   car_models_info?: CarModelInfo[]; // JSON 格式存储车型信息
   resources_info?: ResourceInfo[]; // JSON 格式存储资源信息
   knowledge_info?: KnowledgeInfo; // JSON 格式存储知识点详情

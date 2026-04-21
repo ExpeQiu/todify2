@@ -210,6 +210,16 @@ async function startServer() {
       logger.warn('AI角色数据库表初始化警告', { error });
       // 不阻止服务器启动，表会在首次使用时自动创建
     }
+
+    // 初始化项目数据库表
+    try {
+      const { projectModel } = await import('./models');
+      await projectModel.initializeTable();
+      logger.info('项目数据库表初始化成功');
+    } catch (error) {
+      logger.warn('项目数据库表初始化警告', { error });
+      // 不阻止服务器启动，接口会在首次访问时报错日志
+    }
     
     // 初始化公共知识库数据库表
     try {

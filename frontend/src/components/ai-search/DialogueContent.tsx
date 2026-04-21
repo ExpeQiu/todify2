@@ -371,13 +371,8 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
       {/* 标题栏 */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[76px]">
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1">
           <h2 className="text-lg font-semibold text-gray-900">{dialogueTitle}</h2>
-          {conversation ? (
-            <p className="text-xs text-gray-500 mt-1">{conversation.title}</p>
-          ) : (
-            <div className="text-xs text-transparent mt-1">占位</div>
-          )}
         </div>
         <div className="flex items-center gap-2">
           {/* 当前工作流选择 */}
@@ -591,7 +586,15 @@ const DialogueContent: React.FC<DialogueContentProps> = ({
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span>{sources.length}个来源</span>
+              <button
+                type="button"
+                onClick={() => onShowSourceSidebar?.()}
+                className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={!onShowSourceSidebar}
+                title="查看并选择来源"
+              >
+                {sources.length}个来源
+              </button>
               <label className="flex items-center gap-1">
                 <span>上下文窗口:</span>
                 <select

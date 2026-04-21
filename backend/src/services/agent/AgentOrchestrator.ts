@@ -295,6 +295,7 @@ export class AgentOrchestrator {
       if (!response.toolCalls || response.toolCalls.length === 0) {
         return response;
       }
+      const responseToolCalls = response.toolCalls;
 
       // 将 assistant 的回复添加到消息历史
       currentMessages.push({
@@ -309,14 +310,14 @@ export class AgentOrchestrator {
       const toolStartTime = Date.now();
       
       // 记录工具调用开始
-      const toolCallsInThisIteration = response.toolCalls.map((tc: any) => ({
+      const toolCallsInThisIteration = responseToolCalls.map((tc: any) => ({
         toolName: tc.function.name,
         status: 'running'
       }));
       this.toolCallsHistory.push(...toolCallsInThisIteration);
       
       const toolResults = await this.executeTools(
-        response.toolCalls, 
+        responseToolCalls, 
         toolConfigs, 
         checkTimeout, 
         executionId,
@@ -325,7 +326,7 @@ export class AgentOrchestrator {
       
       // 更新工具调用状态
       toolResults.forEach((result, index) => {
-        const toolCall = this.toolCallsHistory.find(tc => tc.toolName === response.toolCalls[index]?.function.name);
+        const toolCall = this.toolCallsHistory.find(tc => tc.toolName === responseToolCalls[index]?.function.name);
         if (toolCall) {
           try {
             const resultData = JSON.parse(result.content);
@@ -344,7 +345,7 @@ export class AgentOrchestrator {
       if (executionId) {
         await this.logStep(executionId, `tool_execution_${iteration}`, {
           type: 'tool',
-          input: { toolCalls: response.toolCalls },
+          input: { toolCalls: responseToolCalls },
           output: { results: toolResults },
           duration: Date.now() - toolStartTime,
           status: 'success'

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X, FileText, Globe, Brain } from 'lucide-react';
 import { SourceInformation } from '../../services/sourceService';
+import { publicKnowledgeService } from '../../services/publicKnowledgeService';
 
 interface ResourceDetailPanelProps {
   resource: SourceInformation | any;
@@ -11,6 +12,9 @@ const ResourceDetailPanel: React.FC<ResourceDetailPanelProps> = ({
   resource,
   onClose
 }) => {
+  const [displayContent, setDisplayContent] = useState<string>('');
+  const [loadingMarkdown, setLoadingMarkdown] = useState(false);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -32,6 +36,60 @@ const ResourceDetailPanel: React.FC<ResourceDetailPanelProps> = ({
     if (resource.type === 'url' || resource.type === 'text') return '网络信息详情';
     return '知识点详情';
   };
+
+  const parsedMetadata = useMemo(() => {
+    if (!resource?.metadata) return undefined;
+    if (typeof resource.metadata === 'object') return resource.metadata;
+    if (typeof resource.metadata === 'string') {
+      try {
+        return JSON.parse(resource.metadata);
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
+  }, [resource?.metadata]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadContent = async () => {
+      const metadataMarkdown = parsedMetadata?.markdownContent;
+      const defaultContent = resource.content || metadataMarkdown || resource.description || '暂无描述';
+      setDisplayContent(defaultContent);
+
+      const sourceId = resource.source_id as string | undefined;
+      const match = sourceId?.match(/^public_kb_(\d+)$/);
+      if (!match) {
+        return;
+      }
+
+      const fileId = parseInt(match[1], 10);
+      if (Number.isNaN(fileId)) {
+        return;
+      }
+
+      setLoadingMarkdown(true);
+      try {
+        const markdownResponse = await publicKnowledgeService.getFileMarkdown(fileId);
+        if (!cancelled && markdownResponse.success && markdownResponse.data?.markdownContent) {
+          setDisplayContent(markdownResponse.data.markdownContent);
+        }
+      } catch (error) {
+        console.error('加载公共知识库Markdown内容失败:', error);
+      } finally {
+        if (!cancelled) {
+          setLoadingMarkdown(false);
+        }
+      }
+    };
+
+    loadContent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [parsedMetadata?.markdownContent, resource.content, resource.description, resource.source_id]);
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -78,10 +136,10 @@ const ResourceDetailPanel: React.FC<ResourceDetailPanelProps> = ({
           {/* 描述/内容 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {resource.content ? '内容' : '描述'}
+              {displayContent ? '内容（Markdown）' : '描述'}
             </label>
             <div className="text-sm text-gray-700 whitespace-pre-wrap">
-              {resource.description || resource.content || '暂无描述'}
+              {loadingMarkdown ? '正在加载文件内容...' : displayContent || '暂无描述'}
             </div>
           </div>
 

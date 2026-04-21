@@ -11,8 +11,7 @@ router.use((req, res, next) => {
 
 // 技术点路由
 router.post('/', techPointController.create.bind(techPointController));
-router.post('/sync', techPointController.syncFromTPD.bind(techPointController));
-router.post('/sync/to-tpd2', techPointController.syncToTPD.bind(techPointController));
+router.post('/sync', techPointController.syncFromTechHub.bind(techPointController));
 router.get('/', techPointController.getAll.bind(techPointController));
 router.get('/tree', techPointController.getTree.bind(techPointController));
 router.get('/search', techPointController.search.bind(techPointController));

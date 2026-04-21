@@ -54,6 +54,14 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   hideTopNavigation = false 
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  // 获取项目ID和是否创建新对话的标志
+  // 嵌入模式：从props读取；独立模式：从URL参数读取
+  const projectId = embeddedMode ? propProjectId : searchParams.get('projectId');
+  const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
+  const shouldHideSourceSidebarByDefault =
+    Boolean(projectId) &&
+    ['ai-qa', 'tech-strategy', 'tech-package'].includes(config.pageType);
+
   const [sources, setSources] = useState<Source[]>([]);
   const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
   // 追踪当前对话中已发送给 Dify 的来源 ID，避免重复发送
@@ -61,7 +69,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [outputs, setOutputs] = useState<OutputContent[]>([]);
-  const [showSourceSidebar, setShowSourceSidebar] = useState(true); // 默认显示左侧边栏
+  const [showSourceSidebar, setShowSourceSidebar] = useState(!shouldHideSourceSidebarByDefault);
   const [showStudioSidebar, setShowStudioSidebar] = useState(config.pageType === 'tech-package'); // tech-package 页面默认显示右侧边栏（工具箱和聊天历史）
   const [workflowConfig, setWorkflowConfig] = useState<WorkflowConfig | null>(null);
   const [showFieldMappingConfig, setShowFieldMappingConfig] = useState(false);
@@ -107,6 +115,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   // 使用 ref 来追踪是否正在加载来源信息，防止重复请求
   const isLoadingSourcesRef = useRef(false);
   const sourcesRef = useRef<Source[]>([]);
+  const handledUrlSourceIdsRef = useRef<string | null>(null);
   useEffect(() => {
     currentConversationRef.current = currentConversation;
   }, [currentConversation]);
@@ -207,11 +216,6 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
     }
   };
 
-  // 获取项目ID和是否创建新对话的标志
-  // 嵌入模式：从props读取；独立模式：从URL参数读取
-  const projectId = embeddedMode ? propProjectId : searchParams.get('projectId');
-  const shouldCreateNewConversation = searchParams.get('newConversation') === 'true';
-  
   // 加载项目信息
   useEffect(() => {
     const loadProject = async () => {
@@ -317,72 +321,47 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
   }, [projectId, config.pageType]);
 
   // 检查 URL 参数中的 sourceId 并自动选中（支持多个 sourceId）
+  // 需要等待来源加载完成后再处理，确保来自管理页的勾选关系可正确同步
   useEffect(() => {
     const urlSourceIds = searchParams.getAll('sourceId'); // 获取所有的 sourceId 参数
     if (urlSourceIds.length === 0) {
+      handledUrlSourceIdsRef.current = null;
       return;
     }
-    
-    // 使用 ref 获取最新的 sources，避免依赖 sources 导致循环
-    const currentSources = sourcesRef.current;
-    console.log('[SourceInfo] 检测到 URL 参数中的 sourceIds:', urlSourceIds, '当前来源数量:', currentSources.length);
-    
-    // 如果来源列表为空，可能需要等待加载，先不处理
-    if (currentSources.length === 0) {
-      console.log('[SourceInfo] 来源列表为空，等待加载...');
-      // 如果正在加载，等待加载完成；否则触发一次加载
+
+    // 生成稳定标识，避免同一组 sourceId 重复处理
+    const sourceKey = [...urlSourceIds].sort().join(',');
+    if (handledUrlSourceIdsRef.current === sourceKey) {
+      return;
+    }
+
+    // 来源未加载完则等待；必要时触发一次加载
+    if (sources.length === 0) {
+      console.log('[SourceInfo] 检测到 sourceId 参数，等待来源加载完成后应用勾选');
       if (!isLoadingSourcesRef.current) {
-        setTimeout(() => {
-          loadPageTypeSources();
-        }, 500);
+        loadPageTypeSources();
       }
       return;
     }
-    
-    const newSelectedIds: string[] = [];
-    let hasNewSelection = false;
-    const missingSourceIds: string[] = [];
-    
-    // 检查每个 sourceId 是否存在于来源中，并添加到选中列表
-    urlSourceIds.forEach(sourceId => {
-      const foundSource = currentSources.find(s => s.id === sourceId);
-      if (foundSource) {
-        console.log('[SourceInfo] 找到匹配的来源，自动选中:', foundSource.title);
-        newSelectedIds.push(sourceId);
-        hasNewSelection = true;
-      } else {
-        console.warn('[SourceInfo] URL 参数中的 sourceId 不存在于加载的来源中:', sourceId);
-        missingSourceIds.push(sourceId);
-      }
-    });
-    
-    // 如果有新的选中项，更新选中列表
-    if (hasNewSelection) {
+
+    const validSourceIds = urlSourceIds.filter((sourceId) =>
+      sources.some((source) => source.id === sourceId)
+    );
+
+    if (validSourceIds.length > 0) {
+      console.log('[SourceInfo] 应用来源勾选（来自 URL sourceId）:', validSourceIds);
       setSelectedSourceIds(prev => {
-        const combined = [...prev];
-        newSelectedIds.forEach(id => {
-          if (!combined.includes(id)) {
-            combined.push(id);
-          }
-        });
-        return combined;
+        return Array.from(new Set([...prev, ...validSourceIds]));
       });
-      
-      // 清除 URL 参数，避免刷新时重复选中
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete('sourceId');
-      setSearchParams(newSearchParams, { replace: true });
-    } else if (missingSourceIds.length > 0) {
-      // 如果所有 sourceId 都不存在，可能是新保存的来源还未加载
-      // 等待一段时间后重新加载页面类型的来源（但只加载一次）
-      console.log('[SourceInfo] 等待新保存的来源加载...');
-      if (!isLoadingSourcesRef.current) {
-        setTimeout(async () => {
-          await loadPageTypeSources();
-        }, 500);
-      }
+    } else {
+      console.warn('[SourceInfo] URL sourceId 与当前来源不匹配，跳过勾选:', urlSourceIds);
     }
-  }, [searchParams, setSearchParams, loadPageTypeSources]);
+
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('sourceId');
+    setSearchParams(newSearchParams, { replace: true });
+    handledUrlSourceIdsRef.current = sourceKey;
+  }, [searchParams, setSearchParams, loadPageTypeSources, sources]);
 
   const loadFiles = useCallback(async () => {
     try {

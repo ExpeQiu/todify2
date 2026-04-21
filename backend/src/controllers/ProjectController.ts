@@ -5,6 +5,79 @@ import { ChatMessageService } from '../services/ChatMessageService';
 import difyClient from '../services/DifyClient';
 
 export class ProjectController {
+  private normalizeConversationAppType(pageType?: string | null, sourceId?: string | null): string {
+    if (pageType) {
+      if (pageType === 'ai-qa') return 'ai-qa';
+      if (pageType === 'ai-search') return 'ai-search';
+      if (pageType === 'tech-package') return 'tech-package';
+      if (pageType === 'tech-strategy') return 'tech-strategy';
+      if (pageType === 'tech-article') return 'tech-article';
+    }
+
+    if (sourceId) {
+      const suffix = sourceId.split('_').pop();
+      if (suffix === 'ai-qa') return 'ai-qa';
+      if (suffix === 'ai-search') return 'ai-search';
+      if (suffix === 'tech-package') return 'tech-package';
+      if (suffix === 'tech-strategy') return 'tech-strategy';
+      if (suffix === 'tech-article') return 'tech-article';
+    }
+
+    return 'ai-qa';
+  }
+
+  private deriveConversationsFromSources(sources: any[], projectId: number): any[] {
+    const conversationMap = new Map<string, any>();
+
+    for (const source of sources || []) {
+      const sourceId = source?.source_id as string | undefined;
+      const explicitConversationId = source?.conversation_id as string | undefined;
+      let inferredConversationId = explicitConversationId;
+
+      // 兼容历史数据：source_id 形如 conversation_<uuid>_<appType>
+      if (!inferredConversationId && sourceId?.startsWith('conversation_')) {
+        const match = sourceId.match(/^conversation_(.+)_(ai-qa|ai-search|tech-package|tech-strategy|tech-article)$/);
+        if (match?.[1]) {
+          inferredConversationId = match[1];
+        }
+      }
+
+      if (!inferredConversationId) {
+        continue;
+      }
+
+      const appType = this.normalizeConversationAppType(source?.page_type, sourceId);
+      const updatedAt = source?.updated_at || source?.created_at || new Date().toISOString();
+      const createdAt = source?.created_at || updatedAt;
+      const sessionName = source?.title || `${appType} 对话`;
+
+      const existing = conversationMap.get(inferredConversationId);
+      if (!existing) {
+        conversationMap.set(inferredConversationId, {
+          conversation_id: inferredConversationId,
+          app_type: appType,
+          session_name: sessionName,
+          status: 'active',
+          project_id: projectId,
+          created_at: createdAt,
+          updated_at: updatedAt,
+        });
+        continue;
+      }
+
+      if (new Date(updatedAt).getTime() > new Date(existing.updated_at).getTime()) {
+        existing.updated_at = updatedAt;
+      }
+      if (new Date(createdAt).getTime() < new Date(existing.created_at).getTime()) {
+        existing.created_at = createdAt;
+      }
+    }
+
+    return Array.from(conversationMap.values()).sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
+  }
+
   /**
    * 创建项目
    */
@@ -541,8 +614,20 @@ export class ProjectController {
         })
       ]);
 
+      const resolvedConversations = conversations.length > 0
+        ? conversations
+        : this.deriveConversationsFromSources(sources as any[], id);
+
+      if (conversations.length === 0 && resolvedConversations.length > 0) {
+        console.info('[ProjectController] 使用 source_information 回填项目会话列表', {
+          projectId: id,
+          sourceCount: sources.length,
+          conversationCount: resolvedConversations.length
+        });
+      }
+
       // 按 app_type 分组对话
-      const groupedConversations = conversations.reduce((acc, conv) => {
+      const groupedConversations = resolvedConversations.reduce((acc, conv) => {
         const appType = conv.app_type || 'other';
         if (!acc[appType]) {
           acc[appType] = [];
@@ -558,7 +643,7 @@ export class ProjectController {
         techPoints: projectDetails?.techPoints || [],
         conversations: groupedConversations,
         // 原始对话列表（用于兼容）
-        conversationsList: conversations
+        conversationsList: resolvedConversations
       };
 
       res.json({

@@ -518,6 +518,17 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
     }
   };
 
+  const getRoleDisplayName = (role: AgentRoleConfig): string => {
+    const roleDisplayNameMap: Record<string, string> = {
+      'tech-fundamentalist': '技术挖掘',
+      'scene-alchemist': '场景挖掘',
+      'market-sniper': '策略洞察',
+      'content-director': '内容创意',
+    };
+
+    return roleDisplayNameMap[role.id] || role.name;
+  };
+
   const renderDashboard = () => (
     <>
       {/* Tools Section */}
@@ -546,7 +557,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       <RoleIcon className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900">{role.name}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">{getRoleDisplayName(role)}</h3>
                       <p className="text-[10px] text-gray-500 leading-none mt-0.5">{role.description}</p>
                     </div>
                   </div>
@@ -731,7 +742,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900">{activeRole.name}</h3>
+                <h3 className="text-sm font-bold text-gray-900">{getRoleDisplayName(activeRole)}</h3>
                 <p className="text-xs text-blue-600 font-medium">
                   {currentActiveToolId ? (
                     <span className="flex items-center gap-1.5">
@@ -779,7 +790,7 @@ const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 </div>
                 <h4 className="text-sm font-medium text-gray-900 mb-1">准备就绪</h4>
                 <p className="text-xs text-gray-500 px-8">
-                  点击下方工具，唤醒 {activeRole.name} 开始工作
+                  点击下方工具，唤醒 {getRoleDisplayName(activeRole)} 开始工作
                 </p>
              </div>
           )}

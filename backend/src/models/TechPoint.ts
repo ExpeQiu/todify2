@@ -39,7 +39,7 @@ export class TechPointModel {
       data.keywords ? JSON.stringify(data.keywords) : null,
       data.source_url || null,
       data.created_by || null,
-      // TPD2 同步相关字段
+      // tech-hub 同步相关字段（历史列名保留为 tpd_id）
       data.tpd_id || null,
       data.car_models_info ? JSON.stringify(data.car_models_info) : null,
       data.resources_info ? JSON.stringify(data.resources_info) : null,

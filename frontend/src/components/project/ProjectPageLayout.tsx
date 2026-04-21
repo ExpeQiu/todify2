@@ -1,8 +1,7 @@
 import React from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { FileText, MessageSquare, Target, Package, Newspaper, FolderKanban } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { MessageSquare, Target, Package, Newspaper, FolderKanban } from 'lucide-react';
 import { Project } from '../../types/project';
-import sourceService from '../../services/sourceService';
 
 interface ProjectPageLayoutProps {
   project: Project;
@@ -18,33 +17,7 @@ const ProjectPageLayout: React.FC<ProjectPageLayoutProps> = ({
   children,
 }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [sourcesCount, setSourcesCount] = React.useState(0);
-
-  React.useEffect(() => {
-    const loadSourcesCount = async () => {
-      try {
-        const response = await sourceService.loadSourceInformationByProjectId(parseInt(projectId));
-        if (response.success && response.data) {
-          setSourcesCount(response.data.length);
-        }
-      } catch (error) {
-        console.error('加载来源数量失败:', error);
-      }
-    };
-    loadSourcesCount();
-  }, [projectId]);
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
+  const isManagementPage = currentPage === 'management';
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
@@ -56,31 +29,20 @@ const ProjectPageLayout: React.FC<ProjectPageLayoutProps> = ({
             <div className="flex items-center space-x-6">
               <button
                 onClick={() => {
-                  const fromTab = (location.state as any)?.fromTab;
-                  if (fromTab) {
-                    navigate(`/?tab=${fromTab}`);
-                  } else {
+                  if (isManagementPage) {
                     navigate('/');
+                    return;
                   }
+                  navigate(`/project/${projectId}/management`);
                 }}
                 className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium"
               >
-                <span className="text-lg">←</span>
-                <span>返回</span>
+                {!isManagementPage && <span className="text-lg">←</span>}
+                <span>{isManagementPage ? '首页' : '返回'}</span>
               </button>
               <div className="h-12 w-px bg-gray-200"></div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">{project.name}</h1>
-                <div className="flex items-center space-x-5 text-sm text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                    {formatDate(project.created_at)}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <FileText className="w-4 h-4" />
-                    {sourcesCount}个来源
-                  </span>
-                </div>
+                <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
               </div>
             </div>
 

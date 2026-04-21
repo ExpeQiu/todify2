@@ -86,6 +86,7 @@ export interface BrainstormSession {
   topic: string;
   description?: string;
   creator_id?: string;
+  project_id?: string;
   status: 'draft' | 'active' | 'completed' | 'stopped';
   config: string; // JSON字符串
   summary?: string;
@@ -263,6 +264,7 @@ export interface BrainstormMessageDTO {
     userId?: string; // 用户ID（如果是用户消息）
     evaluationScore?: number; // 评审分数
     reflectionIteration?: number; // 反思迭代次数
+    debateSide?: 'pro' | 'con';
   };
   createdAt: Date;
   participant?: BrainstormParticipantDTO;
@@ -877,7 +879,7 @@ export class BrainstormMessageModel {
     roundNumber: number;
     content: string;
     replyToId?: string;
-    messageType?: 'agent' | 'user';
+    messageType?: 'agent' | 'user' | 'evaluation' | 'reflection' | 'summary';
     metadata?: any;
   }): Promise<BrainstormMessageDTO> {
     const id = this.generateId();
@@ -910,7 +912,7 @@ export class BrainstormMessageModel {
     roundNumber: number;
     content: string;
     replyToId?: string;
-    messageType?: 'agent' | 'user';
+    messageType?: 'agent' | 'user' | 'evaluation' | 'reflection' | 'summary';
     metadata?: any;
   }>): Promise<BrainstormMessageDTO[]> {
     const results: BrainstormMessageDTO[] = [];

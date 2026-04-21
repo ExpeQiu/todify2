@@ -4,6 +4,7 @@ import { message } from 'antd';
 import { Project } from '../types/project';
 import { TechPoint } from '../types/techPoint';
 import { SourceInformation } from '../services/sourceService';
+import sourceService from '../services/sourceService';
 import { ConversationRecord } from '../services/chatHistoryService';
 import projectService, { ProjectIntelligenceMiningResponse } from '../services/projectService';
 import api from '../services/api';
@@ -28,13 +29,20 @@ const ProjectManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [centerPanelContent, setCenterPanelContent] = useState<CenterPanelContent>(null);
   const [techPointListRefreshTrigger, setTechPointListRefreshTrigger] = useState(0);
+  const [associatedTechPoints, setAssociatedTechPoints] = useState<TechPoint[]>([]);
+  const [associatedSources, setAssociatedSources] = useState<SourceInformation[]>([]);
+  const [selectedContextKeys, setSelectedContextKeys] = useState<Set<string>>(new Set());
+  const [associatedSourcesLoading, setAssociatedSourcesLoading] = useState(false);
   const [isMining, setIsMining] = useState(false);
   const [miningResult, setMiningResult] = useState<ProjectIntelligenceMiningResponse | null>(null);
   const [showMiningModal, setShowMiningModal] = useState(false);
 
+  const getSelectedSourceStorageKey = (id: string) => `project-${id}-selected-source-ids`;
+
   useEffect(() => {
     if (projectId) {
       loadProject();
+      loadAssociatedSources();
     }
   }, [projectId]);
 
@@ -130,6 +138,124 @@ const ProjectManagementPage: React.FC = () => {
   const handleSelectConversation = (conversation: ConversationRecord) => {
     setCenterPanelContent({ type: 'conversation', data: conversation });
   };
+
+  const loadAssociatedSources = async () => {
+    if (!projectId) return;
+
+    setAssociatedSourcesLoading(true);
+    try {
+      const [sourceResult, detailsResponse] = await Promise.all([
+        sourceService.loadSourceInformationByProjectId(parseInt(projectId, 10)),
+        api.get(`/projects/${projectId}/details`).catch(() => null),
+      ]);
+
+      if (sourceResult.success && sourceResult.data) {
+        setAssociatedSources(sourceResult.data as unknown as SourceInformation[]);
+      } else {
+        setAssociatedSources([]);
+      }
+
+      const techPoints = detailsResponse?.data?.success && detailsResponse?.data?.data?.techPoints
+        ? detailsResponse.data.data.techPoints
+        : [];
+      setAssociatedTechPoints(techPoints);
+    } catch (error) {
+      console.error('加载关联信息失败:', error);
+      setAssociatedSources([]);
+      setAssociatedTechPoints([]);
+    } finally {
+      setAssociatedSourcesLoading(false);
+    }
+  };
+
+  const parseCategoryFromSource = (source: SourceInformation): string => {
+    if ((source as any).category) {
+      return (source as any).category as string;
+    }
+
+    const metadata = source.metadata as any;
+    if (metadata && typeof metadata === 'object' && metadata.category) {
+      return metadata.category;
+    }
+    if (typeof metadata === 'string') {
+      try {
+        const parsed = JSON.parse(metadata);
+        if (parsed?.category) return parsed.category;
+      } catch {
+        // ignore parse error
+      }
+    }
+
+    return 'external';
+  };
+
+  const handleShowAssociatedInfo = () => {
+    setCenterPanelContent(null);
+    loadAssociatedSources();
+  };
+
+  const toggleContextSelection = (key: string) => {
+    setSelectedContextKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const selectedContextSources = React.useMemo(() => {
+    const selected = associatedSources.filter((source) =>
+      selectedContextKeys.has(`source:${source.source_id || source.id}`)
+    );
+    return selected;
+  }, [associatedSources, selectedContextKeys]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const selectedSourceIds = Array.from(selectedContextKeys)
+      .filter((key) => key.startsWith('source:'))
+      .map((key) => key.replace('source:', ''))
+      .filter(Boolean);
+
+    const storageKey = getSelectedSourceStorageKey(projectId);
+    if (selectedSourceIds.length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(selectedSourceIds));
+    } else {
+      localStorage.removeItem(storageKey);
+    }
+  }, [selectedContextKeys, projectId]);
+
+  const groupedAssociatedSources = React.useMemo(() => {
+    const coCreation: SourceInformation[] = [];
+    const external: SourceInformation[] = [];
+    const coCreationCategories = new Set([
+      'ai-qa-summary',
+      'tech-package-qa',
+      'tech-strategy-qa',
+      'tech-article-qa',
+    ]);
+
+    for (const source of associatedSources) {
+      const category = parseCategoryFromSource(source);
+      const isCoCreationByCategory = coCreationCategories.has(category);
+      const isCoCreationByPageType = Boolean(
+        source.page_type &&
+        ['ai-qa', 'tech-package', 'tech-strategy', 'tech-article'].includes(source.page_type)
+      );
+      const isCoCreationBySourceId = source.source_id?.startsWith('conversation_') || source.source_id?.startsWith('project_conversation_');
+
+      if (isCoCreationByCategory || isCoCreationByPageType || isCoCreationBySourceId) {
+        coCreation.push(source);
+      } else {
+        external.push(source);
+      }
+    }
+
+    return { coCreation, external };
+  }, [associatedSources]);
 
   const handleCloseCenterPanel = () => {
     setCenterPanelContent(null);
@@ -233,6 +359,13 @@ const ProjectManagementPage: React.FC = () => {
                 <div className="flex items-center justify-end gap-2 border-b border-gray-200 bg-white px-4 py-3">
                   <button
                     type="button"
+                    onClick={handleShowAssociatedInfo}
+                    className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    关联信息
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleIntelligenceMining}
                     disabled={isMining}
                     className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -246,10 +379,170 @@ const ProjectManagementPage: React.FC = () => {
                     信息诊断
                   </button>
                 </div>
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <p className="text-sm">请从左侧选择技术点查看详情</p>
-                  </div>
+                <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
+                  {associatedSourcesLoading ? (
+                    <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                      加载关联信息中...
+                    </div>
+                  ) : associatedSources.length === 0 && associatedTechPoints.length === 0 ? (
+                    <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                      当前项目暂无关联信息
+                    </div>
+                  ) : (
+                    <div className="space-y-5">
+                      <div>
+                        <div className="mb-2 text-sm font-semibold text-gray-800">
+                          技术点 ({associatedTechPoints.length})
+                        </div>
+                        {associatedTechPoints.length === 0 ? (
+                          <div className="rounded-lg border border-dashed border-gray-300 bg-white px-4 py-3 text-xs text-gray-400">
+                            暂无技术点
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {associatedTechPoints.map((tp) => (
+                              (() => {
+                                const contextKey = `techPoint:${tp.id}`;
+                                const checked = selectedContextKeys.has(contextKey);
+                                return (
+                              <button
+                                key={`associated-tp-${tp.id}`}
+                                type="button"
+                                onClick={() => toggleContextSelection(contextKey)}
+                                className={`w-full rounded-lg border bg-white p-3 text-left shadow-sm transition-colors ${
+                                  checked
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center justify-between gap-2">
+                                  <div className="truncate text-sm font-medium text-gray-900">{tp.name}</div>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    readOnly
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                  />
+                                </div>
+                                {tp.description && (
+                                  <p className="mt-1 line-clamp-2 text-xs text-gray-600">{tp.description}</p>
+                                )}
+                              </button>
+                                );
+                              })()
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="mb-2 text-sm font-semibold text-gray-800">
+                          外部来源 ({groupedAssociatedSources.external.length})
+                        </div>
+                        {groupedAssociatedSources.external.length === 0 ? (
+                          <div className="rounded-lg border border-dashed border-gray-300 bg-white px-4 py-3 text-xs text-gray-400">
+                            暂无外部来源
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {groupedAssociatedSources.external.map((source) => (
+                              (() => {
+                                const contextKey = `source:${source.source_id || source.id}`;
+                                const checked = selectedContextKeys.has(contextKey);
+                                return (
+                              <button
+                                key={`associated-external-${source.id || source.source_id}`}
+                                type="button"
+                                onClick={() => toggleContextSelection(contextKey)}
+                                className={`w-full rounded-lg border bg-white p-3 text-left shadow-sm transition-colors ${
+                                  checked
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center justify-between gap-3">
+                                  <h3 className="truncate text-sm font-medium text-gray-900">
+                                    {source.title || '未命名信息'}
+                                  </h3>
+                                  <div className="flex items-center gap-2">
+                                    <span className="shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                                      {source.type || 'external'}
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      readOnly
+                                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                    />
+                                  </div>
+                                </div>
+                                {source.description && (
+                                  <p className="line-clamp-2 text-xs text-gray-600">{source.description}</p>
+                                )}
+                                {source.url && (
+                                  <p className="mt-1 truncate text-xs text-blue-600">{source.url}</p>
+                                )}
+                              </button>
+                                );
+                              })()
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="mb-2 text-sm font-semibold text-gray-800">
+                          共创信息 ({groupedAssociatedSources.coCreation.length})
+                        </div>
+                        {groupedAssociatedSources.coCreation.length === 0 ? (
+                          <div className="rounded-lg border border-dashed border-gray-300 bg-white px-4 py-3 text-xs text-gray-400">
+                            暂无共创信息
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {groupedAssociatedSources.coCreation.map((source) => (
+                              (() => {
+                                const contextKey = `source:${source.source_id || source.id}`;
+                                const checked = selectedContextKeys.has(contextKey);
+                                return (
+                              <button
+                                key={`associated-cocreation-${source.id || source.source_id}`}
+                                type="button"
+                                onClick={() => toggleContextSelection(contextKey)}
+                                className={`w-full rounded-lg border bg-white p-3 text-left shadow-sm transition-colors ${
+                                  checked
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center justify-between gap-3">
+                                  <h3 className="truncate text-sm font-medium text-gray-900">
+                                    {source.title || '未命名信息'}
+                                  </h3>
+                                  <div className="flex items-center gap-2">
+                                    <span className="shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                                      {source.page_type || '共创'}
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      readOnly
+                                      className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                    />
+                                  </div>
+                                </div>
+                                {source.description && (
+                                  <p className="line-clamp-2 text-xs text-gray-600">{source.description}</p>
+                                )}
+                              </button>
+                                );
+                              })()
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : centerPanelContent.type === 'techPoint' ? (
@@ -278,6 +571,7 @@ const ProjectManagementPage: React.FC = () => {
               project={project}
               onSelectConversation={handleSelectConversation}
               showResourceSections={false}
+              selectedContextSources={selectedContextSources}
             />
           </div>
         </div>

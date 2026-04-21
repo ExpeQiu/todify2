@@ -81,7 +81,7 @@ const KnowledgeBaseBrowser: React.FC<KnowledgeBaseBrowserProps> = ({
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const response = await techPointService.syncFromTPD();
+      const response = await techPointService.syncFromTechHub();
       if (response.success && response.data) {
         // 同步成功后重新加载数据
         await loadTechPoints();

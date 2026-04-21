@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Project } from '../types/project';
 import projectService from '../services/projectService';
 import ProjectPageLayout from '../components/project/ProjectPageLayout';
@@ -8,8 +8,10 @@ import EmbeddedTechArticlePage from '../components/embedded-pages/EmbeddedTechAr
 const ProjectTechArticlePage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const preselectedConversationIds = ((location.state as any)?.preselectedConversationIds || []) as string[];
 
   useEffect(() => {
     if (projectId) {
@@ -63,7 +65,10 @@ const ProjectTechArticlePage: React.FC = () => {
       projectId={projectId}
       currentPage="tech-article"
     >
-      <EmbeddedTechArticlePage projectId={projectId} />
+      <EmbeddedTechArticlePage
+        projectId={projectId}
+        initialConversationIds={preselectedConversationIds}
+      />
     </ProjectPageLayout>
   );
 };

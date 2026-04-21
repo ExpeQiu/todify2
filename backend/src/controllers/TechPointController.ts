@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { techPointModel } from '../models';
 import { CreateTechPointDTO, UpdateTechPointDTO } from '../types/database';
-import { tpdSyncService } from '../services/tpdSyncService';
+import { techHubSyncService } from '../services/techHubSyncService';
 
 export class TechPointController {
   /**
@@ -531,15 +531,15 @@ export class TechPointController {
   }
 
   /**
-   * 同步 TPD2 技术点数据
+   * 从 tech-hub 单向拉取技术点数据
    * POST /api/v1/tech-points/sync
    */
-  async syncFromTPD(req: Request, res: Response) {
+  async syncFromTechHub(req: Request, res: Response) {
     try {
       const { apiBaseUrl, apiKey } = req.body;
-      console.log('开始同步 TPD2 技术点数据...', { apiBaseUrl: apiBaseUrl || '使用默认配置' });
+      console.log('开始从 tech-hub 拉取技术点数据...', { apiBaseUrl: apiBaseUrl || '使用默认配置' });
       
-      const result = await tpdSyncService.syncTechPoints({
+      const result = await techHubSyncService.syncTechPoints({
         apiBaseUrl,
         apiKey,
       });
@@ -558,46 +558,7 @@ export class TechPointController {
         });
       }
     } catch (error) {
-      console.error('同步 TPD2 技术点数据失败:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : '同步失败'
-      });
-    }
-  }
-
-  /**
-   * 同步技术点到 TPD2
-   * POST /api/v1/tech-points/sync/to-tpd2
-   */
-  async syncToTPD(req: Request, res: Response) {
-    try {
-      const { techPointIds, apiBaseUrl, apiKey } = req.body;
-      console.log('开始同步技术点到 TPD2...', { 
-        techPointIds: techPointIds?.length || '全部',
-        apiBaseUrl: apiBaseUrl || '使用默认配置' 
-      });
-      
-      const result = await tpdSyncService.syncTechPointsToTPD(techPointIds, {
-        apiBaseUrl,
-        apiKey,
-      });
-      
-      if (result.success) {
-        res.json({
-          success: true,
-          message: result.message,
-          data: result.stats
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: result.message,
-          data: result.stats
-        });
-      }
-    } catch (error) {
-      console.error('同步技术点到 TPD2 失败:', error);
+      console.error('从 tech-hub 同步技术点数据失败:', error);
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '同步失败'

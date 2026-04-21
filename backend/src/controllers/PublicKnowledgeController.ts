@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { publicKnowledgeService } from '../services/publicKnowledgeService';
+import { fileToMarkdownService } from '../services/FileToMarkdownService';
 import { logger } from '../shared/lib/logger';
 import multer from 'multer';
 
@@ -223,6 +224,42 @@ export class PublicKnowledgeController {
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : '获取文件详情失败'
+      });
+    }
+  }
+
+  /**
+   * 获取文件的Markdown内容
+   */
+  async getFileMarkdown(req: Request, res: Response) {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: '无效的文件ID'
+        });
+      }
+
+      const file = await publicKnowledgeService.getFileById(id);
+      const markdownContent = await fileToMarkdownService.convertToMarkdown(
+        file.file_path,
+        file.file_type,
+        file.name
+      );
+
+      res.json({
+        success: true,
+        data: {
+          fileId: id,
+          markdownContent
+        }
+      });
+    } catch (error) {
+      logger.error('获取文件Markdown内容失败:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : '获取文件Markdown内容失败'
       });
     }
   }

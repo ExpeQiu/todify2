@@ -1,6 +1,6 @@
-// TPD API 配置服务 - 管理外部服务（如 TPD2）的 API 配置
+// API 配置服务 - 管理外部服务（如 tech-hub）的 API 配置
 
-export interface TPDAPIConfig {
+export interface TechHubAPIConfig {
   id: string;
   name: string;
   description: string;
@@ -11,23 +11,24 @@ export interface TPDAPIConfig {
   updatedAt?: Date;
 }
 
-export interface TPDAPITestResult {
+export interface TechHubAPITestResult {
   success: boolean;
   message: string;
   responseTime?: number;
   error?: string;
 }
 
-class TPDAPIConfigService {
-  private readonly STORAGE_KEY = 'tpdApiConfigs';
+class TechHubAPIConfigService {
+  private readonly STORAGE_KEY = 'techHubApiConfigs';
+  private readonly LEGACY_STORAGE_KEY = 'tpdApiConfigs';
 
-  // 默认的 TPD API 配置
-  private readonly DEFAULT_CONFIGS: TPDAPIConfig[] = [
+  // 默认的 tech-hub API 配置
+  private readonly DEFAULT_CONFIGS: TechHubAPIConfig[] = [
     {
-      id: 'default-tpd2',
-      name: 'TPD2 默认配置',
-      description: 'TPD2 项目的默认 API 配置',
-      apiBaseUrl: import.meta.env.VITE_TPD_API_URL || 'http://localhost:3004/api/external/v1',
+      id: 'default-tech-hub',
+      name: 'tech-hub 默认配置',
+      description: 'tech-hub 的默认 API 配置',
+      apiBaseUrl: import.meta.env.VITE_TECH_HUB_API_URL || import.meta.env.VITE_TPD_API_URL || 'http://localhost:3004/api/external/v1',
       enabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -35,12 +36,22 @@ class TPDAPIConfigService {
   ];
 
   /**
-   * 获取所有 TPD API 配置
+   * 获取所有 tech-hub API 配置
    */
-  async getConfigs(): Promise<TPDAPIConfig[]> {
+  async getConfigs(): Promise<TechHubAPIConfig[]> {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      let configs: TPDAPIConfig[] = [];
+      let stored = localStorage.getItem(this.STORAGE_KEY);
+      let configs: TechHubAPIConfig[] = [];
+
+      // 兼容旧 key 并自动迁移
+      if (!stored) {
+        const legacy = localStorage.getItem(this.LEGACY_STORAGE_KEY);
+        if (legacy) {
+          stored = legacy;
+          localStorage.setItem(this.STORAGE_KEY, legacy);
+          localStorage.removeItem(this.LEGACY_STORAGE_KEY);
+        }
+      }
 
       if (stored) {
         configs = JSON.parse(stored);
@@ -48,6 +59,7 @@ class TPDAPIConfigService {
         // 确保日期对象正确解析
         configs = configs.map((config: any) => ({
           ...config,
+          id: config.id === 'default-tpd2' ? 'default-tech-hub' : config.id,
           createdAt: config.createdAt ? new Date(config.createdAt) : new Date(),
           updatedAt: config.updatedAt ? new Date(config.updatedAt) : new Date(),
         }));
@@ -71,16 +83,16 @@ class TPDAPIConfigService {
 
       return configs;
     } catch (error) {
-      console.error('获取 TPD API 配置失败:', error);
+      console.error('获取 tech-hub API 配置失败:', error);
       await this.saveConfigs(this.DEFAULT_CONFIGS);
       return this.DEFAULT_CONFIGS;
     }
   }
 
   /**
-   * 保存所有 TPD API 配置
+   * 保存所有 tech-hub API 配置
    */
-  async saveConfigs(configs: TPDAPIConfig[]): Promise<{ success: boolean; message?: string }> {
+  async saveConfigs(configs: TechHubAPIConfig[]): Promise<{ success: boolean; message?: string }> {
     try {
       const configsWithTimestamp = configs.map(config => ({
         ...config,
@@ -89,17 +101,17 @@ class TPDAPIConfigService {
       }));
 
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(configsWithTimestamp));
-      return { success: true, message: 'TPD API 配置保存成功' };
+      return { success: true, message: 'tech-hub API 配置保存成功' };
     } catch (error) {
-      console.error('保存 TPD API 配置失败:', error);
-      return { success: false, message: '保存 TPD API 配置失败' };
+      console.error('保存 tech-hub API 配置失败:', error);
+      return { success: false, message: '保存 tech-hub API 配置失败' };
     }
   }
 
   /**
-   * 获取单个 TPD API 配置
+   * 获取单个 tech-hub API 配置
    */
-  async getConfig(id: string): Promise<TPDAPIConfig | null> {
+  async getConfig(id: string): Promise<TechHubAPIConfig | null> {
     const configs = await this.getConfigs();
     const config = configs.find(config => config.id === id);
     return (config && config.enabled) ? config : null;
@@ -108,21 +120,21 @@ class TPDAPIConfigService {
   /**
    * 获取默认启用的配置
    */
-  async getDefaultConfig(): Promise<TPDAPIConfig | null> {
+  async getDefaultConfig(): Promise<TechHubAPIConfig | null> {
     const configs = await this.getConfigs();
     const enabledConfig = configs.find(config => config.enabled);
     return enabledConfig || configs[0] || null;
   }
 
   /**
-   * 添加新的 TPD API 配置
+   * 添加新的 tech-hub API 配置
    */
-  async addConfig(config: Omit<TPDAPIConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; message?: string; data?: TPDAPIConfig }> {
+  async addConfig(config: Omit<TechHubAPIConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; message?: string; data?: TechHubAPIConfig }> {
     try {
       const configs = await this.getConfigs();
-      const newConfig: TPDAPIConfig = {
+      const newConfig: TechHubAPIConfig = {
         ...config,
-        id: `tpd-api-config-${Date.now()}`,
+        id: `tech-hub-api-config-${Date.now()}`,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -135,15 +147,15 @@ class TPDAPIConfigService {
       }
       return result;
     } catch (error) {
-      console.error('添加 TPD API 配置失败:', error);
+      console.error('添加 tech-hub API 配置失败:', error);
       return { success: false, message: '添加配置失败' };
     }
   }
 
   /**
-   * 更新 TPD API 配置
+   * 更新 tech-hub API 配置
    */
-  async updateConfig(id: string, updates: Partial<TPDAPIConfig>): Promise<{ success: boolean; message?: string }> {
+  async updateConfig(id: string, updates: Partial<TechHubAPIConfig>): Promise<{ success: boolean; message?: string }> {
     try {
       const configs = await this.getConfigs();
       const index = configs.findIndex(config => config.id === id);
@@ -161,13 +173,13 @@ class TPDAPIConfigService {
 
       return await this.saveConfigs(configs);
     } catch (error) {
-      console.error('更新 TPD API 配置失败:', error);
+      console.error('更新 tech-hub API 配置失败:', error);
       return { success: false, message: '更新配置失败' };
     }
   }
 
   /**
-   * 删除 TPD API 配置
+   * 删除 tech-hub API 配置
    */
   async deleteConfig(id: string): Promise<{ success: boolean; message?: string }> {
     try {
@@ -180,15 +192,15 @@ class TPDAPIConfigService {
 
       return await this.saveConfigs(filteredConfigs);
     } catch (error) {
-      console.error('删除 TPD API 配置失败:', error);
+      console.error('删除 tech-hub API 配置失败:', error);
       return { success: false, message: '删除配置失败' };
     }
   }
 
   /**
-   * 测试 TPD API 连接
+   * 测试 tech-hub API 连接
    */
-  async testConnection(config: TPDAPIConfig): Promise<TPDAPITestResult> {
+  async testConnection(config: TechHubAPIConfig): Promise<TechHubAPITestResult> {
     const startTime = Date.now();
 
     try {
@@ -229,7 +241,7 @@ class TPDAPIConfigService {
         if (response.ok) {
           const data = await response.json().catch(() => null);
           
-          // 验证响应格式（兼容 docker TPD2 项目的不同响应格式）
+          // 验证响应格式（兼容不同外部服务响应格式）
           let isValidResponse = false;
           if (data) {
             // 支持多种响应格式
@@ -295,14 +307,14 @@ class TPDAPIConfigService {
   /**
    * 导出配置
    */
-  async exportConfigs(): Promise<TPDAPIConfig[]> {
+  async exportConfigs(): Promise<TechHubAPIConfig[]> {
     return await this.getConfigs();
   }
 
   /**
    * 导入配置
    */
-  async importConfigs(configs: TPDAPIConfig[]): Promise<{ success: boolean; message?: string }> {
+  async importConfigs(configs: TechHubAPIConfig[]): Promise<{ success: boolean; message?: string }> {
     try {
       return await this.saveConfigs(configs);
     } catch (error) {
@@ -313,8 +325,11 @@ class TPDAPIConfigService {
 }
 
 // 创建单例实例
-export const tpdApiConfigService = new TPDAPIConfigService();
+export const techHubApiConfigService = new TechHubAPIConfigService();
+export const tpdApiConfigService = techHubApiConfigService;
+export type TPDAPIConfig = TechHubAPIConfig;
+export type TPDAPITestResult = TechHubAPITestResult;
 
 // 导出类型和服务
-export default tpdApiConfigService;
+export default techHubApiConfigService;
 

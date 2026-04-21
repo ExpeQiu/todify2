@@ -20,13 +20,15 @@ interface ResourceSidebarProps {
   onSelectResource?: (resource: SourceInformation | KnowledgePoint) => void;
   onSelectConversation?: (conversation: ConversationRecord) => void;
   showResourceSections?: boolean;
+  selectedContextSources?: SourceInformation[];
 }
 
 const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
   project,
   onSelectResource,
   onSelectConversation,
-  showResourceSections = true
+  showResourceSections = true,
+  selectedContextSources = [],
 }) => {
   const navigate = useNavigate();
   const [resources, setResources] = useState<{
@@ -453,6 +455,42 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
     setSelectedSearchResults(new Set());
   };
 
+  const buildNavigation = (basePath: string) => {
+    if (selectedContextSources.length === 0) {
+      return { path: basePath, state: undefined as any };
+    }
+
+    const params = new URLSearchParams();
+    const preselectedConversationIds: string[] = [];
+    const uniqueSourceIds = new Set<string>();
+
+    selectedContextSources.forEach((source) => {
+      const sourceId = (source as any).source_id || (source as any).id;
+      if (sourceId && !sourceId.startsWith('tech_point_') && !uniqueSourceIds.has(sourceId)) {
+        uniqueSourceIds.add(sourceId);
+        params.append('sourceId', sourceId);
+      }
+      const conversationId = (source as any).conversation_id;
+      if (conversationId) {
+        preselectedConversationIds.push(conversationId);
+      } else if (sourceId?.startsWith('conversation_')) {
+        const match = sourceId.match(/^conversation_(.+)_(ai-qa|ai-search|tech-package|tech-strategy|tech-article)$/);
+        if (match?.[1]) {
+          preselectedConversationIds.push(match[1]);
+        }
+      }
+    });
+
+    const path = params.toString() ? `${basePath}?${params.toString()}` : basePath;
+    return {
+      path,
+      state: {
+        preselectedContextSources: selectedContextSources,
+        preselectedConversationIds: Array.from(new Set(preselectedConversationIds)),
+      },
+    };
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -664,7 +702,10 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
                       </span>
                     </div>
                     <button
-                      onClick={() => navigate(`/project/${project.id}/ai-qa`)}
+                      onClick={() => {
+                        const target = buildNavigation(`/project/${project.id}/ai-qa`);
+                        navigate(target.path, target.state ? { state: target.state } : undefined);
+                      }}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
                       title="跳转到技术问答页面"
                     >
@@ -717,7 +758,10 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
                       </span>
                     </div>
                     <button
-                      onClick={() => navigate(`/project/${project.id}/tech-strategy`)}
+                      onClick={() => {
+                        const target = buildNavigation(`/project/${project.id}/tech-strategy`);
+                        navigate(target.path, target.state ? { state: target.state } : undefined);
+                      }}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
                       title="跳转到技术策略页面"
                     >
@@ -770,7 +814,10 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
                       </span>
                     </div>
                     <button
-                      onClick={() => navigate(`/project/${project.id}/tech-package`)}
+                      onClick={() => {
+                        const target = buildNavigation(`/project/${project.id}/tech-package`);
+                        navigate(target.path, target.state ? { state: target.state } : undefined);
+                      }}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
                       title="跳转到技术包装页面"
                     >
@@ -823,7 +870,10 @@ const ResourceSidebar: React.FC<ResourceSidebarProps> = ({
                       </span>
                     </div>
                     <button
-                      onClick={() => navigate(`/project/${project.id}/tech-article`)}
+                      onClick={() => {
+                        const target = buildNavigation(`/project/${project.id}/tech-article`);
+                        navigate(target.path, target.state ? { state: target.state } : undefined);
+                      }}
                       className="p-1 hover:bg-gray-100 rounded transition-colors"
                       title="跳转到技术通稿页面"
                     >

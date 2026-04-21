@@ -326,8 +326,8 @@ export const techPointService = {
     }
   },
 
-  // 同步 TPD2 技术点数据
-  async syncFromTPD(): Promise<ApiResponse<{
+  // 从 tech-hub 单向拉取技术点数据
+  async syncFromTechHub(): Promise<ApiResponse<{
     total: number;
     created: number;
     updated: number;
@@ -343,6 +343,16 @@ export const techPointService = {
         error: '同步技术点数据失败'
       };
     }
+  },
+
+  // 兼容旧调用
+  async syncFromTPD(): Promise<ApiResponse<{
+    total: number;
+    created: number;
+    updated: number;
+    errors: number;
+  }>> {
+    return this.syncFromTechHub();
   },
 
   // 获取技术点的完整关联数据（用于图谱展示和资源加载）

@@ -16,6 +16,7 @@ router.delete('/categories/:id', publicKnowledgeController.deleteCategory.bind(p
 router.get('/files', publicKnowledgeController.getFiles.bind(publicKnowledgeController));
 router.get('/files/:id/preview', publicKnowledgeController.previewFile.bind(publicKnowledgeController));
 router.get('/files/:id/download', publicKnowledgeController.downloadFile.bind(publicKnowledgeController));
+router.get('/files/:id/markdown', publicKnowledgeController.getFileMarkdown.bind(publicKnowledgeController));
 router.get('/files/:id', publicKnowledgeController.getFileById.bind(publicKnowledgeController));
 router.post('/upload', publicKnowledgeController.uploadFile.bind(publicKnowledgeController));
 router.put('/files/:id', publicKnowledgeController.updateFile.bind(publicKnowledgeController));

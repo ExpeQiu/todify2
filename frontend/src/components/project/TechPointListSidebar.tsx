@@ -38,10 +38,12 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
     files: SourceInformation[];
     internetInfo: SourceInformation[];
     knowledgePoints: KnowledgePoint[];
+    knowledgeBaseSources: SourceInformation[];
   }>({
     files: [],
     internetInfo: [],
-    knowledgePoints: []
+    knowledgePoints: [],
+    knowledgeBaseSources: [],
   });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +98,7 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
         files: grouped['file'],
         internetInfo: grouped['web-search'],
         knowledgePoints: projectResources.knowledgePoints || [],
+        knowledgeBaseSources: grouped['tech-resource'],
       });
     } catch (error) {
       console.error('加载技术资源失败:', error);
@@ -107,6 +110,7 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
           files: grouped['file'],
           internetInfo: grouped['web-search'],
           knowledgePoints: [],
+          knowledgeBaseSources: grouped['tech-resource'],
         });
       } catch (fallbackError) {
         console.error('降级加载技术资源失败:', fallbackError);
@@ -397,6 +401,17 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
     navigate(`/tech-point-library?mode=select&returnUrl=${encodeURIComponent(returnUrl)}&selectedIds=${currentTechPointIds}`);
   };
 
+  const excludedKnowledgeTitles = new Set(['已选择技术点']);
+  const filteredKnowledgeBaseSources = resources.knowledgeBaseSources.filter(source => {
+    const title = source.title?.trim();
+    return Boolean(title) && !excludedKnowledgeTitles.has(title);
+  });
+  const filteredKnowledgePoints = resources.knowledgePoints.filter(kp => {
+    const title = kp.title?.trim();
+    return Boolean(title) && !excludedKnowledgeTitles.has(title);
+  });
+  const totalKnowledgeResources = filteredKnowledgeBaseSources.length + filteredKnowledgePoints.length;
+
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* 标题 */}
@@ -456,7 +471,7 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
         )}
 
         <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
-          <h2 className="text-sm font-semibold text-gray-900">技术资源</h2>
+          <h2 className="text-sm font-semibold text-gray-900">外部来源</h2>
         </div>
 
         <div className="border-b border-gray-200">
@@ -529,7 +544,7 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
               <div className="flex items-center gap-2">
                 <Brain className="w-4 h-4 text-purple-600" />
                 <span className="text-sm font-medium text-gray-900">
-                  关联知识点 {resources.knowledgePoints.length > 0 && <span className="text-gray-500 font-normal">({resources.knowledgePoints.length})</span>}
+                  关联知识点 {totalKnowledgeResources > 0 && <span className="text-gray-500 font-normal">({totalKnowledgeResources})</span>}
                 </span>
               </div>
               <button
@@ -541,11 +556,23 @@ const TechPointListSidebar: React.FC<TechPointListSidebarProps> = ({
               </button>
             </div>
           </div>
-          {resources.knowledgePoints.length > 0 ? (
+          {totalKnowledgeResources > 0 ? (
             <div className="px-4 pb-3 space-y-1">
-              {resources.knowledgePoints.map((kp) => (
+              {filteredKnowledgeBaseSources.map((source) => (
                 <div
-                  key={kp.id}
+                  key={`kb-source-${source.id ?? source.source_id}`}
+                  onClick={() => onSelectResource?.(source)}
+                  className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
+                >
+                  <Brain className="w-3 h-3 text-purple-600 flex-shrink-0" />
+                  <span className="text-xs text-gray-700 truncate flex-1 group-hover:text-blue-600">
+                    {source.title || '未命名知识点'}
+                  </span>
+                </div>
+              ))}
+              {filteredKnowledgePoints.map((kp) => (
+                <div
+                  key={`kp-${kp.id}`}
                   onClick={() => onSelectResource?.(kp)}
                   className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 cursor-pointer group"
                 >

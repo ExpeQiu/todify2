@@ -24,6 +24,50 @@ export class ProjectModel {
   }
 
   /**
+   * 初始化项目相关表
+   */
+  async initializeTable(): Promise<void> {
+    // 主项目表
+    await this.db.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        cover_image TEXT,
+        icon TEXT,
+        type TEXT DEFAULT 'normal' CHECK (type IN ('normal', 'featured')),
+        status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
+        created_by TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_opened_at DATETIME
+      )
+    `);
+
+    // 项目来源关联表（兼容旧功能）
+    await this.db.query(`
+      CREATE TABLE IF NOT EXISTS project_sources (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        source_type TEXT NOT NULL CHECK (source_type IN ('file', 'url', 'text', 'tech_point', 'knowledge_point')),
+        source_content TEXT NOT NULL,
+        source_title TEXT,
+        source_description TEXT,
+        metadata TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+      )
+    `);
+
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_type ON projects(type)');
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)');
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at)');
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_last_opened_at ON projects(last_opened_at)');
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_project_sources_project_id ON project_sources(project_id)');
+    await this.db.query('CREATE INDEX IF NOT EXISTS idx_project_sources_source_type ON project_sources(source_type)');
+  }
+
+  /**
    * 创建项目
    */
   async create(data: CreateProjectDTO): Promise<Project> {

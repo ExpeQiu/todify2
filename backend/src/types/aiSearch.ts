@@ -20,6 +20,8 @@ export interface OutputMappingRule {
 
 export interface FeatureObjectMapping {
   featureType: string;
+  pageType?: string;
+  agentId?: string;
   workflowId?: string;
   inputMappings?: FieldMappingRule[];
   outputMappings?: OutputMappingRule[];

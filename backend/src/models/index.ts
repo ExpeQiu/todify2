@@ -16,7 +16,6 @@ import { ExecutionTraceModel } from './ExecutionTrace';
 import { PerformanceMetricModel } from './PerformanceMetrics';
 import { PublicPageConfigModel } from './PublicPageConfig';
 import { PageToolConfigModel } from './PageToolConfig';
-import { SourceInformationModel } from './SourceInformation';
 
 // 使用已存在的数据库管理器实例
 // 创建模型实例

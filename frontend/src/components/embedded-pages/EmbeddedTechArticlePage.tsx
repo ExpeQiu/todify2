@@ -3,8 +3,8 @@
  * 用于在项目资源页面中作为Tab内容显示
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Card, Button, Space, message, Radio, Row, Col, Tooltip, Alert } from 'antd';
-import { ThunderboltOutlined, MessageOutlined, ReloadOutlined, DownloadOutlined, ClearOutlined } from '@ant-design/icons';
+import { Card, Button, Space, message, Row, Col, Tooltip, Alert, Empty } from 'antd';
+import { ThunderboltOutlined, ReloadOutlined, DownloadOutlined, ClearOutlined } from '@ant-design/icons';
 import SourceSelector from '../tech-article/SourceSelector';
 import MultiVersionArticleView from '../tech-article/MultiVersionArticleView';
 import DialogueContent from '../ai-search/DialogueContent';
@@ -12,8 +12,6 @@ import { aiSearchService } from '../../services/aiSearchService';
 import { Conversation } from '../../types/aiSearch';
 import { MultiVersionArticle } from '../../types/techArticle';
 import articleTypeService from '../../services/articleTypeService';
-
-type ViewMode = 'generate' | 'optimize';
 
 // 生成阶段状态
 type GenerationPhase = 'idle' | 'collecting' | 'generating' | 'parsing' | 'done';
@@ -28,10 +26,10 @@ const PHASE_LABELS: Record<GenerationPhase, string> = {
 
 interface EmbeddedTechArticlePageProps {
   projectId: string;
+  initialConversationIds?: string[];
 }
 
-const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ projectId }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('generate');
+const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ projectId, initialConversationIds = [] }) => {
   const [selectedSources, setSelectedSources] = useState<{
     conversationIds: string[];
     outputIds: string[];
@@ -116,11 +114,7 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
       setGenerationPhase('done');
       message.success('技术通稿生成成功');
       
-      // 延迟一下再切换模式，让用户看到成功状态
-      setTimeout(() => {
-        setViewMode('optimize');
-        setGenerationPhase('idle');
-      }, 500);
+      setGenerationPhase('idle');
       
     } catch (error: any) {
       console.error('生成技术通稿失败:', error);
@@ -131,17 +125,11 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
     }
   };
   
-  // 进入优化模式时创建对话
-  const handleEnterOptimizeMode = async () => {
-    if (!generatedArticle) {
-      message.warning('请先生成技术通稿');
-      setViewMode('generate');
-      return;
-    }
-    
-    // 如果已有对话，直接使用
-    if (optimizeConversation) return;
-    
+  // 创建优化对话
+  const ensureOptimizeConversation = async () => {
+    if (!generatedArticle) return null;
+    if (optimizeConversation) return optimizeConversation;
+
     try {
       const projectIdNum = parseInt(projectId);
       const conversation = await aiSearchService.createConversation({
@@ -165,10 +153,12 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
         });
         const updatedConversation = await aiSearchService.getConversation(conversation.id);
         setOptimizeConversation(updatedConversation);
+        return updatedConversation;
       }
     } catch (error) {
       console.error('创建优化对话失败:', error);
     }
+    return null;
   };
 
   const handleEditVersion = (versionType: string, content: any) => {
@@ -377,158 +367,111 @@ const EmbeddedTechArticlePage: React.FC<EmbeddedTechArticlePageProps> = ({ proje
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>技术通稿智能生成</h2>
-            <Radio.Group
-              value={viewMode}
-              onChange={(e) => {
-                const newMode = e.target.value;
-                setViewMode(newMode);
-                if (newMode === 'optimize') {
-                  handleEnterOptimizeMode();
-                }
-              }}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="generate">
-                <ThunderboltOutlined /> 生成模式
-              </Radio.Button>
-              <Radio.Button value="optimize" disabled={!generatedArticle}>
-                <MessageOutlined /> 优化模式
-              </Radio.Button>
-            </Radio.Group>
           </div>
 
-          {viewMode === 'generate' ? (
-            <>
-              <Row gutter={16}>
-                <Col span={24}>
-                  <SourceSelector projectId={projectId} onSelectionChange={handleSelectionChange} />
-                </Col>
-              </Row>
-
-              <Button
-                type="primary"
-                size="large"
-                icon={<ThunderboltOutlined />}
-                onClick={handleGenerate}
-                loading={isGenerating}
-                disabled={selectedSources.conversationIds.length === 0 && selectedSources.outputIds.length === 0}
-                block
-              >
-                {isGenerating ? PHASE_LABELS[generationPhase] || '生成中...' : '生成技术通稿'}
-              </Button>
-
-              {generatedArticle && (
-                <MultiVersionArticleView
-                  article={generatedArticle}
-                  onEdit={handleEditVersion}
+          <Row gutter={16} align="top">
+            <Col xs={24} xl={10}>
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <SourceSelector
+                  projectId={projectId}
+                  initialConversationIds={initialConversationIds}
+                  onSelectionChange={handleSelectionChange}
                 />
-              )}
-            </>
-          ) : (
-            <>
-              {generatedArticle ? (
-                <>
-                  {/* 快速操作栏 */}
-                  <Card size="small" style={{ marginBottom: 16 }}>
-                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                      <Space>
-                        <Alert
-                          message="通过对话优化通稿内容，或直接在右侧编辑"
-                          type="info"
-                          showIcon
-                          style={{ marginBottom: 0 }}
-                        />
-                      </Space>
-                      <Space>
-                        <Tooltip title="重新生成（保留当前配置）">
-                          <Button
-                            icon={<ReloadOutlined />}
-                            onClick={() => {
-                              setViewMode('generate');
-                              setOptimizeConversation(null);
-                            }}
-                          >
-                            重新生成
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="导出所有版本">
-                          <Button
-                            icon={<DownloadOutlined />}
-                            onClick={handleExportAll}
-                          >
-                            导出全部
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="清除并重新开始">
-                          <Button
-                            icon={<ClearOutlined />}
-                            danger
-                            onClick={() => {
-                              setGeneratedArticle(null);
-                              setOptimizeConversation(null);
-                              setViewMode('generate');
-                              message.info('已清除，可重新选择数据源');
-                            }}
-                          >
-                            清除
-                          </Button>
-                        </Tooltip>
-                      </Space>
-                    </Space>
-                  </Card>
-                  
-                  <Row gutter={16}>
-                    <Col span={14}>
-                      <Card 
-                        title="AI 优化助手" 
-                        size="small"
-                        style={{ height: 'calc(100vh - 320px)', display: 'flex', flexDirection: 'column' }}
-                        bodyStyle={{ flex: 1, overflow: 'hidden', padding: 0 }}
+
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<ThunderboltOutlined />}
+                  onClick={handleGenerate}
+                  loading={isGenerating}
+                  disabled={selectedSources.conversationIds.length === 0 && selectedSources.outputIds.length === 0}
+                  block
+                >
+                  {isGenerating ? PHASE_LABELS[generationPhase] || '生成中...' : '生成技术通稿'}
+                </Button>
+              </Space>
+            </Col>
+
+            <Col xs={24} xl={14}>
+              <Card title="优化模式" size="small" style={{ marginBottom: 16 }}>
+                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <Space>
+                    <Alert
+                      message="通过对话优化通稿内容，并在下方实时编辑版本"
+                      type="info"
+                      showIcon
+                      style={{ marginBottom: 0 }}
+                    />
+                  </Space>
+                  <Space>
+                    <Tooltip title="重新生成（保留当前配置）">
+                      <Button
+                        icon={<ReloadOutlined />}
+                        onClick={() => {
+                          setOptimizeConversation(null);
+                          message.info('已清空优化会话，可重新生成');
+                        }}
                       >
-                        <DialogueContent
-                          conversation={optimizeConversation}
-                          sources={[]}
-                          contextWindowSize={10}
-                          dialogueTitle=""
-                          pageType="tech-article"
-                          onEnsureConversation={async () => {
-                            if (!optimizeConversation) {
-                              const projectIdNum = parseInt(projectId);
-                              const conv = await aiSearchService.createConversation({
-                                title: '技术通稿优化对话',
-                                sources: [],
-                                pageType: 'tech-article',
-                                projectId: !isNaN(projectIdNum) ? projectIdNum : undefined,
-                              });
-                              if (conv) {
-                                const updated = await aiSearchService.getConversation(conv.id);
-                                setOptimizeConversation(updated);
-                                return updated;
-                              }
-                            }
-                            return optimizeConversation;
-                          }}
-                        />
-                      </Card>
-                    </Col>
-                    <Col span={10}>
-                      <div style={{ maxHeight: 'calc(100vh - 320px)', overflowY: 'auto' }}>
-                        <MultiVersionArticleView
-                          article={generatedArticle}
-                          onEdit={handleEditVersion}
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </>
+                        重新生成
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="导出所有版本">
+                      <Button
+                        icon={<DownloadOutlined />}
+                        onClick={handleExportAll}
+                        disabled={!generatedArticle}
+                      >
+                        导出全部
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="清除并重新开始">
+                      <Button
+                        icon={<ClearOutlined />}
+                        danger
+                        onClick={() => {
+                          setGeneratedArticle(null);
+                          setOptimizeConversation(null);
+                          message.info('已清除，可重新选择数据源');
+                        }}
+                      >
+                        清除
+                      </Button>
+                    </Tooltip>
+                  </Space>
+                </Space>
+              </Card>
+
+              {generatedArticle ? (
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Card
+                    title="AI 优化助手"
+                    size="small"
+                    style={{ minHeight: 420, display: 'flex', flexDirection: 'column' }}
+                    bodyStyle={{ flex: 1, overflow: 'hidden', padding: 0 }}
+                  >
+                    <DialogueContent
+                      conversation={optimizeConversation}
+                      sources={[]}
+                      contextWindowSize={10}
+                      dialogueTitle=""
+                      pageType="tech-article"
+                      onEnsureConversation={ensureOptimizeConversation}
+                    />
+                  </Card>
+                  <div style={{ maxHeight: 'calc(100vh - 460px)', overflowY: 'auto' }}>
+                    <MultiVersionArticleView
+                      article={generatedArticle}
+                      onEdit={handleEditVersion}
+                    />
+                  </div>
+                </Space>
               ) : (
                 <Card>
-                  <p>请先生成技术通稿</p>
-                  <Button onClick={() => setViewMode('generate')}>返回生成模式</Button>
+                  <Empty description="请先在左侧选择信息源并生成技术通稿" />
                 </Card>
               )}
-            </>
-          )}
+            </Col>
+          </Row>
         </Space>
       </Card>
     </div>

@@ -127,7 +127,7 @@ class AgentWorkflowService {
           userId: 'ai-role-user',
         });
 
-        if (chatResult.success && chatResult.value) {
+        if (chatResult.success) {
           const chatData = chatResult.value.raw as any;
           return {
             success: true,
@@ -158,7 +158,7 @@ class AgentWorkflowService {
           userId: 'ai-role-user',
         });
 
-        if (workflowResult.success && workflowResult.value) {
+        if (workflowResult.success) {
           const workflowData = workflowResult.value.raw as any;
           return {
             success: true,
