@@ -151,3 +151,9 @@ archive/
 # Temporary files
 *.tmp
 *.temp
+
+# Prevent macOS resource fork artifacts
+._*
+
+# Vite generated metadata cache
+frontend/node_modules/.vite/deps/_metadata.json
