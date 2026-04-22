@@ -1,5 +1,5 @@
-// import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthInitializer } from "./components/AuthInitializer";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
 import TechStrategyPage from "./pages/TechStrategyPage";
@@ -22,17 +22,19 @@ import ArticleTypeManagementPage from "./pages/ArticleTypeManagementPage";
 import ExecutionTracePage from "./pages/ExecutionTracePage";
 
 function App() {
+
   return (
-    <Router
-      basename="/todify"
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-      data-oid="9yzclqb"
-    >
-      <div className="App" data-oid="ycxpxt5">
-        <Routes data-oid="otdlif7">
+    <AuthInitializer>
+      <Router
+        basename="/todify"
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+        data-oid="9yzclqb"
+      >
+        <div className="App" data-oid="ycxpxt5">
+          <Routes data-oid="otdlif7">
           <Route
             path="/"
             element={<HomePage />}
@@ -135,10 +137,11 @@ function App() {
             path="/execution-traces/:executionId"
             element={<ExecutionTracePage />}
           />
-        </Routes>
-      </div>
-    </Router>
-  );
+            </Routes>
+          </div>
+        </Router>
+      </AuthInitializer>
+    );
 }
 
 export default App;

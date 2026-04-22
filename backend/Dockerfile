@@ -1,5 +1,5 @@
 # 后端 Dockerfile
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY src ./src
 RUN npm run build
 
 # 生产环境镜像
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 安装必要的系统依赖（SQLite需要，以及健康检查工具和envsubst）
 RUN apk add --no-cache python3 make g++ sqlite wget bash gettext

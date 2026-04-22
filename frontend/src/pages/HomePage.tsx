@@ -8,7 +8,8 @@ import RecentProjectList from '../components/project/RecentProjectList';
 import NewProjectModal from '../components/project/NewProjectModal';
 import NewProjectCard from '../components/project/NewProjectCard';
 import ProjectCard from '../components/project/ProjectCard';
-import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database, FileText, Map } from 'lucide-react';
+import { getToken, parseToken, clearToken } from '../lib/geelyhubAuth';
+import { Plus, List, Grid, ChevronDown, Search, User, Settings, Database, FileText, Map, LogOut } from 'lucide-react';
 
 type TabType = 'all' | 'my' | 'featured';
 
@@ -30,6 +31,7 @@ const HomePage: React.FC = () => {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'date'>('recent');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; employee_id: string } | null>(null);
 
   // 当 URL 参数变化时，更新 activeTab
   useEffect(() => {
@@ -38,6 +40,17 @@ const HomePage: React.FC = () => {
       setActiveTab(tabFromUrl);
     }
   }, [searchParams]);
+
+  // 加载用户信息
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      const payload = parseToken(token);
+      if (payload) {
+        setCurrentUser({ name: payload.name, employee_id: payload.employee_id });
+      }
+    }
+  }, []);
 
   // 加载数据
   useEffect(() => {
@@ -237,10 +250,10 @@ const HomePage: React.FC = () => {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-all duration-200"
-                  title="用户"
+                  title={currentUser ? currentUser.name : '用户'}
                 >
                   <User className="w-4 h-4" />
-                  <span>用户</span>
+                  <span>{currentUser ? currentUser.name : '用户'}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${userMenuOpen ? 'transform rotate-180' : ''}`} />
                 </button>
 
@@ -293,6 +306,17 @@ const HomePage: React.FC = () => {
                       >
                         <Map className="w-4 h-4" />
                         <span>工具箱</span>
+                      </button>
+                      <hr className="my-1" />
+                      <button
+                        onClick={() => {
+                          clearToken();
+                          window.location.reload();
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors duration-200"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>退出登录</span>
                       </button>
                     </div>
                   </>
