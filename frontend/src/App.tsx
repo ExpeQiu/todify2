@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthInitializer } from "./components/AuthInitializer";
+import { DashboardLayout } from "./layouts/DashboardLayout";
+import { DashboardPage } from "./pages/DashboardPage";
 import AIRoleManagementPage from "./pages/AIRoleManagementPage";
 import TechPackagePage from "./pages/TechPackagePage";
 import TechStrategyPage from "./pages/TechStrategyPage";
@@ -22,7 +24,6 @@ import ArticleTypeManagementPage from "./pages/ArticleTypeManagementPage";
 import ExecutionTracePage from "./pages/ExecutionTracePage";
 
 function App() {
-
   return (
     <AuthInitializer>
       <Router
@@ -33,12 +34,16 @@ function App() {
         }}
         data-oid="9yzclqb"
       >
-        <div className="App" data-oid="ycxpxt5">
+        <DashboardLayout>
           <Routes data-oid="otdlif7">
           <Route
             path="/"
-            element={<HomePage />}
+            element={<Navigate to="/dashboard" replace />}
             data-oid="rudq804"
+          />
+          <Route
+            path="/dashboard"
+            element={<DashboardPage />}
           />
 
           <Route
@@ -138,7 +143,7 @@ function App() {
             element={<ExecutionTracePage />}
           />
             </Routes>
-          </div>
+          </DashboardLayout>
         </Router>
       </AuthInitializer>
     );
