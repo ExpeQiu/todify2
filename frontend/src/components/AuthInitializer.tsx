@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { getToken, parseToken, isTokenExpired } from '@/lib/geelyhubAuth';
+import {
+  getToken,
+  parseToken,
+  isTokenExpired,
+  redirectToLogin,
+  buildSafeReturnPath,
+  isGeelyhubAuthEnforced,
+} from '@/lib/geelyhubAuth';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -19,8 +26,8 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
     const url = new URL(window.location.href);
     const urlToken = (url.searchParams.get('token') || '').trim();
     if (urlToken) {
-      // 优先使用 geelyhub_auth_token（shared auth 标准 key）
       localStorage.setItem('geelyhub_auth_token', urlToken);
+      localStorage.setItem('auth_token', urlToken);
       // 清除 URL 中的 token 参数
       url.searchParams.delete('token');
       window.history.replaceState({}, '', url.pathname + url.search + url.hash);
@@ -32,13 +39,10 @@ export function AuthInitializer({ children }: AuthInitializerProps) {
       localStorage.setItem('geelyhub_auth_token', oldToken);
     }
 
-    // 3. 检查登录状态
+    // 3. 检查登录状态（开发默认不强制跳转，见 isGeelyhubAuthEnforced）
     const token = getToken();
-    if (!token || isTokenExpired()) {
-      const target = encodeURIComponent(
-        window.location.pathname + window.location.search + window.location.hash
-      );
-      window.location.replace(`/?target=${target}`);
+    if (isGeelyhubAuthEnforced() && (!token || isTokenExpired())) {
+      redirectToLogin(buildSafeReturnPath());
       return;
     }
 

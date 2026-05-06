@@ -1,4 +1,5 @@
 import { DatabaseManager } from '../config/database';
+import { toCountSql } from '../utils/toCountSql';
 import { 
   SourceInformation, 
   CreateSourceInformationDTO, 
@@ -105,9 +106,9 @@ export class SourceInformationModel {
     }
 
     // 获取总数
-    const countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = await this.db.query(countSql, values);
-    const total = Array.isArray(countResult) ? countResult[0].count : countResult.count;
+    const countResult = await this.db.query(toCountSql(sql), values);
+    const countRow = Array.isArray(countResult) ? countResult[0] : (countResult as any);
+    const total = Number(countRow?.count ?? 0);
 
     // 添加分页
     if (options.limit) {

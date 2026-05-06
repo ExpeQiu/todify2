@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
+import { API_V1_BASE } from '@/config/apiBase';
 import type { ApiResponse, ApiErrorPayload } from '@/shared/types/api';
 
 class ApiClient {
@@ -7,7 +8,7 @@ class ApiClient {
 
   constructor() {
     this.client = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+      baseURL: API_V1_BASE,
       timeout: 120_000, // 增加到120秒（2分钟），适应AI请求的较长响应时间
       headers: {
         'Content-Type': 'application/json',

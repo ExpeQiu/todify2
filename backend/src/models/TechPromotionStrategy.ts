@@ -15,6 +15,7 @@
  */
 
 import { DatabaseManager } from '../config/database';
+import { toCountSql } from '../utils/toCountSql';
 import { 
   TechPromotionStrategy, 
   CreateTechPromotionStrategyDTO, 
@@ -105,9 +106,8 @@ export class TechPromotionStrategyModel {
       sql += ' ORDER BY created_at DESC';
     }
 
-    const countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = await this.db.query(countSql, values);
-    const total = countResult[0].count;
+    const countResult = await this.db.query(toCountSql(sql), values);
+    const total = Number(countResult[0]?.count ?? 0);
 
     if (options.limit) {
       sql += ` LIMIT ${options.limit}`;

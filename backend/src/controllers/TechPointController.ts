@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { techPointModel } from '../models';
 import { CreateTechPointDTO, UpdateTechPointDTO } from '../types/database';
 import { techHubSyncService } from '../services/techHubSyncService';
+import { sharedDataService } from '../services/SharedDataService';
 
 export class TechPointController {
   /**
@@ -38,7 +39,7 @@ export class TechPointController {
         });
       }
 
-      const techPoint = await techPointModel.findById(id);
+      const techPoint = await sharedDataService.getTechPointById(id);
       if (!techPoint) {
         return res.status(404).json({
           success: false,
@@ -79,33 +80,18 @@ export class TechPointController {
       } = req.query;
 
       const options = {
-        limit: parseInt(pageSize as string),
-        offset: (parseInt(page as string) - 1) * parseInt(pageSize as string),
+        page: parseInt(page as string),
+        pageSize: parseInt(pageSize as string),
+        status: status as string | undefined,
+        keyword: undefined as string | undefined,
         orderBy: orderBy as string,
-        orderDirection: orderDirection as 'ASC' | 'DESC',
-        where: {} as any
+        orderDirection: orderDirection as 'ASC' | 'DESC'
       };
 
-      if (status) {
-        options.where.status = status;
-      }
-      if (category_id) {
-        options.where.category_id = parseInt(category_id as string);
-      }
-      if (parent_id !== undefined) {
-        options.where.parent_id = parent_id === 'null' ? null : parseInt(parent_id as string);
-      }
-      if (tech_type) {
-        options.where.tech_type = tech_type;
-      }
-      if (priority) {
-        options.where.priority = priority;
-      }
-
-      console.log('Query options:', options);
+      console.log('Query options (shared):', options);
       
-      const result = await techPointModel.findAll(options);
-      console.log('Query result:', result);
+      const result = await sharedDataService.getTechPoints(options);
+      console.log('Query result from shared:', result);
       
       res.json({
         success: true,
@@ -149,7 +135,15 @@ export class TechPointController {
         orderDirection: orderDirection as 'ASC' | 'DESC'
       };
 
-      const result = await techPointModel.findByCategoryId(categoryId, options);
+      // shared schema tech_points 表没有 category_id 字段
+      // 返回所有 active 技术点作为替代
+      const result = await sharedDataService.getTechPoints({
+        page: parseInt(page as string),
+        pageSize: parseInt(pageSize as string),
+        status: 'active',
+        orderBy: orderBy as string,
+        orderDirection: orderDirection as 'ASC' | 'DESC'
+      });
       res.json({
         success: true,
         data: result
@@ -169,9 +163,8 @@ export class TechPointController {
   async getTree(req: Request, res: Response) {
     try {
       const { category_id } = req.query;
-      const categoryId = category_id ? parseInt(category_id as string) : undefined;
-      
-      const tree = await techPointModel.getTree(categoryId);
+      // shared schema 技术点暂无 category_id 层级概念，直接返回树形
+      const tree = await sharedDataService.getTechPointTree();
       res.json({
         success: true,
         data: tree
@@ -270,12 +263,11 @@ export class TechPointController {
         });
       }
 
-      const options = {
-        limit: parseInt(pageSize as string),
-        offset: (parseInt(page as string) - 1) * parseInt(pageSize as string)
-      };
-
-      const result = await techPointModel.search(keyword as string, options);
+      const result = await sharedDataService.getTechPoints({
+        page: parseInt(page as string),
+        pageSize: parseInt(pageSize as string),
+        keyword: keyword as string
+      });
       res.json({
         success: true,
         data: result
@@ -303,13 +295,14 @@ export class TechPointController {
         });
       }
 
+      // shared schema tech_points 没有 tags 字段，使用 keyword 搜索替代
       const tagArray = Array.isArray(tags) ? tags : [tags];
-      const options = {
-        limit: parseInt(pageSize as string),
-        offset: (parseInt(page as string) - 1) * parseInt(pageSize as string)
-      };
-
-      const result = await techPointModel.findByTags(tagArray as string[], options);
+      const keyword = tagArray.join(' ');
+      const result = await sharedDataService.getTechPoints({
+        page: parseInt(page as string),
+        pageSize: parseInt(pageSize as string),
+        keyword
+      });
       res.json({
         success: true,
         data: result
@@ -328,9 +321,9 @@ export class TechPointController {
    */
   async getStats(req: Request, res: Response) {
     try {
-      console.log('TechPointController.getStats called');
+      console.log('TechPointController.getStats called (from shared schema)');
       
-      const stats = await techPointModel.getStats();
+      const stats = await sharedDataService.getTechPointStats();
       console.log('Stats result:', stats);
       
       res.json({
@@ -389,7 +382,7 @@ export class TechPointController {
         });
       }
 
-      const carModels = await techPointModel.getAssociatedCarModels(id);
+      const carModels = await sharedDataService.getTechPointVehicles(id);
       res.json({
         success: true,
         data: carModels
@@ -544,17 +537,22 @@ export class TechPointController {
         apiKey,
       });
       
+      // ⚠️ DEPRECATED: 此接口已废弃
+      // 技术点数据现在从 shared.tech_points 直接读取，不再需要同步
+      // 保留此接口仅用于向后兼容，建议前端移除对此接口的调用
       if (result.success) {
         res.json({
           success: true,
-          message: result.message,
-          data: result.stats
+          message: '[已废弃] ' + result.message + ' - 请使用 GET /api/v1/tech-points 直接获取 shared 数据',
+          data: result.stats,
+          deprecated: true
         });
       } else {
         res.status(500).json({
           success: false,
-          message: result.message,
-          data: result.stats
+          message: '[已废弃] ' + result.message,
+          data: result.stats,
+          deprecated: true
         });
       }
     } catch (error) {

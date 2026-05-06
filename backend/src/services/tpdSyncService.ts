@@ -20,8 +20,12 @@ export class TechHubSyncService {
   private techHubApiBaseUrl: string;
 
   constructor() {
-    // 优先读取 tech-hub 配置，兼容旧的环境变量命名
-    this.techHubApiBaseUrl = process.env.TECH_HUB_API_BASE_URL || process.env.TPD_API_BASE_URL || 'http://localhost:3004/api/external/v1';
+    // tech-hub 对外前缀为 /api/v1（非历史占位路径 /api/external/v1）
+    // Docker 内需填容器可解析地址，如 http://geelytpd2-tech-hub:8080/api/v1
+    this.techHubApiBaseUrl =
+      process.env.TECH_HUB_API_BASE_URL ||
+      process.env.TPD_API_BASE_URL ||
+      'http://127.0.0.1:8080/api/v1';
   }
 
   /**
@@ -49,8 +53,12 @@ export class TechHubSyncService {
       errors: 0,
     };
 
-    // 使用传入的 API URL 或默认值
-    const apiBaseUrl = options?.apiBaseUrl || this.techHubApiBaseUrl;
+    // 使用传入的 API URL 或默认值；兼容历史错误路径 /api/external/v1
+    let apiBaseUrl = (options?.apiBaseUrl || this.techHubApiBaseUrl).replace(/\/$/, '');
+    if (apiBaseUrl.includes('/api/external/v1')) {
+      apiBaseUrl = apiBaseUrl.replace('/api/external/v1', '/api/v1');
+      logger.warn('已将废弃路径 /api/external/v1 替换为 /api/v1', { apiBaseUrl });
+    }
     const apiKey = options?.apiKey;
 
     try {
@@ -73,13 +81,12 @@ export class TechHubSyncService {
         try {
           // 从 tech-hub 获取技术点列表
           logger.debug(`正在获取第 ${page} 页技术点数据...`);
+          // Geely tech-hub FastAPI 列表参数为 limit / offset（忽略 page、pageSize）
           const response = await axios.get(`${apiBaseUrl}/tech-points`, {
             headers,
             params: {
-              page,
-              pageSize,
-              orderBy: 'created_at',
-              orderDirection: 'ASC',
+              limit: pageSize,
+              offset: (page - 1) * pageSize,
             },
             timeout: 30000,
           });
@@ -162,9 +169,18 @@ export class TechHubSyncService {
             apiUrl: `${apiBaseUrl}/tech-points`,
           });
 
-          // 如果是404或400，可能没有更多数据了
+          // 首屏即 404/400：多为 API 根路径错误（仍在使用 /api/external/v1）
+          if ((statusCode === 404 || statusCode === 400) && page === 1) {
+            return {
+              success: false,
+              message:
+                `无法拉取 tech-hub 技术点列表（HTTP ${statusCode}）。请使用当前 tech-hub 前缀 /api/v1，并在 Docker 内配置可解析地址（示例：http://geelytpd2-tech-hub:8080/api/v1）。`,
+              stats,
+            };
+          }
+
           if (statusCode === 404 || statusCode === 400) {
-            logger.info('API 返回 404/400，停止获取更多数据');
+            logger.info('分页请求返回 404/400，停止获取更多数据');
             hasMore = false;
           } else {
             stats.errors++;

@@ -1,4 +1,5 @@
 import { DatabaseManager } from '../config/database';
+import { toCountSql } from '../utils/toCountSql';
 import { 
   TechPoint, 
   CreateTechPointDTO, 
@@ -127,9 +128,8 @@ export class TechPointModel {
     }
 
     // 获取总数
-    const countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = await this.db.query(countSql, values);
-    const total = countResult[0].count;
+    const countResult = await this.db.query(toCountSql(sql), values);
+    const total = Number(countResult[0]?.count ?? 0);
 
     // 添加分页
     if (options.limit) {
@@ -350,9 +350,8 @@ export class TechPointModel {
     }
 
     // 获取总数
-    const countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = await this.db.query(countSql, values);
-    const total = countResult[0].count;
+    const countResult = await this.db.query(toCountSql(sql), values);
+    const total = Number(countResult[0]?.count ?? 0);
 
     // 添加分页
     if (options.limit) {

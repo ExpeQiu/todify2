@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_V1_BASE } from '../config/apiBase';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+const API_BASE_URL = API_V1_BASE;
 
 export interface ExecutionTrace {
   id: string;

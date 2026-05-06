@@ -18,6 +18,7 @@ import { pageToolConfigService } from "../../services/pageToolConfigService";
 import sourceService, { SourceCategory } from "../../services/sourceService";
 import { projectService } from "../../services/projectService";
 import { Project } from "../../types/project";
+import { API_V1_BASE } from "../../config/apiBase";
 
 const MESSAGE_PAGE_SIZE = 30;
 const WORKFLOW_DEFAULT_KEY = "__default__";
@@ -1672,8 +1673,7 @@ const BaseAISearchPage: React.FC<BaseAISearchPageProps> = ({
     }
 
     const conversationId = currentConversation.id;
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-    const eventSourceUrl = `${apiBaseUrl}/api/v1/ai-search/tool-events/${conversationId}`;
+    const eventSourceUrl = `${API_V1_BASE.replace(/\/$/, '')}/ai-search/tool-events/${conversationId}`;
 
     // 关闭现有连接
     if (sseEventSourceRef.current) {

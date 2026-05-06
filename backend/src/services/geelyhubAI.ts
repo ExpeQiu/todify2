@@ -12,6 +12,14 @@
 
 import axios from 'axios';
 import { logger } from '@/shared/lib/logger';
+import {
+  listActiveProviders,
+  getProviderById,
+  getProviderByType,
+  getProviderByModel,
+  toProviderConfig,
+  SharedLLMProvider,
+} from './sharedLLMProviders';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,9 +64,58 @@ export function getLocalProviderConfig(providerId: string | number): ProviderCon
   return localProviderConfigs.get(providerId);
 }
 
-// ─── Geelyhub API calls ───────────────────────────────────────────────────────
+// ─── shared.llm_providers 查询 ───────────────────────────────────────────────
+
+/**
+ * 从 shared.llm_providers 获取所有活跃 Provider（用于列表）
+ */
+export async function getAIProvidersFromShared(): Promise<AIProvider[]> {
+  try {
+    const providers = await listActiveProviders();
+    return providers.map(p => ({
+      id: p.id,
+      name: p.name,
+      description: p.provider_type,
+      enabled: p.is_active,
+    }));
+  } catch (error) {
+    logger.warn({ error }, '[geelyhubAI] Failed to fetch providers from shared.llm_providers');
+    return [];
+  }
+}
+
+/**
+ * 从 shared.llm_providers 获取单个 Provider 配置
+ */
+export async function getProviderConfigFromShared(providerId: string | number): Promise<ProviderConfig | null> {
+  try {
+    const id = typeof providerId === 'string' ? parseInt(providerId, 10) : providerId;
+    if (isNaN(id)) {
+      // 尝试按 provider_type 查找
+      const byType = await getProviderByType(String(providerId));
+      if (byType) return toProviderConfig(byType);
+      return null;
+    }
+    const provider = await getProviderById(id);
+    if (!provider) return null;
+    return toProviderConfig(provider);
+  } catch (error) {
+    logger.warn({ error, providerId }, '[geelyhubAI] Failed to fetch provider config from shared.llm_providers');
+    return null;
+  }
+}
+
+// ─── Geelyhub API calls (备用) ───────────────────────────────────────────────
 
 export async function getAIProvidersFromGeelyhub(): Promise<AIProvider[]> {
+  // 优先从 shared.llm_providers 读取
+  const shared = await getAIProvidersFromShared();
+  if (shared.length > 0) {
+    logger.debug('[geelyhubAI] Using shared.llm_providers for provider list');
+    return shared;
+  }
+
+  // 回退到 HTTP 调用 Geelyhub
   const url = `${GEELYHUB_URL}/hub-api/v1/ai/providers`;
   try {
     const response = await axios.get(url, {
@@ -76,6 +133,14 @@ export async function getAIProvidersFromGeelyhub(): Promise<AIProvider[]> {
 }
 
 export async function getProviderConfigFromGeelyhub(providerId: string | number): Promise<ProviderConfig | null> {
+  // 优先从 shared.llm_providers 读取
+  const shared = await getProviderConfigFromShared(providerId);
+  if (shared) {
+    logger.debug({ providerId }, '[geelyhubAI] Using shared.llm_providers for provider config');
+    return shared;
+  }
+
+  // 回退到 HTTP 调用 Geelyhub
   const url = `${GEELYHUB_URL}/hub-api/v1/ai/providers/${providerId}`;
   try {
     const response = await axios.get(url, {
@@ -96,14 +161,21 @@ export async function getProviderConfigFromGeelyhub(providerId: string | number)
 
 /**
  * Get AI config with layered fallback:
- * 1. Local config (highest priority, checked first when FALLBACK_ENABLED)
- * 2. Geelyhub config (if FALLBACK_ENABLED and Geelyhub is reachable)
- * 3. Local config (last resort if FALLBACK_ENABLED=false but Geelyhub failed)
+ * 1. shared.llm_providers (highest priority when PostgreSQL available)
+ * 2. Local config (FALLBACK_ENABLED + registered)
+ * 3. Geelyhub HTTP API (last resort)
  *
  * Returns null if neither is available.
  */
 export async function getAIConfig(providerId: string | number): Promise<ProviderConfig | null> {
-  // Step 1: Try local config
+  // Step 1: shared.llm_providers (primary source in PostgreSQL mode)
+  const shared = await getProviderConfigFromShared(providerId);
+  if (shared) {
+    logger.debug({ providerId }, '[geelyhubAI] Using shared.llm_providers config');
+    return shared;
+  }
+
+  // Step 2: Local in-memory config
   if (FALLBACK_ENABLED) {
     const local = getLocalProviderConfig(providerId);
     if (local) {
@@ -112,14 +184,14 @@ export async function getAIConfig(providerId: string | number): Promise<Provider
     }
   }
 
-  // Step 2: Try Geelyhub
+  // Step 3: Geelyhub HTTP API (legacy fallback)
   const geelyhub = await getProviderConfigFromGeelyhub(providerId);
   if (geelyhub) {
-    logger.debug({ providerId }, '[geelyhubAI] Using Geelyhub config for provider');
+    logger.debug({ providerId }, '[geelyhubAI] Using Geelyhub HTTP config');
     return geelyhub;
   }
 
-  // Step 3: Last-resort local even if FALLBACK_ENABLED was false
+  // Step 4: Last-resort local
   const local = getLocalProviderConfig(providerId);
   if (local) return local;
 

@@ -562,7 +562,7 @@ const ApiConfigManager: React.FC<ApiConfigManagerProps> = ({
                 { type: 'url', message: '请输入有效的 URL' },
               ]}
             >
-              <Input placeholder="例如：http://localhost:3004/api/external/v1" />
+              <Input placeholder="Docker 内同步填 http://geelytpd2-tech-hub:8080/api/v1（经网关可从宿主机用 /tech/api/v1）" />
             </Form.Item>
             <Form.Item
               name="apiKey"

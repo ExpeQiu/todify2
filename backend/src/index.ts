@@ -68,6 +68,32 @@ app.use('/api/v1', apiRoutes);
 app.use('/api/dify', difyProxyRoutes);
 
 
+// /health 健康检查（检查数据库连接）
+app.get('/health', async (req, res) => {
+  const timestamp = new Date().toISOString();
+  try {
+    // 执行简单查询验证数据库连接
+    await db.query('SELECT 1');
+    res.json({
+      status: 'ok',
+      service: 'todify4-backend',
+      timestamp,
+      checks: {
+        database: 'ok',
+      },
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      service: 'todify4-backend',
+      timestamp,
+      checks: {
+        database: 'error',
+      },
+    });
+  }
+});
+
 // API 健康检查
 app.get('/api/health', (req, res) => {
   res.json({ 

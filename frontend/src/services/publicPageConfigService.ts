@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_V1_BASE } from '../config/apiBase';
 import { 
   PublicPageConfig, 
   CreatePublicPageConfigRequest, 
@@ -7,7 +8,7 @@ import {
   ApiResponse 
 } from '../types/publicPageConfig';
 
-const API_BASE_URL = '/api/v1';
+const API_BASE_URL = API_V1_BASE;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

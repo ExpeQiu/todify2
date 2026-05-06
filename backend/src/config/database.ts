@@ -89,7 +89,10 @@ class SQLiteManager {
     // console.log('SQLiteManager.query - Params:', params);
 
     return new Promise((resolve, reject) => {
-      if (sql.trim().toLowerCase().startsWith('select')) {
+      const lead = sql.trim().toLowerCase();
+      // PRAGMA 等需返回行集；此前误走 run() 导致 PRAGMA table_info 无行，迁移逻辑重复 ADD COLUMN
+      const returnsRows = lead.startsWith('select') || lead.startsWith('pragma');
+      if (returnsRows) {
         this.db!.all(sql, params, (err, rows) => {
           if (err) {
             console.error('SQLiteManager.query - Error:', err);
@@ -134,7 +137,12 @@ class PostgreSQLManager {
   private pool: Pool | null = null;
 
   constructor(config: any) {
-    this.pool = new Pool(config);
+    this.pool = new Pool({
+      ...config,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
   }
 
   async connect(): Promise<void> {
@@ -154,7 +162,13 @@ class PostgreSQLManager {
     }
 
     try {
-      const result = await this.pool.query(sql, params);
+      // 模型层大量使用 SQLite 风格 ? 占位符；node-pg 需要 $1、$2…
+      let pgSql = sql;
+      if (params.length > 0 && sql.includes('?')) {
+        let i = 1;
+        pgSql = sql.replace(/\?/g, () => `$${i++}`);
+      }
+      const result = await this.pool.query(pgSql, params);
       return result.rows;
     } catch (error) {
       console.error('PostgreSQL查询错误:', error);

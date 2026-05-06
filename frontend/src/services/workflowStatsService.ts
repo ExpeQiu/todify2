@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_V1_BASE } from '../config/apiBase';
 
 // 工作流统计数据接口
 export interface WorkflowStatsOverview {
@@ -277,7 +278,7 @@ export class WorkflowStatsService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = '/api/v1';
+    this.baseURL = API_V1_BASE;
   }
 
   // ==============================================

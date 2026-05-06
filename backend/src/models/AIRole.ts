@@ -534,7 +534,14 @@ export class AIRoleModel {
     const sql = 'DELETE FROM ai_roles WHERE id = ?';
     const result: any = await this.db.query(sql, [id]);
 
-    return (result.changes && result.changes > 0) || false;
+    // SQLite 返回 changes，PostgreSQL 返回 rowCount
+    if (typeof result?.changes === 'number') {
+      return result.changes > 0;
+    }
+    if (typeof result?.rowCount === 'number') {
+      return result.rowCount > 0;
+    }
+    return false;
   }
 
   /**
@@ -643,7 +650,13 @@ export class AIRoleModel {
     const sql = `DELETE FROM ai_roles WHERE id IN (${placeholders})`;
     const result: any = await this.db.query(sql, ids);
 
-    return result.changes || ids.length;
+    if (typeof result?.changes === 'number') {
+      return result.changes;
+    }
+    if (typeof result?.rowCount === 'number') {
+      return result.rowCount;
+    }
+    return 0;
   }
 }
 

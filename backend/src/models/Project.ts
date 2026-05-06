@@ -1,4 +1,5 @@
 import { DatabaseManager } from '../config/database';
+import { toCountSql } from '../utils/toCountSql';
 import { 
   Project, 
   ProjectDetails,
@@ -27,37 +28,68 @@ export class ProjectModel {
    * 初始化项目相关表
    */
   async initializeTable(): Promise<void> {
-    // 主项目表
-    await this.db.query(`
-      CREATE TABLE IF NOT EXISTS projects (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        cover_image TEXT,
-        icon TEXT,
-        type TEXT DEFAULT 'normal' CHECK (type IN ('normal', 'featured')),
-        status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
-        created_by TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_opened_at DATETIME
-      )
-    `);
+    const isPg = this.db.getType() === 'postgresql';
 
-    // 项目来源关联表（兼容旧功能）
-    await this.db.query(`
-      CREATE TABLE IF NOT EXISTS project_sources (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        project_id INTEGER NOT NULL,
-        source_type TEXT NOT NULL CHECK (source_type IN ('file', 'url', 'text', 'tech_point', 'knowledge_point')),
-        source_content TEXT NOT NULL,
-        source_title TEXT,
-        source_description TEXT,
-        metadata TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-      )
-    `);
+    if (isPg) {
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS projects (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          description TEXT,
+          cover_image TEXT,
+          icon TEXT,
+          type TEXT DEFAULT 'normal',
+          status TEXT DEFAULT 'active',
+          created_by TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_opened_at TIMESTAMP
+        )
+      `);
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS project_sources (
+          id SERIAL PRIMARY KEY,
+          project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+          source_type TEXT NOT NULL,
+          source_content TEXT NOT NULL,
+          source_title TEXT,
+          source_description TEXT,
+          metadata TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await this.ensureProjectsColumnsPg();
+    } else {
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS projects (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT,
+          cover_image TEXT,
+          icon TEXT,
+          type TEXT DEFAULT 'normal' CHECK (type IN ('normal', 'featured')),
+          status TEXT DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
+          created_by TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          last_opened_at DATETIME
+        )
+      `);
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS project_sources (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          project_id INTEGER NOT NULL,
+          source_type TEXT NOT NULL CHECK (source_type IN ('file', 'url', 'text', 'tech_point', 'knowledge_point')),
+          source_content TEXT NOT NULL,
+          source_title TEXT,
+          source_description TEXT,
+          metadata TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+        )
+      `);
+      await this.ensureProjectsColumnsSqlite();
+    }
 
     await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_type ON projects(type)');
     await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)');
@@ -65,6 +97,57 @@ export class ProjectModel {
     await this.db.query('CREATE INDEX IF NOT EXISTS idx_projects_last_opened_at ON projects(last_opened_at)');
     await this.db.query('CREATE INDEX IF NOT EXISTS idx_project_sources_project_id ON project_sources(project_id)');
     await this.db.query('CREATE INDEX IF NOT EXISTS idx_project_sources_source_type ON project_sources(source_type)');
+  }
+
+  /** 旧 SQLite 库仅含较早 projects 表结构时补齐列（与 PG 侧 ensure 对齐） */
+  private async ensureProjectsColumnsSqlite(): Promise<void> {
+    const rows = (await this.db.query('PRAGMA table_info(projects)')) as { name: string }[];
+    if (!rows?.length) {
+      return;
+    }
+    const existing = new Set(rows.map((r) => r.name));
+    const cols: { name: string; ddl: string }[] = [
+      { name: 'description', ddl: 'TEXT' },
+      { name: 'cover_image', ddl: 'TEXT' },
+      { name: 'icon', ddl: 'TEXT' },
+      { name: 'type', ddl: "TEXT DEFAULT 'normal'" },
+      { name: 'status', ddl: "TEXT DEFAULT 'active'" },
+      { name: 'created_by', ddl: 'TEXT' },
+      { name: 'created_at', ddl: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'updated_at', ddl: 'DATETIME DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'last_opened_at', ddl: 'DATETIME' },
+    ];
+    for (const { name, ddl } of cols) {
+      if (!existing.has(name)) {
+        await this.db.query(`ALTER TABLE projects ADD COLUMN ${name} ${ddl}`);
+      }
+    }
+  }
+
+  /** 共用库上旧 projects 表缺列时补齐（PostgreSQL） */
+  private async ensureProjectsColumnsPg(): Promise<void> {
+    const cols: { name: string; ddl: string }[] = [
+      { name: 'description', ddl: 'TEXT' },
+      { name: 'cover_image', ddl: 'TEXT' },
+      { name: 'icon', ddl: 'TEXT' },
+      { name: 'type', ddl: "TEXT DEFAULT 'normal'" },
+      { name: 'status', ddl: "TEXT DEFAULT 'active'" },
+      { name: 'created_by', ddl: 'TEXT' },
+      { name: 'created_at', ddl: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'updated_at', ddl: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP' },
+      { name: 'last_opened_at', ddl: 'TIMESTAMP' },
+    ];
+    for (const { name, ddl } of cols) {
+      const q = `
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'projects' AND column_name = $1
+      `;
+      const exists = await this.db.query(q, [name]);
+      if (!exists?.length) {
+        const col = `"${name}"`;
+        await this.db.query(`ALTER TABLE projects ADD COLUMN ${col} ${ddl}`);
+      }
+    }
   }
 
   /**
@@ -145,9 +228,8 @@ export class ProjectModel {
     }
 
     // 获取总数
-    const countSql = sql.replace('SELECT *', 'SELECT COUNT(*) as count');
-    const countResult = await this.db.query(countSql, values);
-    const total = countResult[0].count;
+    const countResult = await this.db.query(toCountSql(sql), values);
+    const total = Number(countResult[0]?.count ?? 0);
 
     // 添加分页
     if (options.limit) {
@@ -266,7 +348,7 @@ export class ProjectModel {
     try {
       const sql = 'SELECT COUNT(*) as count FROM project_sources WHERE project_id = ?';
       const result = await this.db.query(sql, [projectId]);
-      return result[0]?.count || 0;
+      return Number(result[0]?.count ?? 0);
     } catch (error) {
       console.error('getSourceCount error:', error);
       // 如果表不存在或其他错误，返回 0
@@ -281,7 +363,7 @@ export class ProjectModel {
     try {
       const sql = 'SELECT COUNT(*) as count FROM project_tech_points WHERE project_id = ?';
       const result = await this.db.query(sql, [projectId]);
-      return result[0]?.count || 0;
+      return Number(result[0]?.count ?? 0);
     } catch (error) {
       console.error('getTechPointCount error:', error);
       // 如果表不存在或其他错误，返回 0
@@ -778,6 +860,11 @@ export class ProjectModel {
     if (!row) return row;
     
     const parsed = { ...row };
+
+    if (parsed.id != null && typeof parsed.id !== 'number') {
+      const n = Number(parsed.id);
+      if (!Number.isNaN(n)) parsed.id = n;
+    }
     
     // 转换日期字段为 ISO 字符串格式（确保 JSON 序列化正常）
     if (parsed.created_at) {

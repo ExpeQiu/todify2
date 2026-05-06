@@ -27,8 +27,11 @@ class TechHubAPIConfigService {
     {
       id: 'default-tech-hub',
       name: 'tech-hub 默认配置',
-      description: 'tech-hub 的默认 API 配置',
-      apiBaseUrl: import.meta.env.VITE_TECH_HUB_API_URL || import.meta.env.VITE_TPD_API_URL || 'http://localhost:3004/api/external/v1',
+      description: '与同栈 Geely tech-hub 对齐：前缀为 /api/v1；Docker 内同步请填 http://geelytpd2-tech-hub:8080/api/v1',
+      apiBaseUrl:
+        import.meta.env.VITE_TECH_HUB_API_URL ||
+        import.meta.env.VITE_TPD_API_URL ||
+        'http://127.0.0.1:8080/api/v1',
       enabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -56,10 +59,14 @@ class TechHubAPIConfigService {
       if (stored) {
         configs = JSON.parse(stored);
 
-        // 确保日期对象正确解析
+        // 确保日期对象正确解析；迁移废弃的 tech-hub API 前缀
         configs = configs.map((config: any) => ({
           ...config,
           id: config.id === 'default-tpd2' ? 'default-tech-hub' : config.id,
+          apiBaseUrl:
+            typeof config.apiBaseUrl === 'string'
+              ? config.apiBaseUrl.replace('/api/external/v1', '/api/v1')
+              : config.apiBaseUrl,
           createdAt: config.createdAt ? new Date(config.createdAt) : new Date(),
           updatedAt: config.updatedAt ? new Date(config.updatedAt) : new Date(),
         }));
@@ -215,7 +222,7 @@ class TechHubAPIConfigService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const testUrl = `${config.apiBaseUrl}/tech-points?page=1&pageSize=1`;
+      const testUrl = `${config.apiBaseUrl.replace(/\/$/, '')}/tech-points?limit=1&offset=0`;
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };

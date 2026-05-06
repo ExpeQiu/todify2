@@ -1,11 +1,46 @@
 const TOKEN_KEY = 'geelyhub_auth_token';
-const GEELYHUB_LOGIN_URL = process.env.GEELYHUB_LOGIN_URL || 'http://localhost/';
+const GEELYHUB_LOGIN_URL =
+  import.meta.env.VITE_GEELYHUB_LOGIN_URL || 'http://localhost:5180/login';
+
+/** 与 Router basename 一致；开发时 Vite base 可能为 /，不能依赖 import.meta.env.BASE_URL */
+const TODIFY_PATH_PREFIX = '/todify';
 
 /**
- * 获取当前 token
+ * 获取当前 token（与门户统一 key 兼容）
  */
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  const a = localStorage.getItem('auth_token')?.trim();
+  const g = localStorage.getItem(TOKEN_KEY)?.trim();
+  return g || a || null;
+}
+
+/**
+ * 登录后回跳路径：去掉 target/return_url/token，避免未登录时在同域反复 ?target= 嵌套编码
+ */
+/**
+ * 是否强制未登录跳转 Geelyhub：
+ * 默认不强制，只有显式配置 VITE_REQUIRE_GEELYHUB_AUTH=true 才启用。
+ */
+export function isGeelyhubAuthEnforced(): boolean {
+  const v = (import.meta.env.VITE_REQUIRE_GEELYHUB_AUTH || '').trim().toLowerCase();
+  if (v === 'true' || v === '1' || v === 'yes') return true;
+  if (v === 'false' || v === '0' || v === 'no') return false;
+  return false;
+}
+
+export function buildSafeReturnPath(): string {
+  if (typeof window === 'undefined') {
+    return `${TODIFY_PATH_PREFIX}/`;
+  }
+  const u = new URL(window.location.href);
+  for (const k of ['token', 'target', 'return_url']) {
+    u.searchParams.delete(k);
+  }
+  let path = `${u.pathname}${u.search}${u.hash}`;
+  if (!path || path === '/' || !path.startsWith(TODIFY_PATH_PREFIX)) {
+    path = `${TODIFY_PATH_PREFIX}/`;
+  }
+  return path;
 }
 
 /**
@@ -59,7 +94,8 @@ export function parseToken(token?: string): UserPayload | null {
  */
 export function redirectToLogin(targetPath: string = '/'): void {
   const returnUrl = encodeURIComponent(targetPath);
-  window.location.href = `${GEELYHUB_LOGIN_URL}?return_url=${returnUrl}`;
+  const sep = GEELYHUB_LOGIN_URL.includes('?') ? '&' : '?';
+  window.location.href = `${GEELYHUB_LOGIN_URL}${sep}return_url=${returnUrl}`;
 }
 
 /**

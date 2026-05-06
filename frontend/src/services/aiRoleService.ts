@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { AIRoleConfig } from '../types/aiRole';
 
-const API_BASE_URL = '/api/v1';
+import { API_V1_BASE } from '../config/apiBase';
+
+const API_BASE_URL = API_V1_BASE;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

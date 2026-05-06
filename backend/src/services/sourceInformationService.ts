@@ -88,9 +88,9 @@ export class SourceInformationService {
           console.log('成功添加 project_id 字段');
         }
       } catch (migrationError: any) {
-        // 如果字段已存在或其他错误，记录但不中断
-        if (!migrationError?.message?.includes('duplicate column')) {
-          console.warn('迁移 project_id 字段时出现警告:', migrationError?.message);
+        const msg = String(migrationError?.message || migrationError || '');
+        if (!/duplicate column name/i.test(msg)) {
+          console.warn('迁移 project_id 字段时出现警告:', msg);
         }
       }
       

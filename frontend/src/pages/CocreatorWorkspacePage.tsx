@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_V1_BASE } from "../config/apiBase";
 import TopNavigation from "../components/TopNavigation";
 
 interface Project {
@@ -42,7 +43,7 @@ const CocreatorWorkspacePage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/v1/cocreator/projects");
+      const response = await fetch(`${API_V1_BASE}/cocreator/projects`);
       const data = await response.json();
       if (data.success && data.data) {
         setProjects(data.data);
@@ -60,7 +61,7 @@ const CocreatorWorkspacePage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/v1/cocreator/tasks");
+      const response = await fetch(`${API_V1_BASE}/cocreator/tasks`);
       const data = await response.json();
       if (data.success && data.data) {
         setTasks(data.data);
@@ -79,7 +80,7 @@ const CocreatorWorkspacePage: React.FC = () => {
     if (!newProjectName.trim()) return;
 
     try {
-      const response = await fetch("/api/v1/cocreator/projects", {
+      const response = await fetch(`${API_V1_BASE}/cocreator/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
